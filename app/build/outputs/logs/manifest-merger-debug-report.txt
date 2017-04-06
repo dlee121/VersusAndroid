@@ -1,6 +1,6 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:2:1-23:12
+ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:2:1-32:12
 	package
 		ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:3:5-32
 		INJECTED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml
@@ -14,7 +14,7 @@ ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest
 		INJECTED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml
 		INJECTED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml
 application
-ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:5:5-21:19
+ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:5:5-30:19
 MERGED from [com.android.support:design:24.2.1] /Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/AndroidManifest.xml:22:5-20
 MERGED from [com.android.support:appcompat-v7:24.2.1] /Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/AndroidManifest.xml:25:5-20
 MERGED from [com.android.support:support-v4:24.2.1] /Users/dlee/.android/build-cache/be50681d74d97adf8af9759e69c5393def246606/output/AndroidManifest.xml:25:5-20
@@ -25,6 +25,7 @@ MERGED from [com.android.support:animated-vector-drawable:24.2.1] /Users/dlee/.a
 MERGED from [com.android.support:support-vector-drawable:24.2.1] /Users/dlee/.android/build-cache/fbfbd262b99e2db68d57bdbf6a340e0c84899531/output/AndroidManifest.xml:23:5-20
 MERGED from [com.android.support:support-core-ui:24.2.1] /Users/dlee/.android/build-cache/3e064de4faf35a61ff90cb358c4761b76d8933c8/output/AndroidManifest.xml:25:5-20
 MERGED from [com.android.support:support-compat:24.2.1] /Users/dlee/.android/build-cache/f3d2b18771b2105fb24ea17a78a97a335d223e25/output/AndroidManifest.xml:25:5-20
+MERGED from [com.android.support.constraint:constraint-layout:1.0.2] /Users/dlee/.android/build-cache/0d0eadfcc7989dbca58c717e3bb2c0675ff70ae0/output/AndroidManifest.xml:9:5-20
 	android:label
 		ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:8:9-41
 	android:supportsRtl
@@ -53,6 +54,22 @@ category#android.intent.category.LAUNCHER
 ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:18:17-77
 	android:name
 		ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:18:27-74
+activity#com.vs.bcd.versus.ProfilePage
+ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:21:9-29:20
+	android:label
+		ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:23:13-64
+	android:parentActivityName
+		ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:24:13-54
+	android:theme
+		ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:25:13-56
+	android:name
+		ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:22:13-40
+meta-data#android.support.PARENT_ACTIVITY
+ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:26:13-28:65
+	android:value
+		ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:28:17-62
+	android:name
+		ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:27:17-63
 uses-sdk
 INJECTED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
 MERGED from [com.android.support:design:24.2.1] /Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/AndroidManifest.xml:20:5-43
@@ -66,6 +83,7 @@ MERGED from [com.android.support:support-vector-drawable:24.2.1] /Users/dlee/.an
 MERGED from [com.android.support:recyclerview-v7:24.2.1] /Users/dlee/.android/build-cache/ce269ab715c73da448b6168569c412e60b1c9d65/output/AndroidManifest.xml:20:5-43
 MERGED from [com.android.support:support-core-ui:24.2.1] /Users/dlee/.android/build-cache/3e064de4faf35a61ff90cb358c4761b76d8933c8/output/AndroidManifest.xml:21:5-23:58
 MERGED from [com.android.support:support-compat:24.2.1] /Users/dlee/.android/build-cache/f3d2b18771b2105fb24ea17a78a97a335d223e25/output/AndroidManifest.xml:21:5-23:58
+MERGED from [com.android.support.constraint:constraint-layout:1.0.2] /Users/dlee/.android/build-cache/0d0eadfcc7989dbca58c717e3bb2c0675ff70ae0/output/AndroidManifest.xml:5:5-7:41
 	tools:overrideLibrary
 		ADDED from [com.android.support:appcompat-v7:24.2.1] /Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/AndroidManifest.xml:23:9-75
 	android:targetSdkVersion
