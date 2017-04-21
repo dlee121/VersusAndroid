@@ -19,7 +19,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ProfilePage"
+            android:name=".MainPage"
             android:label="@string/title_activity_profile_page"
             android:parentActivityName=".StartScreen"
             android:theme="@style/AppTheme.NoActionBar">
@@ -30,11 +30,11 @@
         <activity
             android:name=".PostBeforeVote"
             android:label="@string/title_activity_post_before_vote"
-            android:parentActivityName=".ProfilePage"
+            android:parentActivityName=".MainPage"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.vs.bcd.versus.ProfilePage" />
+                android:value="com.vs.bcd.versus.MainPage" />
         </activity>
     </application>
 

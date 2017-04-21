@@ -24,12 +24,12 @@
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/layout/abc_alert_dialog_material.xml"
     },
     {
-        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/activity_profile_page.xml",
-        "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/activity_profile_page.xml"
-    },
-    {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/notification_media_action.xml",
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/layout/notification_media_action.xml"
+    },
+    {
+        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/activity_main_page.xml",
+        "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/activity_main_page.xml"
     },
     {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/design_bottom_sheet_dialog.xml",
@@ -90,10 +90,6 @@
     {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/abc_popup_menu_header_item_layout.xml",
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/layout/abc_popup_menu_header_item_layout.xml"
-    },
-    {
-        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/content_profile_page.xml",
-        "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/content_profile_page.xml"
     },
     {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/abc_action_mode_bar.xml",
@@ -178,6 +174,10 @@
     {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/abc_action_bar_title_item.xml",
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/layout/abc_action_bar_title_item.xml"
+    },
+    {
+        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/content_main_page.xml",
+        "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/content_main_page.xml"
     },
     {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/activity_start_screen.xml",
