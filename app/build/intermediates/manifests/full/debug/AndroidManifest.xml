@@ -33,6 +33,15 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.vs.bcd.versus.StartScreen" />
         </activity>
+        <activity
+            android:name="com.vs.bcd.versus.PostBeforeVote"
+            android:label="@string/title_activity_post_before_vote"
+            android:parentActivityName="com.vs.bcd.versus.ProfilePage"
+            android:theme="@style/AppTheme.NoActionBar" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.vs.bcd.versus.ProfilePage" />
+        </activity>
     </application>
 
 </manifest>

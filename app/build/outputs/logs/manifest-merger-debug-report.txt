@@ -1,6 +1,6 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:2:1-32:12
+ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:2:1-41:12
 	package
 		ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:3:5-32
 		INJECTED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml
@@ -14,7 +14,7 @@ ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest
 		INJECTED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml
 		INJECTED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml
 application
-ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:5:5-30:19
+ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:5:5-39:19
 MERGED from [com.android.support:design:24.2.1] /Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/AndroidManifest.xml:22:5-20
 MERGED from [com.android.support:appcompat-v7:24.2.1] /Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/AndroidManifest.xml:25:5-20
 MERGED from [com.android.support:support-v4:24.2.1] /Users/dlee/.android/build-cache/be50681d74d97adf8af9759e69c5393def246606/output/AndroidManifest.xml:25:5-20
@@ -70,6 +70,16 @@ ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest
 		ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:28:17-62
 	android:name
 		ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:27:17-63
+activity#com.vs.bcd.versus.PostBeforeVote
+ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:30:9-38:20
+	android:label
+		ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:32:13-68
+	android:parentActivityName
+		ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:33:13-54
+	android:theme
+		ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:34:13-56
+	android:name
+		ADDED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml:31:13-43
 uses-sdk
 INJECTED from /Users/dlee/AndroidStudioProjects/Versus/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
 MERGED from [com.android.support:design:24.2.1] /Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/AndroidManifest.xml:20:5-43

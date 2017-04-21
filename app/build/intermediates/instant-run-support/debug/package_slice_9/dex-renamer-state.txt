@@ -1,4 +1,0 @@
-#Fri Mar 31 14:41:59 CDT 2017
-base.0=/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/transforms/dex/debug/folders/1000/5/slice_9
-renamed.0=classes.dex
-file.0=/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/transforms/dex/debug/folders/1000/5/slice_9/classes.dex

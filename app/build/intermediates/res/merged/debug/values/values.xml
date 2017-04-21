@@ -658,6 +658,7 @@
     <string name="search_menu_title">Search</string>
     <string name="startpagelogo">StartPageLogo</string>
     <string name="status_bar_notification_info_overflow">999+</string>
+    <string name="title_activity_post_before_vote">PostBeforeVote</string>
     <string name="title_activity_profile">Profile</string>
     <string name="title_activity_profile_page">ProfilePage</string>
     <string name="username">Username</string>
