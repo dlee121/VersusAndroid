@@ -52,6 +52,10 @@
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/drawable/abc_item_background_holo_light.xml"
     },
     {
+        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/drawable/background_splash.xml",
+        "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/drawable/background_splash.xml"
+    },
+    {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/drawable/abc_textfield_search_material.xml",
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/drawable/abc_textfield_search_material.xml"
     },

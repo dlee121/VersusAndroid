@@ -8,34 +8,31 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
+
+
         <activity
-            android:name=".StartScreen"
-            android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:name=".SplashActivity"
+            android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
-            android:name=".MainPage"
-            android:label="@string/title_activity_profile_page"
-            android:parentActivityName=".StartScreen"
+            android:name=".MainActivity"
+            android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBar">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.vs.bcd.versus.StartScreen" />
         </activity>
+
         <activity
-            android:name=".PostBeforeVote"
-            android:label="@string/title_activity_post_before_vote"
-            android:parentActivityName=".MainPage"
+            android:name=".StartScreen"
+            android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.vs.bcd.versus.MainPage" />
         </activity>
+
     </application>
 
 </manifest>

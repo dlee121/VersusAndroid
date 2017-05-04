@@ -1,5 +1,9 @@
 [
     {
+        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/tab5leaderboard.xml",
+        "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/tab5leaderboard.xml"
+    },
+    {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/abc_alert_dialog_button_bar_material.xml",
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/layout/abc_alert_dialog_button_bar_material.xml"
     },
@@ -84,6 +88,10 @@
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/layout/abc_screen_simple.xml"
     },
     {
+        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/tab4categories.xml",
+        "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/tab4categories.xml"
+    },
+    {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/design_navigation_item_separator.xml",
         "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/layout/design_navigation_item_separator.xml"
     },
@@ -156,6 +164,10 @@
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/layout/abc_screen_content_include.xml"
     },
     {
+        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/tab3randomvs.xml",
+        "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/tab3randomvs.xml"
+    },
+    {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/abc_search_view.xml",
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/layout/abc_search_view.xml"
     },
@@ -176,6 +188,10 @@
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/layout/abc_action_bar_title_item.xml"
     },
     {
+        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/tab2trending.xml",
+        "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/tab2trending.xml"
+    },
+    {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/content_main_page.xml",
         "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/content_main_page.xml"
     },
@@ -192,12 +208,24 @@
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/layout/abc_action_menu_layout.xml"
     },
     {
+        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/activity_main.xml",
+        "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/activity_main.xml"
+    },
+    {
+        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/tab1newsfeed.xml",
+        "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/tab1newsfeed.xml"
+    },
+    {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/content_start_screen.xml",
         "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/content_start_screen.xml"
     },
     {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/support_simple_spinner_dropdown_item.xml",
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/layout/support_simple_spinner_dropdown_item.xml"
+    },
+    {
+        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/tab6me.xml",
+        "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/tab6me.xml"
     },
     {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/abc_list_menu_item_layout.xml",

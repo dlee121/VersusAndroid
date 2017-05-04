@@ -10,4 +10,9 @@
     <string name="title_activity_profile">Profile</string>
     <string name="title_activity_profile_page">ProfilePage</string>
     <string name="title_activity_post_before_vote">PostBeforeVote</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="section_format">Hello World from section: %1$d</string>
+    <string name="action_search_main">Search</string>
+    <string name="title_activity_splash">SplashActivity</string>
+
 </resources>

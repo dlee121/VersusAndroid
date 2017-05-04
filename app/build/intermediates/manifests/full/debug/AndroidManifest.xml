@@ -5,7 +5,7 @@
     android:versionName="1.0" >
 
     <uses-sdk
-        android:minSdkVersion="15"
+        android:minSdkVersion="16"
         android:targetSdkVersion="24" />
 
     <application
@@ -15,9 +15,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="com.vs.bcd.versus.StartScreen"
-            android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar" >
+            android:name="com.vs.bcd.versus.SplashActivity"
+            android:theme="@style/SplashTheme" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -25,22 +24,14 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.vs.bcd.versus.ProfilePage"
-            android:label="@string/title_activity_profile_page"
-            android:parentActivityName="com.vs.bcd.versus.StartScreen"
+            android:name="com.vs.bcd.versus.MainActivity"
+            android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBar" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.vs.bcd.versus.StartScreen" />
         </activity>
         <activity
-            android:name="com.vs.bcd.versus.PostBeforeVote"
-            android:label="@string/title_activity_post_before_vote"
-            android:parentActivityName="com.vs.bcd.versus.ProfilePage"
+            android:name="com.vs.bcd.versus.StartScreen"
+            android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.vs.bcd.versus.ProfilePage" />
         </activity>
     </application>
 
