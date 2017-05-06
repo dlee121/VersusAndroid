@@ -2,12 +2,12 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:drawable="@color/vsOne"/>
+        android:drawable="@color/windowBackground"/>
 
     <item>
         <bitmap
             android:gravity="center"
-            android:src="@drawable/vslogotemp"/>
+            android:src="@drawable/vs_w_tag"/>
     </item>
 
 </layer-list>

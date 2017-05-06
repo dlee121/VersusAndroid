@@ -6,6 +6,6 @@
     <color name="windowBackground">#FFFFFF</color>
     <color name="navigationBarColor">#000000</color>
     <color name="colorAccent">#c8e8ff</color>
-    <color name="vsOne">#C88264</color>
-    <color name="vsTwo">#A2E2DC</color>
+    <color name="vsOne">#303030</color>
+    <color name="vsTwo">#A52339</color>
 </resources>

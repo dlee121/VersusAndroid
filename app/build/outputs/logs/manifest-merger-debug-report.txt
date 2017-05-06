@@ -23,6 +23,7 @@ MERGED from [com.android.support:support-media-compat:24.2.1] /Users/dlee/.andro
 MERGED from [com.android.support:support-core-utils:24.2.1] /Users/dlee/.android/build-cache/ad1e59200c889d6cb9fb6b947c67a6180c6cf18e/output/AndroidManifest.xml:25:5-20
 MERGED from [com.android.support:animated-vector-drawable:24.2.1] /Users/dlee/.android/build-cache/45b71a87162fd4fc51ae20f9aac9f7dddbdacd08/output/AndroidManifest.xml:22:5-20
 MERGED from [com.android.support:support-vector-drawable:24.2.1] /Users/dlee/.android/build-cache/fbfbd262b99e2db68d57bdbf6a340e0c84899531/output/AndroidManifest.xml:23:5-20
+MERGED from [com.android.support:cardview-v7:24.2.1] /Users/dlee/.android/build-cache/5fc2e48e8872eb796158ca3818dea6276f826999/output/AndroidManifest.xml:22:5-20
 MERGED from [com.android.support:support-core-ui:24.2.1] /Users/dlee/.android/build-cache/3e064de4faf35a61ff90cb358c4761b76d8933c8/output/AndroidManifest.xml:25:5-20
 MERGED from [com.android.support:support-compat:24.2.1] /Users/dlee/.android/build-cache/f3d2b18771b2105fb24ea17a78a97a335d223e25/output/AndroidManifest.xml:25:5-20
 MERGED from [com.android.support.constraint:constraint-layout:1.0.2] /Users/dlee/.android/build-cache/0d0eadfcc7989dbca58c717e3bb2c0675ff70ae0/output/AndroidManifest.xml:9:5-20
@@ -78,6 +79,7 @@ MERGED from [com.android.support:support-media-compat:24.2.1] /Users/dlee/.andro
 MERGED from [com.android.support:support-core-utils:24.2.1] /Users/dlee/.android/build-cache/ad1e59200c889d6cb9fb6b947c67a6180c6cf18e/output/AndroidManifest.xml:21:5-23:61
 MERGED from [com.android.support:animated-vector-drawable:24.2.1] /Users/dlee/.android/build-cache/45b71a87162fd4fc51ae20f9aac9f7dddbdacd08/output/AndroidManifest.xml:20:5-44
 MERGED from [com.android.support:support-vector-drawable:24.2.1] /Users/dlee/.android/build-cache/fbfbd262b99e2db68d57bdbf6a340e0c84899531/output/AndroidManifest.xml:21:5-43
+MERGED from [com.android.support:cardview-v7:24.2.1] /Users/dlee/.android/build-cache/5fc2e48e8872eb796158ca3818dea6276f826999/output/AndroidManifest.xml:20:5-43
 MERGED from [com.android.support:recyclerview-v7:24.2.1] /Users/dlee/.android/build-cache/ce269ab715c73da448b6168569c412e60b1c9d65/output/AndroidManifest.xml:20:5-43
 MERGED from [com.android.support:support-core-ui:24.2.1] /Users/dlee/.android/build-cache/3e064de4faf35a61ff90cb358c4761b76d8933c8/output/AndroidManifest.xml:21:5-23:58
 MERGED from [com.android.support:support-compat:24.2.1] /Users/dlee/.android/build-cache/f3d2b18771b2105fb24ea17a78a97a335d223e25/output/AndroidManifest.xml:21:5-23:58

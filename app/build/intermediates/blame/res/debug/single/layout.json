@@ -1,11 +1,11 @@
 [
     {
-        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/tab5leaderboard.xml",
-        "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/tab5leaderboard.xml"
-    },
-    {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/abc_alert_dialog_button_bar_material.xml",
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/layout/abc_alert_dialog_button_bar_material.xml"
+    },
+    {
+        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/tab5leaderboard.xml",
+        "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/tab5leaderboard.xml"
     },
     {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/abc_dialog_title_material.xml",
@@ -130,6 +130,14 @@
     {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/notification_template_big_media.xml",
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/layout/notification_template_big_media.xml"
+    },
+    {
+        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/item_recycler_view_row.xml",
+        "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/item_recycler_view_row.xml"
+    },
+    {
+        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/item_loading.xml",
+        "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/item_loading.xml"
     },
     {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/abc_screen_simple_overlay_action_mode.xml",
