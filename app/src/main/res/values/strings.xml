@@ -14,5 +14,12 @@
     <string name="section_format">Hello World from section: %1$d</string>
     <string name="action_search_main">Search</string>
     <string name="title_activity_splash">SplashActivity</string>
+    <string name="title_activity_sign_up_prompts">SignUpPrompts</string>
+    <string name="title_activity_whats_your_name">WhatsYourName</string>
+    <string name="title_activity_whats_your_birthday">WhatsYourBirthday</string>
+    <string name="title_activity_whats_your_username">WhatsYourUsername</string>
+    <string name="title_activity_whats_your_password">WhatsYourPassword</string>
+    <string name="title_activity_phone_or_email">PhoneOrEmail</string>
+    <string name="next">next</string>
 
 </resources>

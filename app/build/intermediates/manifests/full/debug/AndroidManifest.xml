@@ -10,7 +10,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/vs_icon_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme" >
@@ -26,12 +26,55 @@
         <activity
             android:name="com.vs.bcd.versus.MainActivity"
             android:label="@string/title_activity_main"
-            android:theme="@style/AppTheme.NoActionBar" >
-        </activity>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name="com.vs.bcd.versus.StartScreen"
             android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name="com.vs.bcd.versus.WhatsYourName"
+            android:label="@string/title_activity_whats_your_name"
+            android:parentActivityName="com.vs.bcd.versus.StartScreen"
             android:theme="@style/AppTheme.NoActionBar" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.vs.bcd.versus.StartScreen" />
+        </activity>
+        <activity
+            android:name="com.vs.bcd.versus.WhatsYourBirthday"
+            android:label="@string/title_activity_whats_your_birthday"
+            android:parentActivityName="com.vs.bcd.versus.WhatsYourName"
+            android:theme="@style/AppTheme.NoActionBar" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.vs.bcd.versus.WhatsYourName" />
+        </activity>
+        <activity
+            android:name="com.vs.bcd.versus.WhatsYourUsername"
+            android:label="@string/title_activity_whats_your_username"
+            android:parentActivityName="com.vs.bcd.versus.WhatsYourBirthday"
+            android:theme="@style/AppTheme.NoActionBar" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.vs.bcd.versus.WhatsYourBirthday" />
+        </activity>
+        <activity
+            android:name="com.vs.bcd.versus.WhatsYourPassword"
+            android:label="@string/title_activity_whats_your_password"
+            android:parentActivityName="com.vs.bcd.versus.WhatsYourUsername"
+            android:theme="@style/AppTheme.NoActionBar" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.vs.bcd.versus.WhatsYourUsername" />
+        </activity>
+        <activity
+            android:name="com.vs.bcd.versus.PhoneOrEmail"
+            android:label="@string/title_activity_phone_or_email"
+            android:parentActivityName="com.vs.bcd.versus.WhatsYourPassword"
+            android:theme="@style/AppTheme.NoActionBar" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.vs.bcd.versus.WhatsYourPassword" />
         </activity>
     </application>
 

@@ -16,11 +16,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-
+import android.graphics.PorterDuff;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
-
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
      * fragments for each of the sections. We use a
@@ -51,7 +50,59 @@ public class MainActivity extends AppCompatActivity {
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
         //set tab icons
-        tabLayout.getTabAt(1).setIcon(R.drawable.ic_trending_trimmed);
+
+        tabLayout.getTabAt(0).setIcon(R.drawable.ic_trending_selected);
+        tabLayout.getTabAt(1).setIcon(R.drawable.ic_trending_unselected);
+        tabLayout.getTabAt(2).setIcon(R.drawable.ic_randomvs_unselected);
+        tabLayout.getTabAt(3).setIcon(R.drawable.ic_trending_unselected);
+
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                switch (tab.getPosition()) {
+                    case 0: //newsfeed
+                        tab.setIcon(R.drawable.ic_trending_selected);
+                        break;
+                    case 1: //trending
+                        tab.setIcon(R.drawable.ic_trending_selected);
+                        break;
+                    case 2: //randomvs
+                        tab.setIcon(R.drawable.ic_randomvs_selected);
+                        break;
+                    case 3: //categories
+                        tab.setIcon(R.drawable.ic_trending_selected);
+                        break;
+                    default:
+                        tab.setIcon(R.drawable.ic_trending_selected);
+                        break;
+                }
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+                switch (tab.getPosition()) {
+                    case 0: //newsfeed
+                        tab.setIcon(R.drawable.ic_trending_unselected);
+                        break;
+                    case 1: //trending
+                        tab.setIcon(R.drawable.ic_trending_unselected);
+                        break;
+                    case 2: //randomvs
+                        tab.setIcon(R.drawable.ic_randomvs_unselected);
+                        break;
+                    case 3: //categories
+                        tab.setIcon(R.drawable.ic_trending_unselected);
+                        break;
+                    default:
+                        tab.setIcon(R.drawable.ic_trending_unselected);
+                        break;
+                }
+
+            }
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+            }
+        });
 
 
 
@@ -135,28 +186,35 @@ public class MainActivity extends AppCompatActivity {
             // Show 4 total pages.
             return 4;
         }
-
+/*
         @Override
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
                     return "NEWSFEED";
-                /*
+
                 case 1:
                     return "TRENDING";
-                */
+
                 case 2:
                     return "RANDOMVS";
                 case 3:
                     return "CATEGORIES";
-            /*
+
                 case 4:
                     return "LEADERBOARD";
                 case 5:
                     return "ME";
-            */
+
             }
             return null;
         }
+*/
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
     }
 }

@@ -18,12 +18,12 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private OnLoadMoreListener onLoadMoreListener;
     private boolean isLoading;
     private Activity activity;
-    private List<Contact> contacts;
+    private List<Post> posts;
     private int visibleThreshold = 8;
     private int lastVisibleItem, totalItemCount;
 
-    public MyAdapter(RecyclerView recyclerView, List<Contact> contacts, Activity activity) {
-        this.contacts = contacts;
+    public MyAdapter(RecyclerView recyclerView, List<Post> posts, Activity activity) {
+        this.posts = posts;
         this.activity = activity;
 
         final LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
@@ -49,7 +49,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     @Override
     public int getItemViewType(int position) {
-        return contacts.get(position) == null ? VIEW_TYPE_LOADING : VIEW_TYPE_ITEM;
+        return posts.get(position) == null ? VIEW_TYPE_LOADING : VIEW_TYPE_ITEM;
     }
 
     @Override
@@ -67,10 +67,21 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         if (holder instanceof UserViewHolder) {
-            Contact contact = contacts.get(position);
+            //TODO:this is where values are put into the layout, from the post object
+            Post post = posts.get(position);
+
             UserViewHolder userViewHolder = (UserViewHolder) holder;
-            userViewHolder.phone.setText(contact.getEmail());
-            userViewHolder.email.setText(contact.getPhone());
+            userViewHolder.post_id.setText("Post ID: " + Integer.toString(post.getPostID()));
+            userViewHolder.question.setText("Question: " + post.getQuestion());
+            userViewHolder.author.setText("By: " + post.getAuthor());
+            userViewHolder.time.setText(post.getTime());
+            userViewHolder.viewcount.setText(Integer.toString(post.getViewcount()) + " views");
+            userViewHolder.redname.setText(post.getRedname());
+            userViewHolder.redcount.setText(Integer.toString(post.getRedcount()));
+            userViewHolder.blackname.setText(post.getBlackname());
+            userViewHolder.blackcount.setText(Integer.toString(post.getBlackcount()));
+            userViewHolder.category.setText(post.getCategory());
+
         } else if (holder instanceof LoadingViewHolder) {
             LoadingViewHolder loadingViewHolder = (LoadingViewHolder) holder;
             loadingViewHolder.progressBar.setIndeterminate(true);
@@ -79,7 +90,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     @Override
     public int getItemCount() {
-        return contacts == null ? 0 : contacts.size();
+        return posts == null ? 0 : posts.size();
     }
 
     public void setLoaded() {
@@ -96,13 +107,32 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     private class UserViewHolder extends RecyclerView.ViewHolder {
-        public TextView phone;
-        public TextView email;
+        public TextView post_id;
+        public TextView question;
+        public TextView author;
+        public TextView time;
+        public TextView viewcount;
+        public TextView redname;
+        public TextView redcount;
+        public TextView blackname;
+        public TextView blackcount;
+        public TextView category;
+
+        //TODO: thumnails
+        //post_id, question, author, time, {thumbnail1, thumbnail2}*, viewcount, redname, redcount, blackname, blackcount
 
         public UserViewHolder(View view) {
             super(view);
-            phone = (TextView) view.findViewById(R.id.txt_phone);
-            email = (TextView) view.findViewById(R.id.txt_email);
+            post_id = (TextView) view.findViewById(R.id.txt_post_id);
+            question = (TextView) view.findViewById(R.id.txt_question);
+            author = (TextView) view.findViewById(R.id.txt_author);
+            time = (TextView) view.findViewById(R.id.txt_time);
+            viewcount = (TextView) view.findViewById(R.id.txt_viewcount);
+            redname = (TextView) view.findViewById(R.id.txt_redname);
+            redcount = (TextView) view.findViewById(R.id.txt_redcount);
+            blackname = (TextView) view.findViewById(R.id.txt_blackname);
+            blackcount = (TextView) view.findViewById(R.id.txt_blackcount);
+            category = (TextView) view.findViewById(R.id.txt_category);
         }
     }
 }

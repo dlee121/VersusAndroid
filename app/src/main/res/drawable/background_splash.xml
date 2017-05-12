@@ -3,11 +3,9 @@
 
     <item
         android:drawable="@color/windowBackground"/>
-
     <item>
         <bitmap
             android:gravity="center"
-            android:src="@drawable/vs_w_tag"/>
+            android:src="@drawable/vs_shadow_w_tag"/>
     </item>
-
 </layer-list>

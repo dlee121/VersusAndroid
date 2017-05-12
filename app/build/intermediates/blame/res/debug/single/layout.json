@@ -12,6 +12,10 @@
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/layout/abc_dialog_title_material.xml"
     },
     {
+        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/content_whats_your_username.xml",
+        "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/content_whats_your_username.xml"
+    },
+    {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/notification_template_part_chronometer.xml",
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/layout/notification_template_part_chronometer.xml"
     },
@@ -28,6 +32,10 @@
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/layout/abc_alert_dialog_material.xml"
     },
     {
+        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/activity_phone_or_email.xml",
+        "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/activity_phone_or_email.xml"
+    },
+    {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/notification_media_action.xml",
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/layout/notification_media_action.xml"
     },
@@ -40,8 +48,20 @@
         "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/layout/design_bottom_sheet_dialog.xml"
     },
     {
+        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/content_whats_your_name.xml",
+        "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/content_whats_your_name.xml"
+    },
+    {
+        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/activity_whats_your_username.xml",
+        "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/activity_whats_your_username.xml"
+    },
+    {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/design_layout_snackbar.xml",
         "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/layout/design_layout_snackbar.xml"
+    },
+    {
+        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/activity_whats_your_name.xml",
+        "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/activity_whats_your_name.xml"
     },
     {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/abc_activity_chooser_view.xml",
@@ -64,6 +84,10 @@
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/layout/abc_action_bar_up_container.xml"
     },
     {
+        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/content_whats_your_password.xml",
+        "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/content_whats_your_password.xml"
+    },
+    {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/design_navigation_item.xml",
         "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/layout/design_navigation_item.xml"
     },
@@ -80,8 +104,16 @@
         "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/layout/design_layout_tab_text.xml"
     },
     {
+        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/activity_whats_your_password.xml",
+        "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/activity_whats_your_password.xml"
+    },
+    {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/abc_select_dialog_material.xml",
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/layout/abc_select_dialog_material.xml"
+    },
+    {
+        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/activity_whats_your_birthday.xml",
+        "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/activity_whats_your_birthday.xml"
     },
     {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/abc_screen_simple.xml",
@@ -90,6 +122,10 @@
     {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/tab4categories.xml",
         "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/tab4categories.xml"
+    },
+    {
+        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/content_phone_or_email.xml",
+        "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/content_phone_or_email.xml"
     },
     {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/design_navigation_item_separator.xml",
@@ -122,6 +158,10 @@
     {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/abc_list_menu_item_icon.xml",
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/layout/abc_list_menu_item_icon.xml"
+    },
+    {
+        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/content_whats_your_birthday.xml",
+        "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/layout/content_whats_your_birthday.xml"
     },
     {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/layout/select_dialog_singlechoice_material.xml",
