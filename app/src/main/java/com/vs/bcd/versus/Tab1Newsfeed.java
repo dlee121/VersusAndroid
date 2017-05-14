@@ -11,8 +11,15 @@ import android.os.Handler;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+
+import com.amazonaws.auth.CognitoCachingCredentialsProvider;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.dynamodbv2.*;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
+import com.amazonaws.services.dynamodbv2.model.*;
 
 /**
  * Created by dlee on 4/29/17.
@@ -22,7 +29,7 @@ public class Tab1Newsfeed extends Fragment{
 
     private List<Post> posts;
     private MyAdapter myAdapter;
-
+    private boolean dataLoaded = false;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -31,68 +38,9 @@ public class Tab1Newsfeed extends Fragment{
         //TODO: this is where I need to get data from database and construct list of Post objects
         //TODO: create, at the right location, list of constant enumeration to represent categories. probably at post creation page, which is for now replaced by sample data creation below
         //for now, create sample data
-        posts = new ArrayList<>();
-
-        Post tempPost;
-
-        //sample post 1
-        //categories: for now let's do 0 = politics, 1 = sports (then sub categories / tags could be basket ball, boxing, ufc, soccer, etc), 2 = food, 3 = anime / comics
-        //set up enum of Strings to prevent errors like typos
-        tempPost = new Post();
-        tempPost.setPostID(0xABCD12);
-        tempPost.setQuestion("Who would win in a fight?");
-        tempPost.setAuthor("bingbing123");
-        tempPost.setTime("5 days");
-        tempPost.setViewcount(84133);
-        tempPost.setRedname("Conor McGregor");
-        tempPost.setRedcount(42214);
-        tempPost.setBlackname("Floyd Mayweather Jr.");
-        tempPost.setBlackcount(38139);
-        tempPost.setCategory("sports");
-
-        posts.add(tempPost);
-
-        //sample post 2
-        tempPost = new Post();
-        tempPost.setPostID(0xBBC113);
-        tempPost.setQuestion("Should heroin be legalized?");
-        tempPost.setAuthor("mingming22");
-        tempPost.setTime("5 minutes");
-        tempPost.setViewcount(3133);
-        tempPost.setRedname("Yes");
-        tempPost.setRedcount(74);
-        tempPost.setBlackname("No");
-        tempPost.setBlackcount(239);
-        tempPost.setCategory("politics");
-        posts.add(tempPost);
-
-        //sample post 3
-        tempPost = new Post();
-        tempPost.setPostID(0xB8C713);
-        tempPost.setQuestion("Which one's better?");
-        tempPost.setAuthor("mingming22");
-        tempPost.setTime("3 months");
-        tempPost.setViewcount(412423);
-        tempPost.setRedname("Burger");
-        tempPost.setRedcount(8812);
-        tempPost.setBlackname("Pizza");
-        tempPost.setBlackcount(9345);
-        tempPost.setCategory("food");
-        posts.add(tempPost);
-
-        //sample post 4
-        tempPost = new Post();
-        tempPost.setPostID(0xA23614);
-        tempPost.setQuestion("Who would win in a fight?");
-        tempPost.setAuthor("12pongpong48");
-        tempPost.setTime("8/10/2016");
-        tempPost.setViewcount(932983);
-        tempPost.setRedname("Goku");
-        tempPost.setRedcount(9001);
-        tempPost.setBlackname("Superman");
-        tempPost.setBlackcount(8639);
-        tempPost.setCategory("anime / comics");
-        posts.add(tempPost);
+        ddbQuery();
+        //TODO: replace the line below with actual thread.join instead of this while loop
+        while (!dataLoaded){};
 
 
         //find view by id and attaching adapter for the RecyclerView
@@ -140,6 +88,38 @@ public class Tab1Newsfeed extends Fragment{
 
 
         return rootView;
+    }
+
+
+    private void ddbQuery(){
+        // Initialize the Amazon Cognito credentials provider
+        CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
+                getActivity().getApplicationContext(),
+                "us-east-1:88614505-c8df-4dce-abd8-79a0543852ff", // Identity Pool ID
+                Regions.US_EAST_1 // Region
+        );
+        AmazonDynamoDBClient ddbClient = new AmazonDynamoDBClient(credentialsProvider);
+        final DynamoDBMapper mapper = new DynamoDBMapper(ddbClient);
+
+        Runnable runnable = new Runnable() {
+            public void run() {
+                //DynamoDB calls go here
+                DynamoDBScanExpression scanExpression = new DynamoDBScanExpression();
+                DynamoDBMapperConfig config = new DynamoDBMapperConfig(DynamoDBMapperConfig.PaginationLoadingStrategy.EAGER_LOADING);
+                PaginatedScanList<Post> result = mapper.scan(Post.class, scanExpression, config);
+                result.loadAllResults();
+                posts = new ArrayList<>(result.size());
+                Iterator<Post> it = result.iterator();
+                while (it.hasNext()){
+                    Post element = it.next();
+                    posts.add(element);
+                }
+                dataLoaded = true;
+            }
+        };
+        Thread mythread = new Thread(runnable);
+        mythread.start();
+
     }
 
 }
