@@ -5,7 +5,7 @@
     android:paddingBottom="16dp"
     android:paddingLeft="0dp"
     android:paddingRight="0dp"
-    android:paddingTop="8dp"
+    android:paddingTop="0dp"
     android:background="#efefef"
     tools:context="com.vs.bcd.versus.MainActivity">
 

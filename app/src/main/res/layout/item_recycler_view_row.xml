@@ -16,7 +16,6 @@
             android:id="@+id/txt_post_id"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="post ID"
             android:textColor="@android:color/black"
             android:textSize="16sp" />
 
@@ -24,7 +23,6 @@
             android:id="@+id/txt_question"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Question"
             android:textColor="@android:color/black"
             android:textSize="16sp" />
 

@@ -4,6 +4,18 @@
         "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/color-v23/design_tint_password_toggle.xml"
     },
     {
+        "merged": "/Users/dlee/versus/app/build/intermediates/res/merged/debug/color-v23/abc_tint_switch_track.xml",
+        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color-v23/abc_tint_switch_track.xml"
+    },
+    {
+        "merged": "/Users/dlee/versus/app/build/intermediates/res/merged/debug/color-v23/abc_tint_edittext.xml",
+        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color-v23/abc_tint_edittext.xml"
+    },
+    {
+        "merged": "/Users/dlee/versus/app/build/intermediates/res/merged/debug/color-v23/abc_tint_spinner.xml",
+        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color-v23/abc_tint_spinner.xml"
+    },
+    {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/color-v23/abc_tint_btn_checkable.xml",
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color-v23/abc_tint_btn_checkable.xml"
     },
@@ -24,6 +36,10 @@
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color-v23/abc_tint_default.xml"
     },
     {
+        "merged": "/Users/dlee/versus/app/build/intermediates/res/merged/debug/color-v23/abc_color_highlight_material.xml",
+        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color-v23/abc_color_highlight_material.xml"
+    },
+    {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/color-v23/abc_tint_edittext.xml",
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color-v23/abc_tint_edittext.xml"
     },
@@ -32,11 +48,35 @@
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color-v23/abc_color_highlight_material.xml"
     },
     {
+        "merged": "/Users/dlee/versus/app/build/intermediates/res/merged/debug/color-v23/abc_tint_seek_thumb.xml",
+        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color-v23/abc_tint_seek_thumb.xml"
+    },
+    {
+        "merged": "/Users/dlee/versus/app/build/intermediates/res/merged/debug/color-v23/abc_tint_btn_checkable.xml",
+        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color-v23/abc_tint_btn_checkable.xml"
+    },
+    {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/color-v23/abc_tint_seek_thumb.xml",
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color-v23/abc_tint_seek_thumb.xml"
     },
     {
+        "merged": "/Users/dlee/versus/app/build/intermediates/res/merged/debug/color-v23/abc_tint_default.xml",
+        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color-v23/abc_tint_default.xml"
+    },
+    {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/color-v23/abc_tint_switch_track.xml",
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color-v23/abc_tint_switch_track.xml"
+    },
+    {
+        "merged": "/Users/dlee/versus/app/build/intermediates/res/merged/debug/color-v23/abc_btn_colored_borderless_text_material.xml",
+        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color-v23/abc_btn_colored_borderless_text_material.xml"
+    },
+    {
+        "merged": "/Users/dlee/versus/app/build/intermediates/res/merged/debug/color-v23/abc_tint_switch_thumb.xml",
+        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color-v23/abc_tint_switch_thumb.xml"
+    },
+    {
+        "merged": "/Users/dlee/versus/app/build/intermediates/res/merged/debug/color-v23/design_tint_password_toggle.xml",
+        "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/color-v23/design_tint_password_toggle.xml"
     }
 ]

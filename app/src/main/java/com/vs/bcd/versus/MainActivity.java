@@ -19,6 +19,11 @@ import android.view.ViewGroup;
 import android.graphics.PorterDuff;
 import android.widget.TextView;
 
+import com.amazonaws.auth.CognitoCachingCredentialsProvider;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+
 public class MainActivity extends AppCompatActivity {
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -31,10 +36,20 @@ public class MainActivity extends AppCompatActivity {
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
+    private DynamoDBMapper mapper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Initialize the Amazon Cognito credentials provider
+        CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
+                this.getApplicationContext(),
+                "us-east-1:88614505-c8df-4dce-abd8-79a0543852ff", // Identity Pool ID
+                Regions.US_EAST_1 // Region
+        );
+        AmazonDynamoDBClient ddbClient = new AmazonDynamoDBClient(credentialsProvider);
+        mapper = new DynamoDBMapper(ddbClient);
+
         setContentView(R.layout.activity_main);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -216,5 +231,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
 
+    }
+
+    public DynamoDBMapper getMapper(){
+        return mapper;
     }
 }

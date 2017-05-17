@@ -30,57 +30,57 @@ public class Tab1Newsfeed extends Fragment{
 
     private List<Post> posts;
     private MyAdapter myAdapter;
-    private boolean dataLoaded = false;
+    private boolean fragmentSelected = false;
     private View rootView;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.tab1newsfeed, container, false);
         //TODO: need to add categories. maybe a separate categories table where post IDs have rows of categories they are linked with
-        //TODO: this is where I need to get data from database and construct list of Post objects
         //TODO: create, at the right location, list of constant enumeration to represent categories. probably at post creation page, which is for now replaced by sample data creation below
-        //for now, create sample data
 
-        // Initialize the Amazon Cognito credentials provider
-        CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
-                getActivity().getApplicationContext(),
-                "us-east-1:88614505-c8df-4dce-abd8-79a0543852ff", // Identity Pool ID
-                Regions.US_EAST_1 // Region
-        );
-        AmazonDynamoDBClient ddbClient = new AmazonDynamoDBClient(credentialsProvider);
-        final DynamoDBMapper mapper = new DynamoDBMapper(ddbClient);
 
-        Runnable runnable = new Runnable() {
-            public void run() {
-                //DynamoDB calls go here
-                DynamoDBScanExpression scanExpression = new DynamoDBScanExpression();
-                DynamoDBMapperConfig config = new DynamoDBMapperConfig(DynamoDBMapperConfig.PaginationLoadingStrategy.EAGER_LOADING);
-                PaginatedScanList<Post> result = mapper.scan(Post.class, scanExpression, config);
-                result.loadAllResults();
-                posts = new ArrayList<>(result.size());
-                Iterator<Post> it = result.iterator();
-                while (it.hasNext()){
-                    Post element = it.next();
-                    posts.add(element);
-                }
-                //run UI updates on UI Thread
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        //find view by id and attaching adapter for the RecyclerView
-                        RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler_view);
+        return rootView;
+    }
 
-                        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-                        //this is where the list is passed on to adapter
-                        myAdapter = new MyAdapter(recyclerView, posts, getActivity());
-                        recyclerView.setAdapter(myAdapter);
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (isVisibleToUser && !fragmentSelected ) {
+            // Load your data here or do network operations here
+            fragmentSelected = true;
 
-                        //set load more listener for the RecyclerView adapter
-                        myAdapter.setOnLoadMoreListener(new OnLoadMoreListener() {
-                            @Override
-                            public void onLoadMore() {
+            Runnable runnable = new Runnable() {
+                public void run() {
+                    //DynamoDB calls go here
+                    DynamoDBScanExpression scanExpression = new DynamoDBScanExpression();
+                    DynamoDBMapperConfig config = new DynamoDBMapperConfig(DynamoDBMapperConfig.PaginationLoadingStrategy.EAGER_LOADING);
+                    PaginatedScanList<Post> result = ((MainActivity)getActivity()).getMapper().scan(Post.class, scanExpression, config);
+                    result.loadAllResults();
+                    posts = new ArrayList<>(result.size());
+                    Iterator<Post> it = result.iterator();
+                    while (it.hasNext()){
+                        Post element = it.next();
+                        posts.add(element);
+                    }
+                    //run UI updates on UI Thread
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            //find view by id and attaching adapter for the RecyclerView
+                            RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler_view);
 
-                                if (posts.size() <= 3) {
+                            recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+                            //this is where the list is passed on to adapter
+                            myAdapter = new MyAdapter(recyclerView, posts, getActivity());
+                            recyclerView.setAdapter(myAdapter);
+
+                            //set load more listener for the RecyclerView adapter
+                            myAdapter.setOnLoadMoreListener(new OnLoadMoreListener() {
+                                @Override
+                                public void onLoadMore() {
+
+                                    if (posts.size() <= 3) {
                     /*
                     posts.add(null);
                     myAdapter.notifyItemInserted(posts.size() - 1);
@@ -103,20 +103,20 @@ public class Tab1Newsfeed extends Fragment{
                         }
                     }, 1500);
                     */
-                                } else {
-                                    Toast.makeText(getActivity(), "Loading data completed", Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        Toast.makeText(getActivity(), "Loading data completed", Toast.LENGTH_SHORT).show();
+                                    }
+
                                 }
-
-                            }
-                        });
+                            });
 
 
-                    }
-                });
-            }
-        };
-        Thread mythread = new Thread(runnable);
-        mythread.start();
-        return rootView;
+                        }
+                    });
+                }
+            };
+            Thread mythread = new Thread(runnable);
+            mythread.start();
+        }
     }
 }
