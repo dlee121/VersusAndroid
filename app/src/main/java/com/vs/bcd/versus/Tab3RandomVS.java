@@ -20,13 +20,5 @@ public class Tab3RandomVS extends Fragment {
         return rootView;
     }
 
-    //TODO: update function intent to launch profile page once profile page is available. For now, it leads to StartScreen.
-    public void profileClicked(View view){
-        Intent intent = new Intent(getActivity(), WhatsYourBirthday.class);
-        //EditText editText = (EditText) findViewById(R.id.editText);
-        //String message = editText.getText().toString();
-        //intent.putExtra(EXTRA_MESSAGE, message);
-        startActivity(intent);
-        getActivity().overridePendingTransition(0, 0);
-    }
+
 }
