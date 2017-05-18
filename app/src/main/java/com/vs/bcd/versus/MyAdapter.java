@@ -1,6 +1,7 @@
 package com.vs.bcd.versus;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -14,6 +15,8 @@ import java.text.ParseException;
 import java.util.List;
 import java.util.Date;
 import java.util.Locale;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 
 public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -71,6 +74,15 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         if (holder instanceof UserViewHolder) {
+
+            //set onClickListener for profile pic
+            ((UserViewHolder) holder).circView.setOnClickListener(new View.OnClickListener(){
+                @Override
+                public void onClick(View v){
+                    profileClicked(v);
+                }
+            });
+
             //TODO:this is where values are put into the layout, from the post object
             Post post = posts.get(position);
             int timeFormat = 0;
@@ -207,11 +219,14 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         public TextView category;
         public TextView viewcount;
 
+        public CircleImageView circView;
+
 
         //TODO: thumnails
 
         public UserViewHolder(View view) {
             super(view);
+            circView = (CircleImageView)view.findViewById(R.id.profile_image);
             author = (TextView) view.findViewById(R.id.txt_author);
             time = (TextView) view.findViewById(R.id.txt_time);
             question = (TextView) view.findViewById(R.id.txt_question);
@@ -219,5 +234,15 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             category = (TextView) view.findViewById(R.id.txt_category);
             viewcount = (TextView) view.findViewById(R.id.txt_viewcount);
         }
+    }
+
+    //TODO: update function intent to launch profile page once profile page is available. For now, it leads to StartScreen.
+    public void profileClicked(View view){
+        Intent intent = new Intent(activity, WhatsYourBirthday.class);
+        //EditText editText = (EditText) findViewById(R.id.editText);
+        //String message = editText.getText().toString();
+        //intent.putExtra(EXTRA_MESSAGE, message);
+        activity.startActivity(intent);
+        activity.overridePendingTransition(0, 0);
     }
 }

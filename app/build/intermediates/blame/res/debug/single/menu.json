@@ -1,5 +1,13 @@
 [
     {
+        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/menu/menu_main.xml",
+        "source": "/Users/dlee/Versus/app/src/main/res/menu/menu_main.xml"
+    },
+    {
+        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/menu/menu_start_screen.xml",
+        "source": "/Users/dlee/Versus/app/src/main/res/menu/menu_start_screen.xml"
+    },
+    {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/menu/menu_main.xml",
         "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/menu/menu_main.xml"
     },

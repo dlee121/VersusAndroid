@@ -6,5 +6,9 @@
     {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/mipmap-xxhdpi/ic_launcher.png",
         "source": "/Users/dlee/AndroidStudioProjects/Versus/app/src/main/res/mipmap-xxhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/mipmap-xxhdpi/ic_launcher.png",
+        "source": "/Users/dlee/Versus/app/src/main/res/mipmap-xxhdpi/ic_launcher.png"
     }
 ]
