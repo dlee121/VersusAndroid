@@ -55,7 +55,7 @@ public class Tab2Trending extends Fragment{
                     //DynamoDB calls go here
                     DynamoDBScanExpression scanExpression = new DynamoDBScanExpression();
                     DynamoDBMapperConfig config = new DynamoDBMapperConfig(DynamoDBMapperConfig.PaginationLoadingStrategy.EAGER_LOADING);
-                    PaginatedScanList<Post> result = ((MainActivity)getActivity()).getMapper().scan(Post.class, scanExpression, config);
+                    PaginatedScanList<Post> result = ((MainContainer)getParentFragment().getActivity()).getMapper().scan(Post.class, scanExpression, config);
                     result.loadAllResults();
                     posts = new ArrayList<>(result.size());
                     Iterator<Post> it = result.iterator();

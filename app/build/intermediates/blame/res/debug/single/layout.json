@@ -4,6 +4,10 @@
         "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/layout/design_menu_item_action_area.xml"
     },
     {
+        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/layout/fragment_main_container.xml",
+        "source": "/Users/dlee/Versus/app/src/main/res/layout/fragment_main_container.xml"
+    },
+    {
         "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/layout/tab4categories.xml",
         "source": "/Users/dlee/Versus/app/src/main/res/layout/tab4categories.xml"
     },
@@ -726,6 +730,10 @@
     {
         "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/layout/tab1newsfeed.xml",
         "source": "/Users/dlee/Versus/app/src/main/res/layout/tab1newsfeed.xml"
+    },
+    {
+        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/layout/activity_main_container.xml",
+        "source": "/Users/dlee/Versus/app/src/main/res/layout/activity_main_container.xml"
     },
     {
         "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/layout/abc_expanded_menu_layout.xml",

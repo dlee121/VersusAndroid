@@ -4,12 +4,12 @@
         "source": "/Users/dlee/Versus/app/src/main/res/drawable/goldmedal.png"
     },
     {
-        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/drawable/abc_edit_text_material.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/drawable/abc_edit_text_material.xml"
-    },
-    {
         "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/drawable/abc_seekbar_track_material.xml",
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/drawable/abc_seekbar_track_material.xml"
+    },
+    {
+        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/drawable/abc_edit_text_material.xml",
+        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/drawable/abc_edit_text_material.xml"
     },
     {
         "merged": "/Users/dlee/versus/app/build/intermediates/res/merged/debug/drawable/abc_ic_go_search_api_material.xml",

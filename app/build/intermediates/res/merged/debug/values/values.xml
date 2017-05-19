@@ -678,6 +678,7 @@
     <string name="startpagelogo">StartPageLogo</string>
     <string name="status_bar_notification_info_overflow">999+</string>
     <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_main_container">MainContainer</string>
     <string name="title_activity_phone_or_email">PhoneOrEmail</string>
     <string name="title_activity_post_before_vote">PostBeforeVote</string>
     <string name="title_activity_profile">Profile</string>

@@ -21,7 +21,7 @@ public class PhoneOrEmail extends AppCompatActivity {
 
     public void PhoneOrEmailNext(View view){
         //TODO: implement actual sign up submission. Right now it just goes straight to main page with no signup
-        Intent intent = new Intent(this, MainActivity.class);
+        Intent intent = new Intent(this, MainContainer.class);
         //EditText editText = (EditText) findViewById(R.id.editText);
         //String message = editText.getText().toString();
         //intent.putExtra(EXTRA_MESSAGE, message);

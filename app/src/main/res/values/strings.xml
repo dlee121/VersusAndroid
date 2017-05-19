@@ -21,5 +21,6 @@
     <string name="title_activity_whats_your_password">WhatsYourPassword</string>
     <string name="title_activity_phone_or_email">PhoneOrEmail</string>
     <string name="next">next</string>
+    <string name="title_activity_main_container">MainContainer</string>
 
 </resources>
