@@ -1,15 +1,19 @@
 package com.vs.bcd.versus;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.unmarshallers.IntegerSetUnmarshaller;
 
 @DynamoDBTable(tableName = "post")
-public class Post {
+public class Post implements Parcelable{
 
 
     //TODO: implement thumbnails
-    //post_id, question, author, time, {thumbnail1, thumbnail2}*, viewcount, redname, redcount, blackname, blackcount
+    //post_id, question, author, time, {thumbnail1, thumbnail2}*, viewcount, redname, redcount, blackname, blackcount, category
     private int post_id;
-    private String question;
+    private String question = "";   // question can be left empty.
     private String author;
     private String time;
     private int viewcount;
@@ -99,4 +103,54 @@ public class Post {
     public void setCategory(String category) {
         this.category = category;
     }
+
+
+
+    //zero argument constructor. necessary here since non-zero argument constructor has been defined.
+    public Post(){
+
+    }
+
+    public Post(Parcel in){
+        post_id = in.readInt();
+        question = in.readString();
+        author = in.readString();
+        time = in.readString();
+        viewcount = in.readInt();
+        redname = in.readString();
+        redcount = in.readInt();
+        blackname = in.readString();
+        blackcount = in.readInt();
+        category = in.readString();
+    }
+
+    @Override
+    public int describeContents(){
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags){
+        dest.writeInt(post_id);
+        dest.writeString(question);
+        dest.writeString(author);
+        dest.writeString(time);
+        dest.writeInt(viewcount);
+        dest.writeString(redname);
+        dest.writeInt(redcount);
+        dest.writeString(blackname);
+        dest.writeInt(blackcount);
+        dest.writeString(category);
+    }
+
+    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+        public Post createFromParcel(Parcel in) {
+            return new Post(in);
+        }
+
+        public Post[] newArray(int size) {
+            return new Post[size];
+        }
+    };
+
 }
