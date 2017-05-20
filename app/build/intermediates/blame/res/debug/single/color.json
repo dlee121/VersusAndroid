@@ -88,12 +88,12 @@
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color/switch_thumb_material_light.xml"
     },
     {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/color/abc_primary_text_disable_only_material_light.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color/abc_primary_text_disable_only_material_light.xml"
-    },
-    {
         "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/color/switch_thumb_material_light.xml",
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color/switch_thumb_material_light.xml"
+    },
+    {
+        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/color/abc_primary_text_disable_only_material_light.xml",
+        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color/abc_primary_text_disable_only_material_light.xml"
     },
     {
         "merged": "/Users/dlee/versus/app/build/intermediates/res/merged/debug/color/abc_tint_switch_thumb.xml",

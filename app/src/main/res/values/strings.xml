@@ -22,5 +22,6 @@
     <string name="title_activity_phone_or_email">PhoneOrEmail</string>
     <string name="next">next</string>
     <string name="title_activity_main_container">MainContainer</string>
+    <string name="title_activity_main2">Main2Activity</string>
 
 </resources>

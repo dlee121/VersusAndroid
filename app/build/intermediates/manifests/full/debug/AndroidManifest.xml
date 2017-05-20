@@ -83,7 +83,7 @@
         <activity
             android:name="com.vs.bcd.versus.MainContainer"
             android:label="@string/title_activity_main_container"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme" />
     </application>
 
 </manifest>

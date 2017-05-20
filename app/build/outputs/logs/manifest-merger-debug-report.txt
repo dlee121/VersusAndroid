@@ -123,11 +123,11 @@ ADDED from /Users/dlee/Versus/app/src/main/AndroidManifest.xml:68:9-76:20
 	android:name
 		ADDED from /Users/dlee/Versus/app/src/main/AndroidManifest.xml:69:13-41
 activity#com.vs.bcd.versus.MainContainer
-ADDED from /Users/dlee/Versus/app/src/main/AndroidManifest.xml:77:9-80:68
+ADDED from /Users/dlee/Versus/app/src/main/AndroidManifest.xml:77:9-80:47
 	android:label
 		ADDED from /Users/dlee/Versus/app/src/main/AndroidManifest.xml:79:13-66
 	android:theme
-		ADDED from /Users/dlee/Versus/app/src/main/AndroidManifest.xml:80:13-56
+		ADDED from /Users/dlee/Versus/app/src/main/AndroidManifest.xml:80:13-44
 	android:name
 		ADDED from /Users/dlee/Versus/app/src/main/AndroidManifest.xml:78:13-42
 uses-sdk

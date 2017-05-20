@@ -115,8 +115,13 @@ public class MainActivity extends Fragment {
         });
 
 
-
-
+        FloatingActionButton fab = (FloatingActionButton) rootview.findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ((MainContainer)getActivity()).getViewPager().setCurrentItem(2);
+            }
+        });
 
         return rootview;
 
@@ -128,13 +133,13 @@ public class MainActivity extends Fragment {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
+    /*
         //Search_Main button was pressed
         if (id == R.id.action_search_main) {
             //TODO:Activate Search UI and Implement Main Search function
             return true;
         }
-
+    */
         return super.onOptionsItemSelected(item);
     }
 
@@ -188,4 +193,5 @@ public class MainActivity extends Fragment {
     public DynamoDBMapper getMapper(){
         return mapper;
     }
+
 }

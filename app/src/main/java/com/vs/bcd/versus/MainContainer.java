@@ -1,5 +1,8 @@
 package com.vs.bcd.versus;
 
+import android.support.v7.app.ActionBar;
+import android.content.Context;
+import android.content.Intent;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -10,8 +13,12 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.app.Activity;
+import android.os.Handler;
+import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,12 +42,13 @@ public class MainContainer extends AppCompatActivity {
     /**
      * The {@link ViewPager} that will host the section contents.
      */
-    private ViewPager mViewPager;
+    private ViewPagerCustomDuration mViewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_container);
+
 
 
         // Initialize the Amazon Cognito credentials provider
@@ -52,16 +60,38 @@ public class MainContainer extends AppCompatActivity {
         AmazonDynamoDBClient ddbClient = new AmazonDynamoDBClient(credentialsProvider);
         mapper = new DynamoDBMapper(ddbClient);
 
+
+    /*
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+    */
+        //hiding default app icon
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayShowHomeEnabled(false);
+        //displaying custom ActionBar
+        View mActionBarView = getLayoutInflater().inflate(R.layout.custom_action_bar, null);
+        actionBar.setCustomView(mActionBarView);
+        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+        actionBar.setElevation(0);
+
+
+
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPager) findViewById(R.id.container2);
+        mViewPager = (ViewPagerCustomDuration) findViewById(R.id.container2);
+        mViewPager.setScrollDurationFactor(1);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        mViewPager.setOffscreenPageLimit(2);
+        mViewPager.setOffscreenPageLimit(3);
+        mViewPager.setPageTransformer(false, new FadePageTransformer());
+        //mViewPager.setPageTransformer(false, new NoPageTransformer());
+
+        mViewPager.setCurrentItem(1);
+
+        TextView titleTxtView = (TextView) mActionBarView.findViewById(R.id.textView);
+        titleTxtView.setText("HI");
 
 
     }
@@ -90,41 +120,6 @@ public class MainContainer extends AppCompatActivity {
     }
 
     /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        public PlaceholderFragment() {
-        }
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main_container, container, false);
-            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
-            return rootView;
-        }
-    }
-
-    /**
      * A {@link FragmentStatePagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
      */
@@ -139,12 +134,14 @@ public class MainContainer extends AppCompatActivity {
             //Return current tabs
             switch (position) {
                 case 0:
+                    SearchPage searchPage = new SearchPage();
+                    return searchPage;
+                case 1:
                     MainActivity mainActivityFragment = new MainActivity();
                     return mainActivityFragment;
-                case 1:
-                    return PlaceholderFragment.newInstance(0);
                 case 2:
-                    return PlaceholderFragment.newInstance(1);
+                    CreatePost createPost = new CreatePost();
+                    return createPost;
                 default:
                     return null;
             }
@@ -159,11 +156,11 @@ public class MainContainer extends AppCompatActivity {
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "MAIN";
-                case 1:
-                    return "CREATE POST";
-                case 2:
                     return "SEARCH";
+                case 1:
+                    return "MAIN";
+                case 2:
+                    return "CREATE POST";
             }
             return null;
         }
@@ -171,5 +168,46 @@ public class MainContainer extends AppCompatActivity {
 
     public DynamoDBMapper getMapper(){
         return mapper;
+    }
+
+
+    public void searchClicked(View view){
+        if(mViewPager.getCurrentItem() == 2){
+            mViewPager.setCurrentItem(1,false);
+            mViewPager.setCurrentItem(0);
+        }
+        else {
+            mViewPager.setCurrentItem(0);
+        }
+    }
+
+    public void createPostClicked(View view){
+        if(mViewPager.getCurrentItem() == 0){
+            mViewPager.setCurrentItem(1, false);
+            mViewPager.setCurrentItem(2);
+        }
+        else {
+            mViewPager.setCurrentItem(2);
+        }
+    }
+
+    public ViewPager getViewPager(){
+        return mViewPager;
+    }
+
+
+    public class FadePageTransformer implements ViewPager.PageTransformer {
+        public void transformPage(View view, float position) {
+            view.setTranslationX(view.getWidth() * -position);
+
+            if(position <= -1.0F || position >= 1.0F) {
+                view.setAlpha(0.0F);
+            } else if( position == 0.0F ) {
+                view.setAlpha(1.0F);
+            } else {
+                // position is between -1.0F & 0.0F OR 0.0F & 1.0F
+                view.setAlpha(1.0F - Math.abs(position));
+            }
+        }
     }
 }

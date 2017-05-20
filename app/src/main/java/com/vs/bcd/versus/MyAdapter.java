@@ -238,7 +238,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     //TODO: update function intent to launch profile page once profile page is available. For now, it leads to StartScreen.
     public void profileClicked(View view){
-        Intent intent = new Intent(activity, WhatsYourBirthday.class);
+        Intent intent = new Intent(activity, PhoneOrEmail.class);
         //EditText editText = (EditText) findViewById(R.id.editText);
         //String message = editText.getText().toString();
         //intent.putExtra(EXTRA_MESSAGE, message);
