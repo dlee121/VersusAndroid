@@ -1,5 +1,6 @@
 package com.vs.bcd.versus;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -12,10 +13,32 @@ import android.view.ViewGroup;
 
 public class Tab4Categories extends Fragment {
 
+    private MainContainer mHostActivity;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.tab4categories, container, false);
+
+
         return rootView;
+    }
+
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        //save the activity to a member of this fragment
+        mHostActivity = (MainContainer)context;
+    }
+
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (isVisibleToUser) {
+            mHostActivity.setToolbarTitleText("Categories");
+
+        }
+
     }
 }

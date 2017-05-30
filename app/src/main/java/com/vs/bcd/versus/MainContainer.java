@@ -1,5 +1,6 @@
 package com.vs.bcd.versus;
 
+import android.media.Image;
 import android.support.v7.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
@@ -23,12 +24,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+
+import org.w3c.dom.Text;
 
 public class MainContainer extends AppCompatActivity {
 
@@ -39,6 +44,11 @@ public class MainContainer extends AppCompatActivity {
      */
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private DynamoDBMapper mapper;
+    private ImageButton toolbarButtonLeft;
+    private TextView titleTxtView;
+    private String lastSetTitle = "";
+    private MainActivity mainActivityFragRef;
+    private CreatePost createPost;
     /**
      * The {@link ViewPager} that will host the section contents.
      */
@@ -49,8 +59,6 @@ public class MainContainer extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_container);
 
-
-
         // Initialize the Amazon Cognito credentials provider
         CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
                 this.getApplicationContext(),
@@ -59,7 +67,6 @@ public class MainContainer extends AppCompatActivity {
         );
         AmazonDynamoDBClient ddbClient = new AmazonDynamoDBClient(credentialsProvider);
         mapper = new DynamoDBMapper(ddbClient);
-
 
     /*
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -73,7 +80,34 @@ public class MainContainer extends AppCompatActivity {
         actionBar.setCustomView(mActionBarView);
         actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
         actionBar.setElevation(0);
+        toolbarButtonLeft = (ImageButton) mActionBarView.findViewById(R.id.btn_slide);
+        titleTxtView = (TextView) mActionBarView.findViewById(R.id.textView);
 
+        toolbarButtonLeft.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int i = mViewPager.getCurrentItem();
+                switch (i) {
+                    case 0:
+                        toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                        mViewPager.setCurrentItem(1);
+                        titleTxtView.setText(lastSetTitle);
+                        break;
+                    case 1:
+                        toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+                        mViewPager.setCurrentItem(0);
+                        titleTxtView.setText("Search");
+                        break;
+                    case 2:
+                        toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                        mViewPager.setCurrentItem(1);
+                        titleTxtView.setText(lastSetTitle);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
 
 
         // Create the adapter that will return a fragment for each of the three
@@ -90,12 +124,21 @@ public class MainContainer extends AppCompatActivity {
 
         mViewPager.setCurrentItem(1);
 
-        TextView titleTxtView = (TextView) mActionBarView.findViewById(R.id.textView);
-        titleTxtView.setText("HI");
-
-
     }
 
+    public TextView getToolbarTitleText(){
+        return titleTxtView;
+    }
+
+    public void setToolbarTitleText(String str){
+        titleTxtView.setText(str);
+        lastSetTitle = str;
+    }
+
+
+    public ImageButton getToolbarButton(){
+        return toolbarButtonLeft;
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -138,9 +181,10 @@ public class MainContainer extends AppCompatActivity {
                     return searchPage;
                 case 1:
                     MainActivity mainActivityFragment = new MainActivity();
+                    mainActivityFragRef = mainActivityFragment;
                     return mainActivityFragment;
                 case 2:
-                    CreatePost createPost = new CreatePost();
+                    createPost = new CreatePost();
                     return createPost;
                 default:
                     return null;
@@ -166,21 +210,15 @@ public class MainContainer extends AppCompatActivity {
         }
     }
 
+    public MainActivity getMainFrag(){
+        return mainActivityFragRef;
+    }
+
     public DynamoDBMapper getMapper(){
         return mapper;
     }
 
-
-    public void searchClicked(View view){
-        if(mViewPager.getCurrentItem() == 2){
-            mViewPager.setCurrentItem(1,false);
-            mViewPager.setCurrentItem(0);
-        }
-        else {
-            mViewPager.setCurrentItem(0);
-        }
-    }
-
+/*  same thing in MainActivity's FAB onclick listener
     public void createPostClicked(View view){
         if(mViewPager.getCurrentItem() == 0){
             mViewPager.setCurrentItem(1, false);
@@ -190,7 +228,7 @@ public class MainContainer extends AppCompatActivity {
             mViewPager.setCurrentItem(2);
         }
     }
-
+*/
     public ViewPager getViewPager(){
         return mViewPager;
     }
@@ -209,5 +247,10 @@ public class MainContainer extends AppCompatActivity {
                 view.setAlpha(1.0F - Math.abs(position));
             }
         }
+    }
+
+
+    public void createButtonPressed(View view){
+        createPost.createButtonPressed(view);
     }
 }

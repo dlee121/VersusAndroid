@@ -11,9 +11,8 @@ public class Post implements Parcelable{
 
 
     //TODO: implement thumbnails
-    //post_id, question, author, time, {thumbnail1, thumbnail2}*, viewcount, redname, redcount, blackname, blackcount, category
-    private int post_id;
-    private String question = "";   // question can be left empty.
+    //question, author, time, {thumbnail1, thumbnail2}*, viewcount, redname, redcount, blackname, blackcount, category
+    private String question;   // question can be left empty.
     private String author;
     private String time;
     private int viewcount;
@@ -24,16 +23,9 @@ public class Post implements Parcelable{
     private String category; //for now let's do politics, sports (then sub categories / tags could be basket ball, boxing, ufc, soccer, etc), food, anime / comics
 
     //getters
-    @DynamoDBAttribute(attributeName = "post_id")
-    public int getPostID() {
-        return post_id;
-    }
-    public void setPostID(int post_id) {
-        this.post_id = post_id;
-    }
-
     @DynamoDBAttribute(attributeName = "question")
     public String getQuestion() {
+        //TODO: since ddb doesn't hold empty strings, empty question will come as null (as in setQuestion will not execute on those since the question column doesn't exist for those posts without question. So handle such cases when question is null return empty string
         return question;
     }
     public void setQuestion(String question) {
@@ -106,13 +98,14 @@ public class Post implements Parcelable{
 
 
 
-    //zero argument constructor. necessary here since non-zero argument constructor has been defined.
+    //zero argument constructor. necessary here since implementing packet.
     public Post(){
-
+        redcount = 0;
+        blackcount = 0;
+        viewcount = 1;
     }
 
     public Post(Parcel in){
-        post_id = in.readInt();
         question = in.readString();
         author = in.readString();
         time = in.readString();
@@ -131,7 +124,6 @@ public class Post implements Parcelable{
 
     @Override
     public void writeToParcel(Parcel dest, int flags){
-        dest.writeInt(post_id);
         dest.writeString(question);
         dest.writeString(author);
         dest.writeString(time);

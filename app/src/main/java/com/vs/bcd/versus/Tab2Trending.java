@@ -1,7 +1,9 @@
 package com.vs.bcd.versus;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,47 +34,57 @@ public class Tab2Trending extends Fragment{
     private MyAdapter myAdapter;
     private boolean fragmentSelected = false;
     private View rootView;
+    private MainContainer mHostActivity;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.tab1newsfeed, container, false);
         //TODO: need to add categories. maybe a separate categories table where post IDs have rows of categories they are linked with
         //TODO: create, at the right location, list of constant enumeration to represent categories. probably at post creation page, which is for now replaced by sample data creation below
-
-
         return rootView;
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        //save the activity to a member of this fragment
+        mHostActivity = (MainContainer)context;
     }
 
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
-        if (isVisibleToUser && !fragmentSelected ) {
-            // Load your data here or do network operations here
-            fragmentSelected = true;
 
-            Runnable runnable = new Runnable() {
-                public void run() {
+        if (isVisibleToUser) {
+            mHostActivity.setToolbarTitleText("Trending");
+            Log.d("VISIBLE", "TRENDING VISIBLE");
+            if(!fragmentSelected) {
+                // Load your data here or do network operations here
+                fragmentSelected = true;
+
+                Runnable runnable = new Runnable() {
+                    public void run() {
                     //DynamoDB calls go here
                     DynamoDBScanExpression scanExpression = new DynamoDBScanExpression();
                     DynamoDBMapperConfig config = new DynamoDBMapperConfig(DynamoDBMapperConfig.PaginationLoadingStrategy.EAGER_LOADING);
-                    PaginatedScanList<Post> result = ((MainContainer)getParentFragment().getActivity()).getMapper().scan(Post.class, scanExpression, config);
+                    PaginatedScanList<Post> result = mHostActivity.getMapper().scan(Post.class, scanExpression, config);
                     result.loadAllResults();
                     posts = new ArrayList<>(result.size());
                     Iterator<Post> it = result.iterator();
-                    while (it.hasNext()){
+                    while (it.hasNext()) {
                         Post element = it.next();
                         posts.add(element);
                     }
                     //run UI updates on UI Thread
-                    getActivity().runOnUiThread(new Runnable() {
+                    mHostActivity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             //find view by id and attaching adapter for the RecyclerView
                             RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler_view);
 
-                            recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+                            recyclerView.setLayoutManager(new LinearLayoutManager(mHostActivity));
                             //this is where the list is passed on to adapter
-                            myAdapter = new MyAdapter(recyclerView, posts, getActivity());
+                            myAdapter = new MyAdapter(recyclerView, posts, mHostActivity);
                             recyclerView.setAdapter(myAdapter);
 
                             //set load more listener for the RecyclerView adapter
@@ -104,7 +116,7 @@ public class Tab2Trending extends Fragment{
                     }, 1500);
                     */
                                     } else {
-                                        Toast.makeText(getActivity(), "Loading data completed", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(mHostActivity, "Loading data completed", Toast.LENGTH_SHORT).show();
                                     }
 
                                 }
@@ -113,10 +125,11 @@ public class Tab2Trending extends Fragment{
 
                         }
                     });
-                }
-            };
-            Thread mythread = new Thread(runnable);
-            mythread.start();
+                    }
+                };
+                Thread mythread = new Thread(runnable);
+                mythread.start();
+            }
         }
     }
 }

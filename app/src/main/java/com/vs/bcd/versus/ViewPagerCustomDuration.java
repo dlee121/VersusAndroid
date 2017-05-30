@@ -33,8 +33,6 @@ public class ViewPagerCustomDuration extends ViewPager {
         return false;
     }
 
-
-
     private ScrollerCustomDuration mScroller = null;
 
     /**

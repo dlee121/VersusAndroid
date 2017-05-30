@@ -18,6 +18,9 @@ import java.util.Locale;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+import static android.R.attr.format;
+import static android.R.attr.fragment;
+
 
 public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final int VIEW_TYPE_ITEM = 0;
@@ -87,11 +90,13 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             Post post = posts.get(position);
             int timeFormat = 0;
             UserViewHolder userViewHolder = (UserViewHolder) holder;
+
             userViewHolder.author.setText(post.getAuthor());
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
+
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
             Date myDate = null;
             try {
-                myDate = format.parse(post.getTime());
+                myDate = df.parse(post.getTime());
             } catch (ParseException e) {
                 e.printStackTrace();
             }
@@ -103,30 +108,32 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             if(timediff >= 60) {  //if 60 seconds or more, convert to minutes
                 timediff /= 60;
                 timeFormat = 1;
-            }
-            if(timediff >= 60) { //if 60 minutes or more, convert to hours
-                timediff /= 60;
-                timeFormat = 2;
-            }
-            if(timediff >= 24) { //if 24 hours or more, convert to days
-                timediff /= 24;
-                timeFormat = 3;
+                if(timediff >= 60) { //if 60 minutes or more, convert to hours
+                    timediff /= 60;
+                    timeFormat = 2;
+                    if(timediff >= 24) { //if 24 hours or more, convert to days
+                        timediff /= 24;
+                        timeFormat = 3;
+
+                        if(timediff >= 365) { //if 365 days or more, convert to years
+                            timediff /= 365;
+                            timeFormat = 6;
+                        }
+
+                        else if (timeFormat < 6 && timediff >= 30) { //if 30 days or more and not yet converted to years, convert to months
+                            timediff /= 30;
+                            timeFormat = 5;
+                        }
+
+                        else if(timeFormat < 5 && timediff >= 7) { //if 7 days or more and not yet converted to months or years, convert to weeks
+                            timediff /= 7;
+                            timeFormat = 4;
+                        }
+
+                    }
+                }
             }
 
-            if(timediff >= 365) { //if 365 days or more, convert to years
-                timediff /= 365;
-                timeFormat = 6;
-            }
-
-            if (timeFormat < 6 && timediff >= 30) { //if 30 days or more and not yet converted to years, convert to months
-                timediff /= 30;
-                timeFormat = 5;
-            }
-
-            if(timeFormat < 5 && timediff >= 7) { //if 7 days or more and not yet converted to months or years, convert to weeks
-                timediff /= 7;
-                timeFormat = 4;
-            }
 
             if(timediff > 1) //if timediff is not a singular value
                 timeFormat += 7;
@@ -168,7 +175,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     break;
             }
 
-
+            //TODO: handle cases where question doesn't exist (as in the column doesn't even exist. in that case question.setText(""), leaving it as empty string
             userViewHolder.question.setText(post.getQuestion());
             userViewHolder.mainVSText.setText(post.getRedname() + " vs " + post.getBlackname());
             userViewHolder.category.setText(post.getCategory());
@@ -222,7 +229,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         public CircleImageView circView;
 
 
-        //TODO: thumnails
+        //TODO: thumbnails
 
         public UserViewHolder(View view) {
             super(view);
@@ -238,11 +245,13 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     //TODO: update function intent to launch profile page once profile page is available. For now, it leads to StartScreen.
     public void profileClicked(View view){
-        Intent intent = new Intent(activity, PhoneOrEmail.class);
-        //EditText editText = (EditText) findViewById(R.id.editText);
-        //String message = editText.getText().toString();
-        //intent.putExtra(EXTRA_MESSAGE, message);
-        activity.startActivity(intent);
-        activity.overridePendingTransition(0, 0);
+        if(((MainContainer)activity).getMainFrag().getUILifeStatus()){
+            Intent intent = new Intent(activity, PhoneOrEmail.class);
+            //EditText editText = (EditText) findViewById(R.id.editText);
+            //String message = editText.getText().toString();
+            //intent.putExtra(EXTRA_MESSAGE, message);
+            activity.startActivity(intent);
+            activity.overridePendingTransition(0, 0);
+        }
     }
 }

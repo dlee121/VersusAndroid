@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.graphics.PorterDuff;
@@ -41,10 +42,10 @@ public class MainActivity extends Fragment {
     private ViewPager mViewPager;
     private DynamoDBMapper mapper;
     private View rootview;
+    private boolean childrenFragmentsUIActive = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.d("FIRSTLINE", "FIRSTLINE");
         rootview = inflater.inflate(R.layout.activity_main, container, false);
 
         // Create the adapter that will return a fragment for each of the three
@@ -55,7 +56,6 @@ public class MainActivity extends Fragment {
         mViewPager = (ViewPager) rootview.findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
         mViewPager.setOffscreenPageLimit(4);
-        Log.d("TWO", "TWO");
 
         TabLayout tabLayout = (TabLayout) rootview.findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
@@ -120,6 +120,8 @@ public class MainActivity extends Fragment {
             @Override
             public void onClick(View view) {
                 ((MainContainer)getActivity()).getViewPager().setCurrentItem(2);
+                ((MainContainer)getActivity()).getToolbarTitleText().setText("Create Post");
+                ((MainContainer)getActivity()).getToolbarButton().setImageResource(R.drawable.ic_left_chevron);
             }
         });
 
@@ -190,8 +192,24 @@ public class MainActivity extends Fragment {
         }
     }
 
+
     public DynamoDBMapper getMapper(){
         return mapper;
+    }
+
+    public boolean getUILifeStatus(){
+        return childrenFragmentsUIActive;
+    }
+
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (isVisibleToUser) {
+            childrenFragmentsUIActive = true;
+        }
+        else{
+            childrenFragmentsUIActive = false;
+        }
     }
 
 }

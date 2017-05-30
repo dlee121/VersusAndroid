@@ -1,14 +1,67 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/create_post_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:background="@color/vsOne"
+    android:background="#efefef"
     tools:context="com.vs.bcd.versus.MainContainer">
 
+
+    <EditText
+        android:id="@+id/redname_in"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:text=""
+        android:hint="redname"
+        android:textColor="@android:color/black"
+        android:layout_alignParentTop="true"/>
+
+    <EditText
+        android:id="@+id/blackname_in"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:text=""
+        android:hint="blackname"
+        android:textColor="@android:color/black"
+        android:layout_below="@+id/redname_in"/>
+    <EditText
+        android:id="@+id/question_in"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:text=""
+        android:hint="(Optional) question"
+        android:textColor="@android:color/black"
+        android:layout_below="@+id/blackname_in"/>
+    <EditText
+        android:id="@+id/category_in"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:text=""
+        android:hint="category"
+        android:textColor="@android:color/black"
+        android:layout_below="@+id/question_in"/>
+
+    <Button
+        android:id="@+id/button_create_post"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="50dp"
+        android:onClick="createButtonPressed"
+        android:text="Create" />
 
 
 </RelativeLayout>

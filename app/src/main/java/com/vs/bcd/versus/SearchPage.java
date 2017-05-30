@@ -2,6 +2,7 @@ package com.vs.bcd.versus;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,4 +19,13 @@ public class SearchPage extends Fragment {
         return rootView;
     }
 
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (isVisibleToUser) {
+            Log.d("VISIBLE", "SEARCH VISIBLE");
+        }
+        else
+            Log.d("VISIBLE", "SEARCH POST GONE");
+    }
 }
