@@ -1,38 +1,14 @@
 [
     {
-        "merged": "/Users/dlee/versus/app/build/intermediates/res/merged/debug/anim-v21/design_bottom_sheet_slide_in.xml",
-        "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/anim-v21/design_bottom_sheet_slide_in.xml"
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/anim-v21/design_appbar_state_list_animator.xml",
+        "source": "/home/chelium/.android/build-cache/d95ad82e55f84c7c5a6707dc2fe94da1826c4c3a/output/res/anim-v21/design_appbar_state_list_animator.xml"
     },
     {
-        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/anim-v21/design_bottom_sheet_slide_in.xml",
-        "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/anim-v21/design_bottom_sheet_slide_in.xml"
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/anim-v21/design_bottom_sheet_slide_out.xml",
+        "source": "/home/chelium/.android/build-cache/d95ad82e55f84c7c5a6707dc2fe94da1826c4c3a/output/res/anim-v21/design_bottom_sheet_slide_out.xml"
     },
     {
-        "merged": "/Users/dlee/versus/app/build/intermediates/res/merged/debug/anim-v21/design_bottom_sheet_slide_out.xml",
-        "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/anim-v21/design_bottom_sheet_slide_out.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/anim-v21/design_appbar_state_list_animator.xml",
-        "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/anim-v21/design_appbar_state_list_animator.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/anim-v21/design_bottom_sheet_slide_out.xml",
-        "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/anim-v21/design_bottom_sheet_slide_out.xml"
-    },
-    {
-        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/anim-v21/design_bottom_sheet_slide_out.xml",
-        "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/anim-v21/design_bottom_sheet_slide_out.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/anim-v21/design_bottom_sheet_slide_in.xml",
-        "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/anim-v21/design_bottom_sheet_slide_in.xml"
-    },
-    {
-        "merged": "/Users/dlee/versus/app/build/intermediates/res/merged/debug/anim-v21/design_appbar_state_list_animator.xml",
-        "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/anim-v21/design_appbar_state_list_animator.xml"
-    },
-    {
-        "merged": "/Users/dlee/AndroidStudioProjects/Versus/app/build/intermediates/res/merged/debug/anim-v21/design_appbar_state_list_animator.xml",
-        "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/anim-v21/design_appbar_state_list_animator.xml"
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/anim-v21/design_bottom_sheet_slide_in.xml",
+        "source": "/home/chelium/.android/build-cache/d95ad82e55f84c7c5a6707dc2fe94da1826c4c3a/output/res/anim-v21/design_bottom_sheet_slide_in.xml"
     }
 ]
