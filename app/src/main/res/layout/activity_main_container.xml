@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="com.vs.bcd.versus.MainContainer">
+    tools:context="com.vs.bcd.versus.activity.MainContainer">
 
     <com.vs.bcd.versus.ViewPagerCustomDuration
         android:id="@+id/container2"

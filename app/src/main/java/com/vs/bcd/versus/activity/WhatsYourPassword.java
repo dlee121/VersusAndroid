@@ -1,0 +1,50 @@
+package com.vs.bcd.versus.activity;
+
+import android.content.Intent;
+import android.os.Bundle;
+<<<<<<< HEAD:app/src/main/java/com/vs/bcd/versus/WhatsYourPassword.java
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
+import android.support.design.widget.TextInputEditText;
+=======
+>>>>>>> refactor:app/src/main/java/com/vs/bcd/versus/activity/WhatsYourPassword.java
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.View;
+import android.widget.EditText;
+
+import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.activity.PhoneOrEmail;
+
+public class WhatsYourPassword extends AppCompatActivity {
+
+    public static final String EXTRA_WYP = "com.example.myfirstapp.WYU";
+    private String fullnameBdayUsernamePassword;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_whats_your_password);
+
+
+        Intent intent = getIntent();
+        fullnameBdayUsernamePassword = intent.getStringExtra(WhatsYourUsername.EXTRA_WYU);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        toolbar.setTitleTextColor(0xFFFFFF);
+    }
+
+
+    public void WhatsYourPasswordNext(View view){
+        //TODO: validate and hash/salt password
+        Intent intent = new Intent(this, PhoneOrEmail.class);
+        TextInputEditText editText = (TextInputEditText) findViewById(R.id.editText5);
+        fullnameBdayUsernamePassword = fullnameBdayUsernamePassword + "%" + editText.getText().toString(); //fullname%bday-bmonth-byear%username%password
+        intent.putExtra(EXTRA_WYP, fullnameBdayUsernamePassword);
+        startActivity(intent);
+        overridePendingTransition(0, 0);
+    }
+
+}

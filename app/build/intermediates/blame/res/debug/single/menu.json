@@ -1,14 +1,19 @@
 [
     {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/menu/menu_main.xml",
-        "source": "/Users/dlee/Versus/app/src/main/res/menu/menu_main.xml"
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/menu/menu_start_screen.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/menu/menu_start_screen.xml"
     },
     {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/menu/menu_start_screen.xml",
-        "source": "/Users/dlee/Versus/app/src/main/res/menu/menu_start_screen.xml"
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/menu/menu_main_container.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/menu/menu_main_container.xml"
     },
     {
+<<<<<<< HEAD
         "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/menu/menu_main_container.xml",
         "source": "/Users/dlee/Versus/app/src/main/res/menu/menu_main_container.xml"
+=======
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/menu/menu_main.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/menu/menu_main.xml"
+>>>>>>> refactor
     }
 ]

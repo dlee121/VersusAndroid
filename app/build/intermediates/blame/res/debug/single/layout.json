@@ -1,17 +1,27 @@
 [
     {
+<<<<<<< HEAD
         "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/layout/abc_action_mode_close_item_material.xml",
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/layout/abc_action_mode_close_item_material.xml"
     },
     {
         "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/layout/design_layout_tab_text.xml",
         "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/layout/design_layout_tab_text.xml"
+=======
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/select_dialog_multichoice_material.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/select_dialog_multichoice_material.xml"
     },
     {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/layout/tab4categories.xml",
-        "source": "/Users/dlee/Versus/app/src/main/res/layout/tab4categories.xml"
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/design_navigation_menu_item.xml",
+        "source": "/home/chelium/.android/build-cache/d95ad82e55f84c7c5a6707dc2fe94da1826c4c3a/output/res/layout/design_navigation_menu_item.xml"
+>>>>>>> refactor
     },
     {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/design_navigation_item_separator.xml",
+        "source": "/home/chelium/.android/build-cache/d95ad82e55f84c7c5a6707dc2fe94da1826c4c3a/output/res/layout/design_navigation_item_separator.xml"
+    },
+    {
+<<<<<<< HEAD
         "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/layout/fragment_main_container.xml",
         "source": "/Users/dlee/Versus/app/src/main/res/layout/fragment_main_container.xml"
     },
@@ -46,12 +56,49 @@
     {
         "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/layout/notification_media_action.xml",
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/layout/notification_media_action.xml"
+=======
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/notification_media_cancel_action.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/notification_media_cancel_action.xml"
     },
     {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/layout/design_layout_snackbar_include.xml",
-        "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/layout/design_layout_snackbar_include.xml"
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/item_recycler_view_row.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/item_recycler_view_row.xml"
     },
     {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/abc_list_menu_item_layout.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/abc_list_menu_item_layout.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/content_start_screen.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/content_start_screen.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/notification_template_part_chronometer.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/notification_template_part_chronometer.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/abc_list_menu_item_icon.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/abc_list_menu_item_icon.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/abc_action_menu_item_layout.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/abc_action_menu_item_layout.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/tab4categories.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/tab4categories.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/notification_media_action.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/notification_media_action.xml"
+>>>>>>> refactor
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/design_layout_snackbar_include.xml",
+        "source": "/home/chelium/.android/build-cache/d95ad82e55f84c7c5a6707dc2fe94da1826c4c3a/output/res/layout/design_layout_snackbar_include.xml"
+    },
+    {
+<<<<<<< HEAD
         "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/layout/abc_action_bar_title_item.xml",
         "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/layout/abc_action_bar_title_item.xml"
     },
@@ -310,5 +357,265 @@
     {
         "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/layout/activity_whats_your_name.xml",
         "source": "/Users/dlee/Versus/app/src/main/res/layout/activity_whats_your_name.xml"
+=======
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/abc_action_bar_view_list_nav_layout.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/abc_action_bar_view_list_nav_layout.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/abc_alert_dialog_material.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/abc_alert_dialog_material.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/abc_screen_simple.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/abc_screen_simple.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/abc_activity_chooser_view.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/abc_activity_chooser_view.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/content_whats_your_password.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/content_whats_your_password.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/tab6me.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/tab6me.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/tab2trending.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/tab2trending.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/activity_whats_your_password.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/activity_whats_your_password.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/abc_action_menu_layout.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/abc_action_menu_layout.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/activity_whats_your_birthday.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/activity_whats_your_birthday.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/abc_list_menu_item_checkbox.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/abc_list_menu_item_checkbox.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/design_navigation_item_subheader.xml",
+        "source": "/home/chelium/.android/build-cache/d95ad82e55f84c7c5a6707dc2fe94da1826c4c3a/output/res/layout/design_navigation_item_subheader.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/abc_screen_content_include.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/abc_screen_content_include.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/notification_template_lines.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/notification_template_lines.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/abc_screen_simple_overlay_action_mode.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/abc_screen_simple_overlay_action_mode.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/notification_template_media.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/notification_template_media.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/abc_search_dropdown_item_icons_2line.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/abc_search_dropdown_item_icons_2line.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/content_whats_your_birthday.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/content_whats_your_birthday.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/support_simple_spinner_dropdown_item.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/support_simple_spinner_dropdown_item.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/activity_phone_or_email.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/activity_phone_or_email.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/design_text_input_password_icon.xml",
+        "source": "/home/chelium/.android/build-cache/d95ad82e55f84c7c5a6707dc2fe94da1826c4c3a/output/res/layout/design_text_input_password_icon.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/select_dialog_item_material.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/select_dialog_item_material.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/design_layout_tab_icon.xml",
+        "source": "/home/chelium/.android/build-cache/d95ad82e55f84c7c5a6707dc2fe94da1826c4c3a/output/res/layout/design_layout_tab_icon.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/search_page.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/search_page.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/create_post.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/create_post.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/abc_dialog_title_material.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/abc_dialog_title_material.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/vs_card.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/vs_card.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/abc_search_view.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/abc_search_view.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/item_loading.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/item_loading.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/abc_action_bar_up_container.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/abc_action_bar_up_container.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/fragment_main_container.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/fragment_main_container.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/abc_activity_chooser_view_list_item.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/abc_activity_chooser_view_list_item.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/abc_expanded_menu_layout.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/abc_expanded_menu_layout.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/design_bottom_sheet_dialog.xml",
+        "source": "/home/chelium/.android/build-cache/d95ad82e55f84c7c5a6707dc2fe94da1826c4c3a/output/res/layout/design_bottom_sheet_dialog.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/content_whats_your_username.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/content_whats_your_username.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/design_navigation_menu.xml",
+        "source": "/home/chelium/.android/build-cache/d95ad82e55f84c7c5a6707dc2fe94da1826c4c3a/output/res/layout/design_navigation_menu.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/tab3randomvs.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/tab3randomvs.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/activity_whats_your_name.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/activity_whats_your_name.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/design_navigation_item_header.xml",
+        "source": "/home/chelium/.android/build-cache/d95ad82e55f84c7c5a6707dc2fe94da1826c4c3a/output/res/layout/design_navigation_item_header.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/abc_popup_menu_item_layout.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/abc_popup_menu_item_layout.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/tab1newsfeed.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/tab1newsfeed.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/abc_screen_toolbar.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/abc_screen_toolbar.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/select_dialog_singlechoice_material.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/select_dialog_singlechoice_material.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/activity_main_container.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/activity_main_container.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/design_menu_item_action_area.xml",
+        "source": "/home/chelium/.android/build-cache/d95ad82e55f84c7c5a6707dc2fe94da1826c4c3a/output/res/layout/design_menu_item_action_area.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/notification_template_big_media.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/notification_template_big_media.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/abc_alert_dialog_button_bar_material.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/abc_alert_dialog_button_bar_material.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/abc_action_bar_title_item.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/abc_action_bar_title_item.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/content_phone_or_email.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/content_phone_or_email.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/activity_main.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/activity_main.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/notification_template_part_time.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/notification_template_part_time.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/activity_start_screen.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/activity_start_screen.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/abc_action_mode_close_item_material.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/abc_action_mode_close_item_material.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/abc_list_menu_item_radio.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/abc_list_menu_item_radio.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/abc_popup_menu_header_item_layout.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/abc_popup_menu_header_item_layout.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/tab5leaderboard.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/tab5leaderboard.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/abc_action_mode_bar.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/abc_action_mode_bar.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/design_layout_tab_text.xml",
+        "source": "/home/chelium/.android/build-cache/d95ad82e55f84c7c5a6707dc2fe94da1826c4c3a/output/res/layout/design_layout_tab_text.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/content_whats_your_name.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/content_whats_your_name.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/activity_whats_your_username.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/activity_whats_your_username.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/custom_action_bar.xml",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/layout/custom_action_bar.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/design_layout_snackbar.xml",
+        "source": "/home/chelium/.android/build-cache/d95ad82e55f84c7c5a6707dc2fe94da1826c4c3a/output/res/layout/design_layout_snackbar.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/abc_select_dialog_material.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/abc_select_dialog_material.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/design_navigation_item.xml",
+        "source": "/home/chelium/.android/build-cache/d95ad82e55f84c7c5a6707dc2fe94da1826c4c3a/output/res/layout/design_navigation_item.xml"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/layout/notification_template_big_media_narrow.xml",
+        "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/layout/notification_template_big_media_narrow.xml"
+>>>>>>> refactor
     }
 ]
