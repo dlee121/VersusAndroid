@@ -1,0 +1,46 @@
+[
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/drawable-mdpi/ic_randomvs_selected.png",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/drawable-mdpi/ic_randomvs_selected.png"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/drawable-mdpi/ic_trending_selected.png",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/drawable-mdpi/ic_trending_selected.png"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/drawable-mdpi/vs_centered_w_tag.png",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/drawable-mdpi/vs_centered_w_tag.png"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/drawable-mdpi/ic_trending_unselected.png",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/drawable-mdpi/ic_trending_unselected.png"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/drawable-mdpi/ic_search_main.png",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/drawable-mdpi/ic_search_main.png"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/drawable-mdpi/vs_shadow_w_tag.png",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/drawable-mdpi/vs_shadow_w_tag.png"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/drawable-mdpi/croppedfinal.png",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/drawable-mdpi/croppedfinal.png"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/drawable-mdpi/vs_glow_centered_without_tag.png",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/drawable-mdpi/vs_glow_centered_without_tag.png"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/drawable-mdpi/vs_centered_white.png",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/drawable-mdpi/vs_centered_white.png"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/drawable-mdpi/vs_icon_launcher.png",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/drawable-mdpi/vs_icon_launcher.png"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/drawable-mdpi/ic_randomvs_unselected.png",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/drawable-mdpi/ic_randomvs_unselected.png"
+    }
+]
