@@ -1,4 +1,4 @@
-package com.vs.bcd.versus;
+package com.vs.bcd.versus.fragment;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -7,20 +7,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.os.Handler;
 import android.widget.Toast;
-import android.app.Activity;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
 
-import com.amazonaws.auth.CognitoCachingCredentialsProvider;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.dynamodbv2.*;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
-import com.amazonaws.services.dynamodbv2.model.*;
+import com.vs.bcd.versus.OnLoadMoreListener;
+import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.activity.MainContainer;
+import com.vs.bcd.versus.adapter.MyAdapter;
+import com.vs.bcd.versus.model.Post;
 
 /**
  * Created by dlee on 4/29/17.

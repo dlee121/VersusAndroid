@@ -8,7 +8,7 @@
     android:paddingRight="0dp"
     android:paddingTop="0dp"
     android:background="#efefef"
-    tools:context="com.vs.bcd.versus.MainContainer">
+    tools:context="com.vs.bcd.versus.activity.MainContainer">
 
 
     <android.support.design.widget.TabLayout

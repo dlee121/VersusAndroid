@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/vsTwo"
-    tools:context="com.vs.bcd.versus.MainContainer">
+    tools:context="com.vs.bcd.versus.activity.MainContainer">
 
     <ImageButton
         android:id="@+id/btn_slide"

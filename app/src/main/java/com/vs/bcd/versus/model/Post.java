@@ -1,10 +1,9 @@
-package com.vs.bcd.versus;
+package com.vs.bcd.versus.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.unmarshallers.IntegerSetUnmarshaller;
 
 @DynamoDBTable(tableName = "post")
 public class Post implements Parcelable{

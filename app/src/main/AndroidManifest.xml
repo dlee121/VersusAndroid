@@ -11,7 +11,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".SplashActivity"
+            android:name=".activity.SplashActivity"
             android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -26,56 +26,56 @@
             android:theme="@style/AppTheme.NoActionBar" />
         -->
         <activity
-            android:name=".StartScreen"
+            android:name=".activity.StartScreen"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name=".WhatsYourName"
+            android:name=".activity.WhatsYourName"
             android:label="@string/title_activity_whats_your_name"
-            android:parentActivityName=".StartScreen"
+            android:parentActivityName=".activity.StartScreen"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.vs.bcd.versus.StartScreen" />
+                android:value="com.vs.bcd.versus.activity.StartScreen" />
         </activity>
         <activity
-            android:name=".WhatsYourBirthday"
+            android:name=".activity.WhatsYourBirthday"
             android:label="@string/title_activity_whats_your_birthday"
-            android:parentActivityName=".WhatsYourName"
+            android:parentActivityName=".activity.WhatsYourName"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.vs.bcd.versus.WhatsYourName" />
+                android:value="com.vs.bcd.versus.activity.WhatsYourName" />
         </activity>
         <activity
-            android:name=".WhatsYourUsername"
+            android:name=".activity.WhatsYourUsername"
             android:label="@string/title_activity_whats_your_username"
-            android:parentActivityName=".WhatsYourBirthday"
+            android:parentActivityName=".activity.WhatsYourBirthday"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.vs.bcd.versus.WhatsYourBirthday" />
+                android:value="com.vs.bcd.versus.activity.WhatsYourBirthday" />
         </activity>
         <activity
-            android:name=".WhatsYourPassword"
+            android:name=".activity.WhatsYourPassword"
             android:label="@string/title_activity_whats_your_password"
-            android:parentActivityName=".WhatsYourUsername"
+            android:parentActivityName=".activity.WhatsYourUsername"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.vs.bcd.versus.WhatsYourUsername" />
+                android:value="com.vs.bcd.versus.activity.WhatsYourUsername" />
         </activity>
         <activity
-            android:name=".PhoneOrEmail"
+            android:name=".activity.PhoneOrEmail"
             android:label="@string/title_activity_phone_or_email"
-            android:parentActivityName=".WhatsYourPassword"
+            android:parentActivityName=".activity.WhatsYourPassword"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.vs.bcd.versus.WhatsYourPassword" />
+                android:value="com.vs.bcd.versus.activity.WhatsYourPassword" />
         </activity>
         <activity
-            android:name=".MainContainer"
+            android:name=".activity.MainContainer"
             android:label="@string/title_activity_main_container"
             android:theme="@style/AppTheme" />
     </application>

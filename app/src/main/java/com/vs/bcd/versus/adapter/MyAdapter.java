@@ -1,4 +1,4 @@
-package com.vs.bcd.versus;
+package com.vs.bcd.versus.adapter;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -9,6 +9,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import com.vs.bcd.versus.OnLoadMoreListener;
+import com.vs.bcd.versus.activity.PhoneOrEmail;
+import com.vs.bcd.versus.model.Post;
+import com.vs.bcd.versus.R;
 
 import java.text.SimpleDateFormat;
 import java.text.ParseException;

@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="com.vs.bcd.versus.StartScreen">
+    tools:context="com.vs.bcd.versus.activity.StartScreen">
 
     <include layout="@layout/content_start_screen" />
 

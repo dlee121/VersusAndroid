@@ -1,27 +1,16 @@
-package com.vs.bcd.versus;
+package com.vs.bcd.versus.activity;
 
 import android.support.v7.app.ActionBar;
-import android.content.Context;
-import android.content.Intent;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
-import android.app.Activity;
-import android.os.Handler;
-import android.util.AttributeSet;
-import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 
 import android.widget.TextView;
 
@@ -29,6 +18,10 @@ import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.vs.bcd.versus.fragment.CreatePost;
+import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.fragment.SearchPage;
+import com.vs.bcd.versus.ViewPagerCustomDuration;
 
 public class MainContainer extends AppCompatActivity {
 
