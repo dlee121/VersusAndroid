@@ -16,8 +16,10 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.SessionManager;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.model.User;
 
@@ -26,9 +28,11 @@ public class PhoneOrEmail extends AppCompatActivity {
     public static final String EXTRA_PE = "com.example.myfirstapp.WYU";
     private String fullnameBdayUsernamePasswordPE;
     private DynamoDBMapper mapper;
+    SessionManager sessionManager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        sessionManager = new SessionManager(this);
         setContentView(R.layout.activity_phone_or_email);
 
         Intent intent = getIntent();
@@ -65,11 +69,17 @@ public class PhoneOrEmail extends AppCompatActivity {
             public void run() {
                 User newUser = new User(fullnameBdayUsernamePasswordPE);
                 mapper.save(newUser);
+                sessionManager.createLoginSession(newUser);
             }
         };
         Thread mythread = new Thread(runnable);
         mythread.start();
-
+        try {
+            mythread.join();    //wait for registration to go through
+        }
+        catch(InterruptedException ex) {
+            System.err.println("An InterruptedException was caught: " + ex.getMessage());
+        }
         //intent.putExtra(EXTRA_PE, fullnameBdayUsernamePasswordPE);
         startActivity(intent);
         overridePendingTransition(0, 0);

@@ -9,10 +9,12 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -21,6 +23,7 @@ import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.vs.bcd.versus.SessionManager;
 import com.vs.bcd.versus.fragment.CreatePost;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.fragment.SearchPage;
@@ -38,10 +41,12 @@ public class MainContainer extends AppCompatActivity {
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private DynamoDBMapper mapper;
     private ImageButton toolbarButtonLeft;
+    private Button logoutbuttontemp;
     private TextView titleTxtView;
     private String lastSetTitle = "";
     private MainActivity mainActivityFragRef;
     private CreatePost createPost;
+    private SessionManager sessionManager;
     /**
      * The {@link ViewPager} that will host the section contents.
      */
@@ -51,7 +56,7 @@ public class MainContainer extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_container);
-
+        sessionManager = new SessionManager(this);
         // Initialize the Amazon Cognito credentials provider
         CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
                 this.getApplicationContext(),
@@ -73,9 +78,8 @@ public class MainContainer extends AppCompatActivity {
         actionBar.setCustomView(mActionBarView);
         actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
         actionBar.setElevation(0);
-        toolbarButtonLeft = (ImageButton) mActionBarView.findViewById(R.id.btn_slide);
         titleTxtView = (TextView) mActionBarView.findViewById(R.id.textView);
-
+        toolbarButtonLeft = (ImageButton) mActionBarView.findViewById(R.id.btn_slide);
         toolbarButtonLeft.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -101,6 +105,13 @@ public class MainContainer extends AppCompatActivity {
                 }
             }
         });
+        logoutbuttontemp = (Button) mActionBarView.findViewById(R.id.logoutbutton);
+        logoutbuttontemp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+            sessionManager.logoutUser();
+            }
+        });
 
 
         // Create the adapter that will return a fragment for each of the three
@@ -116,6 +127,9 @@ public class MainContainer extends AppCompatActivity {
         //mViewPager.setPageTransformer(false, new NoPageTransformer());
 
         mViewPager.setCurrentItem(1);
+
+
+        Log.d("USER_INFO", sessionManager.getUserDetails().get(SessionManager.KEY_USERNAME));
 
     }
 
