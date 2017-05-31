@@ -1,11 +1,6 @@
 [
     {
-<<<<<<< HEAD
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/mipmap-xhdpi/ic_launcher.png",
-        "source": "/Users/dlee/Versus/app/src/main/res/mipmap-xhdpi/ic_launcher.png"
-=======
         "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/mipmap-xhdpi/ic_launcher.png",
         "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/mipmap-xhdpi/ic_launcher.png"
->>>>>>> refactor
     }
 ]

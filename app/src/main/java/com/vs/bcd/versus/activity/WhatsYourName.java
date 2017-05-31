@@ -5,15 +5,12 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
-<<<<<<< HEAD:app/src/main/java/com/vs/bcd/versus/WhatsYourName.java
 import android.widget.EditText;
 import android.widget.PopupMenu;
 import android.view.MenuInflater;
-=======
 
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.WhatsYourBirthday;
->>>>>>> refactor:app/src/main/java/com/vs/bcd/versus/activity/WhatsYourName.java
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;

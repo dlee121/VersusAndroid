@@ -4,78 +4,6 @@
         "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/color/abc_primary_text_material_light.xml"
     },
     {
-<<<<<<< HEAD
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/color/abc_btn_colored_borderless_text_material.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color/abc_btn_colored_borderless_text_material.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/color/abc_primary_text_disable_only_material_dark.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color/abc_primary_text_disable_only_material_dark.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/color/switch_thumb_material_dark.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color/switch_thumb_material_dark.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/color/abc_tint_spinner.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color/abc_tint_spinner.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/color/design_error.xml",
-        "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/color/design_error.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/color/abc_primary_text_material_light.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color/abc_primary_text_material_light.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/color/abc_tint_edittext.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color/abc_tint_edittext.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/color/abc_primary_text_disable_only_material_light.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color/abc_primary_text_disable_only_material_light.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/color/design_tint_password_toggle.xml",
-        "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/color/design_tint_password_toggle.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/color/abc_tint_default.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color/abc_tint_default.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/color/switch_thumb_material_light.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color/switch_thumb_material_light.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/color/abc_secondary_text_material_dark.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color/abc_secondary_text_material_dark.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/color/abc_tint_seek_thumb.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color/abc_tint_seek_thumb.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/color/abc_search_url_text.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color/abc_search_url_text.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/color/abc_tint_switch_track.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color/abc_tint_switch_track.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/color/abc_primary_text_material_dark.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color/abc_primary_text_material_dark.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/color/abc_tint_btn_checkable.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color/abc_tint_btn_checkable.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/color/abc_tint_switch_thumb.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/color/abc_tint_switch_thumb.xml"
-=======
         "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/color/abc_tint_default.xml",
         "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/color/abc_tint_default.xml"
     },
@@ -146,6 +74,5 @@
     {
         "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/color/design_tint_password_toggle.xml",
         "source": "/home/chelium/.android/build-cache/d95ad82e55f84c7c5a6707dc2fe94da1826c4c3a/output/res/color/design_tint_password_toggle.xml"
->>>>>>> refactor
     }
 ]

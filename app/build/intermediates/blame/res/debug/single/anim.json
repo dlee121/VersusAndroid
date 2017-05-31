@@ -1,69 +1,5 @@
 [
     {
-<<<<<<< HEAD
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/anim/design_bottom_sheet_slide_out.xml",
-        "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/anim/design_bottom_sheet_slide_out.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/anim/abc_slide_out_bottom.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/anim/abc_slide_out_bottom.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/anim/design_fab_out.xml",
-        "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/anim/design_fab_out.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/anim/abc_shrink_fade_out_from_bottom.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/anim/abc_shrink_fade_out_from_bottom.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/anim/design_bottom_sheet_slide_in.xml",
-        "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/anim/design_bottom_sheet_slide_in.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/anim/abc_fade_out.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/anim/abc_fade_out.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/anim/design_fab_in.xml",
-        "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/anim/design_fab_in.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/anim/abc_slide_in_bottom.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/anim/abc_slide_in_bottom.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/anim/abc_grow_fade_in_from_bottom.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/anim/abc_grow_fade_in_from_bottom.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/anim/abc_slide_in_top.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/anim/abc_slide_in_top.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/anim/abc_slide_out_top.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/anim/abc_slide_out_top.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/anim/design_snackbar_in.xml",
-        "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/anim/design_snackbar_in.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/anim/abc_fade_in.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/anim/abc_fade_in.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/anim/abc_popup_enter.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/anim/abc_popup_enter.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/anim/design_snackbar_out.xml",
-        "source": "/Users/dlee/.android/build-cache/903ed7b7a2f8d1b581256615486a90d94a3c77ac/output/res/anim/design_snackbar_out.xml"
-    },
-    {
-        "merged": "/Users/dlee/Versus/app/build/intermediates/res/merged/debug/anim/abc_popup_exit.xml",
-        "source": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/anim/abc_popup_exit.xml"
-=======
         "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/anim/abc_slide_in_bottom.xml",
         "source": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/anim/abc_slide_in_bottom.xml"
     },
@@ -126,6 +62,5 @@
     {
         "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/anim/design_snackbar_in.xml",
         "source": "/home/chelium/.android/build-cache/d95ad82e55f84c7c5a6707dc2fe94da1826c4c3a/output/res/anim/design_snackbar_in.xml"
->>>>>>> refactor
     }
 ]

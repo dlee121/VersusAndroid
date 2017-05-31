@@ -1,5 +1,9 @@
 [
     {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/drawable-hdpi/ic_left_chevron.png",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/drawable-hdpi/ic_left_chevron.png"
+    },
+    {
         "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/drawable-hdpi/vs_icon_launcher.png",
         "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/drawable-hdpi/vs_icon_launcher.png"
     },
@@ -26,6 +30,10 @@
     {
         "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/drawable-hdpi/croppedfinal.png",
         "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/drawable-hdpi/croppedfinal.png"
+    },
+    {
+        "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/drawable-hdpi/ic_search_white.png",
+        "source": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/drawable-hdpi/ic_search_white.png"
     },
     {
         "merged": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/res/merged/debug/drawable-hdpi/vs_glow_centered_without_tag.png",

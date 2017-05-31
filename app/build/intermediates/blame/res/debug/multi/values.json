@@ -1,10 +1,6 @@
 [
     {
-<<<<<<< HEAD
-        "outputFile": "/Users/dlee/Versus/app/build/intermediates/incremental/mergeDebugResources/merged.dir/values/values.xml",
-=======
         "outputFile": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/incremental/mergeDebugResources/merged.dir/values/values.xml",
->>>>>>> refactor
         "map": [
             {
                 "to": {
@@ -15,11 +11,7 @@
                     "endOffset": 102
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/.android/build-cache/0d0eadfcc7989dbca58c717e3bb2c0675ff70ae0/output/res/values/values.xml",
-=======
                     "file": "/home/chelium/.android/build-cache/c6e4116f30334481850016f08b04aa768d6fdd79/output/res/values/values.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 2,
                         "startColumn": 4,
@@ -1480,11 +1472,7 @@
                     "endOffset": 6479
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/colors.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/colors.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 7,
                         "startColumn": 4,
@@ -1503,11 +1491,7 @@
                     "endOffset": 6526
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/colors.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/colors.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 2,
                         "startColumn": 4,
@@ -1526,11 +1510,7 @@
                     "endOffset": 6577
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/colors.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/colors.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 3,
                         "startColumn": 4,
@@ -2157,11 +2137,7 @@
                     "endOffset": 8771
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/colors.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/colors.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 6,
                         "startColumn": 4,
@@ -2522,11 +2498,7 @@
                     "endOffset": 10107
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/colors.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/colors.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 4,
                         "startColumn": 4,
@@ -2545,11 +2517,7 @@
                     "endOffset": 10147
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/colors.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/colors.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 8,
                         "startColumn": 4,
@@ -2568,11 +2536,7 @@
                     "endOffset": 10187
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/colors.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/colors.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 9,
                         "startColumn": 4,
@@ -2591,11 +2555,7 @@
                     "endOffset": 10227
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/colors.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/colors.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 10,
                         "startColumn": 4,
@@ -2614,11 +2574,7 @@
                     "endOffset": 10278
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/colors.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/colors.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 5,
                         "startColumn": 4,
@@ -4005,11 +3961,7 @@
                     "endOffset": 51348
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/dimens.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/dimens.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 2,
                         "startColumn": 4,
@@ -4028,11 +3980,7 @@
                     "endOffset": 51404
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/dimens.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/dimens.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 3,
                         "startColumn": 4,
@@ -4051,11 +3999,7 @@
                     "endOffset": 51453
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/dimens.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/dimens.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 5,
                         "startColumn": 4,
@@ -4834,11 +4778,7 @@
                     "endOffset": 54015
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/dimens.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/dimens.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 4,
                         "startColumn": 4,
@@ -5978,11 +5918,7 @@
                     "endOffset": 58021
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/strings.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/strings.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 14,
                         "startColumn": 4,
@@ -6001,11 +5937,7 @@
                     "endOffset": 58074
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/strings.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/strings.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 2,
                         "startColumn": 4,
@@ -6024,11 +5956,7 @@
                     "endOffset": 58118
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/strings.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/strings.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 1,
                         "startColumn": 4,
@@ -6104,11 +6032,7 @@
                     "endOffset": 58513
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/strings.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/strings.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 5,
                         "startColumn": 4,
@@ -6127,11 +6051,7 @@
                     "endOffset": 58583
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/strings.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/strings.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 4,
                         "startColumn": 4,
@@ -6150,11 +6070,7 @@
                     "endOffset": 58647
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/strings.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/strings.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 6,
                         "startColumn": 4,
@@ -6173,11 +6089,7 @@
                     "endOffset": 58685
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/strings.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/strings.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 22,
                         "startColumn": 4,
@@ -6196,11 +6108,7 @@
                     "endOffset": 58731
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/strings.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/strings.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 7,
                         "startColumn": 4,
@@ -6238,11 +6146,7 @@
                     "endOffset": 58858
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/strings.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/strings.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 13,
                         "startColumn": 4,
@@ -6261,11 +6165,7 @@
                     "endOffset": 58914
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/strings.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/strings.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 3,
                         "startColumn": 4,
@@ -6303,11 +6203,7 @@
                     "endOffset": 59046
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/strings.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/strings.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 12,
                         "startColumn": 4,
@@ -6326,15 +6222,6 @@
                     "endOffset": 59109
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/strings.xml",
-                    "position": {
-                        "startLine": 24,
-                        "startColumn": 4,
-                        "startOffset": 1463,
-                        "endColumn": 62,
-                        "endOffset": 1521
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/strings.xml",
                     "position": {
                         "startLine": 24,
@@ -6342,7 +6229,6 @@
                         "startOffset": 1487,
                         "endColumn": 62,
                         "endOffset": 1545
->>>>>>> refactor
                     }
                 }
             },
@@ -6355,15 +6241,6 @@
                     "endOffset": 59181
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/strings.xml",
-                    "position": {
-                        "startLine": 23,
-                        "startColumn": 4,
-                        "startOffset": 1391,
-                        "endColumn": 71,
-                        "endOffset": 1458
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/strings.xml",
                     "position": {
                         "startLine": 23,
@@ -6371,7 +6248,6 @@
                         "startOffset": 1414,
                         "endColumn": 71,
                         "endOffset": 1481
->>>>>>> refactor
                     }
                 }
             },
@@ -6384,11 +6260,7 @@
                     "endOffset": 59252
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/strings.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/strings.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 21,
                         "startColumn": 4,
@@ -6407,11 +6279,7 @@
                     "endOffset": 59327
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/strings.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/strings.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 11,
                         "startColumn": 4,
@@ -6430,11 +6298,7 @@
                     "endOffset": 59386
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/strings.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/strings.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 9,
                         "startColumn": 4,
@@ -6453,11 +6317,7 @@
                     "endOffset": 59454
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/strings.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/strings.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 10,
                         "startColumn": 4,
@@ -6476,11 +6336,7 @@
                     "endOffset": 59527
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/strings.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/strings.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 16,
                         "startColumn": 4,
@@ -6499,11 +6355,7 @@
                     "endOffset": 59592
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/strings.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/strings.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 15,
                         "startColumn": 4,
@@ -6522,11 +6374,7 @@
                     "endOffset": 59673
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/strings.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/strings.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 18,
                         "startColumn": 4,
@@ -6545,11 +6393,7 @@
                     "endOffset": 59746
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/strings.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/strings.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 17,
                         "startColumn": 4,
@@ -6568,11 +6412,7 @@
                     "endOffset": 59827
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/strings.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/strings.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 20,
                         "startColumn": 4,
@@ -6591,11 +6431,7 @@
                     "endOffset": 59908
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/strings.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/strings.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 19,
                         "startColumn": 4,
@@ -6614,11 +6450,7 @@
                     "endOffset": 59954
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/strings.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/strings.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 8,
                         "startColumn": 4,
@@ -6735,11 +6567,7 @@
                     "endOffset": 60905
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/styles.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/styles.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 3,
                         "startColumn": 4,
@@ -6760,11 +6588,7 @@
                     "endOffset": 61067
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/styles.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/styles.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 16,
                         "startColumn": 4,
@@ -6785,11 +6609,7 @@
                     "endOffset": 61217
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/styles.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/styles.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 10,
                         "startColumn": 4,
@@ -6809,11 +6629,7 @@
                     "endOffset": 61297
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/styles.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/styles.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 20,
                         "startColumn": 4,
@@ -9739,11 +9555,7 @@
                     "endOffset": 126619
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/styles.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/styles.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 22,
                         "startColumn": 4,
@@ -10180,11 +9992,7 @@
                     "endOffset": 137429
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/Versus/app/src/main/res/values/styles.xml",
-=======
                     "file": "/home/chelium/AndroidStudioProjects/versus/app/src/main/res/values/styles.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 28,
                         "startColumn": 4,

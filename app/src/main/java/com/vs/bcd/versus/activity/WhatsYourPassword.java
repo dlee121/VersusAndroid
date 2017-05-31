@@ -2,12 +2,9 @@ package com.vs.bcd.versus.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
-<<<<<<< HEAD:app/src/main/java/com/vs/bcd/versus/WhatsYourPassword.java
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
-=======
->>>>>>> refactor:app/src/main/java/com/vs/bcd/versus/activity/WhatsYourPassword.java
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;

@@ -1,10 +1,6 @@
 [
     {
-<<<<<<< HEAD
-        "outputFile": "/Users/dlee/Versus/app/build/intermediates/incremental/mergeDebugResources/merged.dir/values-port/values-port.xml",
-=======
         "outputFile": "/home/chelium/AndroidStudioProjects/versus/app/build/intermediates/incremental/mergeDebugResources/merged.dir/values-port/values-port.xml",
->>>>>>> refactor
         "map": [
             {
                 "to": {
@@ -15,11 +11,7 @@
                     "endOffset": 106
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/.android/build-cache/55087a9ccf834fb18d55175dbaa940b18cfc954d/output/res/values-port/values-port.xml",
-=======
                     "file": "/home/chelium/.android/build-cache/a28ba40d4a84f5d931ee105b1f78d67c4aab91b1/output/res/values-port/values-port.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 2,
                         "startColumn": 4,

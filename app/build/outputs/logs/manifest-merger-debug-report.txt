@@ -42,12 +42,12 @@ MERGED from [de.hdodenhof:circleimageview:2.1.0] /home/chelium/.android/build-ca
 		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:9:9-50
 	android:theme
 		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:12:9-40
-activity#com.vs.bcd.versus.SplashActivity
+activity#com.vs.bcd.versus.activity.SplashActivity
 ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:13:9-21:20
 	android:theme
 		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:15:13-47
 	android:name
-		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:14:13-43
+		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:14:13-52
 intent-filter#android.intent.action.MAIN+android.intent.category.LAUNCHER
 ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:16:13-20:29
 action#android.intent.action.MAIN
@@ -58,78 +58,78 @@ category#android.intent.category.LAUNCHER
 ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:19:17-77
 	android:name
 		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:19:27-74
-activity#com.vs.bcd.versus.StartScreen
+activity#com.vs.bcd.versus.activity.StartScreen
 ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:28:9-31:59
 	android:label
 		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:30:13-45
 	android:theme
 		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:31:13-56
 	android:name
-		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:29:13-40
-activity#com.vs.bcd.versus.WhatsYourName
+		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:29:13-49
+activity#com.vs.bcd.versus.activity.WhatsYourName
 ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:32:9-40:20
 	android:label
 		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:34:13-67
 	android:parentActivityName
-		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:35:13-54
+		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:35:13-63
 	android:theme
 		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:36:13-56
 	android:name
-		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:33:13-42
+		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:33:13-51
 meta-data#android.support.PARENT_ACTIVITY
-ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:37:13-39:65
+ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:37:13-39:74
 	android:value
-		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:39:17-62
+		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:39:17-71
 	android:name
 		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:38:17-63
-activity#com.vs.bcd.versus.WhatsYourBirthday
+activity#com.vs.bcd.versus.activity.WhatsYourBirthday
 ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:41:9-49:20
 	android:label
 		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:43:13-71
 	android:parentActivityName
-		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:44:13-56
+		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:44:13-65
 	android:theme
 		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:45:13-56
 	android:name
-		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:42:13-46
-activity#com.vs.bcd.versus.WhatsYourUsername
+		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:42:13-55
+activity#com.vs.bcd.versus.activity.WhatsYourUsername
 ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:50:9-58:20
 	android:label
 		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:52:13-71
 	android:parentActivityName
-		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:53:13-60
+		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:53:13-69
 	android:theme
 		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:54:13-56
 	android:name
-		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:51:13-46
-activity#com.vs.bcd.versus.WhatsYourPassword
+		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:51:13-55
+activity#com.vs.bcd.versus.activity.WhatsYourPassword
 ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:59:9-67:20
 	android:label
 		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:61:13-71
 	android:parentActivityName
-		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:62:13-60
+		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:62:13-69
 	android:theme
 		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:63:13-56
 	android:name
-		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:60:13-46
-activity#com.vs.bcd.versus.PhoneOrEmail
+		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:60:13-55
+activity#com.vs.bcd.versus.activity.PhoneOrEmail
 ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:68:9-76:20
 	android:label
 		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:70:13-66
 	android:parentActivityName
-		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:71:13-60
+		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:71:13-69
 	android:theme
 		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:72:13-56
 	android:name
-		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:69:13-41
-activity#com.vs.bcd.versus.MainContainer
+		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:69:13-50
+activity#com.vs.bcd.versus.activity.MainContainer
 ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:77:9-80:47
 	android:label
 		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:79:13-66
 	android:theme
 		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:80:13-44
 	android:name
-		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:78:13-42
+		ADDED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml:78:13-51
 uses-sdk
 INJECTED from /home/chelium/AndroidStudioProjects/versus/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
 MERGED from [com.android.support:design:24.2.1] /home/chelium/.android/build-cache/d95ad82e55f84c7c5a6707dc2fe94da1826c4c3a/output/AndroidManifest.xml:20:5-43

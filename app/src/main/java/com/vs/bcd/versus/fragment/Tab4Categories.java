@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.activity.MainContainer;
 
 /**
  * Created by dlee on 4/29/17.

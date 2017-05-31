@@ -7,13 +7,8 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-<<<<<<< HEAD
     android:background="#efefef"
-    tools:context="com.vs.bcd.versus.MainContainer">
-=======
-    android:background="@color/vsOne"
     tools:context="com.vs.bcd.versus.activity.MainContainer">
->>>>>>> refactor
 
 
     <EditText

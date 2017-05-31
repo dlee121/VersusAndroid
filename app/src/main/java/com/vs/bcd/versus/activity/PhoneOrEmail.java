@@ -19,6 +19,7 @@ import java.util.Locale;
 
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
+import com.vs.bcd.versus.model.User;
 
 public class PhoneOrEmail extends AppCompatActivity {
 

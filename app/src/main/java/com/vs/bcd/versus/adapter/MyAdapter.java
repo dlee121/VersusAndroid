@@ -11,6 +11,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.vs.bcd.versus.OnLoadMoreListener;
+import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.activity.PhoneOrEmail;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.R;

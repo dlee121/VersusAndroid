@@ -225,11 +225,7 @@
                     "endOffset": 2791
                 },
                 "from": {
-<<<<<<< HEAD
-                    "file": "/Users/dlee/.android/build-cache/5fc2e48e8872eb796158ca3818dea6276f826999/output/res/values-v23/values-v23.xml",
-=======
                     "file": "/home/chelium/.android/build-cache/72ec00f6d86f85a9005691d02e62f45684f5c420/output/res/values-v23/values-v23.xml",
->>>>>>> refactor
                     "position": {
                         "startLine": 2,
                         "startColumn": 4,
