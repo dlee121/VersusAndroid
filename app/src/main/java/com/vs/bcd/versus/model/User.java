@@ -75,6 +75,9 @@ public class User {
         this.phone = phone;
     }
 
+    public User(){
+
+    }
 
     public User(String input){
         String[] userData = input.split("%");

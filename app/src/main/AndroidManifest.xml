@@ -78,6 +78,15 @@
             android:name=".activity.MainContainer"
             android:label="@string/title_activity_main_container"
             android:theme="@style/AppTheme" />
+        <activity
+            android:name=".activity.LogIn"
+            android:label="@string/title_activity_log_in"
+            android:parentActivityName=".activity.StartScreen"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.vs.bcd.versus.activity.StartScreen" />
+        </activity>
     </application>
 
 </manifest>

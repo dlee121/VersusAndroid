@@ -24,6 +24,7 @@
             android:textColor="@color/vsOne"
             android:textSize="30dp"
             android:textStyle="bold"
+            android:onClick="logInPressed"
             android:layout_weight="0"/>
 
         <Button

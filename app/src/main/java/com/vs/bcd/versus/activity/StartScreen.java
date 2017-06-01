@@ -66,4 +66,10 @@ public class StartScreen extends AppCompatActivity {
 
     }
 
+    public void logInPressed(View view){
+        Intent intent = new Intent(this, LogIn.class);
+        startActivity(intent);
+        overridePendingTransition(0, 0);
+    }
+
 }
