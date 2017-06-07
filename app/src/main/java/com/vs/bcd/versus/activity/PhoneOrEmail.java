@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 
@@ -13,14 +12,8 @@ import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
-
 import com.vs.bcd.versus.R;
-import com.vs.bcd.versus.SessionManager;
-import com.vs.bcd.versus.activity.MainContainer;
+import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.User;
 
 public class PhoneOrEmail extends AppCompatActivity {

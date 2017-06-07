@@ -3,8 +3,6 @@ package com.vs.bcd.versus.activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -18,7 +16,7 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 
 import com.vs.bcd.versus.R;
-import com.vs.bcd.versus.SessionManager;
+import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.User;
 
 public class LogIn extends AppCompatActivity {
