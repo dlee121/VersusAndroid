@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.SessionManager;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.model.Post;
 
@@ -32,7 +33,7 @@ public class CreatePost extends Fragment {
     private String questiongStr;
     private String catStr;
 
-
+    private SessionManager sessionManager;
 
 
     @Override
@@ -43,6 +44,7 @@ public class CreatePost extends Fragment {
         blacknameET = (EditText)rootView.findViewById(R.id.blackname_in);
         questionET = (EditText)rootView.findViewById(R.id.question_in);
         categoryET = (EditText)rootView.findViewById(R.id.category_in);
+        sessionManager = new SessionManager(getActivity());
         return rootView;
     }
 
@@ -68,17 +70,31 @@ public class CreatePost extends Fragment {
             public void run() {
                 Post post = new Post();
                 post.setCategory(catStr);
+                /*
+                //time is now set in the constructor. refer to Post.java
+
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
                 post.setTime(df.format(new Date()));
-                post.setAuthor("DEEKS");
+                */
+                post.setAuthor(sessionManager.getUserDetails().get(SessionManager.KEY_USERNAME));
                 post.setRedname(redStr);
                 post.setBlackname(blackStr);
                 post.setQuestion(questiongStr);
                 ((MainContainer)getActivity()).getMapper().save(post);
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ((MainContainer) getActivity()).getViewPager().setCurrentItem(1);   //once create post submits, we move back to MainActivity (tabs activity)
+                        Intent intent = new Intent(getActivity(), MainContainer.class);
+                        startActivity(intent);  //go on to the next activity, MainContainer
+                        getActivity().overridePendingTransition(0, 0);
+                    }
+                });
             }
         };
         Thread mythread = new Thread(runnable);
         mythread.start();
+
     }
 
 

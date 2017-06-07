@@ -5,6 +5,11 @@ import android.os.Parcelable;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.UUID;
+
 @DynamoDBTable(tableName = "post")
 public class Post implements Parcelable{
 
@@ -20,8 +25,8 @@ public class Post implements Parcelable{
     private String blackname;
     private int blackcount;
     private String category; //for now let's do politics, sports (then sub categories / tags could be basket ball, boxing, ufc, soccer, etc), food, anime / comics
+    private String post_id;
 
-    //getters
     @DynamoDBAttribute(attributeName = "question")
     public String getQuestion() {
         //TODO: since ddb doesn't hold empty strings, empty question will come as null (as in setQuestion will not execute on those since the question column doesn't exist for those posts without question. So handle such cases when question is null return empty string
@@ -31,7 +36,7 @@ public class Post implements Parcelable{
         this.question = question;
     }
 
-    @DynamoDBIndexRangeKey(attributeName = "author")
+    @DynamoDBAttribute(attributeName = "author")
     public String getAuthor() {
         return author;
     }
@@ -39,7 +44,15 @@ public class Post implements Parcelable{
         this.author = author;
     }
 
-    @DynamoDBRangeKey(attributeName="time")
+    @DynamoDBRangeKey(attributeName = "post_id")
+    public String getPost_id(){
+        return  post_id;
+    }
+    public void setPost_id(String post_id){
+        this.post_id = post_id;
+    }
+
+    @DynamoDBAttribute(attributeName="time")
     public String getTime() {
         return time;
     }
@@ -102,6 +115,9 @@ public class Post implements Parcelable{
         redcount = 0;
         blackcount = 0;
         viewcount = 1;
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
+        time = df.format(new Date());
+        post_id = UUID.randomUUID().toString(); //generate random UUID as post_id when post is created
     }
 
     public Post(Parcel in){
@@ -114,6 +130,7 @@ public class Post implements Parcelable{
         blackname = in.readString();
         blackcount = in.readInt();
         category = in.readString();
+        post_id = in.readString();
     }
 
     @Override
@@ -132,6 +149,7 @@ public class Post implements Parcelable{
         dest.writeString(blackname);
         dest.writeInt(blackcount);
         dest.writeString(category);
+        dest.writeString(post_id);
     }
 
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
