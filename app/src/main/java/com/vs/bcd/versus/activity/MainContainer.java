@@ -124,7 +124,6 @@ public class MainContainer extends AppCompatActivity {
 
         mViewPager.setCurrentItem(1);
 
-
         Log.d("USER_INFO", sessionManager.getUserDetails().get(SessionManager.KEY_USERNAME));
 
     }

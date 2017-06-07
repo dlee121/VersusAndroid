@@ -14,7 +14,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import com.vs.bcd.versus.R;
-import com.vs.bcd.versus.SessionManager;
+import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.model.Post;
 
