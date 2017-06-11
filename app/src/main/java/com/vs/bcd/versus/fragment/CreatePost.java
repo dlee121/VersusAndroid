@@ -39,7 +39,6 @@ public class CreatePost extends Fragment {
     private View rootView;
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
-
     private SessionManager sessionManager;
 
 

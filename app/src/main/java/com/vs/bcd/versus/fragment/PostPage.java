@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
+import com.vs.bcd.versus.model.Post;
 
 import java.util.ArrayList;
 
@@ -77,6 +78,10 @@ public class PostPage extends Fragment {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
             Log.d("VISIBLE", "SEARCH VISIBLE");
+            //TODO: populate page with post info here
+
+
+
             if(rootView != null)
                 enableChildViews();
         }
@@ -109,6 +114,16 @@ public class PostPage extends Fragment {
 
         }
     }
+
+    public void setContent(Post post){
+        ((TextView)(rootView.findViewById(R.id.post_page_question))).setText(post.getQuestion());
+        ((TextView)(rootView.findViewById(R.id.post_page_redname))).setText(post.getRedname());
+        ((TextView)(rootView.findViewById(R.id.post_page_blackname))).setText(post.getBlackname());
+        ((TextView)(rootView.findViewById(R.id.post_page_redcount))).setText(Integer.toString(post.getRedcount()));
+        ((TextView)(rootView.findViewById(R.id.post_page_blackcount))).setText(Integer.toString(post.getBlackcount()));
+    }
+
+
 
     public void commentSubmitButtonPressed(){
 

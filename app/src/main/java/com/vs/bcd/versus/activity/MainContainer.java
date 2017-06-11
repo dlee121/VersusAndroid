@@ -248,8 +248,10 @@ public class MainContainer extends AppCompatActivity {
         return mViewPager;
     }
 
-    public void postClicked(String postID){
-        Log.d("POSTID", postID);
+    //pass post information from MyAdapter CardView click handler, through this helper method, to PostPage fragment
+    public void postClicked(Post post){
+        postPage.setContent(post);
+        mViewPager.setCurrentItem(3);
     }
 
     public class FadePageTransformer implements ViewPager.PageTransformer {

@@ -82,7 +82,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
         if (holder instanceof UserViewHolder) {
 
             //set onClickListener for profile pic
@@ -188,11 +188,12 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             userViewHolder.mainVSText.setText(post.getRedname() + " vs " + post.getBlackname());
             userViewHolder.category.setText(post.getCategory());
             userViewHolder.viewcount.setText(Integer.toString(post.getViewcount()) + " views");
+            //set CardView onClickListener to go to PostPage fragment with corresponding Post data
             userViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     if(((MainContainer)activity).getMainFrag().getUILifeStatus()){
-                        ((MainContainer)activity).postClicked(postID);  //TODO: pass more useful information to the function so we can populate PostPage with that easily
+                        ((MainContainer)activity).postClicked(posts.get(position));
                     }
                 }
             });
