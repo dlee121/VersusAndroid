@@ -14,6 +14,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.vs.bcd.versus.R;
@@ -40,6 +41,7 @@ public class MainActivity extends Fragment {
     private View rootView;
     private boolean childrenFragmentsUIActive = false;
     private ArrayList<View> childViews;
+    private LinearLayout tabStrip;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -56,6 +58,7 @@ public class MainActivity extends Fragment {
 
         TabLayout tabLayout = (TabLayout) rootView.findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
+        tabStrip = ((LinearLayout)tabLayout.getChildAt(0));
         //set tab icons
 
         tabLayout.getTabAt(0).setIcon(R.drawable.ic_trending_selected);
@@ -219,6 +222,10 @@ public class MainActivity extends Fragment {
     }
 
     public void enableChildViews(){
+        tabStrip.setEnabled(true);
+        for(int i = 0; i < tabStrip.getChildCount(); i++) {
+            tabStrip.getChildAt(i).setClickable(true);
+        }
         for(int i = 0; i<childViews.size(); i++){
             childViews.get(i).setEnabled(true);
             childViews.get(i).setClickable(true);
@@ -227,6 +234,10 @@ public class MainActivity extends Fragment {
     }
 
     public void disableChildViews(){
+        tabStrip.setEnabled(false);
+        for(int i = 0; i < tabStrip.getChildCount(); i++) {
+            tabStrip.getChildAt(i).setClickable(false);
+        }
         for(int i = 0; i<childViews.size(); i++){
             childViews.get(i).setEnabled(false);
             childViews.get(i).setClickable(false);
