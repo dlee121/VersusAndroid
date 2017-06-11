@@ -63,4 +63,27 @@
         android:layout_alignLeft="@id/post_page_blackname"
         android:layout_below="@id/post_page_blackname"
         android:text="1"/>
+
+    <EditText
+        android:id="@+id/commentInput"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:enabled="false"
+        android:layout_marginTop="101dp"
+        android:ems="10"
+        android:inputType="textMultiLine"
+        android:layout_marginRight="54dp"
+        android:layout_marginEnd="54dp"
+        android:layout_below="@+id/textView11"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+    <Button
+        android:id="@+id/submitCommentButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textView11"
+        android:layout_alignStart="@+id/textView11"
+        android:layout_centerVertical="true"
+        android:text="Submit" />
 </RelativeLayout>

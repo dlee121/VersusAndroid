@@ -5,12 +5,16 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import com.vs.bcd.versus.R;
@@ -32,6 +36,9 @@ public class CreatePost extends Fragment {
     private String blackStr;
     private String questiongStr;
     private String catStr;
+    private View rootView;
+    private ArrayList<View> childViews;
+    private ArrayList<ViewGroup.LayoutParams> LPStore;
 
     private SessionManager sessionManager;
 
@@ -39,23 +46,25 @@ public class CreatePost extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.create_post, container, false);
+        rootView = inflater.inflate(R.layout.create_post, container, false);
         rednameET = (EditText)rootView.findViewById(R.id.redname_in);
         blacknameET = (EditText)rootView.findViewById(R.id.blackname_in);
         questionET = (EditText)rootView.findViewById(R.id.question_in);
         categoryET = (EditText)rootView.findViewById(R.id.category_in);
         sessionManager = new SessionManager(getActivity());
-        return rootView;
-    }
-
-    @Override
-    public void setUserVisibleHint(boolean isVisibleToUser) {
-        super.setUserVisibleHint(isVisibleToUser);
-        if (isVisibleToUser) {
-            Log.d("VISIBLE", "CREATE POST VISIBLE");
+        childViews = new ArrayList<>();
+        LPStore = new ArrayList<>();
+        for (int i = 0; i<((ViewGroup)rootView).getChildCount(); i++){
+            childViews.add(((ViewGroup)rootView).getChildAt(i));
+            if(childViews.get(i) instanceof EditText){
+                LPStore.add(childViews.get(i).getLayoutParams());
+            }
+            else{
+                LPStore.add(null);
+            }
         }
-        else
-            Log.d("VISIBLE", "CREATE POST GONE");
+        disableChildViews();
+        return rootView;
     }
 
     public void createButtonPressed(View view){
@@ -98,4 +107,41 @@ public class CreatePost extends Fragment {
     }
 
 
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (isVisibleToUser) {
+            Log.d("VISIBLE", "CREATE POST VISIBLE");
+            if(rootView != null)
+                enableChildViews();
+        }
+        else {
+            Log.d("VISIBLE", "CREATE POST GONE");
+            if (rootView != null)
+                disableChildViews();
+        }
+    }
+
+    public void enableChildViews(){
+        for(int i = 0; i<childViews.size(); i++){
+            childViews.get(i).setEnabled(true);
+            childViews.get(i).setClickable(true);
+            if(childViews.get(i) instanceof EditText){
+                childViews.get(i).setLayoutParams(LPStore.get(i));
+            }
+
+
+        }
+    }
+
+    public void disableChildViews(){
+        for(int i = 0; i<childViews.size(); i++){
+            childViews.get(i).setEnabled(false);
+            childViews.get(i).setClickable(false);
+            if(childViews.get(i) instanceof EditText){
+                childViews.get(i).setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+            }
+
+        }
+    }
 }

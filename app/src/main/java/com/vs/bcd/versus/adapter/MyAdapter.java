@@ -26,6 +26,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 import static android.R.attr.format;
 import static android.R.attr.fragment;
+import static com.vs.bcd.versus.R.id.fab;
 
 
 public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -94,6 +95,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
             //TODO:this is where values are put into the layout, from the post object
             Post post = posts.get(position);
+            final String postID = post.getPost_id();
             int timeFormat = 0;
             UserViewHolder userViewHolder = (UserViewHolder) holder;
 
@@ -186,8 +188,16 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             userViewHolder.mainVSText.setText(post.getRedname() + " vs " + post.getBlackname());
             userViewHolder.category.setText(post.getCategory());
             userViewHolder.viewcount.setText(Integer.toString(post.getViewcount()) + " views");
+            userViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(((MainContainer)activity).getMainFrag().getUILifeStatus()){
+                        ((MainContainer)activity).postClicked(postID);  //TODO: pass more useful information to the function so we can populate PostPage with that easily
+                    }
+                }
+            });
 
-        } else if (holder instanceof LoadingViewHolder) {
+        } else if (holder instanceof LoadingViewHolder) { //TODO: handle loading view to be implemented soon
             LoadingViewHolder loadingViewHolder = (LoadingViewHolder) holder;
             loadingViewHolder.progressBar.setIndeterminate(true);
         }

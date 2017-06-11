@@ -10,7 +10,6 @@
     android:background="@color/vsTwo"
     tools:context="com.vs.bcd.versus.activity.MainContainer">
 
-
     <EditText
         android:id="@+id/editText2"
         android:layout_width="wrap_content"

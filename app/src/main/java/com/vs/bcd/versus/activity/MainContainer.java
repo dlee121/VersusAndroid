@@ -21,6 +21,8 @@ import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.vs.bcd.versus.fragment.PostPage;
+import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.fragment.CreatePost;
 import com.vs.bcd.versus.R;
@@ -42,6 +44,7 @@ public class MainContainer extends AppCompatActivity {
     private String lastSetTitle = "";
     private MainActivity mainActivityFragRef;
     private CreatePost createPost;
+    private PostPage postPage;
     private SessionManager sessionManager;
     /**
      * The {@link ViewPager} that will host the section contents.
@@ -82,18 +85,23 @@ public class MainContainer extends AppCompatActivity {
                 int i = mViewPager.getCurrentItem();
                 switch (i) {
                     case 0:
-                        toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                        toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         mViewPager.setCurrentItem(1);
-                        titleTxtView.setText(lastSetTitle);
+                        titleTxtView.setText("Search");
                         break;
                     case 1:
-                        toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+                        toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                         mViewPager.setCurrentItem(0);
-                        titleTxtView.setText("Search");
+                        titleTxtView.setText(lastSetTitle);
                         break;
                     case 2:
                         toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
-                        mViewPager.setCurrentItem(1);
+                        mViewPager.setCurrentItem(0);
+                        titleTxtView.setText(lastSetTitle);
+                        break;
+                    case 3:
+                        toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                        mViewPager.setCurrentItem(0);
                         titleTxtView.setText(lastSetTitle);
                         break;
                     default:
@@ -118,11 +126,11 @@ public class MainContainer extends AppCompatActivity {
         mViewPager = (ViewPagerCustomDuration) findViewById(R.id.container2);
         mViewPager.setScrollDurationFactor(1);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        mViewPager.setOffscreenPageLimit(3);
+        mViewPager.setOffscreenPageLimit(4);
         mViewPager.setPageTransformer(false, new FadePageTransformer());
         //mViewPager.setPageTransformer(false, new NoPageTransformer());
 
-        mViewPager.setCurrentItem(1);
+        mViewPager.setCurrentItem(0);
 
         Log.d("USER_INFO", sessionManager.getUserDetails().get(SessionManager.KEY_USERNAME));
 
@@ -179,15 +187,18 @@ public class MainContainer extends AppCompatActivity {
             //Return current tabs
             switch (position) {
                 case 0:
-                    SearchPage searchPage = new SearchPage();
-                    return searchPage;
-                case 1:
                     MainActivity mainActivityFragment = new MainActivity();
                     mainActivityFragRef = mainActivityFragment;
                     return mainActivityFragment;
+                case 1:
+                    SearchPage searchPage = new SearchPage();
+                    return searchPage;
                 case 2:
                     createPost = new CreatePost();
                     return createPost;
+                case 3:
+                    postPage = new PostPage();
+                    return postPage;
                 default:
                     return null;
             }
@@ -195,18 +206,20 @@ public class MainContainer extends AppCompatActivity {
         @Override
         public int getCount() {
             // Show 3 total pages.
-            return 3;
+            return 4;
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "SEARCH";
-                case 1:
                     return "MAIN";
+                case 1:
+                    return "SEARCH";
                 case 2:
                     return "CREATE POST";
+                case 3:
+                    return "POST PAGE";
             }
             return null;
         }
@@ -235,6 +248,9 @@ public class MainContainer extends AppCompatActivity {
         return mViewPager;
     }
 
+    public void postClicked(String postID){
+        Log.d("POSTID", postID);
+    }
 
     public class FadePageTransformer implements ViewPager.PageTransformer {
         public void transformPage(View view, float position) {
