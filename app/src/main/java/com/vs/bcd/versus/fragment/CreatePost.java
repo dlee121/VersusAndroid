@@ -84,7 +84,7 @@ public class CreatePost extends Fragment {
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
                 post.setTime(df.format(new Date()));
                 */
-                post.setAuthor(sessionManager.getUserDetails().get(SessionManager.KEY_USERNAME));
+                post.setAuthor(sessionManager.getCurrentUsername());
                 post.setRedname(redStr);
                 post.setBlackname(blackStr);
                 post.setQuestion(questiongStr);

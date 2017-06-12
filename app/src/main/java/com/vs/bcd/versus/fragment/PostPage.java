@@ -15,6 +15,8 @@ import android.widget.TextView;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.model.Post;
+import com.vs.bcd.versus.model.SessionManager;
+import com.vs.bcd.versus.model.VSComment;
 
 import java.util.ArrayList;
 
@@ -32,6 +34,8 @@ public class PostPage extends Fragment {
     private View rootView;
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
+    private String postID = "";
+    private SessionManager sessionManager;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -39,6 +43,8 @@ public class PostPage extends Fragment {
         rootView = inflater.inflate(R.layout.post_page, container, false);
         commentInput = (EditText) rootView.findViewById(R.id.commentInput);
         mRelativeLayout = (RelativeLayout) rootView.findViewById(R.id.post_page_layout);
+
+        sessionManager = new SessionManager(getActivity());
 
         Button commentSubmitButton = (Button) rootView.findViewById(R.id.submitCommentButton);
         commentSubmitButton.setOnClickListener(new View.OnClickListener() {
@@ -69,6 +75,29 @@ public class PostPage extends Fragment {
             }
         }
         disableChildViews();
+
+        //root comment submission function to execute when submit button is pressed
+        rootView.findViewById(R.id.submitCommentButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //TODO: form validation (although most strings should be acceptable as comments anyway)
+                Runnable runnable = new Runnable() {
+                    public void run() {
+                        VSComment vsc = new VSComment();
+                        vsc.setPost_id(postID);
+                        vsc.setParent_id("0");  //TODO: for root/reply check, which would be more efficient, checking if parent_id == "0" or checking parent_id.length() == 1?
+                        vsc.setAuthor(sessionManager.getCurrentUsername());
+                        vsc.setContent(((TextView)(rootView.findViewById(R.id.commentInput))).getText().toString().trim());
+                        ((MainContainer)getActivity()).getMapper().save(vsc);
+                    }
+                };
+                Thread mythread = new Thread(runnable);
+                mythread.start();
+                Log.d("COMMENT", "Comment submitted");
+            }
+        });
+
+
 
         return rootView;
     }
@@ -121,14 +150,7 @@ public class PostPage extends Fragment {
         ((TextView)(rootView.findViewById(R.id.post_page_blackname))).setText(post.getBlackname());
         ((TextView)(rootView.findViewById(R.id.post_page_redcount))).setText(Integer.toString(post.getRedcount()));
         ((TextView)(rootView.findViewById(R.id.post_page_blackcount))).setText(Integer.toString(post.getBlackcount()));
-    }
-
-
-
-    public void commentSubmitButtonPressed(){
-
-
-
+        postID = post.getPost_id();
     }
 
 

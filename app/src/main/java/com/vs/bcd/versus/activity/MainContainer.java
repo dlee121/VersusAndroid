@@ -269,7 +269,6 @@ public class MainContainer extends AppCompatActivity {
         }
     }
 
-
     public void createButtonPressed(View view){
         createPost.createButtonPressed(view);
     }

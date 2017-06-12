@@ -91,7 +91,9 @@ public class SessionManager {
 
     }
 
-
+    public String getCurrentUsername(){
+        return pref.getString(KEY_USERNAME, null);  //TODO: null or "" for the default value (second param of getString)?
+    }
 
     /**
      * Get stored session data
