@@ -1,5 +1,6 @@
 package com.vs.bcd.versus.fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -89,11 +90,18 @@ public class PostPage extends Fragment {
                         vsc.setAuthor(sessionManager.getCurrentUsername());
                         vsc.setContent(((TextView)(rootView.findViewById(R.id.commentInput))).getText().toString().trim());
                         ((MainContainer)getActivity()).getMapper().save(vsc);
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                //TODO: refresh comments. Eventually make it efficient. For now, just grabbing every comments belonging to currently displayed post
+
+                            }
+                        });
                     }
                 };
                 Thread mythread = new Thread(runnable);
                 mythread.start();
-                Log.d("COMMENT", "Comment submitted");
+                Log.d("VSCOMMENT", "VSComment submitted");
             }
         });
 
