@@ -73,6 +73,7 @@ public class Tab1Newsfeed extends Fragment{
                         //DynamoDB calls go here
                         DynamoDBScanExpression scanExpression = new DynamoDBScanExpression();
                         DynamoDBMapperConfig config = new DynamoDBMapperConfig(DynamoDBMapperConfig.PaginationLoadingStrategy.EAGER_LOADING);
+                        //TODO: change scan to actual query for the tab (in this case, newsfeed)
                         PaginatedScanList<Post> result = mHostActivity.getMapper().scan(Post.class, scanExpression, config);
                         result.loadAllResults();
                         posts = new ArrayList<>(result.size());

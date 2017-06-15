@@ -13,16 +13,22 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.SessionManager;
+import com.vs.bcd.versus.model.VSCNode;
 import com.vs.bcd.versus.model.VSComment;
 
 import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
 
 import static com.vs.bcd.versus.R.id.commentInput;
 import static com.vs.bcd.versus.R.id.submitCommentButton;
+
 
 /**
  * Created by dlee on 6/7/17.
@@ -37,6 +43,7 @@ public class PostPage extends Fragment {
     private ArrayList<ViewGroup.LayoutParams> LPStore;
     private String postID = "";
     private SessionManager sessionManager;
+    private List<VSCNode> vscNodes = new ArrayList<>(); //ArrayList of VSCNode
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -115,7 +122,7 @@ public class PostPage extends Fragment {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
             Log.d("VISIBLE", "SEARCH VISIBLE");
-            //TODO: populate page with post info here
+            //TODO: get comments from DB, create the comment structure and display it here. Actually we're doing that in setContent() right now
 
 
 
@@ -159,6 +166,82 @@ public class PostPage extends Fragment {
         ((TextView)(rootView.findViewById(R.id.post_page_redcount))).setText(Integer.toString(post.getRedcount()));
         ((TextView)(rootView.findViewById(R.id.post_page_blackcount))).setText(Integer.toString(post.getBlackcount()));
         postID = post.getPost_id();
+
+        Runnable runnable = new Runnable() {
+            public void run() {
+                VSComment vscommentToQuery = new VSComment();
+                vscommentToQuery.setPost_id(postID);
+
+                DynamoDBQueryExpression queryExpression = new DynamoDBQueryExpression().withHashKeyValues(vscommentToQuery);
+                PaginatedQueryList<VSComment> result = ((MainContainer)getActivity()).getMapper().query(VSComment.class, queryExpression);
+                result.loadAllResults();
+                Iterator<VSComment> it = result.iterator();
+
+
+                //below, we form the comment structure. each comment is a node in doubly linked list. So we only need to root comment that is at the top to traverse the comment tree to display all the comments.
+                VSCNode firstParentNode = null; //holds the first parent node, which holds the comment that appears at the top of the hierarchy.
+                VSCNode latestParentNode = null;  //holds the latest parent node we worked with. Used for assigning sibling order for parent nodes (root comments)
+                Hashtable<String, VSCNode> nodeTable = new Hashtable(result.size());    //Hashtable to assist in assigning children/siblings.
+                //TODO: Hashtable should be big enough to prevent collision as that fucks up the algorithm below. Right? Test if that's the case.
+                while (it.hasNext()) {
+                    VSCNode currNode = new VSCNode(it.next());
+                    VSCNode pNode = null;   //temporary node holder
+                    //TODO: figure out how to add siblings, child, parent and all that most efficiently
+                    if(currNode.isRoot()){  //this is a parent node, AKA a root comment node
+                        if(latestParentNode == null) {    //this is the first parent node to be worked with here
+                            firstParentNode = currNode;
+                            latestParentNode = currNode;
+                        }
+                        else{
+                            latestParentNode.setTailSibling(currNode);
+                            currNode.setHeadSibling(latestParentNode);
+                            latestParentNode = currNode;
+                        }
+                        //nodeTable.put(currNode.getCommentID(), currNode); //since this is a parent node, KEY = Comment_ID
+                    }
+                    else { //this is a child node, AKA reply node
+                        pNode = nodeTable.put(currNode.getParentID(), currNode);    //pNode holds whatever value was mapped for this key, if any, that is now overwritten
+
+                        if(pNode.getParentID().trim().equals(currNode.getParentID().trim())) { //same parents => siblings
+                            //currNode is not a first_child, so we need to assign some siblings here.
+                            // pNode currently holds the Head Sibling for currNode. Therefore currNode is Tail Sibling of pNode
+                            //head_sibling holds comment that is displayed immediately above the node, and tail_sibling holds comment that is displayed immediately below the node.
+                            //TODO: Implement the following: this sibling order is determined by upvotes-downvotes score, and then timestamp as tie breaker (and in the rare occasion of a tie again, use username String lexical comparison)
+                            //TODO: For now just use timestamp (default sort order of query result) to assign sibling order. Eventually this ordering has to reflect vote score and aforementioned tiebreakers.
+                            pNode.setTailSibling(currNode);
+                            currNode.setHeadSibling(pNode);
+                        }
+                        else{   //different parents => parent-child relationship detected => first child
+                            pNode.setFirstChild(currNode);  //set currNode as first_child of its parentNode
+                            currNode.setParent(pNode);
+                        }
+                    }
+                    nodeTable.put(currNode.getCommentID(), currNode);   //add this node to the hash table so that its children, if any, can find it in the table
+                }
+                //TODO: vscomment table in ddb is sorted by timestamp. So a parent comment would always come before a reply comment, so sorting the list is not necessary. Confirm this, and think of any case where a reply may come before parent and cause an error while setting its parent due to parent node not yet existing because it was placed after the reply in the list.
+
+            //Below is a debugging algorithm to see if comment structure is correctly built. with indentation to indicate nested level
+            printNode(firstParentNode, 0);
+            }
+        };
+        Thread mythread = new Thread(runnable);
+        mythread.start();
+    }
+
+    //TODO: currently just prints string representation in Logcat. Modify to insert TextView representation into PostPage layout
+    public void printNode(VSCNode node, int level){
+        String indent = "";
+        for(int i=0; i<level; i++){
+            indent += "\t";
+        }
+        Log.d("NODE", indent + node.getNodeContent().getContent());
+        if(node.getFirstChild() != null) {
+            printNode(node.getFirstChild(), level + 1);
+        }
+        if(node.getTailSibling() != null) {
+            printNode(node.getTailSibling(), level);
+
+        }
     }
 
 

@@ -251,6 +251,7 @@ public class MainContainer extends AppCompatActivity {
     //pass post information from MyAdapter CardView click handler, through this helper method, to PostPage fragment
     public void postClicked(Post post){
         postPage.setContent(post);
+        toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
         mViewPager.setCurrentItem(3);
     }
 
