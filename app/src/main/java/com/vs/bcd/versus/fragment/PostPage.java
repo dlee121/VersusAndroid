@@ -1,8 +1,6 @@
 package com.vs.bcd.versus.fragment;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -25,9 +23,6 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
-
-import static com.vs.bcd.versus.R.id.commentInput;
-import static com.vs.bcd.versus.R.id.submitCommentButton;
 
 
 /**

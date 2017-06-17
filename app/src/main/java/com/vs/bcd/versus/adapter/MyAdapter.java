@@ -24,10 +24,6 @@ import java.util.Locale;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-import static android.R.attr.format;
-import static android.R.attr.fragment;
-import static com.vs.bcd.versus.R.id.fab;
-
 
 public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final int VIEW_TYPE_ITEM = 0;
