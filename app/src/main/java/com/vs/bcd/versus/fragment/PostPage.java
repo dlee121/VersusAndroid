@@ -2,6 +2,9 @@ package com.vs.bcd.versus.fragment;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,10 +13,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
+import com.vs.bcd.versus.OnLoadMoreListener;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
+import com.vs.bcd.versus.adapter.MyAdapter;
+import com.vs.bcd.versus.adapter.PostPageAdapter;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.VSCNode;
@@ -24,6 +31,8 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 
+import static android.R.attr.order;
+
 
 /**
  * Created by dlee on 6/7/17.
@@ -33,12 +42,15 @@ public class PostPage extends Fragment {
 
     private EditText commentInput;
     private RelativeLayout mRelativeLayout;
+    private PostPageAdapter PPAdapter;
     private View rootView;
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
     private String postID = "";
     private SessionManager sessionManager;
-    private List<VSCNode> vscNodes = new ArrayList<>(); //ArrayList of VSCNode
+    private List<VSComment> vsComments = new ArrayList<>(); //ArrayList of VSCNode
+    private ViewGroup.LayoutParams RVLayoutParams;
+    private RecyclerView RV;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -46,6 +58,10 @@ public class PostPage extends Fragment {
         rootView = inflater.inflate(R.layout.post_page, container, false);
         commentInput = (EditText) rootView.findViewById(R.id.commentInput);
         mRelativeLayout = (RelativeLayout) rootView.findViewById(R.id.post_page_layout);
+
+        RV = (RecyclerView)rootView.findViewById(R.id.recycler_view_cs);
+        RVLayoutParams = RV.getLayoutParams();
+
 
         sessionManager = new SessionManager(getActivity());
 
@@ -119,15 +135,24 @@ public class PostPage extends Fragment {
             Log.d("VISIBLE", "SEARCH VISIBLE");
             //TODO: get comments from DB, create the comment structure and display it here. Actually we're doing that in setContent() right now
 
-
-
-            if(rootView != null)
+            if(rootView != null) {
                 enableChildViews();
+                rootView.findViewById(R.id.recycler_view_cs).setLayoutParams(RVLayoutParams);
+                RVLayoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                RVLayoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                RV.setLayoutParams(RVLayoutParams);
+            }
+
         }
         else {
             Log.d("VISIBLE", "SEARCH POST GONE");
-            if (rootView != null)
+            if (rootView != null) {
                 disableChildViews();
+                vsComments.clear();
+                RVLayoutParams.height = 0;
+                RVLayoutParams.width = 0;
+                RV.setLayoutParams(RVLayoutParams);
+            }
         }
     }
 
@@ -152,6 +177,7 @@ public class PostPage extends Fragment {
             }
 
         }
+
     }
 
     public void setContent(Post post){
@@ -170,6 +196,7 @@ public class PostPage extends Fragment {
                 DynamoDBQueryExpression queryExpression = new DynamoDBQueryExpression().withHashKeyValues(vscommentToQuery);
                 PaginatedQueryList<VSComment> result = ((MainContainer)getActivity()).getMapper().query(VSComment.class, queryExpression);
                 result.loadAllResults();
+
                 Iterator<VSComment> it = result.iterator();
 
 
@@ -215,8 +242,70 @@ public class PostPage extends Fragment {
                 }
                 //TODO: vscomment table in ddb is sorted by timestamp. So a parent comment would always come before a reply comment, so sorting the list is not necessary. Confirm this, and think of any case where a reply may come before parent and cause an error while setting its parent due to parent node not yet existing because it was placed after the reply in the list.
 
+                //TODO: obtain a list of comments we want to display here (root comments and upto their grandchildren). while making the list, set VSComment.nestedLevel to 0, 1, or 2 accordingly, for indent.
+                //TODO: then create the recycler view, following Tab1Newsfeed.java's example
+
             //Below is a debugging algorithm to see if comment structure is correctly built. with indentation to indicate nested level
-            printNode(firstParentNode, 0);
+            //printNode(firstParentNode, 0);
+
+            //iterate through root nodes and populate the vsComments list for use by recycler view (PostPageAdapter)
+            if(firstParentNode != null){
+                setCommentList(firstParentNode);
+                while(firstParentNode.hasTailSibling()){
+                    firstParentNode = firstParentNode.getTailSibling();
+                    setCommentList(firstParentNode);
+                }
+            }
+
+
+            //run UI updates on UI Thread
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    //find view by id and attaching adapter for the RecyclerView
+                    RV.setLayoutManager(new LinearLayoutManager(getActivity()));
+                    //this is where the list is passed on to adapter
+                    PPAdapter = new PostPageAdapter(RV, vsComments, getActivity());
+                    RV.setAdapter(PPAdapter);
+
+                    //set load more listener for the RecyclerView adapter
+                    PPAdapter.setOnLoadMoreListener(new OnLoadMoreListener() {
+                        @Override
+                        public void onLoadMore() {
+
+                            if (vsComments.size() <= 3) {
+                    /*
+                    posts.add(null);
+                    PPAdapter.notifyItemInserted(posts.size() - 1);
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            posts.remove(posts.size() - 1);
+                            PPAdapter.notifyItemRemoved(posts.size());
+
+                            //Generating more data
+                            int index = posts.size();
+                            int end = index + 10;
+                            for (int i = index; i < end; i++) {
+                                Contact contact = new Contact();
+                                contact.setEmail("DevExchanges" + i + "@gmail.com");
+                                posts.add(contact);
+                            }
+                            PPAdapter.notifyDataSetChanged();
+                            PPAdapter.setLoaded();
+                        }
+                    }, 1500);
+                    */
+                            } else {
+                                Toast.makeText(getActivity(), "Loading data completed", Toast.LENGTH_SHORT).show();
+                            }
+
+                        }
+                    });
+
+
+                }
+            });
             }
         };
         Thread mythread = new Thread(runnable);
@@ -237,6 +326,40 @@ public class PostPage extends Fragment {
             printNode(node.getTailSibling(), level);
 
         }
+    }
+
+    public void setCommentList(VSCNode rootNode){
+        VSCNode tempChildNode, tempGCNode;
+        vsComments.add(rootNode.setNestedLevel(0)); //root node
+        if(rootNode.hasChild()){    //first child
+            tempChildNode = rootNode.getFirstChild();
+            vsComments.add(tempChildNode.setNestedLevel(1));
+
+            if(tempChildNode.hasChild()){   //first child's first child
+                tempGCNode = tempChildNode.getFirstChild();
+                vsComments.add(tempGCNode.setNestedLevel(2));
+
+                if(tempGCNode.hasTailSibling()){    //first child's second child
+                    vsComments.add((tempGCNode.getTailSibling()).setNestedLevel(2));
+                }
+            }
+
+            if(tempChildNode.hasTailSibling()){ //second child
+                tempChildNode = tempChildNode.getTailSibling();
+                vsComments.add(tempChildNode.setNestedLevel(1));
+
+                if(tempChildNode.hasChild()){   //second child's first child
+                    tempGCNode = tempChildNode.getFirstChild();
+                    vsComments.add(tempGCNode.setNestedLevel(2));
+
+                    if(tempGCNode.hasTailSibling()){    //second child's second child
+                        vsComments.add((tempGCNode.getTailSibling()).setNestedLevel(2));
+                    }
+                }
+
+            }
+        }
+
     }
 
 

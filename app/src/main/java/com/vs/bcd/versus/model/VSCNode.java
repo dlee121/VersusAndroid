@@ -83,4 +83,18 @@ public class VSCNode {
         else
             return null;
     }
+
+    public boolean hasTailSibling(){
+        return tail_sibling != null;
+    }
+
+    public boolean hasChild(){
+        return first_child != null;
+    }
+
+    //also returns the VSComment object, since this is used during List.add operation
+    public VSComment setNestedLevel(int level){
+        nodeContent.setNestedLevel(level);
+        return nodeContent;
+    }
 }

@@ -205,7 +205,7 @@ public class MainContainer extends AppCompatActivity {
         }
         @Override
         public int getCount() {
-            // Show 3 total pages.
+            // Show 4 total pages.
             return 4;
         }
 

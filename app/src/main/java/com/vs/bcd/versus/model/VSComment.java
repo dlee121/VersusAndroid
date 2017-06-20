@@ -22,6 +22,7 @@ public class VSComment {
     private String content; //the actual content of the comment
     private int upvotes; //number of upvotes for this comment
     private int downvotes; //number of downvotes for this comment
+    private int nestedLevel = 0;    //not used by DB.
 
 
     public VSComment(){
@@ -95,4 +96,13 @@ public class VSComment {
     public void setDownvotes(int downvotes) {
         this.downvotes = downvotes;
     }
+
+    public int getNestedLevel(){
+        return nestedLevel;
+    }
+    public void setNestedLevel(int nestedLevel){
+        this.nestedLevel = nestedLevel;
+    }
+
+
 }
