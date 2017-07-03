@@ -1,5 +1,6 @@
 package com.vs.bcd.versus.activity;
 
+import android.graphics.Bitmap;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v7.app.AppCompatActivity;
@@ -13,6 +14,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -21,6 +23,9 @@ import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.vs.bcd.versus.fragment.CommentEnterFragment;
 import com.vs.bcd.versus.fragment.PostPage;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.SessionManager;
@@ -28,6 +33,9 @@ import com.vs.bcd.versus.fragment.CreatePost;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.fragment.SearchPage;
 import com.vs.bcd.versus.ViewPagerCustomDuration;
+
+import static android.R.id.edit;
+import static com.amazonaws.regions.ServiceAbbreviations.S3;
 
 public class MainContainer extends AppCompatActivity {
 
@@ -46,6 +54,10 @@ public class MainContainer extends AppCompatActivity {
     private CreatePost createPost;
     private PostPage postPage;
     private SessionManager sessionManager;
+    private CommentEnterFragment commentEnterFragment;
+    private AmazonS3 s3;
+    private Bitmap xBmp = null;
+    private Bitmap yBmp = null;
     /**
      * The {@link ViewPager} that will host the section contents.
      */
@@ -64,6 +76,9 @@ public class MainContainer extends AppCompatActivity {
         );
         AmazonDynamoDBClient ddbClient = new AmazonDynamoDBClient(credentialsProvider);
         mapper = new DynamoDBMapper(ddbClient);
+        s3 = new AmazonS3Client(credentialsProvider);
+
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
 
     /*
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -84,25 +99,37 @@ public class MainContainer extends AppCompatActivity {
             public void onClick(View v) {
                 int i = mViewPager.getCurrentItem();
                 switch (i) {
-                    case 0:
+                    case 0: //MainActivity Fragment
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         mViewPager.setCurrentItem(1);
                         titleTxtView.setText("Search");
                         break;
-                    case 1:
+                    case 1: //SearchPage
                         toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                         mViewPager.setCurrentItem(0);
                         titleTxtView.setText(lastSetTitle);
                         break;
-                    case 2:
+                    case 2: //CreatePost
                         toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                         mViewPager.setCurrentItem(0);
                         titleTxtView.setText(lastSetTitle);
                         break;
-                    case 3:
-                        toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
-                        mViewPager.setCurrentItem(0);
+                    case 3: //PostPage
+                        if(!postPage.isRootLevel()){
+                            postPage.backToParentPage();
+                        }
+                        else{
+                            toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                            mViewPager.setCurrentItem(0);
+                            postPage.clearList();
+                            titleTxtView.setText(lastSetTitle);
+                        }
+                        break;
+                    case 4: //commentEnterFragment
+                        mViewPager.setCurrentItem(3);
                         titleTxtView.setText(lastSetTitle);
+                        xBmp = null;
+                        yBmp = null;
                         break;
                     default:
                         break;
@@ -126,7 +153,7 @@ public class MainContainer extends AppCompatActivity {
         mViewPager = (ViewPagerCustomDuration) findViewById(R.id.container2);
         mViewPager.setScrollDurationFactor(1);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        mViewPager.setOffscreenPageLimit(4);
+        mViewPager.setOffscreenPageLimit(5);
         mViewPager.setPageTransformer(false, new FadePageTransformer());
         //mViewPager.setPageTransformer(false, new NoPageTransformer());
 
@@ -140,9 +167,13 @@ public class MainContainer extends AppCompatActivity {
         return titleTxtView;
     }
 
-    public void setToolbarTitleText(String str){
+    public void setToolbarTitleTextForTabs(String str){
         titleTxtView.setText(str);
         lastSetTitle = str;
+    }
+
+    public void setToolbarTitleTextForCP(){
+        titleTxtView.setText("");
     }
 
 
@@ -199,6 +230,9 @@ public class MainContainer extends AppCompatActivity {
                 case 3:
                     postPage = new PostPage();
                     return postPage;
+                case 4:
+                    commentEnterFragment = new CommentEnterFragment();
+                    return commentEnterFragment;
                 default:
                     return null;
             }
@@ -206,7 +240,7 @@ public class MainContainer extends AppCompatActivity {
         @Override
         public int getCount() {
             // Show 4 total pages.
-            return 4;
+            return 5;
         }
 
         @Override
@@ -220,6 +254,8 @@ public class MainContainer extends AppCompatActivity {
                     return "CREATE POST";
                 case 3:
                     return "POST PAGE";
+                case 4:
+                    return "COMMENT ENTER PAGE";
             }
             return null;
         }
@@ -244,13 +280,16 @@ public class MainContainer extends AppCompatActivity {
         }
     }
 */
+    public AmazonS3 getS3Client(){
+        return s3;
+    }
     public ViewPager getViewPager(){
         return mViewPager;
     }
 
     //pass post information from MyAdapter CardView click handler, through this helper method, to PostPage fragment
     public void postClicked(Post post){
-        postPage.setContent(post);
+        postPage.setContent(post, true);
         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
         mViewPager.setCurrentItem(3);
     }
@@ -270,7 +309,41 @@ public class MainContainer extends AppCompatActivity {
         }
     }
 
+    public CommentEnterFragment getCommentEnterFragment(){
+        return commentEnterFragment;
+    }
+
+    public PostPage getPostPage(){
+        return postPage;
+    }
+
     public void createButtonPressed(View view){
         createPost.createButtonPressed(view);
     }
+
+    public SessionManager getSessionManager(){
+        return sessionManager;
+    }
+
+    public void setBMP(Bitmap xBmp, Bitmap yBmp){
+        this.xBmp = xBmp == null? null:xBmp;
+        this.yBmp = yBmp == null? null:yBmp;
+    }
+
+    public boolean hasXBMP(){
+        return xBmp != null;
+    }
+
+    public boolean hasYBMP(){
+        return yBmp != null;
+    }
+
+    public Bitmap getXBMP(){
+        return xBmp;
+    }
+
+    public Bitmap getYBMP(){
+        return yBmp;
+    }
+
 }

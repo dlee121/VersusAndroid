@@ -1,5 +1,6 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/post_page_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -8,86 +9,18 @@
     android:background="@color/white"
     tools:context="com.vs.bcd.versus.activity.MainContainer">
 
-    <TextView
-        android:id="@+id/post_page_question"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Question"
-        android:layout_alignParentTop="true"
-        android:textAlignment="center"
-        android:layout_toStartOf="@+id/post_page_vs"
-        android:layout_toLeftOf="@+id/post_page_vs" />
-
-    <TextView
-        android:id="@+id/post_page_vs"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/post_page_question"
-        android:textAlignment="center"
-        android:layout_centerHorizontal="true"
-        android:text="vs" />
-
-    <TextView
-        android:id="@+id/post_page_redname"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/post_page_question"
-        android:textAlignment="center"
-        android:layout_toLeftOf="@id/post_page_vs"
-        android:layout_marginRight="5dp"
-        android:text="Red" />
-
-    <TextView
-        android:id="@+id/post_page_blackname"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/post_page_vs"
-        android:layout_below="@id/post_page_question"
-        android:textAlignment="center"
-        android:layout_marginLeft="5dp"
-        android:text="Black" />
-
-    <TextView
-        android:id="@+id/post_page_redcount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/post_page_redname"
-        android:layout_alignRight="@id/post_page_redname"
-        android:text="0" />
-
-    <TextView
-        android:id="@+id/post_page_blackcount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@id/post_page_blackname"
-        android:layout_below="@id/post_page_blackname"
-        android:text="0"/>
-
-    <EditText
-        android:id="@+id/commentInput"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:enabled="false"
-        android:layout_marginTop="101dp"
-        android:ems="10"
-        android:inputType="textMultiLine"
-        android:layout_marginRight="54dp"
-        android:layout_marginEnd="54dp"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
-
-    <Button
-        android:id="@+id/submitCommentButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Submit"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
-
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recycler_view_cs"
-        android:layout_below="@id/submitCommentButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/postpage_fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_margin="@dimen/fab_margin"
+        app:srcCompat="@drawable/ic_reply_white_fab"/>
 
 </RelativeLayout>

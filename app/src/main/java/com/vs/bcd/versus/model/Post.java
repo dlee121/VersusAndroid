@@ -26,6 +26,8 @@ public class Post implements Parcelable{
     private int blackcount;
     private String category; //for now let's do politics, sports (then sub categories / tags could be basket ball, boxing, ufc, soccer, etc), food, anime / comics
     private String post_id;
+    private String redimg; //"default", "s3", "in-app (like emojis. to be implemented later)"
+    private String blackimg;
 
     @DynamoDBAttribute(attributeName = "question")
     public String getQuestion() {
@@ -108,6 +110,22 @@ public class Post implements Parcelable{
         this.category = category;
     }
 
+    @DynamoDBAttribute(attributeName = "redimg")
+    public String getRedimg(){
+        return redimg;
+    }
+    public void setRedimg(String redimg){
+        this.redimg = redimg;
+    }
+
+    @DynamoDBAttribute(attributeName = "blackimg")
+    public String getBlackimg(){
+        return blackimg;
+    }
+    public void setBlackimg(String blackimg){
+        this.blackimg = blackimg;
+    }
+
 
 
     //zero argument constructor. necessary here since implementing packet.
@@ -131,6 +149,8 @@ public class Post implements Parcelable{
         blackcount = in.readInt();
         category = in.readString();
         post_id = in.readString();
+        redimg = in.readString();
+        blackimg = in.readString();
     }
 
     @Override
@@ -150,6 +170,8 @@ public class Post implements Parcelable{
         dest.writeInt(blackcount);
         dest.writeString(category);
         dest.writeString(post_id);
+        dest.writeString(redimg);
+        dest.writeString(blackimg);
     }
 
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {

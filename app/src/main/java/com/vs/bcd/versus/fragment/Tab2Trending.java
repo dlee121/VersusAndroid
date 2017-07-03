@@ -54,7 +54,7 @@ public class Tab2Trending extends Fragment{
         super.setUserVisibleHint(isVisibleToUser);
 
         if (isVisibleToUser) {
-            mHostActivity.setToolbarTitleText("Trending");
+            mHostActivity.setToolbarTitleTextForTabs("Trending");
             Log.d("VISIBLE", "TRENDING VISIBLE");
             if(!fragmentSelected) {
                 // Load your data here or do network operations here

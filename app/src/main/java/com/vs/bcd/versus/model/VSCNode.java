@@ -70,6 +70,10 @@ public class VSCNode {
         return tail_sibling;
     }
 
+    public VSCNode getParent(){
+        return parent;
+    }
+
     public String getCommentID(){
         if(nodeContent != null)
             return nodeContent.getComment_id();
@@ -84,16 +88,23 @@ public class VSCNode {
             return null;
     }
 
+
+    public boolean hasHeadSibling(){
+        return head_sibling != null;
+    }
+
     public boolean hasTailSibling(){
         return tail_sibling != null;
     }
-
     public boolean hasChild(){
         return first_child != null;
     }
+    public boolean hasParent(){
+        return parent != null;
+    }
 
     //also returns the VSComment object, since this is used during List.add operation
-    public VSComment setNestedLevel(int level){
+    public VSComment setNestedLevelandGetComment(int level){
         nodeContent.setNestedLevel(level);
         return nodeContent;
     }

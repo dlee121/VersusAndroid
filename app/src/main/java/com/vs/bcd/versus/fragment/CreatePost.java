@@ -1,17 +1,53 @@
 package com.vs.bcd.versus.fragment;
 
+import android.Manifest;
+import android.app.Activity;
+import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Parcelable;
+import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
+import android.system.ErrnoException;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
+import com.amazonaws.auth.CognitoCachingCredentialsProvider;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
+import com.theartofdev.edmodo.cropper.CropImageView;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.activity.MainContainer;
@@ -27,6 +63,9 @@ public class CreatePost extends Fragment {
     private EditText blacknameET;
     private EditText questionET;
     private EditText categoryET;
+    //private CropImageView cropper1;
+    //private CropImageView cropper2;
+    private ImageView ivLeft, ivRight;
     private String redStr;
     private String blackStr;
     private String questiongStr;
@@ -35,12 +74,27 @@ public class CreatePost extends Fragment {
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
     private SessionManager sessionManager;
+    private Uri mCropImageUri;
+    private AmazonS3 s3;
+    private int cropperNumber = 1;
+    private String redimgSet = "default";
+    private String blackimgSet = "default";
 
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.create_post, container, false);
+
+
+        s3 = ((MainContainer)getActivity()).getS3Client();
+
+        //cropper1 = (CropImageView)rootView.findViewById(R.id.CropImageView1);
+        //cropper2 = (CropImageView)rootView.findViewById(R.id.CropImageView2);
+        ivLeft = (ImageView)rootView.findViewById(R.id.leftImage);
+        ivLeft.setDrawingCacheEnabled(true);
+        ivRight = (ImageView)rootView.findViewById(R.id.rightImage);
+        ivRight.setDrawingCacheEnabled(true);
         rednameET = (EditText)rootView.findViewById(R.id.redname_in);
         blacknameET = (EditText)rootView.findViewById(R.id.blackname_in);
         questionET = (EditText)rootView.findViewById(R.id.question_in);
@@ -50,14 +104,35 @@ public class CreatePost extends Fragment {
         LPStore = new ArrayList<>();
         for (int i = 0; i<((ViewGroup)rootView).getChildCount(); i++){
             childViews.add(((ViewGroup)rootView).getChildAt(i));
-            if(childViews.get(i) instanceof EditText){
-                LPStore.add(childViews.get(i).getLayoutParams());
-            }
-            else{
-                LPStore.add(null);
-            }
+            LPStore.add(childViews.get(i).getLayoutParams());
         }
+        childViews.add(ivLeft);
+        LPStore.add(ivLeft.getLayoutParams());
+        childViews.add(ivRight);
+        LPStore.add(ivRight.getLayoutParams());
+
+
+        ivLeft.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cropperNumber = 1;      //TODO: will there be any race condition for this variable or any other bugs?
+                onLoadImageClick();
+            }
+        });
+
+        ivRight.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cropperNumber = 2;
+                onLoadImageClick();
+            }
+        });
+
+
+
+
         disableChildViews();
+
         return rootView;
     }
 
@@ -69,9 +144,20 @@ public class CreatePost extends Fragment {
         questiongStr = questionET.getText().toString();
         catStr = categoryET.getText().toString();
 
+
+
         Runnable runnable = new Runnable() {
             public void run() {
                 Post post = new Post();
+
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                try {
+                    uploadImageToAWS(ivLeft.getDrawingCache(), post.getPost_id(), "left");
+                    uploadImageToAWS(ivRight.getDrawingCache(), post.getPost_id(), "right");
+                } catch (Exception e) {
+                    Log.e(getClass().getSimpleName(), "Error writing bitmap", e);
+                }
+
                 post.setCategory(catStr);
                 /*
                 //time is now set in the constructor. refer to Post.java
@@ -83,7 +169,12 @@ public class CreatePost extends Fragment {
                 post.setRedname(redStr);
                 post.setBlackname(blackStr);
                 post.setQuestion(questiongStr);
+                post.setRedimg(redimgSet);
+                post.setBlackimg(blackimgSet);
                 ((MainContainer)getActivity()).getMapper().save(post);
+
+
+
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -101,6 +192,7 @@ public class CreatePost extends Fragment {
     }
 
 
+    //TODO: fix below enabler/disabler to reflect new changed layout
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
@@ -117,25 +209,259 @@ public class CreatePost extends Fragment {
     }
 
     public void enableChildViews(){
+        redimgSet = "default";
+        blackimgSet = "default";
         for(int i = 0; i<childViews.size(); i++){
             childViews.get(i).setEnabled(true);
             childViews.get(i).setClickable(true);
-            if(childViews.get(i) instanceof EditText){
-                childViews.get(i).setLayoutParams(LPStore.get(i));
-            }
-
-
+            childViews.get(i).setLayoutParams(LPStore.get(i));
         }
     }
 
     public void disableChildViews(){
+        Log.d("disabling", "This many: " + Integer.toString(childViews.size()));
         for(int i = 0; i<childViews.size(); i++){
             childViews.get(i).setEnabled(false);
             childViews.get(i).setClickable(false);
-            if(childViews.get(i) instanceof EditText){
-                childViews.get(i).setLayoutParams(new RelativeLayout.LayoutParams(0,0));
-            }
-
+            childViews.get(i).setLayoutParams(new LinearLayout.LayoutParams(0,0));
         }
     }
+
+    /**
+     * On load image button click, start pick image chooser activity.
+     */
+    public void onLoadImageClick() {
+        startActivityForResult(getPickImageChooserIntent(), 200);
+    }
+
+
+    private void uploadImageToAWS(final Bitmap bmpIn, final String postIDin, final String side) {
+
+        //Log.d("IMGUPLOAD", postIDin + "-" + side + ".jpeg");
+
+        AsyncTask<String, String, String> _Task = new AsyncTask<String, String, String>() {
+
+            @Override
+            protected void onPreExecute() {
+
+            }
+
+            @Override
+            protected String doInBackground(String... arg0)
+            {
+                //if (NetworkAvailablity.checkNetworkStatus(MyActivity.this))
+                //{
+                try {
+                    java.util.Date expiration = new java.util.Date();
+                    long msec = expiration.getTime();
+                    msec += 1000 * 60 * 60; // 1 hour.
+                    expiration.setTime(msec);
+                    publishProgress(arg0);
+
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                    bmpIn.compress(Bitmap.CompressFormat.JPEG, 65, bos);
+                    byte[] bitmapdata = bos.toByteArray();
+                    ByteArrayInputStream bis = new ByteArrayInputStream(bitmapdata);
+
+                    String keyName = postIDin + "-" + side + ".jpeg";
+
+                    ObjectMetadata meta = new ObjectMetadata();
+                    meta.setContentLength(bitmapdata.length);
+
+                    PutObjectRequest por = new PutObjectRequest("versus.pictures",
+                            keyName,
+                            bis,
+                            meta);
+
+                    //making the object Public
+                    //por.setCannedAcl(CannedAccessControlList.PublicRead);
+
+                    s3.putObject(por);
+
+                    //String _finalUrl = "https://"+existingBucketName+".s3.amazonaws.com/" + keyName + ".jpeg";
+
+                } catch (Exception e) {
+                    // writing error to Log
+                    e.printStackTrace();
+                }
+            /*
+                }
+                else
+                {
+
+                }
+            */
+                return null;
+            }
+            @Override
+            protected void onProgressUpdate(String... values) {
+                // TODO Auto-generated method stub
+                super.onProgressUpdate(values);
+                System.out.println("Progress : "  + values);
+            }
+            @Override
+            protected void onPostExecute(String result)
+            {
+
+            }
+        };
+        _Task.execute((String[]) null);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == Activity.RESULT_OK) {
+            Uri imageUri = getPickImageResultUri(data);
+
+            // For API >= 23 we need to check specifically that we have permissions to read external storage,
+            // but we don't know if we need to for the URI so the simplest is to try open the stream and see if we get error.
+            boolean requirePermissions = false;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+                    getContext().checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED &&
+                    isUriRequiresPermissions(imageUri)) {
+
+                // request permissions and handle the result in onRequestPermissionsResult()
+                requirePermissions = true;
+                mCropImageUri = imageUri;
+                requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
+            }
+
+            if (!requirePermissions) {
+                if(cropperNumber == 1) {
+                    //cropper1.setImageUriAsync(imageUri);
+                    ivLeft.setImageURI(imageUri);
+                    redimgSet = "s3";
+                }
+
+                else {
+                    //cropper2.setImageUriAsync(imageUri);
+                    ivRight.setImageURI(imageUri);
+                    blackimgSet = "s3";
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        if (mCropImageUri != null && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if(cropperNumber == 1){
+                //cropper1.setImageUriAsync(mCropImageUri);
+                ivLeft.setImageURI(mCropImageUri);
+                redimgSet = "s3";
+            }
+            else{
+                ///cropper2.setImageUriAsync(mCropImageUri);
+                ivRight.setImageURI(mCropImageUri);
+                blackimgSet = "s3";
+            }
+        } else {
+            Toast.makeText(getActivity(), "Required permissions are not granted", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    /**
+     * Create a chooser intent to select the source to get image from.<br/>
+     * The source can be camera's (ACTION_IMAGE_CAPTURE) or gallery's (ACTION_GET_CONTENT).<br/>
+     * All possible sources are added to the intent chooser.
+     */
+    public Intent getPickImageChooserIntent() {
+
+        // Determine Uri of camera image to save.
+        Uri outputFileUri = getCaptureImageOutputUri();
+
+        List<Intent> allIntents = new ArrayList<>();
+        PackageManager packageManager = getContext().getPackageManager();
+
+        // collect all camera intents
+        Intent captureIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        List<ResolveInfo> listCam = packageManager.queryIntentActivities(captureIntent, 0);
+        for (ResolveInfo res : listCam) {
+            Intent intent = new Intent(captureIntent);
+            intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
+            intent.setPackage(res.activityInfo.packageName);
+            if (outputFileUri != null) {
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
+            }
+            allIntents.add(intent);
+        }
+
+        // collect all gallery intents
+        Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT);
+        galleryIntent.setType("image/*");
+        List<ResolveInfo> listGallery = packageManager.queryIntentActivities(galleryIntent, 0);
+        for (ResolveInfo res : listGallery) {
+            Intent intent = new Intent(galleryIntent);
+            intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
+            intent.setPackage(res.activityInfo.packageName);
+            allIntents.add(intent);
+        }
+
+        // the main intent is the last in the list (fucking android) so pickup the useless one
+        Intent mainIntent = allIntents.get(allIntents.size() - 1);
+        for (Intent intent : allIntents) {
+            if (intent.getComponent().getClassName().equals("com.android.documentsui.DocumentsActivity")) {
+                mainIntent = intent;
+                break;
+            }
+        }
+        allIntents.remove(mainIntent);
+
+        // Create a chooser from the main intent
+        Intent chooserIntent = Intent.createChooser(mainIntent, "Select source");
+
+        // Add all other intents
+        chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, allIntents.toArray(new Parcelable[allIntents.size()]));
+
+        return chooserIntent;
+    }
+
+    /**
+     * Get URI to image received from capture by camera.
+     */
+    private Uri getCaptureImageOutputUri() {
+        Uri outputFileUri = null;
+        File getImage = getContext().getExternalCacheDir();
+        if (getImage != null) {
+            outputFileUri = Uri.fromFile(new File(getImage.getPath(), "pickImageResult.jpeg"));
+        }
+        return outputFileUri;
+    }
+
+    /**
+     * Get the URI of the selected image from {@link #getPickImageChooserIntent()}.<br/>
+     * Will return the correct URI for camera and gallery image.
+     *
+     * @param data the returned data of the activity result
+     */
+    public Uri getPickImageResultUri(Intent data) {
+        boolean isCamera = true;
+        if (data != null && data.getData() != null) {
+            String action = data.getAction();
+            isCamera = action != null && action.equals(MediaStore.ACTION_IMAGE_CAPTURE);
+        }
+        return isCamera ? getCaptureImageOutputUri() : data.getData();
+    }
+
+    /**
+     * Test if we can open the given Android URI to test if permission required error is thrown.<br>
+     */
+    public boolean isUriRequiresPermissions(Uri uri) {
+        try {
+            ContentResolver resolver = getContext().getContentResolver();
+            InputStream stream = resolver.openInputStream(uri);
+            stream.close();
+            return false;
+        } catch (FileNotFoundException e) {
+            if (e.getCause() instanceof ErrnoException) {
+                return true;
+            }
+        } catch (Exception e) {
+        }
+        return false;
+    }
+
+
+
+
 }

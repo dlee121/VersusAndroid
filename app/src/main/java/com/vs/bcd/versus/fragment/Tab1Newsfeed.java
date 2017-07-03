@@ -38,7 +38,7 @@ public class Tab1Newsfeed extends Fragment{
         rootView = inflater.inflate(R.layout.tab1newsfeed, container, false);
         //TODO: need to add categories. maybe a separate categories table where post IDs have rows of categories they are linked with
         //TODO: create, at the right location, list of constant enumeration to represent categories. probably at post creation page, which is for now replaced by sample data creation below
-        mHostActivity.setToolbarTitleText("Newsfeed");
+        mHostActivity.setToolbarTitleTextForTabs("Newsfeed");
 
 
         return rootView;
@@ -60,7 +60,7 @@ public class Tab1Newsfeed extends Fragment{
 
         if (isVisibleToUser) {
             if(fragmentSelected) {
-                mHostActivity.setToolbarTitleText("Newsfeed");
+                mHostActivity.setToolbarTitleTextForTabs("Newsfeed");
             }
             else{
                 fragmentSelected = true;

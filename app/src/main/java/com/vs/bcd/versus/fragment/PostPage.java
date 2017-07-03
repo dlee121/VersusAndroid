@@ -1,5 +1,6 @@
 package com.vs.bcd.versus.fragment;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -18,6 +19,7 @@ import android.widget.Toast;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 import com.vs.bcd.versus.OnLoadMoreListener;
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.activity.MainActivity;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.MyAdapter;
 import com.vs.bcd.versus.adapter.PostPageAdapter;
@@ -31,7 +33,10 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 
+import static android.R.attr.left;
 import static android.R.attr.order;
+import static android.R.attr.right;
+import static android.icu.lang.UCharacter.GraphemeClusterBreak.V;
 
 
 /**
@@ -47,16 +52,25 @@ public class PostPage extends Fragment {
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
     private String postID = "";
+    private String postQuestion;
+    private String postX;
+    private String postY;
+    private Post post;
     private SessionManager sessionManager;
-    private List<VSComment> vsComments = new ArrayList<>(); //ArrayList of VSCNode
+    private List<Object> vsComments = new ArrayList<>(); //ArrayList of VSCNode
     private ViewGroup.LayoutParams RVLayoutParams;
     private RecyclerView RV;
+    private Hashtable<String, VSCNode> nodeTable;
+    private VSCNode currentRootLevelNode = null;    //will be null at post level. we grab currentRootLevelNode.getParentNode() to go back up a level when up button is pressed in comment section view
+    private VSCNode prevRootLevelNode = null;
+    private VSCNode firstRoot = null; //first comment in root level, as in parent_id = "0"
+    private int pageNestedLevel = 0;    //increase / decrease as we get click into and out of comments
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.post_page, container, false);
-        commentInput = (EditText) rootView.findViewById(R.id.commentInput);
+        //commentInput = (EditText) rootView.findViewById(R.id.commentInput);
         mRelativeLayout = (RelativeLayout) rootView.findViewById(R.id.post_page_layout);
 
         RV = (RecyclerView)rootView.findViewById(R.id.recycler_view_cs);
@@ -65,10 +79,10 @@ public class PostPage extends Fragment {
 
         sessionManager = new SessionManager(getActivity());
 
-        Button commentSubmitButton = (Button) rootView.findViewById(R.id.submitCommentButton);
-        commentSubmitButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        //Button commentSubmitButton = (Button) rootView.findViewById(R.id.submitCommentButton);
+        //commentSubmitButton.setOnClickListener(new View.OnClickListener() {
+        //    @Override
+        //    public void onClick(View view) {
                 //TODO: this whole thing on the bottom is bullshit because we need to submit the text to DB, not just simply display it. write to db, then refresh to display the comment.
                 //TODO: look into perioding cheap synching scheme to keep comments updated realtime
                 /*
@@ -79,22 +93,26 @@ public class PostPage extends Fragment {
                 params.leftMargin = 5; //5dp for root comment. replies get +5dp per level
                 mRelativeLayout.addView(tv, params);
                 */
-            }
-        });
-
+         //   }
+        //
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();
         for (int i = 0; i<((ViewGroup)rootView).getChildCount(); i++){
             childViews.add(((ViewGroup)rootView).getChildAt(i));
-            if(childViews.get(i) instanceof EditText){
-                LPStore.add(childViews.get(i).getLayoutParams());
-            }
-            else{
-                LPStore.add(null);
-            }
+            LPStore.add(childViews.get(i).getLayoutParams());
         }
         disableChildViews();
 
+        rootView.findViewById(R.id.postpage_fab).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //TODO: implement a version where we reply to comments and have this function choose between that and root comment version
+                    //depending if we're at isRootLevel or not
+                ((MainContainer)getActivity()).getCommentEnterFragment().setContent(postQuestion, postX, postY, post);
+                ((MainContainer)getActivity()).getViewPager().setCurrentItem(4);
+            }
+        });
+/*
         //root comment submission function to execute when submit button is pressed
         rootView.findViewById(R.id.submitCommentButton).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -122,7 +140,7 @@ public class PostPage extends Fragment {
                 Log.d("VSCOMMENT", "VSComment submitted");
             }
         });
-
+*/
 
 
         return rootView;
@@ -132,7 +150,7 @@ public class PostPage extends Fragment {
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
-            Log.d("VISIBLE", "SEARCH VISIBLE");
+            ((MainContainer)getActivity()).setToolbarTitleTextForCP();
             //TODO: get comments from DB, create the comment structure and display it here. Actually we're doing that in setContent() right now
 
             if(rootView != null) {
@@ -145,10 +163,8 @@ public class PostPage extends Fragment {
 
         }
         else {
-            Log.d("VISIBLE", "SEARCH POST GONE");
             if (rootView != null) {
                 disableChildViews();
-                vsComments.clear();
                 RVLayoutParams.height = 0;
                 RVLayoutParams.width = 0;
                 RV.setLayoutParams(RVLayoutParams);
@@ -156,14 +172,17 @@ public class PostPage extends Fragment {
         }
     }
 
+    public void clearList(){
+        vsComments.clear();
+    }
+
     public void enableChildViews(){
         for(int i = 0; i<childViews.size(); i++){
 
             childViews.get(i).setEnabled(true);
             childViews.get(i).setClickable(true);
-            if(childViews.get(i) instanceof EditText){
-                childViews.get(i).setLayoutParams(LPStore.get(i));
-            }
+            childViews.get(i).setLayoutParams(LPStore.get(i));
+
 
         }
     }
@@ -172,21 +191,33 @@ public class PostPage extends Fragment {
         for(int i = 0; i<childViews.size(); i++){
             childViews.get(i).setEnabled(false);
             childViews.get(i).setClickable(false);
-            if(childViews.get(i) instanceof EditText){
-                childViews.get(i).setLayoutParams(new RelativeLayout.LayoutParams(0,0));
-            }
+            childViews.get(i).setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+
 
         }
 
     }
-
-    public void setContent(Post post){
+/*
+    public void setPostCard(Post post){
         ((TextView)(rootView.findViewById(R.id.post_page_question))).setText(post.getQuestion());
         ((TextView)(rootView.findViewById(R.id.post_page_redname))).setText(post.getRedname());
         ((TextView)(rootView.findViewById(R.id.post_page_blackname))).setText(post.getBlackname());
         ((TextView)(rootView.findViewById(R.id.post_page_redcount))).setText(Integer.toString(post.getRedcount()));
         ((TextView)(rootView.findViewById(R.id.post_page_blackcount))).setText(Integer.toString(post.getBlackcount()));
+
+        RV.createVi
+
+    }
+*/
+    public void setContent(final Post post, final boolean downloadImages){
+
+        Log.d("Debug", "setContent called");
+
         postID = post.getPost_id();
+        postQuestion = post.getQuestion();
+        postX = post.getRedname();
+        postY = post.getBlackname();
+        this.post = post;
 
         Runnable runnable = new Runnable() {
             public void run() {
@@ -203,7 +234,7 @@ public class PostPage extends Fragment {
                 //below, we form the comment structure. each comment is a node in doubly linked list. So we only need to root comment that is at the top to traverse the comment tree to display all the comments.
                 VSCNode firstParentNode = null; //holds the first parent node, which holds the comment that appears at the top of the hierarchy.
                 VSCNode latestParentNode = null;  //holds the latest parent node we worked with. Used for assigning sibling order for parent nodes (root comments)
-                Hashtable<String, VSCNode> nodeTable = new Hashtable(result.size());    //Hashtable to assist in assigning children/siblings.
+                nodeTable = new Hashtable(result.size());    //Hashtable to assist in assigning children/siblings.
                 //TODO: Hashtable should be big enough to prevent collision as that fucks up the algorithm below. Right? Test if that's the case.
                 while (it.hasNext()) {
                     VSCNode currNode = new VSCNode(it.next());
@@ -211,6 +242,8 @@ public class PostPage extends Fragment {
                     //TODO: figure out how to add siblings, child, parent and all that most efficiently
                     if(currNode.isRoot()){  //this is a parent node, AKA a root comment node
                         if(latestParentNode == null) {    //this is the first parent node to be worked with here
+                            currentRootLevelNode = currNode;
+                            firstRoot = currNode;
                             firstParentNode = currNode;
                             latestParentNode = currNode;
                         }
@@ -264,8 +297,9 @@ public class PostPage extends Fragment {
                 public void run() {
                     //find view by id and attaching adapter for the RecyclerView
                     RV.setLayoutManager(new LinearLayoutManager(getActivity()));
-                    //this is where the list is passed on to adapter
-                    PPAdapter = new PostPageAdapter(RV, vsComments, getActivity());
+                    vsComments.add(0, post);
+                    //insert post card into the adapter
+                    PPAdapter = new PostPageAdapter(RV, vsComments, post, (MainContainer)getActivity(), downloadImages, true);
                     RV.setAdapter(PPAdapter);
 
                     //set load more listener for the RecyclerView adapter
@@ -330,30 +364,30 @@ public class PostPage extends Fragment {
 
     public void setCommentList(VSCNode rootNode){
         VSCNode tempChildNode, tempGCNode;
-        vsComments.add(rootNode.setNestedLevel(0)); //root node
+        vsComments.add(rootNode.setNestedLevelandGetComment(0)); //root node
         if(rootNode.hasChild()){    //first child
             tempChildNode = rootNode.getFirstChild();
-            vsComments.add(tempChildNode.setNestedLevel(1));
+            vsComments.add(tempChildNode.setNestedLevelandGetComment(1));
 
             if(tempChildNode.hasChild()){   //first child's first child
                 tempGCNode = tempChildNode.getFirstChild();
-                vsComments.add(tempGCNode.setNestedLevel(2));
+                vsComments.add(tempGCNode.setNestedLevelandGetComment(2));
 
                 if(tempGCNode.hasTailSibling()){    //first child's second child
-                    vsComments.add((tempGCNode.getTailSibling()).setNestedLevel(2));
+                    vsComments.add((tempGCNode.getTailSibling()).setNestedLevelandGetComment(2));
                 }
             }
 
             if(tempChildNode.hasTailSibling()){ //second child
                 tempChildNode = tempChildNode.getTailSibling();
-                vsComments.add(tempChildNode.setNestedLevel(1));
+                vsComments.add(tempChildNode.setNestedLevelandGetComment(1));
 
                 if(tempChildNode.hasChild()){   //second child's first child
                     tempGCNode = tempChildNode.getFirstChild();
-                    vsComments.add(tempGCNode.setNestedLevel(2));
+                    vsComments.add(tempGCNode.setNestedLevelandGetComment(2));
 
                     if(tempGCNode.hasTailSibling()){    //second child's second child
-                        vsComments.add((tempGCNode.getTailSibling()).setNestedLevel(2));
+                        vsComments.add((tempGCNode.getTailSibling()).setNestedLevelandGetComment(2));
                     }
                 }
 
@@ -362,5 +396,151 @@ public class PostPage extends Fragment {
 
     }
 
+    public PostPageAdapter getPPAdapter(){
+        return PPAdapter;
+    }
+    public void setCommentsPageWithCurrentNode (){
+        VSCNode node = currentRootLevelNode;
+
+        if(node != null){
+            pageNestedLevel--;
+            clearList();
+
+            if(isRootLevel())
+                vsComments.add(0, post);
+
+            setCommentList(node);
+            //populate childList with the comments we want for the comment section, children and grandchildren of the clicked comment
+            //in order
+            while(node.hasTailSibling()){
+                node = node.getTailSibling();
+                setCommentList(node);
+            }
+
+            //find view by id and attaching adapter for the RecyclerView
+            RV.setLayoutManager(new LinearLayoutManager(getActivity()));
+            PPAdapter = new PostPageAdapter(RV, vsComments, post, (MainContainer)getActivity(), false, isRootLevel());
+            RV.setAdapter(PPAdapter);
+
+            //set load more listener for the RecyclerView adapter
+            PPAdapter.setOnLoadMoreListener(new OnLoadMoreListener() {
+                @Override
+                public void onLoadMore() {
+
+                    if (vsComments.size() <= 3) {
+                    /*
+                    posts.add(null);
+                    PPAdapter.notifyItemInserted(posts.size() - 1);
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            posts.remove(posts.size() - 1);
+                            PPAdapter.notifyItemRemoved(posts.size());
+
+                            //Generating more data
+                            int index = posts.size();
+                            int end = index + 10;
+                            for (int i = index; i < end; i++) {
+                                Contact contact = new Contact();
+                                contact.setEmail("DevExchanges" + i + "@gmail.com");
+                                posts.add(contact);
+                            }
+                            PPAdapter.notifyDataSetChanged();
+                            PPAdapter.setLoaded();
+                        }
+                    }, 1500);
+                    */
+                    } else {
+                        //Toast.makeText(getActivity(), "Loading data completed", Toast.LENGTH_SHORT).show();
+                    }
+
+                }
+            });
+
+        }
+    }
+
+    //used when descending into nested levels, so when pageNestedLevel > 0
+    public void setCommentsPage(String clickedCommentID){
+
+        VSCNode child = nodeTable.get(clickedCommentID); //last child of clicked comment
+
+        if(child != null){
+            clearList();
+            pageNestedLevel++;
+
+            Log.d("setCommentsPage", "found child");
+
+            //get the first child
+            while(child.hasHeadSibling()){
+                child = child.getHeadSibling();
+            }
+            currentRootLevelNode = child;
+
+            setCommentList(child);
+            //populate childList with the comments we want for the comment section, children and grandchildren of the clicked comment
+            //in order
+            while(child.hasTailSibling()){
+                child = child.getTailSibling();
+                setCommentList(child);
+            }
+
+            //find view by id and attaching adapter for the RecyclerView
+            RV.setLayoutManager(new LinearLayoutManager(getActivity()));
+            PPAdapter = new PostPageAdapter(RV, vsComments, post, (MainContainer)getActivity(), false, false);
+            RV.setAdapter(PPAdapter);
+
+            //set load more listener for the RecyclerView adapter
+            PPAdapter.setOnLoadMoreListener(new OnLoadMoreListener() {
+                @Override
+                public void onLoadMore() {
+
+                    if (vsComments.size() <= 3) {
+                    /*
+                    posts.add(null);
+                    PPAdapter.notifyItemInserted(posts.size() - 1);
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            posts.remove(posts.size() - 1);
+                            PPAdapter.notifyItemRemoved(posts.size());
+
+                            //Generating more data
+                            int index = posts.size();
+                            int end = index + 10;
+                            for (int i = index; i < end; i++) {
+                                Contact contact = new Contact();
+                                contact.setEmail("DevExchanges" + i + "@gmail.com");
+                                posts.add(contact);
+                            }
+                            PPAdapter.notifyDataSetChanged();
+                            PPAdapter.setLoaded();
+                        }
+                    }, 1500);
+                    */
+                    } else {
+                        //Toast.makeText(getActivity(), "Loading data completed", Toast.LENGTH_SHORT).show();
+                    }
+
+                }
+            });
+
+        }
+    }
+
+    //only called when we're not on pageNestedLevel 0, so when ascending up nested levels towards root level.
+    public void backToParentPage(){
+
+        currentRootLevelNode = currentRootLevelNode.getParent();
+        while(currentRootLevelNode.hasHeadSibling()){
+            currentRootLevelNode = currentRootLevelNode.getHeadSibling();
+        }
+        setCommentsPageWithCurrentNode();
+
+    }
+
+    public boolean isRootLevel(){
+        return !currentRootLevelNode.hasParent();
+    }
 
 }

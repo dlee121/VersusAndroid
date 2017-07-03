@@ -50,7 +50,7 @@ public class Tab3RandomVS extends Fragment {
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
-            mHostActivity.setToolbarTitleText("Random VS");
+            mHostActivity.setToolbarTitleTextForTabs("Random VS");
         }
     }
 }

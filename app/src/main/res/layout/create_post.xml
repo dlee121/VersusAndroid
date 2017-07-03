@@ -1,67 +1,129 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/create_post_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
     android:background="#efefef"
+    android:orientation="vertical"
+    android:weightSum="20"
     tools:context="com.vs.bcd.versus.activity.MainContainer">
+
+    <LinearLayout
+        xmlns:custom="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        android:layout_weight="8">
+
+
+<!--
+        <com.theartofdev.edmodo.cropper.CropImageView
+            android:id="@+id/CropImageView1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="2dp"
+            android:background="@drawable/ic_add_24dp"
+            custom:cropGuidelines="off"
+            custom:cropBorderLineThickness="0dp"
+            custom:cropBorderCornerThickness="0dp"
+            custom:cropInitialCropWindowPaddingRatio="0"
+            custom:cropBackgroundColor="#00000000"
+            app:cropScaleType="centerInside"/>
+
+        <com.theartofdev.edmodo.cropper.CropImageView
+            android:id="@+id/CropImageView2"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
+            android:layout_marginRight="4dp"
+            android:layout_marginLeft="2dp"
+            android:background="@drawable/ic_add_24dp"
+            android:clickable="true"
+            app:cropScaleType="fitCenter"/>
+-->
+
+
+        <ImageView
+            android:id="@+id/leftImage"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="2dp"
+            android:scaleType="fitXY"
+            android:clickable="true"
+            app:srcCompat="@drawable/ic_add_24dp" />
+
+        <ImageView
+            android:id="@+id/rightImage"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
+            android:layout_marginRight="4dp"
+            android:layout_marginLeft="2dp"
+            android:scaleType="fitXY"
+            android:clickable="true"
+            app:srcCompat="@drawable/ic_add_24dp" />
+    </LinearLayout>
+
 
 
     <EditText
         android:id="@+id/redname_in"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
+        android:layout_height="0dp"
         android:inputType="textPersonName"
         android:text=""
         android:hint="redname"
-        android:textColor="@android:color/black"
-        android:layout_alignParentTop="true"/>
+        android:layout_weight="2"
+        android:textColor="@android:color/black"/>
 
     <EditText
         android:id="@+id/blackname_in"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
+        android:layout_height="0dp"
         android:inputType="textPersonName"
         android:text=""
         android:hint="blackname"
-        android:textColor="@android:color/black"
-        android:layout_below="@+id/redname_in"/>
+        android:layout_weight="2"
+        android:textColor="@android:color/black"/>
     <EditText
         android:id="@+id/question_in"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
+        android:layout_height="0dp"
         android:inputType="textPersonName"
         android:text=""
         android:hint="(Optional) question"
-        android:textColor="@android:color/black"
-        android:layout_below="@+id/blackname_in"/>
+        android:layout_weight="2"
+        android:textColor="@android:color/black"/>
     <EditText
         android:id="@+id/category_in"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
+        android:layout_height="0dp"
         android:inputType="textPersonName"
         android:text=""
         android:hint="category"
-        android:textColor="@android:color/black"
-        android:layout_below="@+id/question_in"/>
+        android:layout_weight="2"
+        android:textColor="@android:color/black"/>
 
     <Button
         android:id="@+id/button_create_post"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="50dp"
+        android:layout_height="0dp"
+        android:layout_weight="2"
         android:onClick="createButtonPressed"
         android:text="Create" />
 
 
-</RelativeLayout>
+</LinearLayout>

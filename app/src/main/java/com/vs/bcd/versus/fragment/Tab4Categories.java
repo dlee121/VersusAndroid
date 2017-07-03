@@ -39,7 +39,7 @@ public class Tab4Categories extends Fragment {
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
-            mHostActivity.setToolbarTitleText("Categories");
+            mHostActivity.setToolbarTitleTextForTabs("Categories");
 
         }
 
