@@ -62,10 +62,7 @@ public class SearchPage extends Fragment {
         for(int i = 0; i<childViews.size(); i++){
             childViews.get(i).setEnabled(true);
             childViews.get(i).setClickable(true);
-            if(childViews.get(i) instanceof EditText){
-                childViews.get(i).setLayoutParams(LPStore.get(i));
-            }
-
+            childViews.get(i).setLayoutParams(LPStore.get(i));
         }
     }
 
@@ -73,9 +70,7 @@ public class SearchPage extends Fragment {
         for(int i = 0; i<childViews.size(); i++){
             childViews.get(i).setEnabled(false);
             childViews.get(i).setClickable(false);
-            if(childViews.get(i) instanceof EditText){
-                childViews.get(i).setLayoutParams(new RelativeLayout.LayoutParams(0,0));
-            }
+            childViews.get(i).setLayoutParams(new RelativeLayout.LayoutParams(0,0));
         }
     }
 }

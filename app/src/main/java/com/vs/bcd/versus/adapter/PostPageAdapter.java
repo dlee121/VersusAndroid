@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -49,8 +50,7 @@ import java.util.Locale;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-import static android.R.attr.level;
-import static android.icu.lang.UCharacter.GraphemeClusterBreak.V;
+import static android.os.Build.ID;
 
 
 public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -143,102 +143,26 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
             //this is where values are put into the layout, from the VSComment object
 
-            int timeFormat = 0;
             UserViewHolder userViewHolder = (UserViewHolder) holder;
-
             userViewHolder.author.setText(currentComment.getAuthor());
-
-            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
-            Date myDate = null;
-            try {
-                myDate = df.parse(currentComment.getTimestamp());
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-
-            //TODO: test all possible cases to make sure date format conversion works correctly, for seconds, for all time format constants (secs, mins, ... , years), singulars / plurals
-            long timediff = ((new Date()).getTime() - myDate.getTime()) / 1000;  //time elapsed since post creation, in seconds
-
-            //time format constants: 0 = seconds, 1 = minutes, 2 = hours, 3 = days , 4 = weeks, 5 = months, 6 = years
-            if(timediff >= 60) {  //if 60 seconds or more, convert to minutes
-                timediff /= 60;
-                timeFormat = 1;
-                if(timediff >= 60) { //if 60 minutes or more, convert to hours
-                    timediff /= 60;
-                    timeFormat = 2;
-                    if(timediff >= 24) { //if 24 hours or more, convert to days
-                        timediff /= 24;
-                        timeFormat = 3;
-
-                        if(timediff >= 365) { //if 365 days or more, convert to years
-                            timediff /= 365;
-                            timeFormat = 6;
-                        }
-
-                        else if (timeFormat < 6 && timediff >= 30) { //if 30 days or more and not yet converted to years, convert to months
-                            timediff /= 30;
-                            timeFormat = 5;
-                        }
-
-                        else if(timeFormat < 5 && timediff >= 7) { //if 7 days or more and not yet converted to months or years, convert to weeks
-                            timediff /= 7;
-                            timeFormat = 4;
-                        }
-
-                    }
-                }
-            }
-
-
-            if(timediff > 1) //if timediff is not a singular value
-                timeFormat += 7;
-
-            switch (timeFormat) {
-                //plural
-                case 7:  userViewHolder.timestamp.setText(String.valueOf(timediff) + " seconds ago");
-                    break;
-                case 8:  userViewHolder.timestamp.setText(String.valueOf(timediff) + " minutes ago");
-                    break;
-                case 9:  userViewHolder.timestamp.setText(String.valueOf(timediff) + " hours ago");
-                    break;
-                case 10:  userViewHolder.timestamp.setText(String.valueOf(timediff) + " days ago");
-                    break;
-                case 11:  userViewHolder.timestamp.setText(String.valueOf(timediff) + " weeks ago");
-                    break;
-                case 12:  userViewHolder.timestamp.setText(String.valueOf(timediff) + " months ago");
-                    break;
-                case 13:  userViewHolder.timestamp.setText(String.valueOf(timediff) + " years ago");
-                    break;
-
-                //singular
-                case 0:  userViewHolder.timestamp.setText(String.valueOf(timediff) + " second ago");
-                    break;
-                case 1:  userViewHolder.timestamp.setText(String.valueOf(timediff) + " minute ago");
-                    break;
-                case 2:  userViewHolder.timestamp.setText(String.valueOf(timediff) + " hour ago");
-                    break;
-                case 3:  userViewHolder.timestamp.setText(String.valueOf(timediff) + " day ago");
-                    break;
-                case 4:  userViewHolder.timestamp.setText(String.valueOf(timediff) + " week ago");
-                    break;
-                case 5:  userViewHolder.timestamp.setText(String.valueOf(timediff) + " month ago");
-                    break;
-                case 6:  userViewHolder.timestamp.setText(String.valueOf(timediff) + " year ago");
-                    break;
-
-                default: userViewHolder.timestamp.setText("");
-                    break;
-            }
-
+            userViewHolder.timestamp.setText(getTimeString(currentComment.getTimestamp()));
             userViewHolder.content.setText(currentComment.getContent());
             userViewHolder.heartCount.setText( Integer.toString(currentComment.getUpvotes() - currentComment.getDownvotes()) );
             //set CardView onClickListener to go to PostPage fragment with corresponding Comments data (this will be a PostPage without post_card)
             userViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    activity.getPostPage().setCommentsPage(currentComment.getComment_id());
+                    activity.getPostPage().setCommentsPage(currentComment);
                 }
             });
+            userViewHolder.replyButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    activity.getCommentEnterFragment().setContentReplyToComment(currentComment);
+                    activity.getViewPager().setCurrentItem(4);
+                }
+            });
+
 
         } else if (holder instanceof PostCardViewHolder) {
             postCard = (PostCardViewHolder) holder;
@@ -474,7 +398,8 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         public TextView timestamp;
         public TextView author;
         public TextView content;
-        public TextView heartCount;
+        public TextView heartCount; //TODO: perhaps we should show two counts, one for heard and one for broken hearts, instead of summing it up into one heartCount? Or is that not necessary, after all major websites seem to just sum them into one single count.
+        public Button replyButton;
 
         public UserViewHolder(View view) {
             super(view);
@@ -483,6 +408,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             timestamp = (TextView) view.findViewById(R.id.timetvcs);
             content = (TextView) view.findViewById(R.id.usercomment);
             heartCount = (TextView) view.findViewById(R.id.heartCount);
+            replyButton = (Button) view.findViewById(R.id.replybuttoncs);
         }
 
 
@@ -499,11 +425,100 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             activity.overridePendingTransition(0, 0);
         }
     }
-    public static void setLeftMargin (View v, int margin) {
+
+    public void setLeftMargin (View v, int margin) {
         if (v.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
             ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
             p.setMargins(margin, 0, 0, 0);
             v.requestLayout();
         }
     }
+
+    public String getTimeString(String timeStamp){
+        int timeFormat = 0;
+
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
+        Date myDate = null;
+        try {
+            myDate = df.parse(timeStamp);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        //TODO: test all possible cases to make sure date format conversion works correctly, for seconds, for all time format constants (secs, mins, ... , years), singulars / plurals
+        long timediff = ((new Date()).getTime() - myDate.getTime()) / 1000;  //time elapsed since post creation, in seconds
+
+        //time format constants: 0 = seconds, 1 = minutes, 2 = hours, 3 = days , 4 = weeks, 5 = months, 6 = years
+        if(timediff >= 60) {  //if 60 seconds or more, convert to minutes
+            timediff /= 60;
+            timeFormat = 1;
+            if(timediff >= 60) { //if 60 minutes or more, convert to hours
+                timediff /= 60;
+                timeFormat = 2;
+                if(timediff >= 24) { //if 24 hours or more, convert to days
+                    timediff /= 24;
+                    timeFormat = 3;
+
+                    if(timediff >= 365) { //if 365 days or more, convert to years
+                        timediff /= 365;
+                        timeFormat = 6;
+                    }
+
+                    else if (timeFormat < 6 && timediff >= 30) { //if 30 days or more and not yet converted to years, convert to months
+                        timediff /= 30;
+                        timeFormat = 5;
+                    }
+
+                    else if(timeFormat < 5 && timediff >= 7) { //if 7 days or more and not yet converted to months or years, convert to weeks
+                        timediff /= 7;
+                        timeFormat = 4;
+                    }
+
+                }
+            }
+        }
+
+
+        if(timediff > 1) //if timediff is not a singular value
+            timeFormat += 7;
+
+        switch (timeFormat) {
+            //plural
+            case 7:
+                return String.valueOf(timediff) + " seconds ago";
+            case 8:
+                return String.valueOf(timediff) + " minutes ago";
+            case 9:
+                return String.valueOf(timediff) + " hours ago";
+            case 10:
+                return String.valueOf(timediff) + " days ago";
+            case 11:
+                return String.valueOf(timediff) + " weeks ago";
+            case 12:
+                return String.valueOf(timediff) + " months ago";
+            case 13:
+                return String.valueOf(timediff) + " years ago";
+
+            //singular
+            case 0:
+                return String.valueOf(timediff) + " second ago";
+            case 1:
+                return String.valueOf(timediff) + " minute ago";
+            case 2:
+                return String.valueOf(timediff) + " hour ago";
+            case 3:
+                return String.valueOf(timediff) + " day ago";
+            case 4:
+                return String.valueOf(timediff) + " week ago";
+            case 5:
+                return String.valueOf(timediff) + " month ago";
+            case 6:
+                return String.valueOf(timediff) + " year ago";
+
+            default:
+                return "";
+        }
+    }
+
+
 }

@@ -21,7 +21,11 @@ import com.vs.bcd.versus.model.VSComment;
 
 import org.w3c.dom.Text;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 import static android.R.attr.left;
 import static android.R.attr.onClick;
@@ -37,8 +41,12 @@ public class CommentEnterFragment extends Fragment{
     private ArrayList<ViewGroup.LayoutParams> LPStore;
     private TextView questionTV, vsX, vsY;
     private Button submitButton;
-    private String postID = "";
-    private Post post;
+    private RelativeLayout postRef, commentRef;
+    private RelativeLayout.LayoutParams postRefLP, commentRefLP;
+    private Post post = null;
+    private VSComment subjectComment = null;
+    private String parentID = "0";
+    private String postID;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -49,7 +57,10 @@ public class CommentEnterFragment extends Fragment{
         vsX = (TextView)rootView.findViewById(R.id.vsx);
         vsY = (TextView)rootView.findViewById(R.id.vsy);
         submitButton = (Button)rootView.findViewById(R.id.submitButton);
-
+        postRef = (RelativeLayout)rootView.findViewById(R.id.postref);
+        commentRef = (RelativeLayout)rootView.findViewById(R.id.commentref);
+        postRefLP = (RelativeLayout.LayoutParams)postRef.getLayoutParams();
+        commentRefLP = (RelativeLayout.LayoutParams)commentRef.getLayoutParams();
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();
         for (int i = 0; i<((ViewGroup)rootView).getChildCount(); i++){
@@ -64,11 +75,13 @@ public class CommentEnterFragment extends Fragment{
                 Runnable runnable = new Runnable() {
                     public void run() {
                         VSComment vsc = new VSComment();
-                        vsc.setPost_id(post.getPost_id());
-                        vsc.setParent_id("0");  //TODO: for root/reply check, which would be more efficient, checking if parent_id == "0" or checking parent_id.length() == 1?
+                        vsc.setPost_id(postID);
+                        vsc.setParent_id(parentID);  //TODO: for root/reply check, which would be more efficient, checking if parent_id == "0" or checking parent_id.length() == 1?
                         vsc.setAuthor(((MainContainer)getActivity()).getSessionManager().getCurrentUsername());
                         vsc.setContent(((TextView)(rootView.findViewById(R.id.commentInput))).getText().toString().trim());
                         ((MainContainer)getActivity()).getMapper().save(vsc);
+
+                        //UI refresh. two options, one for setting up with post card and one for setting up with comment top card
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -77,7 +90,12 @@ public class CommentEnterFragment extends Fragment{
                                 PostPageAdapter m_adapter = postPage.getPPAdapter();
                                 m_adapter.clearList();
                                 //m_adapter.notifyDataSetChanged(); probably unnecessary since we'll be making new adapter in post page in setContent
-                                postPage.setContent(post, false);
+                                if(subjectComment == null && post != null){
+                                    postPage.setContent(post, false);
+                                }
+                                if(post == null && subjectComment != null){
+                                    postPage.refreshThenSetUpPage(subjectComment);
+                                }
 
                                 //TODO: refresh comments list (but not the post info part) of the PostPage when we return to it here
                                 ((MainContainer)getActivity()).getViewPager().setCurrentItem(3);    //3 -> PostPage
@@ -97,11 +115,41 @@ public class CommentEnterFragment extends Fragment{
         return rootView;
     }
 
-    public void setContent(String question, String x, String y, Post post){
+    public void setContentReplyToPost(String question, String x, String y, Post post){
         questionTV.setText(question);
         vsX.setText(x);
         vsY.setText(y);
         this.post = post;
+        parentID = "0";
+        postID = post.getPost_id();
+        subjectComment = null;
+        showPostRef();
+    }
+
+    public void setContentReplyToComment(VSComment replySubject){
+        //TODO: start setting up user profile pic whereever it appears
+        ((TextView)commentRef.findViewById(R.id.usernameref)).setText(replySubject.getAuthor());
+        ((TextView)commentRef.findViewById(R.id.timetvref)).setText(getTimeString(replySubject.getTimestamp()));
+        ((TextView)commentRef.findViewById(R.id.usercommentref)).setText(replySubject.getContent());
+        parentID = replySubject.getComment_id();
+        postID = replySubject.getPost_id();
+        subjectComment = replySubject;
+        post = null;
+        showCommentRef();
+    }
+
+    public void showCommentRef(){
+        commentRef.setEnabled(true);
+        commentRef.setLayoutParams(commentRefLP);
+        postRef.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+        postRef.setEnabled(false);
+    }
+
+    public void showPostRef(){
+        postRef.setEnabled(true);
+        postRef.setLayoutParams(postRefLP);
+        commentRef.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+        commentRef.setEnabled(false);
     }
 
     @Override
@@ -133,6 +181,95 @@ public class CommentEnterFragment extends Fragment{
             childViews.get(i).setEnabled(false);
             childViews.get(i).setClickable(false);
             childViews.get(i).setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+        }
+    }
+
+
+
+
+    public String getTimeString(String timeStamp){
+        int timeFormat = 0;
+
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
+        Date myDate = null;
+        try {
+            myDate = df.parse(timeStamp);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        //TODO: test all possible cases to make sure date format conversion works correctly, for seconds, for all time format constants (secs, mins, ... , years), singulars / plurals
+        long timediff = ((new Date()).getTime() - myDate.getTime()) / 1000;  //time elapsed since post creation, in seconds
+
+        //time format constants: 0 = seconds, 1 = minutes, 2 = hours, 3 = days , 4 = weeks, 5 = months, 6 = years
+        if(timediff >= 60) {  //if 60 seconds or more, convert to minutes
+            timediff /= 60;
+            timeFormat = 1;
+            if(timediff >= 60) { //if 60 minutes or more, convert to hours
+                timediff /= 60;
+                timeFormat = 2;
+                if(timediff >= 24) { //if 24 hours or more, convert to days
+                    timediff /= 24;
+                    timeFormat = 3;
+
+                    if(timediff >= 365) { //if 365 days or more, convert to years
+                        timediff /= 365;
+                        timeFormat = 6;
+                    }
+
+                    else if (timeFormat < 6 && timediff >= 30) { //if 30 days or more and not yet converted to years, convert to months
+                        timediff /= 30;
+                        timeFormat = 5;
+                    }
+
+                    else if(timeFormat < 5 && timediff >= 7) { //if 7 days or more and not yet converted to months or years, convert to weeks
+                        timediff /= 7;
+                        timeFormat = 4;
+                    }
+
+                }
+            }
+        }
+
+
+        if(timediff > 1) //if timediff is not a singular value
+            timeFormat += 7;
+
+        switch (timeFormat) {
+            //plural
+            case 7:
+                return String.valueOf(timediff) + " seconds ago";
+            case 8:
+                return String.valueOf(timediff) + " minutes ago";
+            case 9:
+                return String.valueOf(timediff) + " hours ago";
+            case 10:
+                return String.valueOf(timediff) + " days ago";
+            case 11:
+                return String.valueOf(timediff) + " weeks ago";
+            case 12:
+                return String.valueOf(timediff) + " months ago";
+            case 13:
+                return String.valueOf(timediff) + " years ago";
+
+            //singular
+            case 0:
+                return String.valueOf(timediff) + " second ago";
+            case 1:
+                return String.valueOf(timediff) + " minute ago";
+            case 2:
+                return String.valueOf(timediff) + " hour ago";
+            case 3:
+                return String.valueOf(timediff) + " day ago";
+            case 4:
+                return String.valueOf(timediff) + " week ago";
+            case 5:
+                return String.valueOf(timediff) + " month ago";
+            case 6:
+                return String.valueOf(timediff) + " year ago";
+
+            default:
+                return "";
         }
     }
 }
