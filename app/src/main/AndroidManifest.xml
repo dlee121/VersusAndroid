@@ -74,19 +74,6 @@
                 android:value="com.vs.bcd.versus.activity.WhatsYourUsername" />
         </activity>
         <activity
-            android:name=".activity.PhoneOrEmail"
-            android:label="@string/title_activity_phone_or_email"
-            android:parentActivityName=".activity.WhatsYourPassword"
-            android:theme="@style/AppTheme.NoActionBar">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.vs.bcd.versus.activity.WhatsYourPassword" />
-        </activity>
-        <activity
-            android:name=".activity.MainContainer"
-            android:label="@string/title_activity_main_container"
-            android:theme="@style/AppTheme" />
-        <activity
             android:name=".activity.LogIn"
             android:label="@string/title_activity_log_in"
             android:parentActivityName=".activity.StartScreen"
@@ -95,6 +82,11 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.vs.bcd.versus.activity.StartScreen" />
         </activity>
+        <activity
+            android:name=".activity.MainContainer"
+            android:label="@string/title_activity_main_container"
+            android:theme="@style/AppTheme" />
+
     </application>
 
 </manifest>

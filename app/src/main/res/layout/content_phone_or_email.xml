@@ -28,13 +28,22 @@
     </RelativeLayout>
 
     <Button
-        android:id="@+id/button9"
+        android:id="@+id/signupbutton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:onClick="PhoneOrEmailNext"
+        android:layout_marginBottom="24dp"
         android:text="@string/next" />
+
+    <ProgressBar
+        android:id="@+id/signuppb"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="24dp"/>
 
 
 

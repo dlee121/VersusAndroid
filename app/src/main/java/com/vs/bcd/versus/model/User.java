@@ -86,12 +86,6 @@ public class User {
         birthday = userData[2];
         username = userData[3];
         password = userData[4];
-        if(userData[5].indexOf('@') == -1){    //is phone number
-            phone = userData[5];
-        }
-        else{
-            email = userData[5];
-        }
 
         //finish this thing, then do the write to db, then write session info to sharedpref and we're done with basic signup!
     }

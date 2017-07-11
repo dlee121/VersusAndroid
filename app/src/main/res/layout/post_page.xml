@@ -60,10 +60,8 @@
             android:layout_below="@id/usernametvcs"
             android:layout_centerVertical="true"
             android:layout_marginRight="8dp"
-            android:ellipsize="end"
-            android:maxLines="2"
             android:textColor="#FF000000"
-            android:text="comment content up to two lines two lines two lines like like like this. extra gets ellipsized like this!!!"
+            android:text="No text display limit for top card, to show full comment. That's the point of having this top card."
             android:textSize="14sp" />
 
         <Button

@@ -55,13 +55,21 @@
     </RelativeLayout>
 
     <Button
-        android:id="@+id/button9"
+        android:id="@+id/loginbutton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
+        android:layout_marginBottom="24dp"
         android:onClick="logInSubmitted"
         android:text="Log In" />
+    <ProgressBar
+        android:id="@+id/indeterminate_login_pb"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="24dp" />
 
 
 

@@ -58,10 +58,24 @@ public class MainContainer extends AppCompatActivity {
     private AmazonS3 s3;
     private Bitmap xBmp = null;
     private Bitmap yBmp = null;
-    /**
-     * The {@link ViewPager} that will host the section contents.
-     */
     private ViewPagerCustomDuration mViewPager;
+
+    @Override
+    public void onBackPressed(){
+        int mainContainerCurrentItem = mViewPager.getCurrentItem();
+        int mainActivityCurrentItem = getMainFrag().getViewPager().getCurrentItem();
+        if(mainContainerCurrentItem == 0){  //MainContainer's current fragment is MainActivity fragment
+            if(mainActivityCurrentItem == 0){   //MainActivity fragment's current fragment is Tab1Newsfeed
+                super.onBackPressed();  //call superclass's onBackPressed, closing the app
+            }
+            else {  //MainActivity fragment's current fragment is not Tab1Newsfeed, so we need to first navigate to Tab1Newsfeed on MainActivity fragment
+                getMainFrag().getViewPager().setCurrentItem(0);
+            }
+        }
+        else {
+            mViewPager.setCurrentItem(0);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,7 +84,7 @@ public class MainContainer extends AppCompatActivity {
         sessionManager = new SessionManager(this);
         // Initialize the Amazon Cognito credentials provider
         CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
-                this.getApplicationContext(),
+                getApplicationContext(),
                 "us-east-1:88614505-c8df-4dce-abd8-79a0543852ff", // Identity Pool ID
                 Regions.US_EAST_1 // Region
         );

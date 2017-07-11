@@ -114,7 +114,6 @@ public class MainActivity extends Fragment {
             }
         });
 
-
         FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -197,6 +196,9 @@ public class MainActivity extends Fragment {
         }
     }
 
+    public ViewPager getViewPager(){
+        return mViewPager;
+    }
 
     public DynamoDBMapper getMapper(){
         return mapper;

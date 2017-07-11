@@ -79,6 +79,7 @@ public class CreatePost extends Fragment {
     private int cropperNumber = 1;
     private String redimgSet = "default";
     private String blackimgSet = "default";
+    private MainContainer activity;
 
 
     @Override
@@ -86,7 +87,7 @@ public class CreatePost extends Fragment {
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.create_post, container, false);
 
-
+        activity = (MainContainer)getActivity();
         s3 = ((MainContainer)getActivity()).getS3Client();
 
         //cropper1 = (CropImageView)rootView.findViewById(R.id.CropImageView1);
@@ -148,7 +149,7 @@ public class CreatePost extends Fragment {
 
         Runnable runnable = new Runnable() {
             public void run() {
-                Post post = new Post();
+                final Post post = new Post();
 
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();
                 try {
@@ -178,9 +179,8 @@ public class CreatePost extends Fragment {
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        ((MainContainer) getActivity()).getViewPager().setCurrentItem(1);   //once create post submits, we move back to MainActivity (tabs activity)
-                        Intent intent = new Intent(getActivity(), MainContainer.class);
-                        startActivity(intent);  //go on to the next activity, MainContainer
+                        activity.getPostPage().setContent(post, true);
+                        activity.getViewPager().setCurrentItem(3);
                         getActivity().overridePendingTransition(0, 0);
                     }
                 });

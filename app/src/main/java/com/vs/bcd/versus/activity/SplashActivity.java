@@ -11,7 +11,7 @@ public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        SessionManager sessionManager = new SessionManager(this);
+        SessionManager sessionManager = new SessionManager(getApplicationContext());
         Intent intent;
         if(sessionManager.isLoggedIn()) {
             intent = new Intent(this, MainContainer.class);

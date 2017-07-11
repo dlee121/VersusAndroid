@@ -232,12 +232,13 @@ public class PostPage extends Fragment {
                 Iterator<VSComment> it = result.iterator();
 
 
-                //below, we form the comment structure. each comment is a node in doubly linked list. So we only need to root comment that is at the top to traverse the comment tree to display all the comments.
+                //below, we form the comment structure. each comment is a node in doubly linked list. So we only need the root comment that is at the top to traverse the comment tree to display all the comments.
                 VSCNode firstParentNode = null; //holds the first parent node, which holds the comment that appears at the top of the hierarchy.
                 VSCNode latestParentNode = null;  //holds the latest parent node we worked with. Used for assigning sibling order for parent nodes (root comments)
                 nodeTable = new Hashtable(result.size());    //Hashtable to assist in assigning children/siblings.
                 //TODO: Hashtable should be big enough to prevent collision as that fucks up the algorithm below. Right? Test if that's the case.
                 while (it.hasNext()) {
+
                     VSCNode currNode = new VSCNode(it.next());
                     VSCNode pNode = null;   //temporary node holder
                     //TODO: figure out how to add siblings, child, parent and all that most efficiently
@@ -267,12 +268,14 @@ public class PostPage extends Fragment {
                             pNode.setTailSibling(currNode);
                             currNode.setHeadSibling(pNode);
                         }
-                        else{   //different parents => parent-child relationship detected => first child
+                        else{   //different parents => parent-child relationship detected => first child. so this would happen for the first bucket collision, where the first item in there would have been the parent node hashed under its own comment_id as per this line: nodeTable.put(currNode.getCommentID(), currNode) at the bottom of this while loop, and the second item causing the collision would be the child comment hashed under its parent_id
                             pNode.setFirstChild(currNode);  //set currNode as first_child of its parentNode
                             currNode.setParent(pNode);
                         }
                     }
-                    nodeTable.put(currNode.getCommentID(), currNode);   //add this node to the hash table so that its children, if any, can find it in the table
+
+                    nodeTable.put(currNode.getCommentID(), currNode);   //add this node to the hash table so that its children, if any, can find it in the table.
+
                 }
                 //TODO: vscomment table in ddb is sorted by timestamp. So a parent comment would always come before a reply comment, so sorting the list is not necessary. Confirm this, and think of any case where a reply may come before parent and cause an error while setting its parent due to parent node not yet existing because it was placed after the reply in the list.
 
@@ -451,72 +454,90 @@ public class PostPage extends Fragment {
     //used when descending into nested levels, so when pageNestedLevel > 0
     public void setCommentsPage(VSComment clickedComment){
 
+        Log.d("comment", "processing comment click");
+
+
+
         setUpTopCard(clickedComment);
 
+        //note that VSCNode child is not necessarily a child of clickedComment, it could be the clickedComment itself if the comment currently has no child, that's how the nodeTable is used here
+        VSCNode child = nodeTable.get(clickedComment.getComment_id()); //last child of clicked comment. or, if clicked comment currently does not have a child, it would be the node of the clicked comment itself.
 
-        VSCNode child = nodeTable.get(clickedComment.getComment_id()); //last child of clicked comment
+        Log.d("comment", "clickedCommentID: " + clickedComment.getComment_id());
+        Log.d("comment", "nodeCommentID: " + child.getCommentID());
+
+        boolean commentCurrentlyChildless = child.getCommentID().equals(clickedComment.getComment_id());
 
         if(child != null){
             clearList();
             pageNestedLevel++;
+            currentRootLevelNode = child;   //in case of currently childless comment, we need to fix this because currentRootLevelNode should hold clickedComment's child and not itself; we fix this by assigning a dummy child node inside the 'else' condition to the below 'if' statement which is reached when clickedComment is found to be currently childless
 
-            Log.d("setCommentsPage", "found child");
-
-            //get the first child
-            while(child.hasHeadSibling()){
-                child = child.getHeadSibling();
-            }
-            currentRootLevelNode = child;
-
-            setCommentList(child);
-            //populate childList with the comments we want for the comment section, children and grandchildren of the clicked comment
-            //in order
-            while(child.hasTailSibling()){
-                child = child.getTailSibling();
-                setCommentList(child);
-            }
-
-            //find view by id and attaching adapter for the RecyclerView
-            RV.setLayoutManager(new LinearLayoutManager(getActivity()));
-            PPAdapter = new PostPageAdapter(RV, vsComments, post, (MainContainer)getActivity(), false, false);
-            RV.setAdapter(PPAdapter);
-
-            //set load more listener for the RecyclerView adapter
-            PPAdapter.setOnLoadMoreListener(new OnLoadMoreListener() {
-                @Override
-                public void onLoadMore() {
-
-                    if (vsComments.size() <= 3) {
-                    /*
-                    posts.add(null);
-                    PPAdapter.notifyItemInserted(posts.size() - 1);
-                    new Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            posts.remove(posts.size() - 1);
-                            PPAdapter.notifyItemRemoved(posts.size());
-
-                            //Generating more data
-                            int index = posts.size();
-                            int end = index + 10;
-                            for (int i = index; i < end; i++) {
-                                Contact contact = new Contact();
-                                contact.setEmail("DevExchanges" + i + "@gmail.com");
-                                posts.add(contact);
-                            }
-                            PPAdapter.notifyDataSetChanged();
-                            PPAdapter.setLoaded();
-                        }
-                    }, 1500);
-                    */
-                    } else {
-                        //Toast.makeText(getActivity(), "Loading data completed", Toast.LENGTH_SHORT).show();
-                    }
-
+            if(!commentCurrentlyChildless){  //if child is not null && child.commentID does not equal clickedComment.commentID (if equal, it would indicate that clickedComment is currently childless, so no need to set up comment card views with PostPageAdapter)
+                //get the first child
+                while(child.hasHeadSibling()){
+                    child = child.getHeadSibling();
                 }
-            });
+                currentRootLevelNode = child;
+
+                setCommentList(child);
+
+                //populate childList with the comments we want for the comment section, children and grandchildren of the clicked comment
+                //in order
+                while(child.hasTailSibling()){
+                    child = child.getTailSibling();
+                    setCommentList(child);
+                }
+
+                //find view by id and attaching adapter for the RecyclerView
+                RV.setLayoutManager(new LinearLayoutManager(getActivity()));
+                PPAdapter = new PostPageAdapter(RV, vsComments, post, (MainContainer)getActivity(), false, false);
+                RV.setAdapter(PPAdapter);
+
+                //set load more listener for the RecyclerView adapter
+                PPAdapter.setOnLoadMoreListener(new OnLoadMoreListener() {
+                    @Override
+                    public void onLoadMore() {
+
+                        if (vsComments.size() <= 3) {
+                        /*
+                        posts.add(null);
+                        PPAdapter.notifyItemInserted(posts.size() - 1);
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                posts.remove(posts.size() - 1);
+                                PPAdapter.notifyItemRemoved(posts.size());
+
+                                //Generating more data
+                                int index = posts.size();
+                                int end = index + 10;
+                                for (int i = index; i < end; i++) {
+                                    Contact contact = new Contact();
+                                    contact.setEmail("DevExchanges" + i + "@gmail.com");
+                                    posts.add(contact);
+                                }
+                                PPAdapter.notifyDataSetChanged();
+                                PPAdapter.setLoaded();
+                            }
+                        }, 1500);
+                        */
+                        } else {
+                            //Toast.makeText(getActivity(), "Loading data completed", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            }
+
+            else {  //we get here if clickedComment is currently childless, skipping the above 'if' block which sets up card views with the PostPageAdapter.
+                //like we said above, we fix the currentRootLevelNode to hold a dummy child node, to make navigation work (which requires that this variable holds clickedComment's first child and not clickedComment itself which is the case here)
+                Log.d("comment", "dummy assignment");
+                currentRootLevelNode = new VSCNode(null, currentRootLevelNode); //this only
+
+            }
 
         }
+
     }
 
     public void setCommentsPageWithCurrentNode (){
@@ -585,10 +606,11 @@ public class PostPage extends Fragment {
         }
     }
 
-    //only called when we're not on pageNestedLevel 0, so when ascending up nested levels towards root level.
+    //only called when we're not on pageNestedLevel 0, so when ascending up nested levels towards root level. so not called in root level (in root level we simply exit out of PostPage on UpButton click)
     public void backToParentPage(){
 
         currentRootLevelNode = currentRootLevelNode.getParent();
+
         while(currentRootLevelNode.hasHeadSibling()){
             currentRootLevelNode = currentRootLevelNode.getHeadSibling();
         }
