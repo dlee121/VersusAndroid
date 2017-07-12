@@ -92,7 +92,7 @@ public class MainContainer extends AppCompatActivity {
         mapper = new DynamoDBMapper(ddbClient);
         s3 = new AmazonS3Client(credentialsProvider);
 
-        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
+        //getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
 
     /*
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
