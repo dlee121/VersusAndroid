@@ -47,8 +47,7 @@ public class LogIn extends AppCompatActivity {
         thisActivity = this;
         loginButton = (Button)findViewById(R.id.loginbutton);
         loginPB = (ProgressBar)findViewById(R.id.indeterminate_login_pb);
-        loginPB.setEnabled(false);
-        loginPB.setVisibility(View.INVISIBLE);
+        displayProgressBar(false);
     }
 
     public void logInSubmitted(View view){

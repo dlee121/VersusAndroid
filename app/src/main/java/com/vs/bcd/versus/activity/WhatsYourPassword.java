@@ -1,5 +1,6 @@
 package com.vs.bcd.versus.activity;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -7,6 +8,7 @@ import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -33,7 +35,7 @@ public class WhatsYourPassword extends AppCompatActivity {
     private SessionManager sessionManager;
     private Button signupButton;
     private ProgressBar signupPB;
-    private boolean signUpSuccessful = true;
+    private Activity thisActivity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +49,10 @@ public class WhatsYourPassword extends AppCompatActivity {
         signupButton = (Button)findViewById(R.id.signupsubmit);
         signupPB = (ProgressBar)findViewById(R.id.signuppb);
 
+        thisActivity = this;
+
+        displayProgressBar(false);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -55,21 +61,14 @@ public class WhatsYourPassword extends AppCompatActivity {
 
 
     public void SignUpSubmit(View view){
-        //TODO: validate and hash/salt password
-        Intent intent = new Intent(this, MainContainer.class);
+        //TODO: validate forms, and hash/salt password
+
         TextInputEditText editText = (TextInputEditText) findViewById(R.id.editText5);
         fullnameBdayUsernamePassword = fullnameBdayUsernamePassword + "%" + editText.getText().toString(); //fullname%bday-bmonth-byear%username%password
-        intent.putExtra(EXTRA_WYP, fullnameBdayUsernamePassword);
-        startActivity(intent);
-        overridePendingTransition(0, 0);
 
-
-
-        //TODO: implement actual phone / email verification
-
+        displayProgressBar(true);
 
         //validate, write to db (which completes registration), write session data to SharedPref (same as login) then move on to MainContainer
-
 
         // Initialize the Amazon Cognito credentials provider
         CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
@@ -81,36 +80,41 @@ public class WhatsYourPassword extends AppCompatActivity {
         mapper = new DynamoDBMapper(ddbClient);
 
         final User newUser = new User(fullnameBdayUsernamePassword);
+
         Runnable runnable = new Runnable() {
             public void run() {
 
                 try {
                     mapper.save(newUser);
+                    //TODO: Ensure that lines below are called only if mapper.save(newUser) is successful (in other words, make sure thread waits until mapper.save(newUser) finishes its job successfully, otherwise throwing exception to exit thread before calling below lines to login the new user).
+                    //TODO: So far this seems to be the case, as any exception thrown is caught and lines below don't get executed because we exit the thread when exception is thrown.
+                    //TODO: Cuz if there is a case where lines below are executed despite mapper.save failure, that would probably cause some bugs.
+                    //TODO: maybe do some synchronization/thread magic just to be on the safe side. We're good for now though.
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            sessionManager.createLoginSession(newUser);
+                            Intent intent = new Intent(thisActivity, MainContainer.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);   //clears back stack for navigation
+                            startActivity(intent);
+                            overridePendingTransition(0, 0);
+                        }
+                    });
                 }
                 catch (Throwable t){
-                    signUpSuccessful = false;   //if ddb save operation (sign up query) doesn't go through, indicate it through signUpSuccessful
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            displayProgressBar(false);
+                            Toast.makeText(thisActivity, "There was a problem signing up. Please check your network connection and try again.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
+
             }
         };
         Thread mythread = new Thread(runnable);
         mythread.start();
-        try {
-            mythread.join();    //wait for registration to go through
-        }
-        catch(InterruptedException ex) {
-            System.err.println("An InterruptedException was caught: " + ex.getMessage());
-        }
-        if(signUpSuccessful){
-            sessionManager.createLoginSession(newUser);
-            //intent.putExtra(EXTRA_PE, fullnameBdayUsernamePasswordPE);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            overridePendingTransition(0, 0);
-        }
-        else {
-            Toast.makeText(this, "There was a problem signing up. Please check your network connection and try again.", Toast.LENGTH_SHORT).show();
-        }
-
     }
 
     public void displayProgressBar(boolean display){
@@ -121,16 +125,10 @@ public class WhatsYourPassword extends AppCompatActivity {
             signupPB.setVisibility(View.VISIBLE);
         }
         else{
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    //loginThreadRunning = false;
-                    signupButton.setEnabled(true);
-                    signupButton.setVisibility(View.VISIBLE);
-                    signupPB.setEnabled(false);
-                    signupPB.setVisibility(View.INVISIBLE);
-                }
-            });
+            signupButton.setEnabled(true);
+            signupButton.setVisibility(View.VISIBLE);
+            signupPB.setEnabled(false);
+            signupPB.setVisibility(View.INVISIBLE);
         }
     }
 

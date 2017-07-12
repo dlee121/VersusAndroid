@@ -92,6 +92,7 @@ public class PhoneOrEmail extends AppCompatActivity {
             overridePendingTransition(0, 0);
         }
         else {
+            displayProgressBar(false);
             Toast.makeText(this, "There was a problem signing up. Please check your network connection and try again.", Toast.LENGTH_SHORT).show();
         }
 
