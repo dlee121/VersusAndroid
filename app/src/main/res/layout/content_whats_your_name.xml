@@ -26,7 +26,7 @@
             android:text="First Name" />
 
         <EditText
-            android:id="@+id/editText3"
+            android:id="@+id/firstnameet"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/textView5"
@@ -34,19 +34,32 @@
             android:inputType="textPersonName" />
 
         <TextView
+            android:id="@+id/fetwarning"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/vsTwo"
+            android:layout_below="@id/firstnameet" />
+
+        <TextView
             android:id="@+id/textView6"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/editText3"
+            android:layout_below="@id/fetwarning"
             android:text="Last Name" />
 
         <EditText
-            android:id="@+id/editText4"
+            android:id="@+id/lastnameet"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/textView6"
             android:ems="10"
             android:inputType="textPersonName" />
+        <TextView
+            android:id="@+id/letwarning"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/vsTwo"
+            android:layout_below="@id/lastnameet"/>
 
     </RelativeLayout>
 

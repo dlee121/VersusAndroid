@@ -41,7 +41,8 @@
             android:name=".activity.WhatsYourName"
             android:label="@string/title_activity_whats_your_name"
             android:parentActivityName=".activity.StartScreen"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustResize">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.vs.bcd.versus.activity.StartScreen" />
@@ -59,7 +60,8 @@
             android:name=".activity.WhatsYourUsername"
             android:label="@string/title_activity_whats_your_username"
             android:parentActivityName=".activity.WhatsYourBirthday"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustResize">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.vs.bcd.versus.activity.WhatsYourBirthday" />
@@ -68,7 +70,8 @@
             android:name=".activity.WhatsYourPassword"
             android:label="@string/title_activity_whats_your_password"
             android:parentActivityName=".activity.WhatsYourUsername"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustResize">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.vs.bcd.versus.activity.WhatsYourUsername" />
@@ -77,7 +80,8 @@
             android:name=".activity.LogIn"
             android:label="@string/title_activity_log_in"
             android:parentActivityName=".activity.StartScreen"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustResize">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.vs.bcd.versus.activity.StartScreen" />
@@ -85,7 +89,7 @@
         <activity
             android:name=".activity.MainContainer"
             android:label="@string/title_activity_main_container"
-            android:theme="@style/AppTheme" />
+            android:theme="@style/AppTheme"/>
 
     </application>
 
