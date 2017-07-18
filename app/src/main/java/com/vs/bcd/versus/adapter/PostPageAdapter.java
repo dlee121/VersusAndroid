@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.renderscript.ScriptGroup;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -13,6 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -30,7 +32,6 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.vs.bcd.versus.OnLoadMoreListener;
 import com.vs.bcd.versus.activity.MainActivity;
 import com.vs.bcd.versus.activity.MainContainer;
-import com.vs.bcd.versus.activity.PhoneOrEmail;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.model.VSCNode;
@@ -47,6 +48,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -54,6 +56,11 @@ import static android.os.Build.ID;
 
 
 public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+    public static int NOVOTE = 0;
+    public static int UPVOTE = 1;
+    public static int DOWNVOTE = 2;
+
     private final int VIEW_TYPE_ITEM = 0;
     private final int VIEW_TYPE_LOADING = 1;
     private final int VIEW_TYPE_POSTCARD = 2;
@@ -70,6 +77,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private Bitmap redBMP = null;
     private Bitmap blackBMP = null;
     private boolean downloadImages, includesPost;
+    private Map<String, String> actionMap;
 
     public PostPageAdapter(RecyclerView recyclerView, List<Object> vsComments, Post post, MainContainer activity, boolean downloadImages, boolean includesPost) {
         this.s3 = ((MainContainer)activity).getS3Client();
@@ -78,6 +86,8 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         this.activity = activity;
         this.downloadImages = downloadImages;
         this.includesPost = includesPost;
+        actionMap = activity.getPostPage().getActionMap();
+        Log.d("DEBUG", "Action Map Size: " + Integer.toString(actionMap.size()));
 
         final LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -128,38 +138,102 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
         if (holder instanceof UserViewHolder) { //holds comments
+            Log.d("DEBUG", "BIND EVENT");
+
 
             final VSComment currentComment = (VSComment)masterList.get(position);
 
-            setLeftMargin(((UserViewHolder) holder).circView, 150 * currentComment.getNestedLevel());  //left margin (indentation) of 150dp per nested level
+            //this is where values are put into the layout, from the VSComment object
 
-            //set onClickListener for profile pic
-            ((UserViewHolder) holder).circView.setOnClickListener(new View.OnClickListener(){
+            final UserViewHolder userViewHolder = (UserViewHolder) holder;
+
+            if(activity.getSessionManager().getCurrentUsername().equals(currentComment)){
+                //TODO: implement UI for comments that user wrote, like edit and delete options
+            }
+
+
+                //set onClickListener for profile pic
+            userViewHolder.circView.setOnClickListener(new View.OnClickListener(){
                 @Override
                 public void onClick(View v){
                     profileClicked(v);
                 }
             });
 
-            //this is where values are put into the layout, from the VSComment object
 
-            UserViewHolder userViewHolder = (UserViewHolder) holder;
+            setLeftMargin(userViewHolder.circView, 150 * currentComment.getNestedLevel());  //left margin (indentation) of 150dp per nested level
+
+            if(currentComment.getUservote() == UPVOTE){
+                userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
+            }
+            else if(currentComment.getUservote() == DOWNVOTE){
+                userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
+            }
+
             userViewHolder.author.setText(currentComment.getAuthor());
             userViewHolder.timestamp.setText(getTimeString(currentComment.getTimestamp()));
             userViewHolder.content.setText(currentComment.getContent());
             userViewHolder.heartCount.setText( Integer.toString(currentComment.getUpvotes() - currentComment.getDownvotes()) );
             //set CardView onClickListener to go to PostPage fragment with corresponding Comments data (this will be a PostPage without post_card)
+
             userViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     activity.getPostPage().setCommentsPage(currentComment);
                 }
             });
+
             userViewHolder.replyButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     activity.getCommentEnterFragment().setContentReplyToComment(currentComment);
                     activity.getViewPager().setCurrentItem(4);
+                }
+            });
+
+            userViewHolder.upvoteButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int userVote = currentComment.getUservote();
+                    if(userVote == UPVOTE){
+                        userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
+                        currentComment.setUservote(NOVOTE);
+                        actionMap.remove(currentComment.getComment_id());
+                    }
+                    else if(userVote == DOWNVOTE){
+                        userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+                        userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
+                        currentComment.setUservote(UPVOTE);
+                        actionMap.put(currentComment.getComment_id(), "U");
+                    }
+                    else if(userVote == NOVOTE){
+                        userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
+                        currentComment.setUservote(UPVOTE);
+                        actionMap.put(currentComment.getComment_id(), "U");
+                    }
+                }
+            });
+
+            userViewHolder.downvoteButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int userVote = currentComment.getUservote();
+                    if(userVote == DOWNVOTE){
+                        userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+                        currentComment.setUservote(NOVOTE);
+                        actionMap.remove(currentComment.getComment_id());
+                    }
+                    else if(userVote == UPVOTE){
+                        userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
+                        userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
+                        currentComment.setUservote(DOWNVOTE);
+                        actionMap.put(currentComment.getComment_id(), "D");
+                    }
+                    else if(userVote == NOVOTE){
+                        userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
+                        currentComment.setUservote(DOWNVOTE);
+                        actionMap.put(currentComment.getComment_id(), "D");
+                    }
                 }
             });
 
@@ -400,6 +474,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         public TextView content;
         public TextView heartCount; //TODO: perhaps we should show two counts, one for heard and one for broken hearts, instead of summing it up into one heartCount? Or is that not necessary, after all major websites seem to just sum them into one single count.
         public Button replyButton;
+        public ImageButton upvoteButton, downvoteButton;
 
         public UserViewHolder(View view) {
             super(view);
@@ -409,6 +484,8 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             content = (TextView) view.findViewById(R.id.usercomment);
             heartCount = (TextView) view.findViewById(R.id.heartCount);
             replyButton = (Button) view.findViewById(R.id.replybuttoncs);
+            upvoteButton = (ImageButton) view.findViewById(R.id.heartbutton);
+            downvoteButton = (ImageButton) view.findViewById(R.id.broken_heart_button);
         }
 
 
@@ -417,12 +494,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     //TODO: update function intent to launch profile page once profile page is available. For now, it leads to StartScreen.
     public void profileClicked(View view){
         if(((MainContainer)activity).getMainFrag().getUILifeStatus()){
-            Intent intent = new Intent(activity, PhoneOrEmail.class);
-            //EditText editText = (EditText) findViewById(R.id.editText);
-            //String message = editText.getText().toString();
-            //intent.putExtra(EXTRA_MESSAGE, message);
-            activity.startActivity(intent);
-            activity.overridePendingTransition(0, 0);
+            //TODO: implement this for when profile picture is clicked on CommentCard and TopCard
         }
     }
 
@@ -520,5 +592,19 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
     }
 
+    public void highlightButtons(RecyclerView.ViewHolder holder, int selection){
+        if(selection == NOVOTE){
+            ((UserViewHolder)holder).upvoteButton.setImageResource(R.drawable.ic_heart);
+            ((UserViewHolder)holder).downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+        }
+        if(selection == UPVOTE){
+            ((UserViewHolder)holder).upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
+            ((UserViewHolder)holder).downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+        }
+        if(selection == DOWNVOTE){
+            ((UserViewHolder)holder).upvoteButton.setImageResource(R.drawable.ic_heart);
+            ((UserViewHolder)holder).downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
+        }
+    }
 
 }

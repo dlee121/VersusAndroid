@@ -2,10 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.vs.bcd.versus">
 
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
 
     <application
         android:allowBackup="true"
@@ -13,7 +12,6 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
         <service
             android:name="com.amazonaws.mobileconnectors.s3.transferutility.TransferService"
             android:enabled="true" />
@@ -38,43 +36,14 @@
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name=".activity.WhatsYourName"
-            android:label="@string/title_activity_whats_your_name"
+            android:name=".activity.SignUp"
+            android:label="@string/title_activity_sign_up"
             android:parentActivityName=".activity.StartScreen"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="adjustResize">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.vs.bcd.versus.activity.StartScreen" />
-        </activity>
-        <activity
-            android:name=".activity.WhatsYourBirthday"
-            android:label="@string/title_activity_whats_your_birthday"
-            android:parentActivityName=".activity.WhatsYourName"
-            android:theme="@style/AppTheme.NoActionBar">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.vs.bcd.versus.activity.WhatsYourName" />
-        </activity>
-        <activity
-            android:name=".activity.WhatsYourUsername"
-            android:label="@string/title_activity_whats_your_username"
-            android:parentActivityName=".activity.WhatsYourBirthday"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:windowSoftInputMode="adjustResize">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.vs.bcd.versus.activity.WhatsYourBirthday" />
-        </activity>
-        <activity
-            android:name=".activity.WhatsYourPassword"
-            android:label="@string/title_activity_whats_your_password"
-            android:parentActivityName=".activity.WhatsYourUsername"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:windowSoftInputMode="adjustResize">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.vs.bcd.versus.activity.WhatsYourUsername" />
         </activity>
         <activity
             android:name=".activity.LogIn"
@@ -89,7 +58,7 @@
         <activity
             android:name=".activity.MainContainer"
             android:label="@string/title_activity_main_container"
-            android:theme="@style/AppTheme"/>
+            android:theme="@style/AppTheme" />
 
     </application>
 

@@ -6,10 +6,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Looper;
 import android.support.design.widget.TextInputEditText;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -36,6 +38,7 @@ public class LogIn extends AppCompatActivity {
     private Activity thisActivity;
     private Button loginButton;
     private ProgressBar loginPB;
+    private EditText usernameET;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,14 +46,22 @@ public class LogIn extends AppCompatActivity {
         setContentView(R.layout.activity_log_in);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setTitle("");
         thisActivity = this;
         loginButton = (Button)findViewById(R.id.loginbutton);
         loginPB = (ProgressBar)findViewById(R.id.indeterminate_login_pb);
+        usernameET = (EditText)findViewById(R.id.editText6);
+        usernameET.requestFocus();
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0);
         displayProgressBar(false);
     }
 
     public void logInSubmitted(View view){
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow( getCurrentFocus().getWindowToken(), 0);
         //TODO: better way to prevent multiple login submission from tapping the button rapidly multiple times?
 
         if(!loginThreadRunning){

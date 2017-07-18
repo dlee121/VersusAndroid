@@ -1,134 +1,201 @@
 package com.vs.bcd.versus.activity;
 
-import android.app.Activity;
-import android.content.Intent;
+import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.util.Log;
+import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.vs.bcd.versus.R;
-import com.vs.bcd.versus.activity.PhoneOrEmail;
+import com.vs.bcd.versus.model.FormValidator;
 import com.vs.bcd.versus.model.SessionManager;
-import com.vs.bcd.versus.model.User;
 
-import static com.vs.bcd.versus.R.id.editText;
-import static com.vs.bcd.versus.R.id.toolbar;
+import java.util.ArrayList;
 
-public class WhatsYourPassword extends AppCompatActivity {
+import static com.vs.bcd.versus.R.string.next;
 
-    public static final String EXTRA_WYP = "com.example.myfirstapp.WYU";
-    private String fullnameBdayUsernamePassword;
+public class WhatsYourPassword extends Fragment {
+
+    private View rootView;
+    private ArrayList<View> childViews;
+    private ArrayList<ViewGroup.LayoutParams> LPStore;
     private DynamoDBMapper mapper;
     private SessionManager sessionManager;
     private Button signupButton;
     private ProgressBar signupPB;
-    private Activity thisActivity;
+    private SignUp activity;
+    private TextView petWarning;
+    private EditText perkyText;
+    private boolean validated = false;
+    private boolean firstRound = true;
+
+
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_whats_your_password);
-        sessionManager = new SessionManager(this);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
 
-        Intent intent = getIntent();
-        fullnameBdayUsernamePassword = intent.getStringExtra(WhatsYourUsername.EXTRA_WYU);
+        rootView = inflater.inflate(R.layout.fragment_yo_asswordpay, container, false);
+        activity = (SignUp)getActivity();
+        childViews = new ArrayList<>();
+        LPStore = new ArrayList<>();
 
-        signupButton = (Button)findViewById(R.id.signupsubmit);
-        signupPB = (ProgressBar)findViewById(R.id.signuppb);
+        for (int i = 0; i<((ViewGroup)rootView).getChildCount(); i++){
+            childViews.add(((ViewGroup)rootView).getChildAt(i));
+            LPStore.add(childViews.get(i).getLayoutParams());
+        }
 
-        thisActivity = this;
+        petWarning = (TextView)rootView.findViewById(R.id.petwarning);
+
+        perkyText = (TextInputEditText)rootView.findViewById(R.id.editText5);
+
+
+        perkyText.addTextChangedListener(new FormValidator(perkyText) {
+            @Override
+            public void validate(TextView textView, String text) {
+                if (text.length() > 0) { //no need to consider leading/trailing whitespace, since we trim the string before taking it
+                    passwordStrengthCheck(text);
+                    signupButton.setBackgroundColor(ContextCompat.getColor(activity,R.color.vsTwo));
+                    signupButton.setEnabled(true);
+                    validated = true;
+
+                } else {
+                    petWarning.setTextColor(ContextCompat.getColor(activity,R.color.noticeRed));
+                    petWarning.setText("Please enter a password.");
+                    signupButton.setBackgroundColor(Color.rgb(238, 238, 238));
+                    signupButton.setEnabled(false);
+                    validated = false;
+                }
+            }
+        });
+        signupButton = (Button)rootView.findViewById(R.id.signupsubmit);
+        signupPB = (ProgressBar)rootView.findViewById(R.id.signuppb);
+
+        signupButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
+                activity.setBiebs(perkyText.getText().toString().trim());
+                imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0);
+                activity.signUpUser();
+            }
+        });
 
         displayProgressBar(false);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        toolbar.setTitleTextColor(0xFFFFFF);
+        disableChildViews();
+
+        return rootView;
     }
 
 
-    public void SignUpSubmit(View view){
-        //TODO: validate forms, and hash/salt password
 
-        TextInputEditText editText = (TextInputEditText) findViewById(R.id.editText5);
-        fullnameBdayUsernamePassword = fullnameBdayUsernamePassword + "%" + editText.getText().toString(); //fullname%bday-bmonth-byear%username%password
-
-        displayProgressBar(true);
-
-        //validate, write to db (which completes registration), write session data to SharedPref (same as login) then move on to MainContainer
-
-        // Initialize the Amazon Cognito credentials provider
-        CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
-                getApplicationContext(),
-                "us-east-1:88614505-c8df-4dce-abd8-79a0543852ff", // Identity Pool ID
-                Regions.US_EAST_1 // Region
-        );
-        AmazonDynamoDBClient ddbClient = new AmazonDynamoDBClient(credentialsProvider);
-        mapper = new DynamoDBMapper(ddbClient);
-
-        final User newUser = new User(fullnameBdayUsernamePassword);
-
-        Runnable runnable = new Runnable() {
-            public void run() {
-
-                try {
-                    mapper.save(newUser);
-                    //TODO: Ensure that lines below are called only if mapper.save(newUser) is successful (in other words, make sure thread waits until mapper.save(newUser) finishes its job successfully, otherwise throwing exception to exit thread before calling below lines to login the new user).
-                    //TODO: So far this seems to be the case, as any exception thrown is caught and lines below don't get executed because we exit the thread when exception is thrown.
-                    //TODO: Cuz if there is a case where lines below are executed despite mapper.save failure, that would probably cause some bugs.
-                    //TODO: maybe do some synchronization/thread magic just to be on the safe side. We're good for now though.
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            sessionManager.createLoginSession(newUser);
-                            Intent intent = new Intent(thisActivity, MainContainer.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);   //clears back stack for navigation
-                            startActivity(intent);
-                            overridePendingTransition(0, 0);
-                        }
-                    });
-                }
-                catch (Throwable t){
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            displayProgressBar(false);
-                            Toast.makeText(thisActivity, "There was a problem signing up. Please check your network connection and try again.", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
-
-            }
-        };
-        Thread mythread = new Thread(runnable);
-        mythread.start();
-    }
 
     public void displayProgressBar(boolean display){
         if(display){
+            perkyText.setEnabled(false);
             signupButton.setEnabled(false);
             signupButton.setVisibility(View.INVISIBLE);
             signupPB.setEnabled(true);
             signupPB.setVisibility(View.VISIBLE);
         }
         else{
+            perkyText.setEnabled(true);
+            signupButton.setBackgroundColor(ContextCompat.getColor(activity,R.color.vsTwo));
             signupButton.setEnabled(true);
             signupButton.setVisibility(View.VISIBLE);
             signupPB.setEnabled(false);
             signupPB.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (isVisibleToUser) {
+            if(rootView != null)
+                enableChildViews();
+        }
+        else {
+            if (rootView != null)
+                disableChildViews();
+        }
+    }
+
+
+    public void enableChildViews(){
+        for(int i = 0; i<childViews.size(); i++){
+            childViews.get(i).setEnabled(true);
+            childViews.get(i).setClickable(true);
+            childViews.get(i).setLayoutParams(LPStore.get(i));
+        }
+        signupButton.setEnabled(validated);
+    }
+
+    public void disableChildViews(){
+        for(int i = 0; i<childViews.size(); i++){
+            childViews.get(i).setEnabled(false);
+            childViews.get(i).setClickable(false);
+            childViews.get(i).setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+        }
+    }
+
+    public void passwordStrengthCheck(String text){
+        int strength = 0;
+
+        if(text.length() >= 4){
+            strength++;
+        }
+        if(text.length() >= 6){
+            strength++;
+        }
+        if(!text.toLowerCase().equals(text)){
+            strength++;
+        }
+        int digitCount = 0;
+        for (int i = 0; i < text.length(); i++){
+            if(Character.isDigit(text.charAt(i))){
+                digitCount++;
+            }
+        }
+        if(digitCount > 0 && digitCount < text.length()){
+            strength++;
+        }
+
+        switch (strength){
+            case 0:
+                petWarning.setTextColor(ContextCompat.getColor(activity,R.color.noticeRed));
+                petWarning.setText("Password strength: weak");
+                break;
+            case 1:
+                petWarning.setTextColor(ContextCompat.getColor(activity,R.color.noticeRed));
+                petWarning.setText("Password strength: weak");
+                break;
+            case 2:
+                petWarning.setTextColor(ContextCompat.getColor(activity,R.color.noticeYellow));
+                petWarning.setText("Password strength: medium");
+                break;
+            case 3:
+                petWarning.setTextColor(ContextCompat.getColor(activity,R.color.noticeGreen));
+                petWarning.setText("Password strength: good");
+                break;
+            case 4:
+                petWarning.setTextColor(ContextCompat.getColor(activity,R.color.noticeGreen));
+                petWarning.setText("Password strength: strong");
+                break;
         }
     }
 

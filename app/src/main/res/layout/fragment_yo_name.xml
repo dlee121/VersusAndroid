@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:id="@+id/namepagefrag"
+    tools:context="com.vs.bcd.versus.activity.SignUp">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -31,20 +34,13 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/textView5"
             android:ems="10"
-            android:inputType="textPersonName" />
-
-        <TextView
-            android:id="@+id/fetwarning"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@color/vsTwo"
-            android:layout_below="@id/firstnameet" />
+            android:inputType="textCapWords" />
 
         <TextView
             android:id="@+id/textView6"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/fetwarning"
+            android:layout_below="@id/firstnameet"
             android:text="Last Name" />
 
         <EditText
@@ -53,23 +49,17 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/textView6"
             android:ems="10"
-            android:inputType="textPersonName" />
-        <TextView
-            android:id="@+id/letwarning"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@color/vsTwo"
-            android:layout_below="@id/lastnameet"/>
+            android:inputType="textCapWords" />
 
     </RelativeLayout>
 
     <Button
-        android:id="@+id/button5"
+        android:id="@+id/wynbutton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:onClick="WhatsYourNameNext"
         android:layout_centerHorizontal="true"
+        android:layout_marginBottom="24dp"
         android:text="@string/next" />
 
 

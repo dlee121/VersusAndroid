@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,28 +25,35 @@ import com.vs.bcd.versus.OnLoadMoreListener;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainActivity;
 import com.vs.bcd.versus.activity.MainContainer;
-import com.vs.bcd.versus.activity.PhoneOrEmail;
 import com.vs.bcd.versus.adapter.MyAdapter;
 import com.vs.bcd.versus.adapter.PostPageAdapter;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.SessionManager;
+import com.vs.bcd.versus.model.UserAction;
 import com.vs.bcd.versus.model.VSCNode;
 import com.vs.bcd.versus.model.VSComment;
 
 import org.w3c.dom.Text;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+import static android.R.attr.action;
+import static android.R.attr.cursorVisible;
 import static android.R.attr.left;
 import static android.R.attr.order;
 import static android.R.attr.right;
 import static android.R.attr.top;
 import static android.icu.lang.UCharacter.GraphemeClusterBreak.V;
+import static com.vs.bcd.versus.adapter.PostPageAdapter.DOWNVOTE;
+import static com.vs.bcd.versus.adapter.PostPageAdapter.NOVOTE;
+import static com.vs.bcd.versus.adapter.PostPageAdapter.UPVOTE;
 
 
 /**
@@ -82,6 +90,9 @@ public class PostPage extends Fragment {
     private FloatingActionButton postPageFAB;
     private RelativeLayout.LayoutParams fabLP;
     private VSComment topCardContent = null;
+    private UserAction currentUserAction;
+    private boolean applyActions = true;
+    private Map<String, String> actionMap = null;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -126,6 +137,59 @@ public class PostPage extends Fragment {
             public void onClick(View v) {
                 activity.getCommentEnterFragment().setContentReplyToComment(topCardContent);
                 activity.getViewPager().setCurrentItem(4);
+            }
+        });
+
+        final ImageButton upvoteButton = (ImageButton)rootView.findViewById(R.id.heartbuttontc);
+        final ImageButton downvoteButton = (ImageButton)rootView.findViewById(R.id.broken_heart_button_tc);
+
+        upvoteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(topCardContent != null){
+                    int userVote = topCardContent.getUservote();
+                    if(userVote == UPVOTE){
+                        upvoteButton.setImageResource(R.drawable.ic_heart);
+                        topCardContent.setUservote(NOVOTE);
+                        actionMap.remove(topCardContent.getComment_id());
+                    }
+                    else if(userVote == DOWNVOTE){
+                        downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+                        upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
+                        topCardContent.setUservote(UPVOTE);
+                        actionMap.put(topCardContent.getComment_id(), "U");
+                    }
+                    else if(userVote == NOVOTE){
+                        upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
+                        topCardContent.setUservote(UPVOTE);
+                        actionMap.put(topCardContent.getComment_id(), "U");
+                    }
+                }
+            }
+        });
+
+        downvoteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(topCardContent != null){
+                    int userVote = topCardContent.getUservote();
+                    if(userVote == DOWNVOTE){
+                        downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+                        topCardContent.setUservote(NOVOTE);
+                        actionMap.remove(topCardContent.getComment_id());
+                    }
+                    else if(userVote == UPVOTE){
+                        upvoteButton.setImageResource(R.drawable.ic_heart);
+                        downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
+                        topCardContent.setUservote(DOWNVOTE);
+                        actionMap.put(topCardContent.getComment_id(), "D");
+                    }
+                    else if(userVote == NOVOTE){
+                        downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
+                        topCardContent.setUservote(DOWNVOTE);
+                        actionMap.put(topCardContent.getComment_id(), "D");
+                    }
+                }
             }
         });
 
@@ -222,6 +286,14 @@ public class PostPage extends Fragment {
 
         Runnable runnable = new Runnable() {
             public void run() {
+                currentUserAction = activity.getMapper().load(UserAction.class, sessionManager.getCurrentUsername(), postID);   //TODO: catch exception for this query
+                applyActions = true;
+                if(currentUserAction == null){
+                    currentUserAction = new UserAction(sessionManager.getCurrentUsername(), postID);
+                    applyActions = false;
+                }
+                actionMap = currentUserAction.getActionRecord();
+
                 VSComment vscommentToQuery = new VSComment();
                 vscommentToQuery.setPost_id(postID);
 
@@ -237,10 +309,12 @@ public class PostPage extends Fragment {
                 VSCNode latestParentNode = null;  //holds the latest parent node we worked with. Used for assigning sibling order for parent nodes (root comments)
                 nodeTable = new Hashtable(result.size());    //Hashtable to assist in assigning children/siblings.
                 //TODO: Hashtable should be big enough to prevent collision as that fucks up the algorithm below. Right? Test if that's the case.
+                VSCNode currNode, pNode;
                 while (it.hasNext()) {
 
-                    VSCNode currNode = new VSCNode(it.next());
-                    VSCNode pNode = null;   //temporary node holder
+                    currNode = new VSCNode(it.next());
+                    pNode = null;   //temporary node holder
+
                     //TODO: figure out how to add siblings, child, parent and all that most efficiently
                     if(currNode.isRoot()){  //this is a parent node, AKA a root comment node
                         if(latestParentNode == null) {    //this is the first parent node to be worked with here
@@ -277,6 +351,7 @@ public class PostPage extends Fragment {
                     nodeTable.put(currNode.getCommentID(), currNode);   //add this node to the hash table so that its children, if any, can find it in the table.
 
                 }
+
                 //TODO: vscomment table in ddb is sorted by timestamp. So a parent comment would always come before a reply comment, so sorting the list is not necessary. Confirm this, and think of any case where a reply may come before parent and cause an error while setting its parent due to parent node not yet existing because it was placed after the reply in the list.
 
                 //TODO: obtain a list of comments we want to display here (root comments and upto their grandchildren). while making the list, set VSComment.nestedLevel to 0, 1, or 2 accordingly, for indent.
@@ -303,6 +378,11 @@ public class PostPage extends Fragment {
                     RV.setLayoutManager(new LinearLayoutManager(getActivity()));
                     vsComments.add(0, post);
                     //insert post card into the adapter
+
+                    if(applyActions){
+                        applyUserActions();
+                    }
+
                     PPAdapter = new PostPageAdapter(RV, vsComments, post, (MainContainer)getActivity(), downloadImages, true);
                     RV.setAdapter(PPAdapter);
 
@@ -406,6 +486,7 @@ public class PostPage extends Fragment {
     }
 
     //used to set up the card view at the top to show the clicked comment which won't scroll with the recycler view
+    //topcard always exists, it's just hidden when not needed. this shows it if it's not already shown and we want it to be shown
     public void setUpTopCard(VSComment clickedComment){
 
         topCardContent = clickedComment;
@@ -414,11 +495,11 @@ public class PostPage extends Fragment {
             hidePostPageFAB();
         }
 
-        CircleImageView circView = (CircleImageView)topCard.findViewById(R.id.profile_image_cs);
-        TextView timestamp = (TextView)topCard.findViewById(R.id.timetvcs);
-        TextView author = (TextView)topCard.findViewById(R.id.usernametvcs);
-        TextView content = (TextView)topCard.findViewById(R.id.usercomment);
-        TextView heartCount = (TextView)topCard.findViewById(R.id.heartCount);
+        CircleImageView circView = (CircleImageView)topCard.findViewById(R.id.profile_image_tc);
+        TextView timestamp = (TextView)topCard.findViewById(R.id.timetvtc);
+        TextView author = (TextView)topCard.findViewById(R.id.usernametvtc);
+        TextView content = (TextView)topCard.findViewById(R.id.usercommenttc);
+        TextView heartCount = (TextView)topCard.findViewById(R.id.heartCounttc);
 
         circView.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -431,6 +512,25 @@ public class PostPage extends Fragment {
         author.setText(clickedComment.getAuthor());
         content.setText(clickedComment.getContent());
         heartCount.setText(Integer.toString(clickedComment.getUpvotes() - clickedComment.getDownvotes()));
+
+        switch (clickedComment.getUservote()){
+            case 0: //NOVOTE
+                ((ImageButton)topCard.findViewById(R.id.heartbuttontc)).setImageResource(R.drawable.ic_heart);
+                ((ImageButton)topCard.findViewById(R.id.broken_heart_button_tc)).setImageResource(R.drawable.ic_heart_broken);
+                break;
+
+            case 1: //UPVOTE
+                ((ImageButton)topCard.findViewById(R.id.heartbuttontc)).setImageResource(R.drawable.ic_heart_highlighted);
+                ((ImageButton)topCard.findViewById(R.id.broken_heart_button_tc)).setImageResource(R.drawable.ic_heart_broken);
+                break;
+
+            case 2: //DOWNVOTE
+                ((ImageButton)topCard.findViewById(R.id.heartbuttontc)).setImageResource(R.drawable.ic_heart);
+                ((ImageButton)topCard.findViewById(R.id.broken_heart_button_tc)).setImageResource(R.drawable.ic_heart_broken_highlighted);
+                break;
+            default:
+                break;
+        }
 
         if(!topCardActive){
             topCard.setEnabled(true);
@@ -488,6 +588,8 @@ public class PostPage extends Fragment {
                     child = child.getTailSibling();
                     setCommentList(child);
                 }
+
+                applyUserActions();
 
                 //find view by id and attaching adapter for the RecyclerView
                 RV.setLayoutManager(new LinearLayoutManager(getActivity()));
@@ -563,6 +665,7 @@ public class PostPage extends Fragment {
                 setCommentList(node);
             }
 
+            applyUserActions();
             //find view by id and attaching adapter for the RecyclerView
             RV.setLayoutManager(new LinearLayoutManager(getActivity()));
             PPAdapter = new PostPageAdapter(RV, vsComments, post, (MainContainer)getActivity(), false, isRootLevel());
@@ -706,8 +809,57 @@ public class PostPage extends Fragment {
         };
         Thread mythread = new Thread(runnable);
         mythread.start();
-
-
     }
 
+    public Map<String, String> getActionMap(){
+        return actionMap;
+    }
+
+    public VSCNode getParent(VSCNode childnode){
+        while(childnode.hasHeadSibling()){
+            childnode = childnode.getHeadSibling();
+        }
+        return childnode.getParent();
+    }
+
+    //only call this after nodeTable and vsComments have been set up, but before passing vsComments into a PPAdapter instance
+    //sets up VSComment.uservote for comments that user upvoted or downvoted
+    public void applyUserActions(){
+        VSCNode temp;
+        for(Map.Entry<String, String> entry : actionMap.entrySet()){
+            temp = nodeTable.get(entry.getKey());
+            if(!temp.getCommentID().equals(entry.getKey())){ //this means we retrieved a child of the node we are looking for
+                temp = getParent(temp); //now temp is the node we are looking for
+            }
+            if(temp == null){
+                Log.d("DEBUG", "This is unexpected, this is a bug. PostPage.java line 801");
+                return;
+            }
+            //now temp should be the node we want to work with
+
+            switch(entry.getValue()){
+                case "U":
+                    temp.getNodeContent().setUservote(UPVOTE);
+                    break;
+                case "D":
+                    temp.getNodeContent().setUservote(DOWNVOTE);
+                    break;
+            }
+        }
+    }
+
+    public void writeActionsToDB(){
+        if(!actionMap.isEmpty()){
+
+            Runnable runnable = new Runnable() {
+                public void run() {
+                    activity.getMapper().save(currentUserAction, new DynamoDBMapperConfig(DynamoDBMapperConfig.SaveBehavior.CLOBBER));
+                }
+            };
+
+            Thread mythread = new Thread(runnable);
+            mythread.start();
+
+        }
+    }
 }

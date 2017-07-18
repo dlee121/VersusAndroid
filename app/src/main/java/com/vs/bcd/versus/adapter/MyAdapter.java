@@ -13,7 +13,6 @@ import android.widget.TextView;
 
 import com.vs.bcd.versus.OnLoadMoreListener;
 import com.vs.bcd.versus.activity.MainContainer;
-import com.vs.bcd.versus.activity.PhoneOrEmail;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.R;
 
@@ -259,13 +258,6 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     //TODO: update function intent to launch profile page once profile page is available. For now, it leads to StartScreen.
     public void profileClicked(View view){
-        if(((MainContainer)activity).getMainFrag().getUILifeStatus()){
-            Intent intent = new Intent(activity, PhoneOrEmail.class);
-            //EditText editText = (EditText) findViewById(R.id.editText);
-            //String message = editText.getText().toString();
-            //intent.putExtra(EXTRA_MESSAGE, message);
-            activity.startActivity(intent);
-            activity.overridePendingTransition(0, 0);
-        }
+        //TODO: implement this for when profile pic is clicked on PostCard
     }
 }

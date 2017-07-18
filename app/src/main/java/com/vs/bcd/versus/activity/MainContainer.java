@@ -1,5 +1,6 @@
 package com.vs.bcd.versus.activity;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -15,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -73,6 +75,16 @@ public class MainContainer extends AppCompatActivity {
             }
         }
         else {
+            if(mainContainerCurrentItem == 1){
+                if(!postPage.isRootLevel()){
+                    postPage.backToParentPage();
+                }
+                else{
+                    postPage.writeActionsToDB();
+                    postPage.clearList();
+                    mViewPager.setCurrentItem(0);
+                }
+            }
             mViewPager.setCurrentItem(0);
         }
     }
@@ -93,6 +105,8 @@ public class MainContainer extends AppCompatActivity {
         s3 = new AmazonS3Client(credentialsProvider);
 
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0);
 
     /*
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -133,6 +147,7 @@ public class MainContainer extends AppCompatActivity {
                             postPage.backToParentPage();
                         }
                         else{
+                            postPage.writeActionsToDB();
                             toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                             mViewPager.setCurrentItem(0);
                             postPage.clearList();
@@ -253,7 +268,6 @@ public class MainContainer extends AppCompatActivity {
         }
         @Override
         public int getCount() {
-            // Show 4 total pages.
             return 5;
         }
 
@@ -282,18 +296,6 @@ public class MainContainer extends AppCompatActivity {
     public DynamoDBMapper getMapper(){
         return mapper;
     }
-
-/*  same thing in MainActivity's FAB onclick listener
-    public void createPostClicked(View view){
-        if(mViewPager.getCurrentItem() == 0){
-            mViewPager.setCurrentItem(1, false);
-            mViewPager.setCurrentItem(2);
-        }
-        else {
-            mViewPager.setCurrentItem(2);
-        }
-    }
-*/
     public AmazonS3 getS3Client(){
         return s3;
     }

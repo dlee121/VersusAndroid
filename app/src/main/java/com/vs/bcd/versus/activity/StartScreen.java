@@ -54,10 +54,7 @@ public class StartScreen extends AppCompatActivity {
     }
 
     public void signUpPressed(View view){
-        Intent intent = new Intent(this, WhatsYourName.class);
-        //EditText editText = (EditText) findViewById(R.id.editText);
-        //String message = editText.getText().toString();
-        //intent.putExtra(EXTRA_MESSAGE, message);
+        Intent intent = new Intent(this, SignUp.class);
         startActivity(intent);
         overridePendingTransition(0, 0);
 

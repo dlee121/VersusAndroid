@@ -2,9 +2,11 @@
 <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_content"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.vs.bcd.versus.activity.WhatsYourName">
+    android:fitsSystemWindows="true"
+    tools:context="com.vs.bcd.versus.activity.SignUp">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -14,12 +16,16 @@
         app:elevation="0dp" >
 
         <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
+            android:id="@+id/toolbar1"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"/>
 
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_whats_your_name" />
+    <com.vs.bcd.versus.ViewPagerCustomDuration
+        android:id="@+id/containersup"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
 </android.support.design.widget.CoordinatorLayout>

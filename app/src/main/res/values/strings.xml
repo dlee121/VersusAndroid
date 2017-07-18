@@ -25,5 +25,6 @@
     <string name="title_activity_main2">Main2Activity</string>
     <string name="title_activity_log_in">LogIn</string>
     <string name="title_activity_post_page">PostPage</string>
+    <string name="title_activity_sign_up">SignUp</string>
 
 </resources>

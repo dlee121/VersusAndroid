@@ -1,6 +1,9 @@
 package com.vs.bcd.versus.model;
 
+import android.support.v7.widget.RecyclerView;
+
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
+import com.vs.bcd.versus.adapter.PostPageAdapter;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -23,6 +26,7 @@ public class VSComment {
     private int upvotes; //number of upvotes for this comment
     private int downvotes; //number of downvotes for this comment
     private int nestedLevel = 0;    //not used by DB.
+    private int uservote = 0; //0 if user didn't vote on this yet, 1 if upvote, 2 if downvote
 
 
     public VSComment(){
@@ -97,11 +101,20 @@ public class VSComment {
         this.downvotes = downvotes;
     }
 
+    @DynamoDBIgnore
     public int getNestedLevel(){
         return nestedLevel;
     }
     public void setNestedLevel(int nestedLevel){
         this.nestedLevel = nestedLevel;
+    }
+
+    @DynamoDBIgnore
+    public int getUservote(){
+        return uservote;
+    }
+    public void setUservote(int uservote){
+        this.uservote = uservote;
     }
 
 
