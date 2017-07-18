@@ -183,7 +183,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             userViewHolder.question.setText(post.getQuestion());
             userViewHolder.mainVSText.setText(post.getRedname() + " vs " + post.getBlackname());
             userViewHolder.category.setText(post.getCategory());
-            userViewHolder.viewcount.setText(Integer.toString(post.getViewcount()) + " views");
+            userViewHolder.votecount.setText(Integer.toString(post.getRedcount() + post.getBlackcount()) + " votes");
             //set CardView onClickListener to go to PostPage fragment with corresponding Post data
             userViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -237,7 +237,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         public TextView question;
         public TextView mainVSText;
         public TextView category;
-        public TextView viewcount;
+        public TextView votecount;
 
         public CircleImageView circView;
 
@@ -252,7 +252,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             question = (TextView) view.findViewById(R.id.txt_question);
             mainVSText = (TextView) view.findViewById(R.id.maintitletxt);
             category = (TextView) view.findViewById(R.id.txt_category);
-            viewcount = (TextView) view.findViewById(R.id.txt_viewcount);
+            votecount = (TextView) view.findViewById(R.id.txt_votecount);
         }
     }
 

@@ -19,7 +19,7 @@ public class Post implements Parcelable{
     private String question;   // question can be left empty.
     private String author;
     private String time;
-    private int viewcount;
+    //private int viewcount; instead of viewcount we'll do votecount, which is redcount + blackcount
     private String redname;
     private int redcount;
     private String blackname;
@@ -60,14 +60,6 @@ public class Post implements Parcelable{
     }
     public void setTime(String time) {
         this.time = time;
-    }
-
-    @DynamoDBAttribute(attributeName = "viewcount")
-    public int getViewcount() {
-        return viewcount;
-    }
-    public void setViewcount(int viewcount) {
-        this.viewcount = viewcount;
     }
 
     @DynamoDBAttribute(attributeName = "redname")
@@ -132,7 +124,6 @@ public class Post implements Parcelable{
     public Post(){
         redcount = 0;
         blackcount = 0;
-        viewcount = 1;
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
         time = df.format(new Date());
         post_id = UUID.randomUUID().toString(); //generate random UUID as post_id when post is created
@@ -142,7 +133,6 @@ public class Post implements Parcelable{
         question = in.readString();
         author = in.readString();
         time = in.readString();
-        viewcount = in.readInt();
         redname = in.readString();
         redcount = in.readInt();
         blackname = in.readString();
@@ -163,7 +153,6 @@ public class Post implements Parcelable{
         dest.writeString(question);
         dest.writeString(author);
         dest.writeString(time);
-        dest.writeInt(viewcount);
         dest.writeString(redname);
         dest.writeInt(redcount);
         dest.writeString(blackname);
@@ -183,5 +172,18 @@ public class Post implements Parcelable{
             return new Post[size];
         }
     };
+
+    public void incrementRedCount(){
+        redcount++;
+    }
+    public void decrementRedCount(){
+        redcount--;
+    }
+    public void incrementBlackCount(){
+        blackcount++;
+    }
+    public void decrementBlackCount(){
+        blackcount--;
+    }
 
 }

@@ -112,7 +112,7 @@
                 android:textSize="18sp" />
 
             <TextView
-                android:id="@+id/txt_viewcount"
+                android:id="@+id/txt_votecount"
                 android:layout_width="wrap_content"
                 android:layout_height="25dp"
                 android:layout_below="@id/maintitletxt"
@@ -129,7 +129,7 @@
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="8dp"
                 android:background="@android:color/darker_gray"
-                android:layout_below="@+id/txt_viewcount"/>
+                android:layout_below="@id/txt_votecount"/>
 
             <TextView
                 android:id="@+id/placeholdertxt_for_tags"

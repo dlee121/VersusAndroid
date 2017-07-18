@@ -21,6 +21,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
+import com.amazonaws.services.dynamodbv2.*;
+import com.amazonaws.services.dynamodbv2.model.AttributeAction;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
+import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
+import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
+import com.amazonaws.services.dynamodbv2.model.ReturnValue;
+import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
+import com.amazonaws.services.dynamodbv2.model.UpdateItemResult;
 import com.vs.bcd.versus.OnLoadMoreListener;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainActivity;
@@ -92,7 +101,10 @@ public class PostPage extends Fragment {
     private VSComment topCardContent = null;
     private UserAction currentUserAction;
     private boolean applyActions = true;
+    private boolean redIncrementedLast, blackIncrementedLast;
     private Map<String, String> actionMap = null;
+    private int origRedCount, origBlackCount;
+    private String lastSubmittedVote = "none";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -283,6 +295,10 @@ public class PostPage extends Fragment {
         postX = post.getRedname();
         postY = post.getBlackname();
         this.post = post;
+        origRedCount = post.getRedcount();
+        origBlackCount = post.getBlackcount();
+        redIncrementedLast = false;
+        blackIncrementedLast = false;
 
         Runnable runnable = new Runnable() {
             public void run() {
@@ -292,6 +308,7 @@ public class PostPage extends Fragment {
                     currentUserAction = new UserAction(sessionManager.getCurrentUsername(), postID);
                     applyActions = false;
                 }
+                lastSubmittedVote = currentUserAction.getVotedSide();
                 actionMap = currentUserAction.getActionRecord();
 
                 VSComment vscommentToQuery = new VSComment();
@@ -848,18 +865,97 @@ public class PostPage extends Fragment {
         }
     }
 
+    //TODO:this is where we do user action synchronization I believe it would be called
+    //Try to use this function for all action synchronization updates, because we do some stuff to keep track of synchronization
     public void writeActionsToDB(){
-        if(!actionMap.isEmpty()){
+        Runnable runnable = new Runnable() {
+            public void run() {
 
-            Runnable runnable = new Runnable() {
-                public void run() {
+                if(!actionMap.isEmpty() || redIncrementedLast != blackIncrementedLast){ //user made comment action(s) OR voted for a side in the post
                     activity.getMapper().save(currentUserAction, new DynamoDBMapperConfig(DynamoDBMapperConfig.SaveBehavior.CLOBBER));
+
                 }
-            };
 
-            Thread mythread = new Thread(runnable);
-            mythread.start();
 
+                if(!lastSubmittedVote.equals(currentUserAction.getVotedSide())){
+                    String redOrBlack;
+                    boolean decrement = false;
+                    if(redIncrementedLast){
+                        redOrBlack = "redcount";
+                        if(lastSubmittedVote.equals("BLK")){
+                            decrement = true;
+                        }
+                    }
+                    else{
+                        redOrBlack = "blackcount";
+                        if(lastSubmittedVote.equals("RED")){
+                            decrement = true;
+                        }
+                    }
+
+                    HashMap<String, AttributeValue> keyMap =
+                            new HashMap<String, AttributeValue>();
+                    keyMap.put("category", new AttributeValue().withS(post.getCategory()));    //TODO: we're not gonna be using category as partition key, it should be datePosted (which excludes clock time, just yearMonthDay
+                    keyMap.put("post_id", new AttributeValue().withS(postID));
+
+                    HashMap<String, AttributeValueUpdate> updates =
+                            new HashMap<String, AttributeValueUpdate>();
+
+                    AttributeValueUpdate avu = new AttributeValueUpdate()
+                            .withValue(new AttributeValue().withN("1"))
+                            .withAction(AttributeAction.ADD);
+                    updates.put(redOrBlack, avu);
+
+                    if(decrement) {
+                        String voteToDecrement = "redcount";
+                        if (redOrBlack.equals("redcount")) {
+                            voteToDecrement = "blackcount";
+                        }
+                        AttributeValueUpdate avd = new AttributeValueUpdate()
+                                .withValue(new AttributeValue().withN("-1"))
+                                .withAction(AttributeAction.ADD);
+                        updates.put(voteToDecrement, avd);
+                    }
+
+                    UpdateItemRequest request = new UpdateItemRequest()
+                            .withTableName("post")
+                            .withKey(keyMap)
+                            .withAttributeUpdates(updates);
+
+                    activity.getDDBClient().updateItem(request);
+
+                    lastSubmittedVote = currentUserAction.getVotedSide();
+
+                }
+
+            }
+        };
+
+        Thread mythread = new Thread(runnable);
+        mythread.start();
+    }
+
+    public void redVotePressed(){
+        if(currentUserAction.getVotedSide().equals("BLK")){
+            post.decrementBlackCount();
         }
+        post.incrementRedCount();
+        currentUserAction.setVotedSide("RED");
+        redIncrementedLast = true;
+        blackIncrementedLast = false;
+    }
+
+    public void blackVotePressed(){
+        if(currentUserAction.getVotedSide().equals("RED")){
+            post.decrementRedCount();
+        }
+        post.incrementBlackCount();
+        currentUserAction.setVotedSide("BLK");
+        blackIncrementedLast = true;
+        redIncrementedLast = false;
+    }
+
+    public UserAction getUserAction(){
+        return currentUserAction;
     }
 }

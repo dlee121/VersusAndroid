@@ -47,6 +47,7 @@ public class MainContainer extends AppCompatActivity {
      * {@link FragmentStatePagerAdapter} derivative
      */
     private SectionsPagerAdapter mSectionsPagerAdapter;
+    private AmazonDynamoDBClient ddbClient;
     private DynamoDBMapper mapper;
     private ImageButton toolbarButtonLeft;
     private Button logoutbuttontemp;
@@ -100,9 +101,10 @@ public class MainContainer extends AppCompatActivity {
                 "us-east-1:88614505-c8df-4dce-abd8-79a0543852ff", // Identity Pool ID
                 Regions.US_EAST_1 // Region
         );
-        AmazonDynamoDBClient ddbClient = new AmazonDynamoDBClient(credentialsProvider);
+        ddbClient = new AmazonDynamoDBClient(credentialsProvider);
         mapper = new DynamoDBMapper(ddbClient);
         s3 = new AmazonS3Client(credentialsProvider);
+
 
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -151,14 +153,18 @@ public class MainContainer extends AppCompatActivity {
                             toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                             mViewPager.setCurrentItem(0);
                             postPage.clearList();
+                            xBmp = null;
+                            yBmp = null;
                             titleTxtView.setText(lastSetTitle);
                         }
                         break;
                     case 4: //commentEnterFragment
                         mViewPager.setCurrentItem(3);
                         titleTxtView.setText(lastSetTitle);
+                        /*  why were these lines here in the first place?
                         xBmp = null;
                         yBmp = null;
+                        */
                         break;
                     default:
                         break;
@@ -344,6 +350,13 @@ public class MainContainer extends AppCompatActivity {
     public void setBMP(Bitmap xBmp, Bitmap yBmp){
         this.xBmp = xBmp == null? null:xBmp;
         this.yBmp = yBmp == null? null:yBmp;
+        if(xBmp != null && yBmp != null){
+            Log.d("BMPs set", "BMPs set");
+        }
+    }
+
+    public AmazonDynamoDBClient getDDBClient(){
+        return ddbClient;
     }
 
     public boolean hasXBMP(){

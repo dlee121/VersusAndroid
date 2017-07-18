@@ -25,7 +25,7 @@ public class UserAction {
 
     private String userID;
     private String postID;
-    private String votedSide = "none";
+    private String votedSide = "none";  //"none", "RED", "BLK".
     private Map<String, String> actionRecord;    //Key = comment_id, Value = String value, N for novote, U for upvote, D for downvote.
 
     //Need explicit zero argument constructor for dynamodb
