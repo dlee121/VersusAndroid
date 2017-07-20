@@ -58,6 +58,7 @@ import static android.R.attr.cursorVisible;
 import static android.R.attr.left;
 import static android.R.attr.order;
 import static android.R.attr.right;
+import static android.R.attr.switchMinWidth;
 import static android.R.attr.top;
 import static android.icu.lang.UCharacter.GraphemeClusterBreak.V;
 import static com.vs.bcd.versus.adapter.PostPageAdapter.DOWNVOTE;
@@ -102,7 +103,8 @@ public class PostPage extends Fragment {
     private UserAction currentUserAction;
     private boolean applyActions = true;
     private boolean redIncrementedLast, blackIncrementedLast;
-    private Map<String, String> actionMap = null;
+    private Map<String, String> actionMap;
+    private Map<String, String> actionHistoryMap;
     private int origRedCount, origBlackCount;
     private String lastSubmittedVote = "none";
 
@@ -302,7 +304,9 @@ public class PostPage extends Fragment {
 
         Runnable runnable = new Runnable() {
             public void run() {
-                currentUserAction = activity.getMapper().load(UserAction.class, sessionManager.getCurrentUsername(), postID);   //TODO: catch exception for this query
+                if(currentUserAction == null || !currentUserAction.getPostID().equals(postID)){
+                    currentUserAction = activity.getMapper().load(UserAction.class, sessionManager.getCurrentUsername(), postID);   //TODO: catch exception for this query
+                }
                 applyActions = true;
                 if(currentUserAction == null){
                     currentUserAction = new UserAction(sessionManager.getCurrentUsername(), postID);
@@ -310,6 +314,7 @@ public class PostPage extends Fragment {
                 }
                 lastSubmittedVote = currentUserAction.getVotedSide();
                 actionMap = currentUserAction.getActionRecord();
+                deepCopyToActionHistoryMap(actionMap);
 
                 VSComment vscommentToQuery = new VSComment();
                 vscommentToQuery.setPost_id(postID);
@@ -873,8 +878,113 @@ public class PostPage extends Fragment {
 
                 if(!actionMap.isEmpty() || redIncrementedLast != blackIncrementedLast){ //user made comment action(s) OR voted for a side in the post
                     activity.getMapper().save(currentUserAction, new DynamoDBMapperConfig(DynamoDBMapperConfig.SaveBehavior.CLOBBER));
+                    //TODO: the below line to deep copy action history is currently commented out because this code currently only executes on PostPage exit. However, once we need to write UserAction to DB while user is still inside PostPage, then we should uncomment the line below to keep actionHistoryMap up to date with current version of actionMap in the DB that has just been updated by the line above.
+                    //if(exiting post page)
+                    // deepCopyToActionHistoryMap(actionMap);
 
                 }
+
+                String tempString;
+                VSCNode tempNode;
+
+                for(Map.Entry<String, String> entry : actionMap.entrySet()){
+                    tempString = actionHistoryMap.get(entry.getKey());
+
+                    if(tempString == null){
+                        //just increment
+                        HashMap<String, AttributeValue> keyMap =
+                                new HashMap<>();
+                        keyMap.put("post_id", new AttributeValue().withS(postID));  //partition key
+                        tempNode = nodeTable.get(entry.getKey());
+                        if(!tempNode.getCommentID().equals(entry.getKey())){
+                            tempNode = getParent(tempNode);
+                        }
+                        keyMap.put("timestamp", new AttributeValue().withS(tempNode.getTimestamp()));   //sort key
+
+                        HashMap<String, AttributeValueUpdate> updates =
+                                new HashMap<>();
+
+                        String attrName;
+                        switch(entry.getValue()){
+                            case "U":
+                                attrName = "upvotes";
+                                break;
+                            case "D":
+                                attrName = "downvotes";
+                                break;
+                            default:
+                                attrName = "";
+                                break;
+                        }
+
+                        AttributeValueUpdate avu = new AttributeValueUpdate()
+                                .withValue(new AttributeValue().withN("1"))
+                                .withAction(AttributeAction.ADD);
+                        updates.put(attrName, avu);
+
+                        UpdateItemRequest request = new UpdateItemRequest()
+                                .withTableName("vscomment")
+                                .withKey(keyMap)
+                                .withAttributeUpdates(updates);
+
+                        activity.getDDBClient().updateItem(request);
+
+                        //update activityHistoryMap
+                        actionHistoryMap.put(entry.getKey(), entry.getValue());
+
+                    } else if(!tempString.equals(entry.getValue())){
+                        //increment current and decrement past
+                        HashMap<String, AttributeValue> keyMap =
+                                new HashMap<>();
+                        keyMap.put("post_id", new AttributeValue().withS(postID));  //partition key
+                        tempNode = nodeTable.get(entry.getKey());
+                        if(!tempNode.getCommentID().equals(entry.getKey())){
+                            tempNode = getParent(tempNode);
+                        }
+                        keyMap.put("timestamp", new AttributeValue().withS(tempNode.getTimestamp()));   //sort key
+
+                        HashMap<String, AttributeValueUpdate> updates =
+                                new HashMap<>();
+
+                        String attrName, decreName;
+                        switch(entry.getValue()){
+                            case "U":
+                                attrName = "upvotes";
+                                decreName = "downvotes";
+                                break;
+                            case "D":
+                                attrName = "downvotes";
+                                decreName = "upvotes";
+                                break;
+                            default:
+                                attrName = "";
+                                decreName = "";
+                                break;
+                        }
+
+                        AttributeValueUpdate avu = new AttributeValueUpdate()
+                                .withValue(new AttributeValue().withN("1"))
+                                .withAction(AttributeAction.ADD);
+                        updates.put(attrName, avu);
+
+                        AttributeValueUpdate avd = new AttributeValueUpdate()
+                                .withValue(new AttributeValue().withN("-1"))
+                                .withAction(AttributeAction.ADD);
+                        updates.put(decreName, avd);
+
+                        UpdateItemRequest request = new UpdateItemRequest()
+                                .withTableName("vscomment")
+                                .withKey(keyMap)
+                                .withAttributeUpdates(updates);
+
+                        activity.getDDBClient().updateItem(request);
+
+                        //update activityHistoryMap
+                        actionHistoryMap.put(entry.getKey(), entry.getValue());
+                    }
+                }
+
+
 
 
                 if(!lastSubmittedVote.equals(currentUserAction.getVotedSide())){
@@ -894,12 +1004,12 @@ public class PostPage extends Fragment {
                     }
 
                     HashMap<String, AttributeValue> keyMap =
-                            new HashMap<String, AttributeValue>();
+                            new HashMap<>();
                     keyMap.put("category", new AttributeValue().withS(post.getCategory()));    //TODO: we're not gonna be using category as partition key, it should be datePosted (which excludes clock time, just yearMonthDay
                     keyMap.put("post_id", new AttributeValue().withS(postID));
 
                     HashMap<String, AttributeValueUpdate> updates =
-                            new HashMap<String, AttributeValueUpdate>();
+                            new HashMap<>();
 
                     AttributeValueUpdate avu = new AttributeValueUpdate()
                             .withValue(new AttributeValue().withN("1"))
@@ -924,6 +1034,7 @@ public class PostPage extends Fragment {
 
                     activity.getDDBClient().updateItem(request);
 
+                    //update lastSubmittedVote
                     lastSubmittedVote = currentUserAction.getVotedSide();
 
                 }
@@ -957,5 +1068,12 @@ public class PostPage extends Fragment {
 
     public UserAction getUserAction(){
         return currentUserAction;
+    }
+
+    private void deepCopyToActionHistoryMap(Map<String, String> actionRecord){
+        actionHistoryMap = new HashMap<>();
+        for(Map.Entry<String, String> entry : actionMap.entrySet()){
+            actionHistoryMap.put(entry.getKey(), entry.getValue());
+        }
     }
 }
