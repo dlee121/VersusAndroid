@@ -37,6 +37,8 @@ import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.fragment.SearchPage;
 import com.vs.bcd.versus.ViewPagerCustomDuration;
 
+import java.util.HashMap;
+
 import static android.R.id.edit;
 import static com.amazonaws.regions.ServiceAbbreviations.S3;
 
@@ -64,6 +66,7 @@ public class MainContainer extends AppCompatActivity {
     private Bitmap yBmp = null;
     private ViewPagerCustomDuration mViewPager;
     private DisplayMetrics windowSize;
+    private HashMap<String, String> postInDownload = new HashMap<>();
 
     @Override
     public void onBackPressed(){
@@ -78,19 +81,19 @@ public class MainContainer extends AppCompatActivity {
             }
         }
         else {
-            Log.d("debug", "is not 0");
+            //Log.d("debug", "is not 0");
             if(mainContainerCurrentItem == 3){
-                Log.d("debug", "is 1");
+                //Log.d("debug", "is 1");
                 if(!postPage.isRootLevel()){
-                    Log.d("debug", "is not root");
+                    //Log.d("debug", "is not root");
                     postPage.backToParentPage();
                 }
                 else{
-                    Log.d("debug", "is root");
+                    //Log.d("debug", "is root");
                     postPage.writeActionsToDB();
                     xBmp = null;
                     yBmp = null;
-                    postPage.clearList();
+                    //postPage.clearList();
                     mViewPager.setCurrentItem(0);
                 }
             }
@@ -161,8 +164,8 @@ public class MainContainer extends AppCompatActivity {
                         else{
                             postPage.writeActionsToDB();
                             toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                            //postPage.clearList();
                             mViewPager.setCurrentItem(0);
-                            postPage.clearList();
                             xBmp = null;
                             yBmp = null;
                             titleTxtView.setText(lastSetTitle);
@@ -324,7 +327,12 @@ public class MainContainer extends AppCompatActivity {
 
     //pass post information from MyAdapter CardView click handler, through this helper method, to PostPage fragment
     public void postClicked(Post post){
-        postPage.setContent(post, true);
+        String temp = postInDownload.get(post.getPost_id());
+        if(temp == null || !temp.equals("in progress")){
+            postInDownload.put(post.getPost_id(), "in progress");
+            postPage.clearList();
+            postPage.setContent(post, true);
+        }
         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
         mViewPager.setCurrentItem(3);
     }
@@ -390,6 +398,29 @@ public class MainContainer extends AppCompatActivity {
 
     public int getWindowWidth(){
         return windowSize.widthPixels;
+    }
+
+    public void addPostInDownload(String postID){
+        postInDownload.put(postID, "true");
+    }
+    public void removePostInDownload(String postID){
+        postInDownload.remove(postID);
+    }
+    public boolean existsInPostInDownload(String postID){
+        return postInDownload.get(postID) != null;
+    }
+    public void setPostInDownload(String postID, String setting){
+        postInDownload.put(postID, setting);
+    }
+    public String getPostInDownloadStatus(String postID){
+        String temp = postInDownload.get(postID);
+        if(temp == null){
+            return "entry not found";
+        }
+        else{
+            return temp;
+        }
+
     }
 
     public int getWindowHeight(){

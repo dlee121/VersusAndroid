@@ -2,6 +2,7 @@ package com.vs.bcd.versus.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -78,6 +79,7 @@ public class Tab2Trending extends Fragment{
                     mHostActivity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            SystemClock.sleep(300);
                             //find view by id and attaching adapter for the RecyclerView
                             RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler_view);
 

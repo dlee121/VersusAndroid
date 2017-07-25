@@ -3,6 +3,7 @@ package com.vs.bcd.versus.fragment;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.CardView;
@@ -297,8 +298,8 @@ public class PostPage extends Fragment {
     public void setContent(final Post post, final boolean downloadImages){
 
         Log.d("Debug", "setContent called");
-
         postID = post.getPost_id();
+
         postQuestion = post.getQuestion();
         postX = post.getRedname();
         postY = post.getBlackname();
@@ -307,7 +308,6 @@ public class PostPage extends Fragment {
         origBlackCount = post.getBlackcount();
         redIncrementedLast = false;
         blackIncrementedLast = false;
-
         Runnable runnable = new Runnable() {
             public void run() {
                 if(currentUserAction == null || !currentUserAction.getPostID().equals(postID)){
@@ -414,6 +414,7 @@ public class PostPage extends Fragment {
 
                     PPAdapter = new PostPageAdapter(RV, vsComments, post, (MainContainer)getActivity(), downloadImages, true);
                     RV.setAdapter(PPAdapter);
+                    activity.setPostInDownload(postID, "done");
 
                     //set load more listener for the RecyclerView adapter
                     PPAdapter.setOnLoadMoreListener(new OnLoadMoreListener() {
@@ -881,254 +882,251 @@ public class PostPage extends Fragment {
     //TODO:this is where we do user action synchronization I believe it would be called
     //Try to use this function for all action synchronization updates, because we do some stuff to keep track of synchronization
     public void writeActionsToDB(){
+        if(currentUserAction != null) {
+            Runnable runnable = new Runnable() {
+                public void run() {
+                    List<String> markedForRemoval = new ArrayList<>();
 
-        Runnable runnable = new Runnable() {
-            public void run() {
-                List<String> markedForRemoval = new ArrayList<>();
+
+                    String tempString;
+                    VSCNode tempNode;
+                    boolean updateForNRemoval = false;
+
+                    for (Map.Entry<String, String> entry : actionMap.entrySet()) {
+                        tempString = actionHistoryMap.get(entry.getKey());
+
+                        if (tempString == null) {
+                            //just increment
+                            HashMap<String, AttributeValue> keyMap =
+                                    new HashMap<>();
+                            keyMap.put("post_id", new AttributeValue().withS(postID));  //partition key
+                            tempNode = nodeTable.get(entry.getKey());
+                            if (!tempNode.getCommentID().equals(entry.getKey())) {
+                                tempNode = getParent(tempNode);
+                            }
+                            keyMap.put("timestamp", new AttributeValue().withS(tempNode.getTimestamp()));   //sort key
+
+                            HashMap<String, AttributeValueUpdate> updates =
+                                    new HashMap<>();
+
+                            AttributeValueUpdate avu;
+                            switch (entry.getValue()) {
+                                case "U":
+                                    Log.d("DB update", "upvote increment");
+                                    avu = new AttributeValueUpdate()
+                                            .withValue(new AttributeValue().withN("1"))
+                                            .withAction(AttributeAction.ADD);
+                                    updates.put("upvotes", avu);
+
+                                    UpdateItemRequest request = new UpdateItemRequest()
+                                            .withTableName("vscomment")
+                                            .withKey(keyMap)
+                                            .withAttributeUpdates(updates);
+
+                                    activity.getDDBClient().updateItem(request);
+
+                                    //update activityHistoryMap
+                                    actionHistoryMap.put(entry.getKey(), entry.getValue());
+                                    break;
+
+                                case "D":
+                                    Log.d("DB update", "downvote increment");
+                                    avu = new AttributeValueUpdate()
+                                            .withValue(new AttributeValue().withN("1"))
+                                            .withAction(AttributeAction.ADD);
+                                    updates.put("downvotes", avu);
+
+                                    request = new UpdateItemRequest()
+                                            .withTableName("vscomment")
+                                            .withKey(keyMap)
+                                            .withAttributeUpdates(updates);
+
+                                    activity.getDDBClient().updateItem(request);
+
+                                    //update activityHistoryMap
+                                    actionHistoryMap.put(entry.getKey(), entry.getValue());
+                                    break;
+
+                                default:    //this happens when we have a new UesrAction (none found in DB) locally and we cancel a vote and record "N". We don't need to do DB operation in this case.
+                                    markedForRemoval.add(entry.getKey());
+                                    break;
+                            }
 
 
-
-                String tempString;
-                VSCNode tempNode;
-                boolean updateForNRemoval = false;
-
-                for(Map.Entry<String, String> entry : actionMap.entrySet()){
-                    tempString = actionHistoryMap.get(entry.getKey());
-
-                    if(tempString == null){
-                        //just increment
-                        HashMap<String, AttributeValue> keyMap =
-                                new HashMap<>();
-                        keyMap.put("post_id", new AttributeValue().withS(postID));  //partition key
-                        tempNode = nodeTable.get(entry.getKey());
-                        if(!tempNode.getCommentID().equals(entry.getKey())){
-                            tempNode = getParent(tempNode);
                         }
-                        keyMap.put("timestamp", new AttributeValue().withS(tempNode.getTimestamp()));   //sort key
-
-                        HashMap<String, AttributeValueUpdate> updates =
-                                new HashMap<>();
-
-                        AttributeValueUpdate avu;
-                        switch(entry.getValue()){
-                            case "U":
-                                Log.d("DB update", "upvote increment");
-                                avu = new AttributeValueUpdate()
-                                        .withValue(new AttributeValue().withN("1"))
-                                        .withAction(AttributeAction.ADD);
-                                updates.put("upvotes", avu);
-
-                                UpdateItemRequest request = new UpdateItemRequest()
-                                        .withTableName("vscomment")
-                                        .withKey(keyMap)
-                                        .withAttributeUpdates(updates);
-
-                                activity.getDDBClient().updateItem(request);
-
-                                //update activityHistoryMap
-                                actionHistoryMap.put(entry.getKey(), entry.getValue());
-                                break;
-
-                            case "D":
-                                Log.d("DB update", "downvote increment");
-                                avu = new AttributeValueUpdate()
-                                        .withValue(new AttributeValue().withN("1"))
-                                        .withAction(AttributeAction.ADD);
-                                updates.put("downvotes", avu);
-
-                                request = new UpdateItemRequest()
-                                        .withTableName("vscomment")
-                                        .withKey(keyMap)
-                                        .withAttributeUpdates(updates);
-
-                                activity.getDDBClient().updateItem(request);
-
-                                //update activityHistoryMap
-                                actionHistoryMap.put(entry.getKey(), entry.getValue());
-                                break;
-
-                            default:    //this happens when we have a new UesrAction (none found in DB) locally and we cancel a vote and record "N". We don't need to do DB operation in this case.
-                                markedForRemoval.add(entry.getKey());
-                                break;
-                        }
-
-
-
-                    }
                     /*
                     else if(!tempString.equals("N")){
                         Log.d("debug", "so this happens");
                     }
                     */
-                    else if(!tempString.equals(entry.getValue())){
-                        if(tempString.equals("N")){
-                            Log.d("DB update", "this is the source of error. we don't decrement opposite in this case");
-                        }
-                        //increment current and decrement past
-                        HashMap<String, AttributeValue> keyMap =
-                                new HashMap<>();
-                        keyMap.put("post_id", new AttributeValue().withS(postID));  //partition key
-                        tempNode = nodeTable.get(entry.getKey());
-                        if(!tempNode.getCommentID().equals(entry.getKey())){
-                            tempNode = getParent(tempNode);
-                        }
-                        keyMap.put("timestamp", new AttributeValue().withS(tempNode.getTimestamp()));   //sort key //TODO:sort key which we'll eventually change
+                        else if (!tempString.equals(entry.getValue())) {
+                            if (tempString.equals("N")) {
+                                Log.d("DB update", "this is the source of error. we don't decrement opposite in this case");
+                            }
+                            //increment current and decrement past
+                            HashMap<String, AttributeValue> keyMap =
+                                    new HashMap<>();
+                            keyMap.put("post_id", new AttributeValue().withS(postID));  //partition key
+                            tempNode = nodeTable.get(entry.getKey());
+                            if (!tempNode.getCommentID().equals(entry.getKey())) {
+                                tempNode = getParent(tempNode);
+                            }
+                            keyMap.put("timestamp", new AttributeValue().withS(tempNode.getTimestamp()));   //sort key //TODO:sort key which we'll eventually change
 
-                        HashMap<String, AttributeValueUpdate> updates =
-                                new HashMap<>();
-                        AttributeValueUpdate avu, avd;
-                        UpdateItemRequest request;
+                            HashMap<String, AttributeValueUpdate> updates =
+                                    new HashMap<>();
+                            AttributeValueUpdate avu, avd;
+                            UpdateItemRequest request;
 
-                        switch(entry.getValue()){
+                            switch (entry.getValue()) {
 
-                            case "U":
-                                Log.d("DB update", "upvote increment");
-                                Log.d("DB update", "downvote decrement");
-                                avu = new AttributeValueUpdate()
-                                        .withValue(new AttributeValue().withN("1"))
-                                        .withAction(AttributeAction.ADD);
-                                updates.put("upvotes", avu);
-                                avd = new AttributeValueUpdate()
-                                        .withValue(new AttributeValue().withN("-1"))
-                                        .withAction(AttributeAction.ADD);
-                                updates.put("downvotes", avd);
-                                request = new UpdateItemRequest()
-                                        .withTableName("vscomment")
-                                        .withKey(keyMap)
-                                        .withAttributeUpdates(updates);
-
-                                activity.getDDBClient().updateItem(request);
-                                //update activityHistoryMap
-                                actionHistoryMap.put(entry.getKey(), entry.getValue());
-                                break;
-
-                            case "D":
-                                Log.d("DB update", "downvote increment");
-                                Log.d("DB update", "upvote decrement");
-                                avu = new AttributeValueUpdate()
-                                        .withValue(new AttributeValue().withN("1"))
-                                        .withAction(AttributeAction.ADD);
-                                updates.put("downvotes", avu);
-                                avd = new AttributeValueUpdate()
-                                        .withValue(new AttributeValue().withN("-1"))
-                                        .withAction(AttributeAction.ADD);
-                                updates.put("upvotes", avd);
-                                request = new UpdateItemRequest()
-                                        .withTableName("vscomment")
-                                        .withKey(keyMap)
-                                        .withAttributeUpdates(updates);
-
-                                activity.getDDBClient().updateItem(request);
-                                //update activityHistoryMap
-                                actionHistoryMap.put(entry.getKey(), entry.getValue());
-
-                                break;
-
-                            case "N":
-
-                                if(actionHistoryMap.get(entry.getKey()).equals("U")){
-                                    Log.d("DB update", "upvote decrement");
-                                    avd = new AttributeValueUpdate()
-                                            .withValue(new AttributeValue().withN("-1"))
-                                            .withAction(AttributeAction.ADD);
-                                    updates.put("upvotes", avd);
-                                }
-                                else{   //it's either "U" or "D", because if it was "N" (the only other option) then it wouldn't arrive to this switch case since history and current are equal //TODO: test if that's true
+                                case "U":
+                                    Log.d("DB update", "upvote increment");
                                     Log.d("DB update", "downvote decrement");
+                                    avu = new AttributeValueUpdate()
+                                            .withValue(new AttributeValue().withN("1"))
+                                            .withAction(AttributeAction.ADD);
+                                    updates.put("upvotes", avu);
                                     avd = new AttributeValueUpdate()
                                             .withValue(new AttributeValue().withN("-1"))
                                             .withAction(AttributeAction.ADD);
                                     updates.put("downvotes", avd);
-                                }
-                                request = new UpdateItemRequest()
-                                        .withTableName("vscomment")
-                                        .withKey(keyMap)
-                                        .withAttributeUpdates(updates);
+                                    request = new UpdateItemRequest()
+                                            .withTableName("vscomment")
+                                            .withKey(keyMap)
+                                            .withAttributeUpdates(updates);
 
-                                activity.getDDBClient().updateItem(request);
-                                actionHistoryMap.remove(entry.getKey());
-                                updateForNRemoval = true;
-                                markedForRemoval.add(entry.getKey()); //mark this comment's entry in actionMap for removal. we mark it and do it after this for-loop to avoid ConcurrentModificationException
-                                //we remove the "N" record because it only serves as marker for decrement, now decrement is getting executed so we're removing the marker, essentially resetting record on that comment
-                                break;
+                                    activity.getDDBClient().updateItem(request);
+                                    //update activityHistoryMap
+                                    actionHistoryMap.put(entry.getKey(), entry.getValue());
+                                    break;
 
-                            default:
-                                break;
+                                case "D":
+                                    Log.d("DB update", "downvote increment");
+                                    Log.d("DB update", "upvote decrement");
+                                    avu = new AttributeValueUpdate()
+                                            .withValue(new AttributeValue().withN("1"))
+                                            .withAction(AttributeAction.ADD);
+                                    updates.put("downvotes", avu);
+                                    avd = new AttributeValueUpdate()
+                                            .withValue(new AttributeValue().withN("-1"))
+                                            .withAction(AttributeAction.ADD);
+                                    updates.put("upvotes", avd);
+                                    request = new UpdateItemRequest()
+                                            .withTableName("vscomment")
+                                            .withKey(keyMap)
+                                            .withAttributeUpdates(updates);
+
+                                    activity.getDDBClient().updateItem(request);
+                                    //update activityHistoryMap
+                                    actionHistoryMap.put(entry.getKey(), entry.getValue());
+
+                                    break;
+
+                                case "N":
+
+                                    if (actionHistoryMap.get(entry.getKey()).equals("U")) {
+                                        Log.d("DB update", "upvote decrement");
+                                        avd = new AttributeValueUpdate()
+                                                .withValue(new AttributeValue().withN("-1"))
+                                                .withAction(AttributeAction.ADD);
+                                        updates.put("upvotes", avd);
+                                    } else {   //it's either "U" or "D", because if it was "N" (the only other option) then it wouldn't arrive to this switch case since history and current are equal //TODO: test if that's true
+                                        Log.d("DB update", "downvote decrement");
+                                        avd = new AttributeValueUpdate()
+                                                .withValue(new AttributeValue().withN("-1"))
+                                                .withAction(AttributeAction.ADD);
+                                        updates.put("downvotes", avd);
+                                    }
+                                    request = new UpdateItemRequest()
+                                            .withTableName("vscomment")
+                                            .withKey(keyMap)
+                                            .withAttributeUpdates(updates);
+
+                                    activity.getDDBClient().updateItem(request);
+                                    actionHistoryMap.remove(entry.getKey());
+                                    updateForNRemoval = true;
+                                    markedForRemoval.add(entry.getKey()); //mark this comment's entry in actionMap for removal. we mark it and do it after this for-loop to avoid ConcurrentModificationException
+                                    //we remove the "N" record because it only serves as marker for decrement, now decrement is getting executed so we're removing the marker, essentially resetting record on that comment
+                                    break;
+
+                                default:
+                                    break;
+                            }
                         }
                     }
-                }
 
-                if(!lastSubmittedVote.equals(currentUserAction.getVotedSide())){
-                    String redOrBlack;
-                    boolean decrement = false;
-                    if(redIncrementedLast){
-                        redOrBlack = "redcount";
-                        if(lastSubmittedVote.equals("BLK")){
-                            decrement = true;
+                    if (!lastSubmittedVote.equals(currentUserAction.getVotedSide())) {
+                        String redOrBlack;
+                        boolean decrement = false;
+                        if (redIncrementedLast) {
+                            redOrBlack = "redcount";
+                            if (lastSubmittedVote.equals("BLK")) {
+                                decrement = true;
+                            }
+                        } else {
+                            redOrBlack = "blackcount";
+                            if (lastSubmittedVote.equals("RED")) {
+                                decrement = true;
+                            }
                         }
-                    }
-                    else{
-                        redOrBlack = "blackcount";
-                        if(lastSubmittedVote.equals("RED")){
-                            decrement = true;
-                        }
-                    }
 
-                    HashMap<String, AttributeValue> keyMap =
-                            new HashMap<>();
-                    keyMap.put("category", new AttributeValue().withS(post.getCategory()));    //TODO: we're not gonna be using category as partition key, it should be datePosted (which excludes clock time, just yearMonthDay
-                    keyMap.put("post_id", new AttributeValue().withS(postID));
+                        HashMap<String, AttributeValue> keyMap =
+                                new HashMap<>();
+                        keyMap.put("category", new AttributeValue().withS(post.getCategory()));    //TODO: we're not gonna be using category as partition key, it should be datePosted (which excludes clock time, just yearMonthDay
+                        keyMap.put("post_id", new AttributeValue().withS(postID));
 
-                    HashMap<String, AttributeValueUpdate> updates =
-                            new HashMap<>();
+                        HashMap<String, AttributeValueUpdate> updates =
+                                new HashMap<>();
 
-                    AttributeValueUpdate avu = new AttributeValueUpdate()
-                            .withValue(new AttributeValue().withN("1"))
-                            .withAction(AttributeAction.ADD);
-                    updates.put(redOrBlack, avu);
-
-                    if(decrement) {
-                        String voteToDecrement = "redcount";
-                        if (redOrBlack.equals("redcount")) {
-                            voteToDecrement = "blackcount";
-                        }
-                        AttributeValueUpdate avd = new AttributeValueUpdate()
-                                .withValue(new AttributeValue().withN("-1"))
+                        AttributeValueUpdate avu = new AttributeValueUpdate()
+                                .withValue(new AttributeValue().withN("1"))
                                 .withAction(AttributeAction.ADD);
-                        updates.put(voteToDecrement, avd);
+                        updates.put(redOrBlack, avu);
+
+                        if (decrement) {
+                            String voteToDecrement = "redcount";
+                            if (redOrBlack.equals("redcount")) {
+                                voteToDecrement = "blackcount";
+                            }
+                            AttributeValueUpdate avd = new AttributeValueUpdate()
+                                    .withValue(new AttributeValue().withN("-1"))
+                                    .withAction(AttributeAction.ADD);
+                            updates.put(voteToDecrement, avd);
+                        }
+
+                        UpdateItemRequest request = new UpdateItemRequest()
+                                .withTableName("post")
+                                .withKey(keyMap)
+                                .withAttributeUpdates(updates);
+
+                        activity.getDDBClient().updateItem(request);
+
+                        //update lastSubmittedVote
+                        lastSubmittedVote = currentUserAction.getVotedSide();
+
                     }
 
-                    UpdateItemRequest request = new UpdateItemRequest()
-                            .withTableName("post")
-                            .withKey(keyMap)
-                            .withAttributeUpdates(updates);
+                    //clean up stray "N" marks
+                    for (String key : markedForRemoval) {
+                        Log.d("DB Update", key + "removed from actionMap");
+                        actionMap.remove(key);
+                    }
 
-                    activity.getDDBClient().updateItem(request);
+                    if (!actionMap.isEmpty() || redIncrementedLast != blackIncrementedLast || updateForNRemoval) { //user made comment action(s) OR voted for a side in the post
+                        activity.getMapper().save(currentUserAction, new DynamoDBMapperConfig(DynamoDBMapperConfig.SaveBehavior.CLOBBER));
+                        //TODO: the below line to deep copy action history is currently commented out because this code currently only executes on PostPage exit. However, once we need to write UserAction to DB while user is still inside PostPage, then we should uncomment the line below to keep actionHistoryMap up to date with current version of actionMap in the DB that has just been updated by the line above.
+                        //if(exiting post page)
+                        // deepCopyToActionHistoryMap(actionMap);
 
-                    //update lastSubmittedVote
-                    lastSubmittedVote = currentUserAction.getVotedSide();
-
-                }
-
-                //clean up stray "N" marks
-                for(String key : markedForRemoval){
-                    Log.d("DB Update", key + "removed from actionMap");
-                    actionMap.remove(key);
-                }
-
-                if(!actionMap.isEmpty() || redIncrementedLast != blackIncrementedLast || updateForNRemoval){ //user made comment action(s) OR voted for a side in the post
-                    activity.getMapper().save(currentUserAction, new DynamoDBMapperConfig(DynamoDBMapperConfig.SaveBehavior.CLOBBER));
-                    //TODO: the below line to deep copy action history is currently commented out because this code currently only executes on PostPage exit. However, once we need to write UserAction to DB while user is still inside PostPage, then we should uncomment the line below to keep actionHistoryMap up to date with current version of actionMap in the DB that has just been updated by the line above.
-                    //if(exiting post page)
-                    // deepCopyToActionHistoryMap(actionMap);
+                    }
 
                 }
+            };
 
-            }
-        };
-
-        Thread mythread = new Thread(runnable);
-        mythread.start();
+            Thread mythread = new Thread(runnable);
+            mythread.start();
+        }
     }
 
     public void redVotePressed(){
@@ -1153,6 +1151,10 @@ public class PostPage extends Fragment {
 
     public UserAction getUserAction(){
         return currentUserAction;
+    }
+
+    public String getPostPagePostID(){
+        return postID;
     }
 
     private void deepCopyToActionHistoryMap(Map<String, String> actionRecord){
