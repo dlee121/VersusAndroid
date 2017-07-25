@@ -10,6 +10,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -62,6 +63,7 @@ public class MainContainer extends AppCompatActivity {
     private Bitmap xBmp = null;
     private Bitmap yBmp = null;
     private ViewPagerCustomDuration mViewPager;
+    private DisplayMetrics windowSize;
 
     @Override
     public void onBackPressed(){
@@ -76,17 +78,25 @@ public class MainContainer extends AppCompatActivity {
             }
         }
         else {
-            if(mainContainerCurrentItem == 1){
+            Log.d("debug", "is not 0");
+            if(mainContainerCurrentItem == 3){
+                Log.d("debug", "is 1");
                 if(!postPage.isRootLevel()){
+                    Log.d("debug", "is not root");
                     postPage.backToParentPage();
                 }
                 else{
+                    Log.d("debug", "is root");
                     postPage.writeActionsToDB();
+                    xBmp = null;
+                    yBmp = null;
                     postPage.clearList();
                     mViewPager.setCurrentItem(0);
                 }
             }
-            mViewPager.setCurrentItem(0);
+            else{
+                mViewPager.setCurrentItem(0);
+            }
         }
     }
 
@@ -193,6 +203,9 @@ public class MainContainer extends AppCompatActivity {
         //mViewPager.setPageTransformer(false, new NoPageTransformer());
 
         mViewPager.setCurrentItem(0);
+
+        windowSize = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(windowSize);
 
         Log.d("USER_INFO", sessionManager.getUserDetails().get(SessionManager.KEY_USERNAME));
 
@@ -373,6 +386,14 @@ public class MainContainer extends AppCompatActivity {
 
     public Bitmap getYBMP(){
         return yBmp;
+    }
+
+    public int getWindowWidth(){
+        return windowSize.widthPixels;
+    }
+
+    public int getWindowHeight(){
+        return windowSize.heightPixels;
     }
 
 }

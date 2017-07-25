@@ -197,11 +197,24 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
             setLeftMargin(userViewHolder.circView, 150 * currentComment.getNestedLevel());  //left margin (indentation) of 150dp per nested level
 
-            if(currentComment.getUservote() == UPVOTE){
-                userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
+            if(currentComment.getComment_id().equals("2ebf9760-d9bf-4785-af68-c3993be8945d")){
+                Log.d("debug", "this is the 2eb comment");
             }
-            else if(currentComment.getUservote() == DOWNVOTE){
-                userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
+            switch (currentComment.getUservote()){
+                case NOVOTE:
+                    userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
+                    userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+                    break;
+                case UPVOTE:
+                    userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
+                    break;
+                case DOWNVOTE:
+                    userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
+                    break;
+                default:
+                    userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
+                    userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+                    break;
             }
 
             userViewHolder.author.setText(currentComment.getAuthor());
@@ -232,7 +245,8 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     if(userVote == UPVOTE){
                         userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
                         currentComment.setUservote(NOVOTE);
-                        actionMap.remove(currentComment.getComment_id());
+                        actionMap.put(currentComment.getComment_id(), "N");
+                        //actionMap.remove(currentComment.getComment_id());   //TODO: instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote
                     }
                     else if(userVote == DOWNVOTE){
                         userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
@@ -245,6 +259,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         currentComment.setUservote(UPVOTE);
                         actionMap.put(currentComment.getComment_id(), "U");
                     }
+                    userViewHolder.heartCount.setText( Integer.toString(currentComment.getUpvotes() - currentComment.getDownvotes()) ); //refresh heartcount display
                 }
             });
 
@@ -255,7 +270,8 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     if(userVote == DOWNVOTE){
                         userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
                         currentComment.setUservote(NOVOTE);
-                        actionMap.remove(currentComment.getComment_id());
+                        actionMap.put(currentComment.getComment_id(), "N");
+                        //actionMap.remove(currentComment.getComment_id());    //TODO: instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote
                     }
                     else if(userVote == UPVOTE){
                         userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
@@ -268,6 +284,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         currentComment.setUservote(DOWNVOTE);
                         actionMap.put(currentComment.getComment_id(), "D");
                     }
+                    userViewHolder.heartCount.setText( Integer.toString(currentComment.getUpvotes() - currentComment.getDownvotes()) );
                 }
             });
 
@@ -510,17 +527,17 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     case "none":
                         setImageMask(NOMASK, REDINT);   //sets mask and also sets the drawable to corresponding imageview
                         setImageMask(NOMASK, BLKINT);
-                        Log.d("vote", "user voted none");
+                        //Log.d("vote", "user voted none");
                         break;
                     case "RED":
                         setImageMask(TINTCHECK, REDINT);
                         setImageMask(TINT, BLKINT);
-                        Log.d("vote", "user voted red");
+                        //Log.d("vote", "user voted red");
                         break;
                     case "BLK":
                         setImageMask(TINT, REDINT);
                         setImageMask(TINTCHECK, BLKINT);
-                        Log.d("vote", "user voted black");
+                        //Log.d("vote", "user voted black");
                         break;
                     default:
                         break;
@@ -712,7 +729,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 return "";
         }
     }
-
+/*
     public void highlightButtons(RecyclerView.ViewHolder holder, int selection){
         if(selection == NOVOTE){
             ((UserViewHolder)holder).upvoteButton.setImageResource(R.drawable.ic_heart);
@@ -727,11 +744,11 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             ((UserViewHolder)holder).downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
         }
     }
-
+*/
     //sets mask and also sets the drawable to corresponding imageview
-    public void setImageMask(int maskCode, int redOrBlack){
-        Drawable[] temp;
-        Log.d("input", "maskCode = " + Integer.toString(maskCode) + ", redOrBlack = " + Integer.toString(redOrBlack));
+    private void setImageMask(int maskCode, int redOrBlack){
+
+        //Log.d("input", "maskCode = " + Integer.toString(maskCode) + ", redOrBlack = " + Integer.toString(redOrBlack));
         switch (redOrBlack){
             case REDINT:
                 switch (maskCode){
@@ -786,16 +803,16 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     }
 
-    public void hideGraph(){
+    private void hideGraph(){
         //Log.d("graph", "hide");
         postCard.graphBox.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT,0));
     }
 
-    public void showGraph(){
+    private void showGraph(){
         //Log.d("graph", "show");
         //Log.d("graph", "RED: " + Integer.toString(post.getRedcount()));
         //Log.d("graph", "BLK: " + Integer.toString(post.getBlackcount()));
-        int redWidth = (int)(postCard.graphBox.getWidth() * ( (float)post.getRedcount() / (float)(post.getRedcount() + post.getBlackcount()) ));
+        int redWidth = (int)(activity.getWindowWidth() * ( (float)post.getRedcount() / (float)(post.getRedcount() + post.getBlackcount()) ));
         RelativeLayout.LayoutParams redgraphParams = new RelativeLayout.LayoutParams(redWidth, RelativeLayout.LayoutParams.MATCH_PARENT);
         redgraphParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
         postCard.redgraphView.setLayoutParams(redgraphParams);

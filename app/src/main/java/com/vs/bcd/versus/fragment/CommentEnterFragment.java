@@ -94,6 +94,7 @@ public class CommentEnterFragment extends Fragment{
                                     postPage.setContent(post, false);
                                 }
                                 if(post == null && subjectComment != null){
+                                    postPage.hidePostPageFAB();
                                     postPage.refreshThenSetUpPage(subjectComment);
                                 }
 

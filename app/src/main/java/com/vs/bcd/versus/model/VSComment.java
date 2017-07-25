@@ -1,6 +1,7 @@
 package com.vs.bcd.versus.model;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 import com.vs.bcd.versus.adapter.PostPageAdapter;
@@ -26,7 +27,10 @@ public class VSComment {
     private int upvotes; //number of upvotes for this comment
     private int downvotes; //number of downvotes for this comment
     private int nestedLevel = 0;    //not used by DB.
-    private int uservote = 0; //0 if user didn't vote on this yet, 1 if upvote, 2 if downvote
+    private int uservote = 0; //0 if NOVOTE, 1 if UPVOTE, 2 if DOWNVOTE
+    private final int NOVOTE = 0;
+    private final int UPVOTE = 1;
+    private final int DOWNVOTE = 2;
 
 
     public VSComment(){
@@ -35,6 +39,7 @@ public class VSComment {
         comment_id = UUID.randomUUID().toString();
         upvotes = 0;
         downvotes = 0;
+        uservote = 0;
     }
 
     @DynamoDBHashKey(attributeName = "post_id")
@@ -113,7 +118,43 @@ public class VSComment {
     public int getUservote(){
         return uservote;
     }
-    public void setUservote(int uservote){
+    public void setUservote(int uservote){  //use this only for when user clicks heart or broken heart. not for initial setting of uservote after download from DB
+        switch (uservote){
+            case NOVOTE:
+                if(this.uservote == UPVOTE){
+                    upvotes--;
+                    Log.d("uservote update", "upvote --");
+                }
+                else {  //automatically evaluates to downvote here because NOVOTE only gets set when current uservote is either UPVOTE or DOWNVOTE
+                    downvotes--;
+                    Log.d("uservote update", "downvote --");
+                }
+                break;
+
+            case UPVOTE:
+                upvotes ++;
+                Log.d("uservote update", "upvote ++");
+                if(this.uservote == DOWNVOTE){
+                    downvotes--;
+                    Log.d("uservote update", "downvote --");
+                }
+                break;
+
+            case DOWNVOTE:
+                downvotes ++;
+                Log.d("uservote update", "downvote ++");
+                if(this.uservote == UPVOTE){
+                    upvotes--;
+                    Log.d("uservote update", "upvote --");
+                }
+                break;
+
+            default:
+                break;
+        }
+        this.uservote = uservote;
+    }
+    public void initialSetUservote(int uservote){
         this.uservote = uservote;
     }
 
