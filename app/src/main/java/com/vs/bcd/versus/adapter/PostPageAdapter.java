@@ -103,7 +103,6 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private LayerDrawable redLayerDrawable;
     private LayerDrawable blackLayerDrawable;
     private RelativeLayout.LayoutParams graphBoxParams = null;
-    private int postcardPadding;
 
 
     //to set imageviews, first fill out the drawable[3] with 0=image layer, 1=tint layer, 2=check mark layer, make LayerDrawable out of the array, then use setImageMask which sets the correct mask layers AND ALSO sets imageview drawable as the LayerDrawable
