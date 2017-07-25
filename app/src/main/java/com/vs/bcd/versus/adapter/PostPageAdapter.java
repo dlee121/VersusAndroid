@@ -103,6 +103,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private LayerDrawable redLayerDrawable;
     private LayerDrawable blackLayerDrawable;
     private RelativeLayout.LayoutParams graphBoxParams = null;
+    private int postcardPadding;
 
 
     //to set imageviews, first fill out the drawable[3] with 0=image layer, 1=tint layer, 2=check mark layer, make LayerDrawable out of the array, then use setImageMask which sets the correct mask layers AND ALSO sets imageview drawable as the LayerDrawable
@@ -816,7 +817,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         //Log.d("graph", "show");
         //Log.d("graph", "RED: " + Integer.toString(post.getRedcount()));
         //Log.d("graph", "BLK: " + Integer.toString(post.getBlackcount()));
-        int redWidth = (int)(activity.getWindowWidth() * ( (float)post.getRedcount() / (float)(post.getRedcount() + post.getBlackcount()) ));
+        int redWidth = (int)((activity.getWindowWidth() - 8 ) * ( (float)post.getRedcount() / (float)(post.getRedcount() + post.getBlackcount()) ));   //TODO: the - 8 is for padding. Whenever we update the post_card content padding, also update that integer
         RelativeLayout.LayoutParams redgraphParams = new RelativeLayout.LayoutParams(redWidth, RelativeLayout.LayoutParams.MATCH_PARENT);
         redgraphParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
         postCard.redgraphView.setLayoutParams(redgraphParams);
