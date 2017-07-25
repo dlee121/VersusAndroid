@@ -301,6 +301,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             redTint.setIntrinsicWidth (postCard.redImage.getWidth());
             redTint.setIntrinsicHeight (postCard.redImage.getHeight());
             redTint.getPaint().setColor(Color.argb(175, 165, 35, 57));
+            redLayers[0] = ContextCompat.getDrawable(activity, R.drawable.default_background);
             redLayers[1] = redTint;
             redLayers[2] = ContextCompat.getDrawable(activity, R.drawable.ic_check_overlay);
 
@@ -308,6 +309,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             blackTint.setIntrinsicWidth(postCard.blackImage.getWidth());
             blackTint.setIntrinsicHeight(postCard.blackImage.getHeight());
             blackTint.getPaint().setColor(Color.argb(175, 48, 48, 48));
+            blackLayers[0] = ContextCompat.getDrawable(activity, R.drawable.default_background);
             blackLayers[1] = blackTint;
             blackLayers[2] = ContextCompat.getDrawable(activity, R.drawable.ic_check_overlay_2);
 
