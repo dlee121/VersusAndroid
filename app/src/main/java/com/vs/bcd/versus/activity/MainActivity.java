@@ -225,7 +225,6 @@ public class MainActivity extends Fragment {
 
     public void enableChildViews(){
         tabStrip.setEnabled(true);
-        ((MainContainer)getActivity()).getPostPage().clearList();
         for(int i = 0; i < tabStrip.getChildCount(); i++) {
             tabStrip.getChildAt(i).setClickable(true);
         }
