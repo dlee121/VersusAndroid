@@ -71,4 +71,9 @@ public class CategoriesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             catName = (TextView) view.findViewById(R.id.tv_category);
         }
     }
+
+    public void updateList(List<CategoryObject> list){
+        categories = list;
+        notifyDataSetChanged();
+    }
 }

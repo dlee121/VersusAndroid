@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,6 +20,7 @@ import com.vs.bcd.versus.adapter.CategoriesAdapter;
 import com.vs.bcd.versus.model.CategoryObject;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by dlee on 8/6/17.
@@ -31,6 +34,7 @@ public class SelectCategory extends Fragment {
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
     private CategoriesAdapter mCategoriesAdapter;
+    private EditText categoryFilterET;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -45,12 +49,35 @@ public class SelectCategory extends Fragment {
         mCategoriesAdapter = new CategoriesAdapter(recyclerView, categories, getActivity());
         recyclerView.setAdapter(mCategoriesAdapter);
 
+        categoryFilterET = (EditText)rootView.findViewById(R.id.cat_selection_filterbox);
+        categoryFilterET.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                // TODO Auto-generated method stub
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                // TODO Auto-generated method stub
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                filter(s.toString());
+                //you can use runnable postDelayed like 500 ms to delay search text
+            }
+        });
+
+
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();
         for (int i = 0; i<((ViewGroup)rootView).getChildCount(); i++){
             childViews.add(((ViewGroup)rootView).getChildAt(i));
             LPStore.add(childViews.get(i).getLayoutParams());
         }
+
         disableChildViews();
         return rootView;
     }
@@ -111,6 +138,18 @@ public class SelectCategory extends Fragment {
         categories.add(new CategoryObject("Travel", R.drawable.goldmedal, 20));
         categories.add(new CategoryObject("TV Shows", R.drawable.goldmedal, 21));
         categories.add(new CategoryObject("Weapons", R.drawable.goldmedal, 22));
+    }
+
+    void filter(String text){
+        List<CategoryObject> temp = new ArrayList<>();
+        for(CategoryObject co: categories){
+            if(co.getCategoryName().toLowerCase().contains(text.toLowerCase())){
+                temp.add(co);
+            }
+        }
+        //update recyclerview
+        mCategoriesAdapter.updateList(temp);
+        Log.d("Categories", "still has same " + Integer.toString(categories.size()) + "items");
     }
 
 }

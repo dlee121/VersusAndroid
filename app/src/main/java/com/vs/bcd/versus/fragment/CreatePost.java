@@ -55,8 +55,6 @@ public class CreatePost extends Fragment {
     private EditText rednameET;
     private EditText blacknameET;
     private EditText questionET;
-    private EditText categoryET;
-    private AutoCompleteTextView categoryACTV;
     //private CropImageView cropper1;
     //private CropImageView cropper2;
     private ImageView ivLeft, ivRight;
@@ -76,10 +74,7 @@ public class CreatePost extends Fragment {
     private String redimgSet = "default";
     private String blackimgSet = "default";
     private MainContainer activity;
-    private CategoriesAdapter categoriesAdapter = null;
     private int currentCategorySelection = -1;
-    //private ArrayList<CategoryObject> categories;
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
