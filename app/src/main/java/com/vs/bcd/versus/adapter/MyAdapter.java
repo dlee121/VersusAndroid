@@ -182,7 +182,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             //TODO: handle cases where question doesn't exist (as in the column doesn't even exist. in that case question.setText(""), leaving it as empty string
             userViewHolder.question.setText(post.getQuestion());
             userViewHolder.mainVSText.setText(post.getRedname() + " vs " + post.getBlackname());
-            userViewHolder.category.setText(post.getCategory());
+            userViewHolder.category.setText(post.getCategoryString());
             userViewHolder.votecount.setText(Integer.toString(post.getRedcount() + post.getBlackcount()) + " votes");
             //set CardView onClickListener to go to PostPage fragment with corresponding Post data
             userViewHolder.itemView.setOnClickListener(new View.OnClickListener() {

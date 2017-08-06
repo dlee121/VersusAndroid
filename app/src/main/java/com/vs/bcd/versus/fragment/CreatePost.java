@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -21,11 +20,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import java.io.ByteArrayInputStream;
@@ -33,22 +33,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
-import com.amazonaws.auth.CognitoCachingCredentialsProvider;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.S3Object;
-import com.theartofdev.edmodo.cropper.CropImageView;
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.adapter.CategoriesAdapter;
+import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.model.Post;
@@ -63,12 +56,15 @@ public class CreatePost extends Fragment {
     private EditText blacknameET;
     private EditText questionET;
     private EditText categoryET;
+    private AutoCompleteTextView categoryACTV;
     //private CropImageView cropper1;
     //private CropImageView cropper2;
     private ImageView ivLeft, ivRight;
     private String redStr;
     private String blackStr;
     private String questiongStr;
+    private Button categorySelectionButton;
+    private int catInt;
     private String catStr;
     private View rootView;
     private ArrayList<View> childViews;
@@ -80,6 +76,9 @@ public class CreatePost extends Fragment {
     private String redimgSet = "default";
     private String blackimgSet = "default";
     private MainContainer activity;
+    private CategoriesAdapter categoriesAdapter = null;
+    private int currentCategorySelection = -1;
+    //private ArrayList<CategoryObject> categories;
 
 
     @Override
@@ -99,7 +98,7 @@ public class CreatePost extends Fragment {
         rednameET = (EditText)rootView.findViewById(R.id.redname_in);
         blacknameET = (EditText)rootView.findViewById(R.id.blackname_in);
         questionET = (EditText)rootView.findViewById(R.id.question_in);
-        categoryET = (EditText)rootView.findViewById(R.id.category_in);
+        categorySelectionButton = (Button)rootView.findViewById(R.id.go_to_catselect);
         sessionManager = new SessionManager(getActivity());
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();
@@ -129,6 +128,12 @@ public class CreatePost extends Fragment {
             }
         });
 
+        categorySelectionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                activity.getViewPager().setCurrentItem(5);
+            }
+        });
 
 
 
@@ -138,12 +143,17 @@ public class CreatePost extends Fragment {
     }
 
     public void createButtonPressed(View view){
+        if(currentCategorySelection == -1){
+            //TODO: warning message telling user to pick a category.
+            return;
+        }
         //this is where you validate data and, if valid, write to database
         //TODO: validate submission here
         redStr = rednameET.getText().toString();
         blackStr = blacknameET.getText().toString();
         questiongStr = questionET.getText().toString();
-        catStr = categoryET.getText().toString();
+        catInt = 1; //TODO: change this to reflect actual category selection by user
+        //catStr = categoryACTV.getText().toString();
 
 
 
@@ -159,7 +169,7 @@ public class CreatePost extends Fragment {
                     Log.e(getClass().getSimpleName(), "Error writing bitmap", e);
                 }
 
-                post.setCategory(catStr);
+                post.setCategory(catInt);
                 /*
                 //time is now set in the constructor. refer to Post.java
 
@@ -209,8 +219,10 @@ public class CreatePost extends Fragment {
     }
 
     public void enableChildViews(){
+        /* commented these out since resetCatSelection handles these operations now
         redimgSet = "default";
         blackimgSet = "default";
+        */
         for(int i = 0; i<childViews.size(); i++){
             childViews.get(i).setEnabled(true);
             childViews.get(i).setClickable(true);
@@ -461,7 +473,22 @@ public class CreatePost extends Fragment {
         return false;
     }
 
+    public void resetCatSelection(){
+        currentCategorySelection = -1;
+        cropperNumber = 1;
+        redimgSet = "default";
+        blackimgSet = "default";
+        ivLeft.setImageResource(R.drawable.ic_add_24dp);
+        ivRight.setImageResource(R.drawable.ic_add_24dp);
+        rednameET.setText("");
+        blacknameET.setText("");
+        questionET.setText("");
+        categorySelectionButton.setText("Select Category");
+    }
 
-
+    public void setCatSelection(String catName, int catSelection){
+        categorySelectionButton.setText(catName);
+        currentCategorySelection = catSelection;
+    }
 
 }

@@ -16,7 +16,7 @@ public class Post implements Parcelable{
 
     //TODO: implement thumbnails
     //question, author, time, {thumbnail1, thumbnail2}*, viewcount, redname, redcount, blackname, blackcount, category
-    private String question;   // question can be left empty.
+    private String question;
     private String author;
     private String time;
     //private int viewcount; instead of viewcount we'll do votecount, which is redcount + blackcount
@@ -24,18 +24,101 @@ public class Post implements Parcelable{
     private int redcount;
     private String blackname;
     private int blackcount;
-    private String category; //for now let's do politics, sports (then sub categories / tags could be basket ball, boxing, ufc, soccer, etc), food, anime / comics
+    private int category;
     private String post_id;
     private String redimg; //"default", "s3", "in-app (like emojis. to be implemented later)"
     private String blackimg;
 
+    /***
+     * constants representing CATEGORIES
+     */
+    public static int CARS = 0;
+    public static int CELEBRITIES = 1;
+    public static int CULTURE = 2;
+    public static int EDUCATION = 3;
+    public static int ETHICS_AND_MORALITY = 4;
+    public static int FASHION = 5;
+    public static int FICTION = 6;
+    public static int FOOD = 7;
+    public static int GAME = 8;
+    public static int LAW = 9;
+    public static int MOVIES = 10;
+    public static int MUSIC_AND_ARTISTS = 11;
+    public static int POLITICS = 12;
+    public static int PORN = 13;
+    public static int RELIGION = 14;
+    public static int RESTAURANTS = 15;
+    public static int SCIENCE = 16;
+    public static int SEX = 17;
+    public static int SPORTS = 18;
+    public static int TECHNOLOGY = 19;
+    public static int TRAVEL = 20;
+    public static int TV_SHOWS = 21;
+    public static int WEAPONS = 22;
+
+    @DynamoDBIgnore
+    public String getCategoryString(){
+        switch(category){
+            case 0:
+                return "Cars";
+            case 1:
+                return "Celebrities";
+            case 2:
+                return "Culture";
+            case 3:
+                return "Education";
+            case 4:
+                return "Ethics/Morality";
+            case 5:
+                return "Fashion";
+            case 6:
+                return "Fiction";
+            case 7:
+                return "Food";
+            case 8:
+                return "Game";
+            case 9:
+                return "Law";
+            case 10:
+                return "Movies";
+            case 11:
+                return "Music/Artists";
+            case 12:
+                return "Politics";
+            case 13:
+                return "Porn";
+            case 14:
+                return "Religion";
+            case 15:
+                return "Restaurants";
+            case 16:
+                return "Science";
+            case 17:
+                return "Sex";
+            case 18:
+                return "Sports";
+            case 19:
+                return "Technology";
+            case 20:
+                return "Travel";
+            case 21:
+                return "TV Shows";
+            case 22:
+                return "Weapons";
+            default:
+                return "N/A";
+        }
+    }
+
+
     @DynamoDBAttribute(attributeName = "question")
     public String getQuestion() {
-        //TODO: since ddb doesn't hold empty strings, empty question will come as null (as in setQuestion will not execute on those since the question column doesn't exist for those posts without question. So handle such cases when question is null return empty string
+        //TODO: since ddb doesn't hold empty strings, empty question will come as null (as in setTopic will not execute on those since the question column doesn't exist for those posts without question. So handle such cases when question is null return empty string
+        //TODO: nah actualy question should be required. implement that through form validation
         return question;
     }
-    public void setQuestion(String question) {
-        this.question = question;
+    public void setQuestion(String topic) {
+        this.question = topic;
     }
 
     @DynamoDBAttribute(attributeName = "author")
@@ -95,12 +178,13 @@ public class Post implements Parcelable{
     }
 
     @DynamoDBHashKey(attributeName = "category")
-    public String getCategory() {
+    public int getCategory() {
         return category;
     }
-    public void setCategory(String category) {
+    public void setCategory(int category) {
         this.category = category;
     }
+
 
     @DynamoDBAttribute(attributeName = "redimg")
     public String getRedimg(){
@@ -118,9 +202,12 @@ public class Post implements Parcelable{
         this.blackimg = blackimg;
     }
 
+    @DynamoDBIgnore
+    public String getCategoryIntAsString(){
+        return Integer.toString(category);
+    }
 
 
-    //zero argument constructor. necessary here since implementing packet.
     public Post(){
         redcount = 0;
         blackcount = 0;
@@ -137,7 +224,7 @@ public class Post implements Parcelable{
         redcount = in.readInt();
         blackname = in.readString();
         blackcount = in.readInt();
-        category = in.readString();
+        category = in.readInt();
         post_id = in.readString();
         redimg = in.readString();
         blackimg = in.readString();
@@ -157,7 +244,7 @@ public class Post implements Parcelable{
         dest.writeInt(redcount);
         dest.writeString(blackname);
         dest.writeInt(blackcount);
-        dest.writeString(category);
+        dest.writeInt(category);
         dest.writeString(post_id);
         dest.writeString(redimg);
         dest.writeString(blackimg);

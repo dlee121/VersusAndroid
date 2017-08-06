@@ -32,12 +32,7 @@ public class SearchPage extends Fragment {
         LPStore = new ArrayList<>();
         for (int i = 0; i<((ViewGroup)rootView).getChildCount(); i++){
             childViews.add(((ViewGroup)rootView).getChildAt(i));
-            if(childViews.get(i) instanceof EditText){
-                LPStore.add(childViews.get(i).getLayoutParams());
-            }
-            else{
-                LPStore.add(null);
-            }
+            LPStore.add(childViews.get(i).getLayoutParams());
         }
         disableChildViews();
         return rootView;

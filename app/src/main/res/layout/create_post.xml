@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="#efefef"
     android:orientation="vertical"
-    android:weightSum="20"
+    android:weightSum="15"
     tools:context="com.vs.bcd.versus.activity.MainContainer">
 
     <LinearLayout
@@ -14,114 +14,101 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:orientation="horizontal"
-        android:layout_weight="8">
+        android:layout_weight="7">
 
-
-<!--
-        <com.theartofdev.edmodo.cropper.CropImageView
-            android:id="@+id/CropImageView1"
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="4dp"
-            android:layout_marginLeft="4dp"
-            android:layout_marginRight="2dp"
-            android:background="@drawable/ic_add_24dp"
-            custom:cropGuidelines="off"
-            custom:cropBorderLineThickness="0dp"
-            custom:cropBorderCornerThickness="0dp"
-            custom:cropInitialCropWindowPaddingRatio="0"
-            custom:cropBackgroundColor="#00000000"
-            app:cropScaleType="centerInside"/>
+            android:weightSum="5"
+            android:orientation="vertical">
 
-        <com.theartofdev.edmodo.cropper.CropImageView
-            android:id="@+id/CropImageView2"
+            <ImageView
+                android:id="@+id/leftImage"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginBottom="4dp"
+                android:layout_marginLeft="4dp"
+                android:layout_marginRight="2dp"
+                android:layout_marginTop="4dp"
+                android:layout_weight="4"
+                android:clickable="true"
+                android:scaleType="fitXY"
+                app:srcCompat="@drawable/ic_add_24dp" />
+
+            <EditText
+                android:id="@+id/redname_in"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:hint="Name"
+                android:inputType="textPersonName"
+                android:text=""
+                android:textAlignment="center"
+                android:textColor="@android:color/black" />
+
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="4dp"
-            android:layout_marginRight="4dp"
-            android:layout_marginLeft="2dp"
-            android:background="@drawable/ic_add_24dp"
-            android:clickable="true"
-            app:cropScaleType="fitCenter"/>
--->
+            android:weightSum="5"
+            android:orientation="vertical">
 
+            <ImageView
+                android:id="@+id/rightImage"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginBottom="4dp"
+                android:layout_marginLeft="2dp"
+                android:layout_marginRight="4dp"
+                android:layout_marginTop="4dp"
+                android:layout_weight="4"
+                android:clickable="true"
+                android:scaleType="fitXY"
+                app:srcCompat="@drawable/ic_add_24dp" />
 
-        <ImageView
-            android:id="@+id/leftImage"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="4dp"
-            android:layout_marginLeft="4dp"
-            android:layout_marginRight="2dp"
-            android:scaleType="fitXY"
-            android:clickable="true"
-            app:srcCompat="@drawable/ic_add_24dp" />
+            <EditText
+                android:id="@+id/blackname_in"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:hint="Name"
+                android:inputType="textPersonName"
+                android:text=""
+                android:textAlignment="center"
+                android:textColor="@android:color/black" />
 
-        <ImageView
-            android:id="@+id/rightImage"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="4dp"
-            android:layout_marginRight="4dp"
-            android:layout_marginLeft="2dp"
-            android:scaleType="fitXY"
-            android:clickable="true"
-            app:srcCompat="@drawable/ic_add_24dp" />
+        </LinearLayout>
+
     </LinearLayout>
 
 
-
-    <EditText
-        android:id="@+id/redname_in"
+    <Button
+        android:id="@+id/go_to_catselect"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:inputType="textPersonName"
-        android:text=""
-        android:hint="redname"
         android:layout_weight="2"
-        android:textColor="@android:color/black"/>
+        android:text="Select Category" />
 
-    <EditText
-        android:id="@+id/blackname_in"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:inputType="textPersonName"
-        android:text=""
-        android:hint="blackname"
-        android:layout_weight="2"
-        android:textColor="@android:color/black"/>
     <EditText
         android:id="@+id/question_in"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_weight="2"
+        android:hint="Question"
         android:inputType="textPersonName"
         android:text=""
-        android:hint="(Optional) question"
-        android:layout_weight="2"
-        android:textColor="@android:color/black"/>
-    <EditText
-        android:id="@+id/category_in"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:inputType="textPersonName"
-        android:text=""
-        android:hint="category"
-        android:layout_weight="2"
-        android:textColor="@android:color/black"/>
+        android:textAlignment="center"
+        android:textColor="@android:color/black" />
 
     <Button
         android:id="@+id/button_create_post"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:layout_weight="2"
+        android:layout_gravity="center"
         android:onClick="createButtonPressed"
         android:text="Create" />
 

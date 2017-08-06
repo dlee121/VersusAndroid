@@ -30,6 +30,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.vs.bcd.versus.fragment.CommentEnterFragment;
 import com.vs.bcd.versus.fragment.PostPage;
+import com.vs.bcd.versus.fragment.SelectCategory;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.fragment.CreatePost;
@@ -68,6 +69,8 @@ public class MainContainer extends AppCompatActivity {
     private DisplayMetrics windowSize;
     private HashMap<String, String> postInDownload = new HashMap<>();
 
+
+
     @Override
     public void onBackPressed(){
         int mainContainerCurrentItem = mViewPager.getCurrentItem();
@@ -82,7 +85,7 @@ public class MainContainer extends AppCompatActivity {
         }
         else {
             //Log.d("debug", "is not 0");
-            if(mainContainerCurrentItem == 3){
+            if(mainContainerCurrentItem == 3){  //we're in PostPage
                 //Log.d("debug", "is 1");
                 if(!postPage.isRootLevel()){
                     //Log.d("debug", "is not root");
@@ -97,8 +100,15 @@ public class MainContainer extends AppCompatActivity {
                     mViewPager.setCurrentItem(0);
                 }
             }
+            else if(mainContainerCurrentItem == 5){ //we're in category selection fragment for CreatePost
+                mViewPager.setCurrentItem(2);   //go back to CreatePost
+                titleTxtView.setText("Create Post");
+                //TODO: reset fragment instead of leaving it in same state
+            }
             else{
+                toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                 mViewPager.setCurrentItem(0);
+                titleTxtView.setText(lastSetTitle);
             }
         }
     }
@@ -179,6 +189,12 @@ public class MainContainer extends AppCompatActivity {
                         yBmp = null;
                         */
                         break;
+                    case 5: //category selection screen for CreatePost
+                        mViewPager.setCurrentItem(2);   //go back to CreatePost
+                        titleTxtView.setText("Create Post");
+                        //TODO: reset fragment instead of leaving it in same state
+                        break;
+
                     default:
                         break;
                 }
@@ -201,7 +217,7 @@ public class MainContainer extends AppCompatActivity {
         mViewPager = (ViewPagerCustomDuration) findViewById(R.id.container2);
         mViewPager.setScrollDurationFactor(1);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        mViewPager.setOffscreenPageLimit(5);
+        mViewPager.setOffscreenPageLimit(6);
         mViewPager.setPageTransformer(false, new FadePageTransformer());
         //mViewPager.setPageTransformer(false, new NoPageTransformer());
 
@@ -284,13 +300,15 @@ public class MainContainer extends AppCompatActivity {
                 case 4:
                     commentEnterFragment = new CommentEnterFragment();
                     return commentEnterFragment;
+                case 5:
+                    return new SelectCategory();
                 default:
                     return null;
             }
         }
         @Override
         public int getCount() {
-            return 5;
+            return 6;
         }
 
         @Override
@@ -306,6 +324,8 @@ public class MainContainer extends AppCompatActivity {
                     return "POST PAGE";
                 case 4:
                     return "COMMENT ENTER PAGE";
+                case 5:
+                    return "SELECT CATEGORY";
             }
             return null;
         }
@@ -425,6 +445,10 @@ public class MainContainer extends AppCompatActivity {
 
     public int getWindowHeight(){
         return windowSize.heightPixels;
+    }
+
+    public CreatePost getCreatePostFragment(){
+        return createPost;
     }
 
 }

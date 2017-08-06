@@ -1,19 +1,14 @@
 package com.vs.bcd.versus.fragment;
 
-import android.content.Intent;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
@@ -21,28 +16,19 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
-import com.amazonaws.services.dynamodbv2.*;
 import com.amazonaws.services.dynamodbv2.model.AttributeAction;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
-import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
-import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ReturnValue;
 import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
-import com.amazonaws.services.dynamodbv2.model.UpdateItemResult;
 import com.vs.bcd.versus.OnLoadMoreListener;
 import com.vs.bcd.versus.R;
-import com.vs.bcd.versus.activity.MainActivity;
 import com.vs.bcd.versus.activity.MainContainer;
-import com.vs.bcd.versus.adapter.MyAdapter;
 import com.vs.bcd.versus.adapter.PostPageAdapter;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.UserAction;
 import com.vs.bcd.versus.model.VSCNode;
 import com.vs.bcd.versus.model.VSComment;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,14 +39,6 @@ import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-import static android.R.attr.action;
-import static android.R.attr.cursorVisible;
-import static android.R.attr.left;
-import static android.R.attr.order;
-import static android.R.attr.right;
-import static android.R.attr.switchMinWidth;
-import static android.R.attr.top;
-import static android.icu.lang.UCharacter.GraphemeClusterBreak.V;
 import static com.vs.bcd.versus.adapter.PostPageAdapter.DOWNVOTE;
 import static com.vs.bcd.versus.adapter.PostPageAdapter.NOVOTE;
 import static com.vs.bcd.versus.adapter.PostPageAdapter.UPVOTE;
@@ -79,7 +57,7 @@ public class PostPage extends Fragment {
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
     private String postID = "";
-    private String postQuestion;
+    private String postTopic;
     private String postX;
     private String postY;
     private Post post;
@@ -141,7 +119,7 @@ public class PostPage extends Fragment {
             public void onClick(View v) {
                 //TODO: implement a version where we reply to comments and have this function choose between that and root comment version
                     //depending if we're at isRootLevel or not
-                ((MainContainer)getActivity()).getCommentEnterFragment().setContentReplyToPost(postQuestion, postX, postY, post);
+                ((MainContainer)getActivity()).getCommentEnterFragment().setContentReplyToPost(postTopic, postX, postY, post);
                 ((MainContainer)getActivity()).getViewPager().setCurrentItem(4);
             }
         });
@@ -284,7 +262,7 @@ public class PostPage extends Fragment {
     }
 /*
     public void setPostCard(Post post){
-        ((TextView)(rootView.findViewById(R.id.post_page_question))).setText(post.getQuestion());
+        ((TextView)(rootView.findViewById(R.id.post_page_question))).setText(post.getTopic());
         ((TextView)(rootView.findViewById(R.id.post_page_redname))).setText(post.getRedname());
         ((TextView)(rootView.findViewById(R.id.post_page_blackname))).setText(post.getBlackname());
         ((TextView)(rootView.findViewById(R.id.post_page_redcount))).setText(Integer.toString(post.getRedcount()));
@@ -299,7 +277,7 @@ public class PostPage extends Fragment {
         Log.d("Debug", "setContent called");
         postID = post.getPost_id();
 
-        postQuestion = post.getQuestion();
+        postTopic = post.getQuestion();
         postX = post.getRedname();
         postY = post.getBlackname();
         this.post = post;
@@ -1072,7 +1050,7 @@ public class PostPage extends Fragment {
 
                         HashMap<String, AttributeValue> keyMap =
                                 new HashMap<>();
-                        keyMap.put("category", new AttributeValue().withS(post.getCategory()));    //TODO: we're not gonna be using category as partition key, it should be datePosted (which excludes clock time, just yearMonthDay
+                        keyMap.put("category", new AttributeValue().withN(post.getCategoryIntAsString()));
                         keyMap.put("post_id", new AttributeValue().withS(postID));
 
                         HashMap<String, AttributeValueUpdate> updates =

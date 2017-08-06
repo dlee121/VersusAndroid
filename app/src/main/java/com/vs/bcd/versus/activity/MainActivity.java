@@ -121,6 +121,7 @@ public class MainActivity extends Fragment {
                 ((MainContainer)getActivity()).getViewPager().setCurrentItem(2);
                 ((MainContainer)getActivity()).getToolbarTitleText().setText("Create Post");
                 ((MainContainer)getActivity()).getToolbarButton().setImageResource(R.drawable.ic_left_chevron);
+                ((MainContainer)getActivity()).getCreatePostFragment().resetCatSelection();
             }
         });
 

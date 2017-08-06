@@ -736,16 +736,16 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 /*
     public void highlightButtons(RecyclerView.ViewHolder holder, int selection){
         if(selection == NOVOTE){
-            ((UserViewHolder)holder).upvoteButton.setImageResource(R.drawable.ic_heart);
-            ((UserViewHolder)holder).downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+            ((CategoryViewHolder)holder).upvoteButton.setImageResource(R.drawable.ic_heart);
+            ((CategoryViewHolder)holder).downvoteButton.setImageResource(R.drawable.ic_heart_broken);
         }
         if(selection == UPVOTE){
-            ((UserViewHolder)holder).upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
-            ((UserViewHolder)holder).downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+            ((CategoryViewHolder)holder).upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
+            ((CategoryViewHolder)holder).downvoteButton.setImageResource(R.drawable.ic_heart_broken);
         }
         if(selection == DOWNVOTE){
-            ((UserViewHolder)holder).upvoteButton.setImageResource(R.drawable.ic_heart);
-            ((UserViewHolder)holder).downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
+            ((CategoryViewHolder)holder).upvoteButton.setImageResource(R.drawable.ic_heart);
+            ((CategoryViewHolder)holder).downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
         }
     }
 */
