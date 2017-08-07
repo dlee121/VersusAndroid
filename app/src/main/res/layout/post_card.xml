@@ -19,14 +19,6 @@
             android:layout_alignParentTop="true"
             android:text="Question"
             android:textAlignment="center" />
-        <TextView
-            android:id="@+id/vstextpc"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingTop="38dp"
-            android:text="VS"
-            android:layout_centerInParent="true"
-            android:textAlignment="center"/>
 
         <LinearLayout
             android:id="@+id/linlaypoca"
@@ -34,12 +26,12 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_below="@id/post_page_question"
-            android:weightSum="2">
+            android:weightSum="11">
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
+                android:layout_weight="5"
                 android:weightSum="5"
                 android:orientation="vertical">
 
@@ -61,10 +53,18 @@
                     android:textAlignment="center" />
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/vstextpc"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:text="VS"
+                android:layout_weight="1"
+                android:gravity="center"/>
+
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
+                android:layout_weight="5"
                 android:weightSum="5"
                 android:orientation="vertical">
 

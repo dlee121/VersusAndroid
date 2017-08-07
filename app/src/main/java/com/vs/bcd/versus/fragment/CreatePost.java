@@ -154,14 +154,17 @@ public class CreatePost extends Fragment {
 
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();
                 try {
+
                     uploadImageToAWS(ivLeft.getDrawingCache(), post.getPost_id(), "left");
                     uploadImageToAWS(ivRight.getDrawingCache(), post.getPost_id(), "right");
 
+                    /*
                     //clear out drawing cache so that we can use it again with different images for another upload
                     ivLeft.setDrawingCacheEnabled(false);
                     ivRight.setDrawingCacheEnabled(false);
                     ivLeft.setDrawingCacheEnabled(true);
                     ivRight.setDrawingCacheEnabled(true);
+                    */
 
                 } catch (Exception e) {
                     Log.e(getClass().getSimpleName(), "Error writing bitmap", e);
@@ -287,6 +290,22 @@ public class CreatePost extends Fragment {
                     //por.setCannedAcl(CannedAccessControlList.PublicRead);
 
                     s3.putObject(por);
+
+
+                    //run UI updates on UI Thread
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(side.equals("left")){
+                                ivLeft.setDrawingCacheEnabled(false);
+                                ivLeft.setDrawingCacheEnabled(true);
+                            }
+                            else{
+                                ivRight.setDrawingCacheEnabled(false);
+                                ivRight.setDrawingCacheEnabled(true);
+                            }
+                        }
+                    });
 
                     //String _finalUrl = "https://"+existingBucketName+".s3.amazonaws.com/" + keyName + ".jpeg";
 
