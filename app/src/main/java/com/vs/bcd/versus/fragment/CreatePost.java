@@ -147,10 +147,6 @@ public class CreatePost extends Fragment {
         redStr = rednameET.getText().toString();
         blackStr = blacknameET.getText().toString();
         questiongStr = questionET.getText().toString();
-        catInt = 1; //TODO: change this to reflect actual category selection by user
-        //catStr = categoryACTV.getText().toString();
-
-
 
         Runnable runnable = new Runnable() {
             public void run() {
@@ -160,11 +156,18 @@ public class CreatePost extends Fragment {
                 try {
                     uploadImageToAWS(ivLeft.getDrawingCache(), post.getPost_id(), "left");
                     uploadImageToAWS(ivRight.getDrawingCache(), post.getPost_id(), "right");
+
+                    //clear out drawing cache so that we can use it again with different images for another upload
+                    ivLeft.setDrawingCacheEnabled(false);
+                    ivRight.setDrawingCacheEnabled(false);
+                    ivLeft.setDrawingCacheEnabled(true);
+                    ivRight.setDrawingCacheEnabled(true);
+
                 } catch (Exception e) {
                     Log.e(getClass().getSimpleName(), "Error writing bitmap", e);
                 }
 
-                post.setCategory(catInt);
+                post.setCategory(currentCategorySelection);
                 /*
                 //time is now set in the constructor. refer to Post.java
 
@@ -186,7 +189,7 @@ public class CreatePost extends Fragment {
                     public void run() {
                         activity.getPostPage().setContent(post, true);
                         activity.getViewPager().setCurrentItem(3);
-                        getActivity().overridePendingTransition(0, 0);
+                        //getActivity().overridePendingTransition(0, 0);
                     }
                 });
             }
@@ -345,6 +348,7 @@ public class CreatePost extends Fragment {
                     ivRight.setImageURI(imageUri);
                     blackimgSet = "s3";
                 }
+                Log.d("cropper", "Cropper Number: " + Integer.toString(cropperNumber) + ", URI: " + imageUri.toString());
             }
         }
     }
@@ -479,6 +483,7 @@ public class CreatePost extends Fragment {
         blacknameET.setText("");
         questionET.setText("");
         categorySelectionButton.setText("Select Category");
+        activity.getPostPage().clearList();
     }
 
     public void setCatSelection(String catName, int catSelection){

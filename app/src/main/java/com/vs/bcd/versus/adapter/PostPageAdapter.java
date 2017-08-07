@@ -173,10 +173,14 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
         if (holder instanceof UserViewHolder) { //holds comments
             //Log.d("DEBUG", "BIND EVENT");
+
+            /*
             if(masterList.get(position) instanceof Post){
                 Log.d("debug", "this shit works");
                 masterList.remove(position);
             }
+            */
+
             final VSComment currentComment = (VSComment)masterList.get(position);
 
             //this is where values are put into the layout, from the VSComment object
