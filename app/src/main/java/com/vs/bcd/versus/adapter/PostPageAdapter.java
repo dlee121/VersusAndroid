@@ -43,6 +43,7 @@ import com.vs.bcd.versus.activity.MainActivity;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.model.PostSkeleton;
 import com.vs.bcd.versus.model.UserAction;
 import com.vs.bcd.versus.model.VSCNode;
 import com.vs.bcd.versus.model.VSComment;
@@ -84,7 +85,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private OnLoadMoreListener onLoadMoreListener;
     private boolean isLoading;
     private MainContainer activity;
-    private Post post;
+    private PostSkeleton post;
     private List<Object> masterList;
     private List<VSComment> childrenList = new ArrayList<>();
     private int visibleThreshold = 8;
@@ -107,7 +108,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     //to set imageviews, first fill out the drawable[3] with 0=image layer, 1=tint layer, 2=check mark layer, make LayerDrawable out of the array, then use setImageMask which sets the correct mask layers AND ALSO sets imageview drawable as the LayerDrawable
 
-    public PostPageAdapter(RecyclerView recyclerView, List<Object> vsComments, Post post, MainContainer activity, boolean downloadImages, boolean includesPost) {
+    public PostPageAdapter(RecyclerView recyclerView, List<Object> vsComments, PostSkeleton post, MainContainer activity, boolean downloadImages, boolean includesPost) {
         this.s3 = ((MainContainer)activity).getS3Client();
         masterList = vsComments;
         this.post = post;

@@ -21,6 +21,7 @@ import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.MyAdapter;
 import com.vs.bcd.versus.model.Post;
+import com.vs.bcd.versus.model.PostSkeleton;
 
 /**
  * Created by dlee on 4/29/17.
@@ -28,7 +29,7 @@ import com.vs.bcd.versus.model.Post;
 
 public class Tab2Trending extends Fragment{
 
-    private List<Post> posts;
+    private List<PostSkeleton> posts;
     private MyAdapter myAdapter;
     private boolean fragmentSelected = false;
     private View rootView;

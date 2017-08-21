@@ -41,6 +41,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.adapter.CategoriesAdapter;
+import com.vs.bcd.versus.model.ActivePost;
 import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.activity.MainContainer;
@@ -185,7 +186,9 @@ public class CreatePost extends Fragment {
                 post.setBlackimg(blackimgSet);
                 ((MainContainer)getActivity()).getMapper().save(post);
 
-
+                //create activePost, an entry into the ActivePost table, since this is a new post.
+                final ActivePost activePost = new ActivePost(post);
+                ((MainContainer)getActivity()).getMapper().save(activePost);
 
                 getActivity().runOnUiThread(new Runnable() {
                     @Override

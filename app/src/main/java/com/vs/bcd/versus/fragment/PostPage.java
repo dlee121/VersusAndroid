@@ -25,6 +25,7 @@ import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.PostPageAdapter;
 import com.vs.bcd.versus.model.Post;
+import com.vs.bcd.versus.model.PostSkeleton;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.UserAction;
 import com.vs.bcd.versus.model.VSCNode;
@@ -60,7 +61,7 @@ public class PostPage extends Fragment {
     private String postTopic;
     private String postX;
     private String postY;
-    private Post post;
+    private PostSkeleton post;
     private SessionManager sessionManager;
     private List<Object> vsComments = new ArrayList<>(); //ArrayList of VSCNode
     private ViewGroup.LayoutParams RVLayoutParams;
@@ -272,7 +273,7 @@ public class PostPage extends Fragment {
 
     }
 */
-    public void setContent(final Post post, final boolean downloadImages){
+    public void setContent(final PostSkeleton post, final boolean downloadImages){
 
         Log.d("Debug", "setContent called");
         postID = post.getPost_id();
@@ -1142,5 +1143,9 @@ public class PostPage extends Fragment {
             }
             actionHistoryMap.put(entry.getKey(), entry.getValue());
         }
+    }
+
+    public String getCatNumString(){
+        return post.getCategoryIntAsString();
     }
 }

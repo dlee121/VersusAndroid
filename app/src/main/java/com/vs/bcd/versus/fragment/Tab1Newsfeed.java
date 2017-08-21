@@ -3,6 +3,7 @@ package com.vs.bcd.versus.fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,16 +11,27 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
+import com.amazonaws.services.dynamodbv2.model.Condition;
 import com.vs.bcd.versus.OnLoadMoreListener;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.MyAdapter;
+import com.vs.bcd.versus.model.ActivePost;
 import com.vs.bcd.versus.model.Post;
+import com.vs.bcd.versus.model.PostSkeleton;
+import com.vs.bcd.versus.model.VSComment;
 
 /**
  * Created by dlee on 4/29/17.
@@ -27,11 +39,13 @@ import com.vs.bcd.versus.model.Post;
 
 public class Tab1Newsfeed extends Fragment{
 
-    private List<Post> posts;
+    private List<PostSkeleton> posts;
     private MyAdapter myAdapter;
     private boolean fragmentSelected = false;
     private View rootView;
     private MainContainer mHostActivity;
+    private SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -67,7 +81,7 @@ public class Tab1Newsfeed extends Fragment{
 
                 Runnable runnable = new Runnable() {
                     public void run() {
-
+                        /*
                         //DynamoDB calls go here
                         DynamoDBScanExpression scanExpression = new DynamoDBScanExpression();
                         DynamoDBMapperConfig config = new DynamoDBMapperConfig(DynamoDBMapperConfig.PaginationLoadingStrategy.EAGER_LOADING);
@@ -80,6 +94,12 @@ public class Tab1Newsfeed extends Fragment{
                             Post element = it.next();
                             posts.add(element);
                         }
+                        */
+                        posts = newsfeedQuery(df.format(new Date()));
+
+
+
+
                         //run UI updates on UI Thread
                         mHostActivity.runOnUiThread(new Runnable() {
                             @Override
@@ -137,4 +157,38 @@ public class Tab1Newsfeed extends Fragment{
             }
         }
     }
+
+    //returns newsfeed query result, sorted by date
+    public ArrayList<PostSkeleton> newsfeedQuery(String maxTimestamp){
+        ArrayList<PostSkeleton> assembledResults = new ArrayList<>();
+        ActivePost queryTemplate = new ActivePost();
+        Condition rangeKeyCondition = new Condition()
+                .withComparisonOperator(ComparisonOperator.LE.toString())
+                .withAttributeValueList(new AttributeValue().withS(maxTimestamp));
+
+        //TODO: eventually do parallel computing with this to send all the queries for all the categories simulatneously
+        //TODO: currently the wait time is long as fuck. at least put a indeterminate progress bar
+        for(int i = 0; i < 24; i++){
+            queryTemplate.setCategory(i);
+            //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
+            DynamoDBQueryExpression queryExpression =
+                    new DynamoDBQueryExpression().withHashKeyValues(queryTemplate).withRangeKeyCondition("time", rangeKeyCondition).withLimit(10);
+            Log.d("Query on Category: ", Integer.toString(i));
+            PaginatedQueryList<ActivePost> queryResults = ((MainContainer)getActivity()).getMapper().query(ActivePost.class, queryExpression);
+            queryResults.loadAllResults();
+            assembledResults.addAll(queryResults);
+        }
+
+        //sort the assembledResults where posts are sorted from more recent to less recent
+        Collections.sort(assembledResults, new Comparator<PostSkeleton>() {
+            //TODO: confirm that this sorts dates where most recent is at top. If not then just flip around o1 and o2: change to o2.getDate().compareTo(o1.getDate())
+            @Override
+            public int compare(PostSkeleton o1, PostSkeleton o2) {
+                return o2.getDate().compareTo(o1.getDate());
+            }
+        });
+
+        return assembledResults;
+    }
+
 }

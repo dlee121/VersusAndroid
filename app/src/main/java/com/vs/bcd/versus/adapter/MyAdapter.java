@@ -13,8 +13,10 @@ import android.widget.TextView;
 
 import com.vs.bcd.versus.OnLoadMoreListener;
 import com.vs.bcd.versus.activity.MainContainer;
+import com.vs.bcd.versus.model.ActivePost;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.model.PostSkeleton;
 
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
@@ -31,11 +33,11 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private OnLoadMoreListener onLoadMoreListener;
     private boolean isLoading;
     private Activity activity;
-    private List<Post> posts;
+    private List<PostSkeleton> posts;
     private int visibleThreshold = 8;
     private int lastVisibleItem, totalItemCount;
 
-    public MyAdapter(RecyclerView recyclerView, List<Post> posts, Activity activity) {
+    public MyAdapter(RecyclerView recyclerView, List<PostSkeleton> posts, Activity activity) {
         this.posts = posts;
         this.activity = activity;
 
@@ -90,7 +92,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             });
 
             //TODO:this is where values are put into the layout, from the post object
-            Post post = posts.get(position);
+            PostSkeleton post = posts.get(position);
             final String postID = post.getPost_id();
             int timeFormat = 0;
             UserViewHolder userViewHolder = (UserViewHolder) holder;

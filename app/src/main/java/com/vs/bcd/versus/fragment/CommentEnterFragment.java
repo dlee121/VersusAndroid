@@ -13,10 +13,15 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.amazonaws.services.dynamodbv2.model.AttributeAction;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
+import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.PostPageAdapter;
 import com.vs.bcd.versus.model.Post;
+import com.vs.bcd.versus.model.PostSkeleton;
 import com.vs.bcd.versus.model.VSComment;
 
 import org.w3c.dom.Text;
@@ -25,6 +30,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
 
 import static android.R.attr.left;
@@ -43,16 +49,17 @@ public class CommentEnterFragment extends Fragment{
     private Button submitButton;
     private RelativeLayout postRef, commentRef;
     private RelativeLayout.LayoutParams postRefLP, commentRefLP;
-    private Post post = null;
+    private PostSkeleton post = null;
     private VSComment subjectComment = null;
     private String parentID = "0";
     private String postID;
+    private String categoryInt;
+    private MainContainer activity;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.comment_enter_fragment , container, false);
-
         questionTV = (TextView)rootView.findViewById(R.id.postquestion);
         vsX = (TextView)rootView.findViewById(R.id.vsx);
         vsY = (TextView)rootView.findViewById(R.id.vsy);
@@ -79,7 +86,36 @@ public class CommentEnterFragment extends Fragment{
                         vsc.setParent_id(parentID);  //TODO: for root/reply check, which would be more efficient, checking if parent_id == "0" or checking parent_id.length() == 1?
                         vsc.setAuthor(((MainContainer)getActivity()).getSessionManager().getCurrentUsername());
                         vsc.setContent(((TextView)(rootView.findViewById(R.id.commentInput))).getText().toString().trim());
-                        ((MainContainer)getActivity()).getMapper().save(vsc);
+                        activity.getMapper().save(vsc);
+
+                        //increment commentcount
+                        HashMap<String, AttributeValue> keyMap = new HashMap<>();
+                        keyMap.put("category", new AttributeValue().withN(categoryInt));  //partition key
+                        keyMap.put("post_id", new AttributeValue().withS(postID));   //sort key
+
+                        HashMap<String, AttributeValueUpdate> updates = new HashMap<>();
+
+                        AttributeValueUpdate avu;
+
+                        avu = new AttributeValueUpdate().withValue(new AttributeValue().withN("1")).withAction(AttributeAction.ADD);
+                        updates.put("commentcount", avu);
+
+                        UpdateItemRequest request = new UpdateItemRequest()
+                                .withTableName("post")
+                                .withKey(keyMap)
+                                .withAttributeUpdates(updates);
+
+                        activity.getDDBClient().updateItem(request);
+
+                        //if(postIsActive){   //TODO: postIsActive = true if we came from an ActivePost, otherwise it's false
+                            //increment commentcount for active_post table as well
+                            UpdateItemRequest request2 = new UpdateItemRequest()
+                                    .withTableName("active_post")
+                                    .withKey(keyMap)
+                                    .withAttributeUpdates(updates);
+
+                            activity.getDDBClient().updateItem(request);
+                        //}
 
                         //UI refresh. two options, one for setting up with post card and one for setting up with comment top card
                         getActivity().runOnUiThread(new Runnable() {
@@ -111,18 +147,20 @@ public class CommentEnterFragment extends Fragment{
             }
         });
 
+        activity = (MainContainer)getActivity();
 
         disableChildViews();
         return rootView;
     }
 
-    public void setContentReplyToPost(String question, String x, String y, Post post){
+    public void setContentReplyToPost(String question, String x, String y, PostSkeleton post){
         questionTV.setText(question);
         vsX.setText(x);
         vsY.setText(y);
         this.post = post;
         parentID = "0";
         postID = post.getPost_id();
+        categoryInt = post.getCategoryIntAsString();
         subjectComment = null;
         showPostRef();
     }
@@ -136,6 +174,7 @@ public class CommentEnterFragment extends Fragment{
         postID = replySubject.getPost_id();
         subjectComment = replySubject;
         post = null;
+        categoryInt = activity.getPostPage().getCatNumString();
         showCommentRef();
     }
 

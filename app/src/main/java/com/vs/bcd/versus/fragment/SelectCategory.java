@@ -122,22 +122,23 @@ public class SelectCategory extends Fragment {
         categories.add(new CategoryObject("Ethics/Morality", R.drawable.goldmedal, 4));
         categories.add(new CategoryObject("Fashion", R.drawable.goldmedal, 5));
         categories.add(new CategoryObject("Fiction", R.drawable.goldmedal, 6));
-        categories.add(new CategoryObject("Food", R.drawable.goldmedal, 7));
-        categories.add(new CategoryObject("Game", R.drawable.goldmedal, 8));
-        categories.add(new CategoryObject("Law", R.drawable.goldmedal, 9));
-        categories.add(new CategoryObject("Movies", R.drawable.goldmedal, 10));
-        categories.add(new CategoryObject("Music/Artists", R.drawable.goldmedal, 11));
-        categories.add(new CategoryObject("Politics", R.drawable.goldmedal, 12));
-        categories.add(new CategoryObject("Porn", R.drawable.goldmedal, 13));
-        categories.add(new CategoryObject("Religion", R.drawable.goldmedal, 14));
-        categories.add(new CategoryObject("Restaurants", R.drawable.goldmedal, 15));
-        categories.add(new CategoryObject("Science", R.drawable.goldmedal, 16));
-        categories.add(new CategoryObject("Sex", R.drawable.goldmedal, 17));
-        categories.add(new CategoryObject("Sports", R.drawable.goldmedal, 18));
-        categories.add(new CategoryObject("Technology", R.drawable.goldmedal, 19));
-        categories.add(new CategoryObject("Travel", R.drawable.goldmedal, 20));
-        categories.add(new CategoryObject("TV Shows", R.drawable.goldmedal, 21));
-        categories.add(new CategoryObject("Weapons", R.drawable.goldmedal, 22));
+        categories.add(new CategoryObject("Finance", R.drawable.goldmedal, 7));
+        categories.add(new CategoryObject("Food", R.drawable.goldmedal, 8));
+        categories.add(new CategoryObject("Game", R.drawable.goldmedal, 9));
+        categories.add(new CategoryObject("Law", R.drawable.goldmedal, 10));
+        categories.add(new CategoryObject("Movies", R.drawable.goldmedal, 11));
+        categories.add(new CategoryObject("Music/Artists", R.drawable.goldmedal, 12));
+        categories.add(new CategoryObject("Politics", R.drawable.goldmedal, 13));
+        categories.add(new CategoryObject("Porn", R.drawable.goldmedal, 14));
+        categories.add(new CategoryObject("Religion", R.drawable.goldmedal, 15));
+        categories.add(new CategoryObject("Restaurants", R.drawable.goldmedal, 16));
+        categories.add(new CategoryObject("Science", R.drawable.goldmedal, 17));
+        categories.add(new CategoryObject("Sex", R.drawable.goldmedal, 18));
+        categories.add(new CategoryObject("Sports", R.drawable.goldmedal, 19));
+        categories.add(new CategoryObject("Technology", R.drawable.goldmedal, 20));
+        categories.add(new CategoryObject("Travel", R.drawable.goldmedal, 21));
+        categories.add(new CategoryObject("TV Shows", R.drawable.goldmedal, 22));
+        categories.add(new CategoryObject("Weapons", R.drawable.goldmedal, 23));
     }
 
     void filter(String text){

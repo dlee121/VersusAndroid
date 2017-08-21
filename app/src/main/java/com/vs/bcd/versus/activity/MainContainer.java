@@ -32,6 +32,7 @@ import com.vs.bcd.versus.fragment.CommentEnterFragment;
 import com.vs.bcd.versus.fragment.PostPage;
 import com.vs.bcd.versus.fragment.SelectCategory;
 import com.vs.bcd.versus.model.Post;
+import com.vs.bcd.versus.model.PostSkeleton;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.fragment.CreatePost;
 import com.vs.bcd.versus.R;
@@ -346,7 +347,7 @@ public class MainContainer extends AppCompatActivity {
     }
 
     //pass post information from MyAdapter CardView click handler, through this helper method, to PostPage fragment
-    public void postClicked(Post post){
+    public void postClicked(PostSkeleton post){
         String temp = postInDownload.get(post.getPost_id());
         if(temp == null || !temp.equals("in progress")){
             postInDownload.put(post.getPost_id(), "in progress");
