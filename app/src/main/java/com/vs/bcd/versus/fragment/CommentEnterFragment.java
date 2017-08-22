@@ -109,7 +109,7 @@ public class CommentEnterFragment extends Fragment{
 
                         //if current post's STL is not expired (STL is still in future), then update commentcount for active_post counterpart as well
                         if(System.currentTimeMillis()/1000 < currSTL){
-                            Log.d("STL", Long.toString(currSTL));
+                            //Log.d("STL", Long.toString(currSTL));
                             request = new UpdateItemRequest()
                                     .withTableName("active_post")
                                     .withKey(keyMap)

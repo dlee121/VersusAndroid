@@ -1080,6 +1080,16 @@ public class PostPage extends Fragment {
 
                         activity.getDDBClient().updateItem(request);
 
+
+                        if(System.currentTimeMillis()/1000 < post.getStl()){
+                            request = new UpdateItemRequest()
+                                    .withTableName("active_post")
+                                    .withKey(keyMap)
+                                    .withAttributeUpdates(updates);
+
+                            activity.getDDBClient().updateItem(request);
+                        }
+
                         //update lastSubmittedVote
                         lastSubmittedVote = currentUserAction.getVotedSide();
 
