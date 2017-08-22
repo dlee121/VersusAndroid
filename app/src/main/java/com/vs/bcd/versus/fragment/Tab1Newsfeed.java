@@ -55,8 +55,9 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
     private RecyclerView recyclerView;
     private final Tab1Newsfeed thisTab = this;
     private int numCategoriesToQuery = 24;  //this may change if user preference or Premium user option dictates removal of certain categories from getting queried and added to Newsfeed
+    private int retrievalLimit = 5;
     SwipeRefreshLayout mSwipeRefreshLayout;
-
+    private boolean initialLoadInProgress = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -69,6 +70,11 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
         // SwipeRefreshLayout
         mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_container_tab1);
         mSwipeRefreshLayout.setOnRefreshListener(this);
+
+        if(initialLoadInProgress){
+            mSwipeRefreshLayout.setRefreshing(true);
+        }
+
 
 
         return rootView;
@@ -94,9 +100,11 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
             }
             else{
                 fragmentSelected = true;
+                initialLoadInProgress = true;
 
                 Runnable runnable = new Runnable() {
                     public void run() {
+
                         /*
                         //DynamoDB calls go here
                         DynamoDBScanExpression scanExpression = new DynamoDBScanExpression();
@@ -127,6 +135,9 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                                 //this is where the list is passed on to adapter
                                 myAdapter = new MyAdapter(recyclerView, posts, mHostActivity);
                                 recyclerView.setAdapter(myAdapter);
+                                initialLoadInProgress = false;
+                                mSwipeRefreshLayout.setRefreshing(false);
+
                                 recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
                                     @Override
                                     public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
@@ -182,7 +193,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                                     .withHashKeyValues(queryTemplate)
                                     .withRangeKeyCondition("time", rangeKeyCondition)
                                     .withScanIndexForward(false)
-                                    .withLimit(5);
+                                    .withLimit(retrievalLimit);
                     Log.d("Query on Category: ", Integer.toString(queryTemplate.getCategory()));
                     /*
                     PaginatedQueryList<ActivePost> queryResults = ((MainContainer)getActivity()).getMapper().query(ActivePost.class, queryExpression);
@@ -192,9 +203,15 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                     ArrayList<ActivePost> queryResults = new ArrayList<ActivePost>(((MainContainer)getActivity()).getMapper().queryPage(ActivePost.class, queryExpression).getResults());
                     assembledResults.addAll(queryResults);
                     //bookmark for the range key for loading more when user scrolls down far enough and triggers "load more action"
-                    if(!queryResults.isEmpty()){
+
+                    if(queryResults.size() < retrievalLimit){
+                        lastEvaluatedTimeKey.put(new Integer(index), "done");
+                    }
+                    else{
+                        //Log.d("Load: ", "retrieved " + Integer.toString(queryResults.size()) + " more items");
                         lastEvaluatedTimeKey.put(new Integer(index), queryResults.get(queryResults.size()-1).getTime());
                     }
+
                     threadCounter.increment();
                 }
             };
@@ -240,6 +257,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
 
             @Override
             protected void onPreExecute() {
+                mSwipeRefreshLayout.setRefreshing(true);
 
             }
 
@@ -252,7 +270,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                     final ThreadCounter threadCounter = new ThreadCounter(0, numCategoriesToQuery, thisTab);
                     for(int i = 0; i <  numCategoriesToQuery; i++){
                         String leTime = lastEvaluatedTimeKey.get(new Integer(i));
-                        if(leTime != null){
+                        if(leTime != null && !(leTime.equals("done"))){
                             final Condition rangeKeyCondition = new Condition()
                                     .withComparisonOperator(ComparisonOperator.LT.toString())
                                     .withAttributeValueList(new AttributeValue().withS(leTime));
@@ -269,16 +287,21 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                                                     .withHashKeyValues(queryTemplate)
                                                     .withRangeKeyCondition("time", rangeKeyCondition)
                                                     .withScanIndexForward(false)
-                                                    .withLimit(5);
+                                                    .withLimit(retrievalLimit);
                                     Log.d("Query on Category: ", Integer.toString(queryTemplate.getCategory()));
 
                                     ArrayList<ActivePost> queryResults = new ArrayList<>(((MainContainer)getActivity()).getMapper().queryPage(ActivePost.class, queryExpression).getResults());
                                     assembledResults.addAll(queryResults);
                                     //bookmark for the range key for loading more when user scrolls down far enough and triggers "load more action"
-                                    if(!queryResults.isEmpty()){
+                                    //if(!queryResults.isEmpty()){
+                                    if(queryResults.size() < retrievalLimit){
+                                        lastEvaluatedTimeKey.put(new Integer(index), "done");
+                                    }
+                                    else{
                                         //Log.d("Load: ", "retrieved " + Integer.toString(queryResults.size()) + " more items");
                                         lastEvaluatedTimeKey.put(new Integer(index), queryResults.get(queryResults.size()-1).getTime());
                                     }
+                                    //}
                                     threadCounter.increment();
                                 }
                             };
@@ -313,14 +336,15 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                         }
                     });
 
-                    mHostActivity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            //if we don't add new materials from the loading operation, prevent future loading by setting nowLoading to true
-                            //otherwise we set nowLoading false so that we can load more posts when conditions are met
-                            nowLoading = !(((MyAdapter)(recyclerView.getAdapter())).addToPostsList(assembledResults));
-                        }
-                    });
+                    //if we don't add new materials from the loading operation, prevent future loading by setting nowLoading to true
+                    //otherwise we set nowLoading false so that we can load more posts when conditions are met
+                    if(!assembledResults.isEmpty()){
+                        posts.addAll(assembledResults);
+                        nowLoading = false;
+                    }
+                    else{
+                        nowLoading = true;
+                    }
 
 
                 } catch (Exception e) {
@@ -340,6 +364,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
             protected void onPostExecute(String result)
             {
                 recyclerView.getAdapter().notifyDataSetChanged();
+                mSwipeRefreshLayout.setRefreshing(false);
             }
         };
         _Task.execute((String[]) null);
