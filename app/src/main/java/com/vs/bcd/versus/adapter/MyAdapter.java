@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +21,7 @@ import com.vs.bcd.versus.model.PostSkeleton;
 
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Date;
 import java.util.Locale;
@@ -261,5 +263,16 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     //TODO: update function intent to launch profile page once profile page is available. For now, it leads to StartScreen.
     public void profileClicked(View view){
         //TODO: implement this for when profile pic is clicked on PostCard
+    }
+
+    public boolean addToPostsList(ArrayList<PostSkeleton> additionalPosts){
+        if(additionalPosts.isEmpty()){
+            return false;
+        }
+        else{
+            posts.addAll(additionalPosts);
+            Log.d("Load", "now posts in adapter has " + Integer.toString(posts.size()) + " items");
+            return true;
+        }
     }
 }

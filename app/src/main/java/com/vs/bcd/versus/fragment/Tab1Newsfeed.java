@@ -1,6 +1,7 @@
 package com.vs.bcd.versus.fragment;
 
 import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -31,6 +33,7 @@ import com.vs.bcd.versus.adapter.MyAdapter;
 import com.vs.bcd.versus.model.ActivePost;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.PostSkeleton;
+import com.vs.bcd.versus.model.ThreadCounter;
 import com.vs.bcd.versus.model.VSComment;
 
 /**
@@ -45,6 +48,12 @@ public class Tab1Newsfeed extends Fragment{
     private View rootView;
     private MainContainer mHostActivity;
     private SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
+    private boolean displayResults = false;
+    private boolean nowLoading = false;
+    private HashMap<Integer, String> lastEvaluatedTimeKey = new HashMap<>();
+    private RecyclerView recyclerView;
+    private final Tab1Newsfeed thisTab = this;
+    private int numCategoriesToQuery = 24;  //this may change if user preference or Premium user option dictates removal of certain categories from getting queried and added to Newsfeed
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -97,7 +106,7 @@ public class Tab1Newsfeed extends Fragment{
                         */
                         posts = newsfeedQuery(df.format(new Date()));
 
-
+                        Log.d("Query on Category: ", "posts set with " + Integer.toString(posts.size()) + " items");
 
 
                         //run UI updates on UI Thread
@@ -105,51 +114,35 @@ public class Tab1Newsfeed extends Fragment{
                             @Override
                             public void run() {
                                 //find view by id and attaching adapter for the RecyclerView
-                                RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler_view);
+                                recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler_view);
 
                                 recyclerView.setLayoutManager(new LinearLayoutManager(mHostActivity));
                                 //this is where the list is passed on to adapter
                                 myAdapter = new MyAdapter(recyclerView, posts, mHostActivity);
                                 recyclerView.setAdapter(myAdapter);
-
-                                //set load more listener for the RecyclerView adapter
-                                myAdapter.setOnLoadMoreListener(new OnLoadMoreListener() {
+                                recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
                                     @Override
-                                    public void onLoadMore() {
+                                    public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                                        LinearLayoutManager layoutManager=LinearLayoutManager.class.cast(recyclerView.getLayoutManager());
+                                        int totalItemCount = layoutManager.getItemCount();
+                                        int lastVisible = layoutManager.findLastVisibleItemPosition();
 
-                                        if (posts.size() <= 3) {
-                        /*
-                        posts.add(null);
-                        myAdapter.notifyItemInserted(posts.size() - 1);
-                        new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                posts.remove(posts.size() - 1);
-                                myAdapter.notifyItemRemoved(posts.size());
-
-                                //Generating more data
-                                int index = posts.size();
-                                int end = index + 10;
-                                for (int i = index; i < end; i++) {
-                                    Contact contact = new Contact();
-                                    contact.setEmail("DevExchanges" + i + "@gmail.com");
-                                    posts.add(contact);
-                                }
-                                myAdapter.notifyDataSetChanged();
-                                myAdapter.setLoaded();
-                            }
-                        }, 1500);
-                        */
-                                        } else {
-                                            Toast.makeText(mHostActivity, "Loading data completed", Toast.LENGTH_SHORT).show();
+                                        boolean endHasBeenReached = lastVisible + 3 >= totalItemCount;  //TODO: increase the integer (loading trigger threshold) as we get more posts, but capping it at 5 is probably sufficient
+                                        if (totalItemCount > 0 && endHasBeenReached) {
+                                            //you have reached to the bottom of your recycler view
+                                            if(!nowLoading){
+                                                nowLoading = true;
+                                                Log.d("Load", "Now Loadin More");
+                                                loadMorePosts();
+                                            }
                                         }
-
                                     }
                                 });
-
-
                             }
                         });
+
+
+
                     }
                 };
                 Thread mythread = new Thread(runnable);
@@ -159,25 +152,62 @@ public class Tab1Newsfeed extends Fragment{
     }
 
     //returns newsfeed query result, sorted by date
-    public ArrayList<PostSkeleton> newsfeedQuery(String maxTimestamp){
-        ArrayList<PostSkeleton> assembledResults = new ArrayList<>();
-        ActivePost queryTemplate = new ActivePost();
-        Condition rangeKeyCondition = new Condition()
-                .withComparisonOperator(ComparisonOperator.LE.toString())
+    private ArrayList<PostSkeleton> newsfeedQuery(String maxTimestamp){
+        final ArrayList<PostSkeleton> assembledResults = new ArrayList<>();
+        final Condition rangeKeyCondition = new Condition()
+                .withComparisonOperator(ComparisonOperator.LT.toString())
                 .withAttributeValueList(new AttributeValue().withS(maxTimestamp));
 
         //TODO: eventually do parallel computing with this to send all the queries for all the categories simulatneously
         //TODO: currently the wait time is long as fuck. at least put a indeterminate progress bar
-        for(int i = 0; i < 24; i++){
-            queryTemplate.setCategory(i);
-            //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
-            DynamoDBQueryExpression queryExpression =
-                    new DynamoDBQueryExpression().withHashKeyValues(queryTemplate).withRangeKeyCondition("time", rangeKeyCondition).withLimit(10);
-            Log.d("Query on Category: ", Integer.toString(i));
-            PaginatedQueryList<ActivePost> queryResults = ((MainContainer)getActivity()).getMapper().query(ActivePost.class, queryExpression);
-            queryResults.loadAllResults();
-            assembledResults.addAll(queryResults);
+
+        final ThreadCounter threadCounter = new ThreadCounter(0, numCategoriesToQuery, this);
+        for(int i = 0; i <  numCategoriesToQuery; i++){
+            final int index = i;
+
+            Runnable runnable = new Runnable() {
+                public void run() {
+                    ActivePost queryTemplate = new ActivePost();
+                    queryTemplate.setCategory(index);
+                    //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
+                    DynamoDBQueryExpression queryExpression =
+                            new DynamoDBQueryExpression()
+                                    .withHashKeyValues(queryTemplate)
+                                    .withRangeKeyCondition("time", rangeKeyCondition)
+                                    .withScanIndexForward(false)
+                                    .withLimit(5);
+                    Log.d("Query on Category: ", Integer.toString(queryTemplate.getCategory()));
+                    /*
+                    PaginatedQueryList<ActivePost> queryResults = ((MainContainer)getActivity()).getMapper().query(ActivePost.class, queryExpression);
+                    queryResults.loadAllResults();
+                    assembledResults.addAll(queryResults);
+                    */
+                    ArrayList<ActivePost> queryResults = new ArrayList<ActivePost>(((MainContainer)getActivity()).getMapper().queryPage(ActivePost.class, queryExpression).getResults());
+                    assembledResults.addAll(queryResults);
+                    //bookmark for the range key for loading more when user scrolls down far enough and triggers "load more action"
+                    if(!queryResults.isEmpty()){
+                        lastEvaluatedTimeKey.put(new Integer(index), queryResults.get(queryResults.size()-1).getTime());
+                    }
+                    threadCounter.increment();
+                }
+            };
+            Thread mythread = new Thread(runnable);
+            mythread.start();
         }
+
+        long end = System.currentTimeMillis() + 10*1000; // 10 seconds * 1000 ms/sec
+        //automatic timeout at 10 seconds to prevent infinite loop
+        while(!displayResults && System.currentTimeMillis() < end){
+
+        }
+        if(displayResults){
+            Log.d("Query on Category: ", "got through");
+        }
+        else{
+            Log.d("Query on Category: ", "loop timeout");
+        }
+
+        displayResults = false;
 
         //sort the assembledResults where posts are sorted from more recent to less recent
         Collections.sort(assembledResults, new Comparator<PostSkeleton>() {
@@ -190,5 +220,228 @@ public class Tab1Newsfeed extends Fragment{
 
         return assembledResults;
     }
+
+    public void yesDisplayResults(){
+        Log.d("Load", "displayResults set to true");
+
+        displayResults = true;
+    }
+
+    private void refreshNewsfeed(){
+
+
+
+        //lastRetrievedTime = assembledResults.get(assembledResults.size()-1).getTime();
+    }
+
+    private void loadMorePosts() {
+
+        AsyncTask<String, String, String> _Task = new AsyncTask<String, String, String>() {
+
+            @Override
+            protected void onPreExecute() {
+
+            }
+
+            @Override
+            protected String doInBackground(String... arg0)
+            {
+                try {
+                    final ArrayList<PostSkeleton> assembledResults = new ArrayList<>();
+
+                    final ThreadCounter threadCounter = new ThreadCounter(0, numCategoriesToQuery, thisTab);
+                    for(int i = 0; i <  numCategoriesToQuery; i++){
+                        String leTime = lastEvaluatedTimeKey.get(new Integer(i));
+                        if(leTime != null){
+                            final Condition rangeKeyCondition = new Condition()
+                                    .withComparisonOperator(ComparisonOperator.LT.toString())
+                                    .withAttributeValueList(new AttributeValue().withS(leTime));
+
+                            final int index = i;
+
+                            Runnable runnable = new Runnable() {
+                                public void run() {
+                                    ActivePost queryTemplate = new ActivePost();
+                                    queryTemplate.setCategory(index);
+                                    //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
+                                    DynamoDBQueryExpression queryExpression =
+                                            new DynamoDBQueryExpression()
+                                                    .withHashKeyValues(queryTemplate)
+                                                    .withRangeKeyCondition("time", rangeKeyCondition)
+                                                    .withScanIndexForward(false)
+                                                    .withLimit(5);
+                                    Log.d("Query on Category: ", Integer.toString(queryTemplate.getCategory()));
+
+                                    ArrayList<ActivePost> queryResults = new ArrayList<>(((MainContainer)getActivity()).getMapper().queryPage(ActivePost.class, queryExpression).getResults());
+                                    assembledResults.addAll(queryResults);
+                                    //bookmark for the range key for loading more when user scrolls down far enough and triggers "load more action"
+                                    if(!queryResults.isEmpty()){
+                                        //Log.d("Load: ", "retrieved " + Integer.toString(queryResults.size()) + " more items");
+                                        lastEvaluatedTimeKey.put(new Integer(index), queryResults.get(queryResults.size()-1).getTime());
+                                    }
+                                    threadCounter.increment();
+                                }
+                            };
+                            Thread mythread = new Thread(runnable);
+                            mythread.start();
+                        }
+                        else {
+                            threadCounter.increment();
+                        }
+                    }
+
+                    long end = System.currentTimeMillis() + 10*1000; // 10 seconds * 1000 ms/sec
+                    //automatic timeout at 10 seconds to prevent infinite loop
+                    while(!displayResults && System.currentTimeMillis() < end){
+
+                    }
+                    if(displayResults){
+                        Log.d("Query on Category: ", "got through");
+                    }
+                    else{
+                        Log.d("Query on Category: ", "loop timeout");
+                    }
+
+                    displayResults = false;
+
+                    //sort the assembledResults where posts are sorted from more recent to less recent
+                    Collections.sort(assembledResults, new Comparator<PostSkeleton>() {
+                        //TODO: confirm that this sorts dates where most recent is at top. If not then just flip around o1 and o2: change to o2.getDate().compareTo(o1.getDate())
+                        @Override
+                        public int compare(PostSkeleton o1, PostSkeleton o2) {
+                            return o2.getDate().compareTo(o1.getDate());
+                        }
+                    });
+
+                    mHostActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            //if we don't add new materials from the loading operation, prevent future loading by setting nowLoading to true
+                            //otherwise we set nowLoading false so that we can load more posts when conditions are met
+                            nowLoading = !(((MyAdapter)(recyclerView.getAdapter())).addToPostsList(assembledResults));
+                        }
+                    });
+
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                return null;
+            }
+            @Override
+            protected void onProgressUpdate(String... values) {
+                // TODO Auto-generated method stub
+                super.onProgressUpdate(values);
+                System.out.println("Progress : "  + values);
+            }
+
+            @Override
+            protected void onPostExecute(String result)
+            {
+                recyclerView.getAdapter().notifyDataSetChanged();
+            }
+        };
+        _Task.execute((String[]) null);
+    }
+
+
+
+
+
+
+
+
+
+
+    private void loadMorePostsLegacy(){
+
+        final ArrayList<PostSkeleton> assembledResults = new ArrayList<>();
+
+
+        //TODO: eventually do parallel computing with this to send all the queries for all the categories simulatneously
+        //TODO: currently the wait time is long as fuck. at least put a indeterminate progress bar
+
+        final ThreadCounter threadCounter = new ThreadCounter(0, numCategoriesToQuery, this);
+        for(int i = 0; i <= numCategoriesToQuery; i++){
+            String leTime = lastEvaluatedTimeKey.get(new Integer(i));
+            if(leTime != null){
+                final Condition rangeKeyCondition = new Condition()
+                        .withComparisonOperator(ComparisonOperator.LT.toString())
+                        .withAttributeValueList(new AttributeValue().withS(leTime));
+
+                final int index = i;
+
+                Runnable runnable = new Runnable() {
+                    public void run() {
+                        ActivePost queryTemplate = new ActivePost();
+                        queryTemplate.setCategory(index);
+                        //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
+                        DynamoDBQueryExpression queryExpression =
+                                new DynamoDBQueryExpression()
+                                        .withHashKeyValues(queryTemplate)
+                                        .withRangeKeyCondition("time", rangeKeyCondition)
+                                        .withScanIndexForward(false)
+                                        .withLimit(5);
+                        Log.d("Query on Category: ", Integer.toString(queryTemplate.getCategory()));
+                    /*
+                    PaginatedQueryList<ActivePost> queryResults = ((MainContainer)getActivity()).getMapper().query(ActivePost.class, queryExpression);
+                    queryResults.loadAllResults();
+                    assembledResults.addAll(queryResults);
+                    */
+                        ArrayList<ActivePost> queryResults = new ArrayList<ActivePost>(((MainContainer)getActivity()).getMapper().queryPage(ActivePost.class, queryExpression).getResults());
+                        assembledResults.addAll(queryResults);
+                        //bookmark for the range key for loading more when user scrolls down far enough and triggers "load more action"
+                        if(!queryResults.isEmpty()){
+                            Log.d("Load: ", "not empty");
+                            lastEvaluatedTimeKey.put(new Integer(index), queryResults.get(queryResults.size()-1).getTime());
+                        }
+                        threadCounter.increment();
+                    }
+                };
+                Thread mythread = new Thread(runnable);
+                mythread.start();
+            }
+            else {
+                threadCounter.increment();
+            }
+        }
+
+        long end = System.currentTimeMillis() + 10*1000; // 10 seconds * 1000 ms/sec
+        //automatic timeout at 10 seconds to prevent infinite loop
+        while(!displayResults && System.currentTimeMillis() < end){
+
+        }
+        if(displayResults){
+            Log.d("Query on Category: ", "got through");
+        }
+        else{
+            Log.d("Query on Category: ", "loop timeout");
+        }
+
+        displayResults = false;
+
+        //sort the assembledResults where posts are sorted from more recent to less recent
+        Collections.sort(assembledResults, new Comparator<PostSkeleton>() {
+            //TODO: confirm that this sorts dates where most recent is at top. If not then just flip around o1 and o2: change to o2.getDate().compareTo(o1.getDate())
+            @Override
+            public int compare(PostSkeleton o1, PostSkeleton o2) {
+                return o2.getDate().compareTo(o1.getDate());
+            }
+        });
+
+
+        mHostActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ((MyAdapter)(recyclerView.getAdapter())).addToPostsList(assembledResults);
+                recyclerView.getAdapter().notifyDataSetChanged();
+            }
+        });
+
+        //nowLoading = false;
+    }
+
+
 
 }
