@@ -1072,6 +1072,12 @@ public class PostPage extends Fragment {
                                     .withAction(AttributeAction.ADD);
                             updates.put(voteToDecrement, avd);
                         }
+                        else {  //decrement == false means this is a new vote, therefore increment votecount
+                            AttributeValueUpdate vcu = new AttributeValueUpdate()
+                                    .withValue(new AttributeValue().withN("1"))
+                                    .withAction(AttributeAction.ADD);
+                            updates.put("votecount", vcu);
+                        }
 
                         UpdateItemRequest request = new UpdateItemRequest()
                                 .withTableName("post")

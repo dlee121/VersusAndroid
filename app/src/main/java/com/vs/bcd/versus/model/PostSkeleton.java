@@ -26,6 +26,7 @@ public class PostSkeleton {
     private String post_id;
     private String redimg; //"default", "s3", "in-app (like emojis. to be implemented later)"
     private String blackimg;
+    private int votecount;
     private int commentcount;
     private long stl;
 
@@ -215,6 +216,14 @@ public class PostSkeleton {
         this.commentcount = commentcount;
     }
 
+    @DynamoDBIndexRangeKey(localSecondaryIndexName = "category-votecount-index", attributeName = "votecount")
+    public int getVotecount(){
+        return votecount;
+    }
+    public void setVotecount(int votecount){
+        this.votecount = votecount;
+    }
+
     @DynamoDBAttribute(attributeName = "stl")
     public long getStl(){
         return stl;
@@ -232,6 +241,7 @@ public class PostSkeleton {
     public PostSkeleton(){
         redcount = 0;
         blackcount = 0;
+        votecount = 0;
         commentcount = 0;
         time = df.format(new Date());
         post_id = UUID.randomUUID().toString(); //generate random UUID as post_id when post is created
