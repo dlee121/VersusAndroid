@@ -275,4 +275,11 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             return true;
         }
     }
+
+    public void refreshPostsList(ArrayList<PostSkeleton> postsIn){
+        posts.clear();
+        posts.addAll(postsIn);
+        Log.d("Refresh", "Now posts has " + Integer.toString(posts.size()) + " items");
+        notifyDataSetChanged();
+    }
 }
