@@ -54,6 +54,7 @@ public class CommentEnterFragment extends Fragment{
     private String parentID = "0";
     private String postID;
     private String categoryInt;
+    private long currSTL;
     private MainContainer activity;
 
     @Override
@@ -104,18 +105,17 @@ public class CommentEnterFragment extends Fragment{
                                 .withTableName("post")
                                 .withKey(keyMap)
                                 .withAttributeUpdates(updates);
-
                         activity.getDDBClient().updateItem(request);
 
-                        //if(postIsActive){   //TODO: postIsActive = true if we came from an ActivePost, otherwise it's false
-                            //increment commentcount for active_post table as well
-                            UpdateItemRequest request2 = new UpdateItemRequest()
+                        //if current post's STL is not expired (STL is still in future), then update commentcount for active_post counterpart as well
+                        if(System.currentTimeMillis()/1000 < currSTL){
+                            Log.d("STL", Long.toString(currSTL));
+                            request = new UpdateItemRequest()
                                     .withTableName("active_post")
                                     .withKey(keyMap)
                                     .withAttributeUpdates(updates);
-
                             activity.getDDBClient().updateItem(request);
-                        //}
+                        }
 
                         //UI refresh. two options, one for setting up with post card and one for setting up with comment top card
                         getActivity().runOnUiThread(new Runnable() {
@@ -161,6 +161,7 @@ public class CommentEnterFragment extends Fragment{
         parentID = "0";
         postID = post.getPost_id();
         categoryInt = post.getCategoryIntAsString();
+        currSTL = post.getStl();
         subjectComment = null;
         showPostRef();
     }
@@ -175,6 +176,7 @@ public class CommentEnterFragment extends Fragment{
         subjectComment = replySubject;
         post = null;
         categoryInt = activity.getPostPage().getCatNumString();
+        currSTL = activity.getPostPage().getCurrPostSTL();
         showCommentRef();
     }
 

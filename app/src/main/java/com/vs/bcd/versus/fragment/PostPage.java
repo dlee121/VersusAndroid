@@ -1148,4 +1148,8 @@ public class PostPage extends Fragment {
     public String getCatNumString(){
         return post.getCategoryIntAsString();
     }
+
+    public long getCurrPostSTL(){
+        return post.getStl();
+    }
 }

@@ -265,6 +265,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         //TODO: implement this for when profile pic is clicked on PostCard
     }
 
+    /*
     public boolean addToPostsList(ArrayList<PostSkeleton> additionalPosts){
         if(additionalPosts.isEmpty()){
             return false;
@@ -282,4 +283,5 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         Log.d("Refresh", "Now posts has " + Integer.toString(posts.size()) + " items");
         notifyDataSetChanged();
     }
+    */
 }
