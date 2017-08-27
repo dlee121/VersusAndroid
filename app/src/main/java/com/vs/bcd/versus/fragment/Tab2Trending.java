@@ -59,6 +59,8 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
     private int retrievalLimit = 5;
     SwipeRefreshLayout mSwipeRefreshLayout;
     private boolean initialLoadInProgress = false;
+    private int vcMultiplier = 1;
+    private int ccMultiplier = 1;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -169,6 +171,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
         final ThreadCounter threadCounter = new ThreadCounter(0, numCategoriesToQuery, this);
         for(int i = 0; i <  numCategoriesToQuery; i++){
             final int index = i;
+            final double currTime = (((System.currentTimeMillis()/1000)/60)/60);    //current time in hours from epoch
 
             Runnable runnable = new Runnable() {
                 public void run() {
@@ -180,7 +183,9 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                                     .withHashKeyValues(queryTemplate)
                                     .withRangeKeyCondition("votecount", rangeKeyCondition)
                                     .withScanIndexForward(false)
+                                    //.withConsistentRead(true)
                                     .withLimit(retrievalLimit);
+
                     Log.d("Query on Category: ", Integer.toString(queryTemplate.getCategory()));
                     /*
                     PaginatedQueryList<ActivePost> queryResults = ((MainContainer)getActivity()).getMapper().query(ActivePost.class, queryExpression);
@@ -192,12 +197,26 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                     assembledResults.addAll(queryResults);
                     //bookmark for the range key for loading more when user scrolls down far enough and triggers "load more action"
 
+                    for(int i = 0; i<queryResults.size(); i++){
+                        Log.d("order", "category: " + queryResults.get(i).getCategoryString() + " votecount: " + Integer.toString(queryResults.get(i).getVotecount()));
+                    }
+
                     if(queryResults.size() < retrievalLimit){
                         lastEvaluatedKeysMap.put(new Integer(index), null);
                     }
                     else{
                         //Log.d("Load: ", "retrieved " + Integer.toString(queryResults.size()) + " more items");
                         lastEvaluatedKeysMap.put(new Integer(index), queryResultPage.getLastEvaluatedKey());
+                    }
+
+                    //calculate and set the popularityVelocity for each retrieved ActivePost object
+                    if(!queryResults.isEmpty()){
+                        for (ActivePost ap : queryResults){
+                            ap.setPopularityVelocity(
+                                    ((ap.getVotecount() * vcMultiplier + ap.getCommentcount() * ccMultiplier))
+                                            / (currTime - (double)((((ap.getDate().getTime())/1000)/60)/60))
+                            );
+                        }
                     }
 
                     threadCounter.increment();
@@ -221,12 +240,19 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
 
         displayResults = false;
 
-        //sort the assembledResults where posts are sorted from more recent to less recent
+        //sort the assembledResults by popularity velocity
         Collections.sort(assembledResults, new Comparator<PostSkeleton>() {
             //TODO: confirm that this sorts dates where most recent is at top. If not then just flip around o1 and o2: change to o2.getDate().compareTo(o1.getDate())
             @Override
             public int compare(PostSkeleton o1, PostSkeleton o2) {
-                return o2.getDate().compareTo(o1.getDate());
+                double result = o2.getPopularityVelocity() - o1.getPopularityVelocity();
+                if(result > 0){
+                    return (int)Math.ceil(result);
+                }
+                if(result < 0){
+                    return (int)Math.floor(result);
+                }
+                return 0;
             }
         });
 
@@ -256,6 +282,8 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                     final ArrayList<PostSkeleton> assembledResults = new ArrayList<>();
 
                     final ThreadCounter threadCounter = new ThreadCounter(0, numCategoriesToQuery, thisTab);
+                    final double currTime = (((System.currentTimeMillis()/1000)/60)/60);    //current time in hours from epoch
+
                     for(int i = 0; i <  numCategoriesToQuery; i++){
                         final Map<String,AttributeValue> leKey = lastEvaluatedKeysMap.get(new Integer(i));
                         if(leKey != null){
@@ -275,8 +303,10 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                                                     .withHashKeyValues(queryTemplate)
                                                     .withRangeKeyCondition("votecount", rangeKeyCondition)
                                                     .withScanIndexForward(false)
+                                                    //.withConsistentRead(true)
                                                     .withLimit(retrievalLimit)
                                                     .withExclusiveStartKey(leKey);
+
                                     Log.d("Query on Category: ", Integer.toString(queryTemplate.getCategory()));
 
                                     QueryResultPage queryResultPage = ((MainContainer)getActivity()).getMapper().queryPage(ActivePost.class, queryExpression);
@@ -291,6 +321,17 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                                         //Log.d("Load: ", "retrieved " + Integer.toString(queryResults.size()) + " more items");
                                         lastEvaluatedKeysMap.put(new Integer(index), queryResultPage.getLastEvaluatedKey());
                                     }
+
+                                    //calculate and set the popularityVelocity for each retrieved ActivePost object
+                                    if(!queryResults.isEmpty()){
+                                        for (ActivePost ap : queryResults){
+                                            ap.setPopularityVelocity(
+                                                    ((ap.getVotecount() * vcMultiplier + ap.getCommentcount() * ccMultiplier))
+                                                            / (currTime - (double)((((ap.getDate().getTime())/1000)/60)/60))
+                                            );
+                                        }
+                                    }
+
                                     //}
                                     threadCounter.increment();
                                 }
@@ -317,12 +358,19 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
 
                     displayResults = false;
 
-                    //sort the assembledResults where posts are sorted from more recent to less recent
+                    //sort the assembledResults by popularity velocity
                     Collections.sort(assembledResults, new Comparator<PostSkeleton>() {
                         //TODO: confirm that this sorts dates where most recent is at top. If not then just flip around o1 and o2: change to o2.getDate().compareTo(o1.getDate())
                         @Override
                         public int compare(PostSkeleton o1, PostSkeleton o2) {
-                            return o2.getDate().compareTo(o1.getDate());
+                            double result = o2.getPopularityVelocity() - o1.getPopularityVelocity();
+                            if(result > 0){
+                                return (int)Math.ceil(result);
+                            }
+                            if(result < 0){
+                                return (int)Math.floor(result);
+                            }
+                            return 0;
                         }
                     });
 
@@ -367,10 +415,10 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
     public void onRefresh() {
 
         // Fetching data from server
-        refreshNewsfeed();
+        refreshTrending();
     }
 
-    private void refreshNewsfeed(){
+    private void refreshTrending(){
         Log.d("Refresh", "Now Refreshing");
         mSwipeRefreshLayout.setRefreshing(true);
         lastEvaluatedKeysMap.clear();

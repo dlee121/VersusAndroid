@@ -29,4 +29,7 @@ public class ActivePost extends PostSkeleton {
         setStl(post.getStl());
     }
 
+
+
+
 }

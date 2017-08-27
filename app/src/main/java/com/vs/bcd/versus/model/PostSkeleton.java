@@ -29,6 +29,7 @@ public class PostSkeleton {
     private int votecount;
     private int commentcount;
     private long stl;
+    private double popularityVelocity = 0;
 
     /***
      * constants representing CATEGORIES
@@ -269,6 +270,14 @@ public class PostSkeleton {
             e.printStackTrace();
         }
         return null;
+    }
+
+    @DynamoDBIgnore
+    public double getPopularityVelocity(){
+        return  popularityVelocity;
+    }
+    public void setPopularityVelocity(double popularityVelocity){
+        this.popularityVelocity = 1000 * popularityVelocity;
     }
 
 }
