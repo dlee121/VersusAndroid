@@ -171,7 +171,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
         final ThreadCounter threadCounter = new ThreadCounter(0, numCategoriesToQuery, this);
         for(int i = 0; i <  numCategoriesToQuery; i++){
             final int index = i;
-            final double currTime = (((System.currentTimeMillis()/1000)/60)/60);    //current time in hours from epoch
+            final double currTime = ((System.currentTimeMillis()/1000)/60);    //current time in minutes from epoch
 
             Runnable runnable = new Runnable() {
                 public void run() {
@@ -196,10 +196,11 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                     ArrayList<ActivePost> queryResults = new ArrayList<ActivePost>(queryResultPage.getResults());
                     assembledResults.addAll(queryResults);
                     //bookmark for the range key for loading more when user scrolls down far enough and triggers "load more action"
-
+                    /*
                     for(int i = 0; i<queryResults.size(); i++){
                         Log.d("order", "category: " + queryResults.get(i).getCategoryString() + " votecount: " + Integer.toString(queryResults.get(i).getVotecount()));
                     }
+                    */
 
                     if(queryResults.size() < retrievalLimit){
                         lastEvaluatedKeysMap.put(new Integer(index), null);
@@ -214,7 +215,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                         for (ActivePost ap : queryResults){
                             ap.setPopularityVelocity(
                                     ((ap.getVotecount() * vcMultiplier + ap.getCommentcount() * ccMultiplier))
-                                            / (currTime - (double)((((ap.getDate().getTime())/1000)/60)/60))
+                                            / (currTime - (double)(((ap.getDate().getTime())/1000)/60))
                             );
                         }
                     }
@@ -282,7 +283,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                     final ArrayList<PostSkeleton> assembledResults = new ArrayList<>();
 
                     final ThreadCounter threadCounter = new ThreadCounter(0, numCategoriesToQuery, thisTab);
-                    final double currTime = (((System.currentTimeMillis()/1000)/60)/60);    //current time in hours from epoch
+                    final double currTime = ((System.currentTimeMillis()/1000)/60);    //current time in minutes from epoch
 
                     for(int i = 0; i <  numCategoriesToQuery; i++){
                         final Map<String,AttributeValue> leKey = lastEvaluatedKeysMap.get(new Integer(i));
@@ -327,7 +328,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                                         for (ActivePost ap : queryResults){
                                             ap.setPopularityVelocity(
                                                     ((ap.getVotecount() * vcMultiplier + ap.getCommentcount() * ccMultiplier))
-                                                            / (currTime - (double)((((ap.getDate().getTime())/1000)/60)/60))
+                                                            / (currTime - (double)(((ap.getDate().getTime())/1000)/60))
                                             );
                                         }
                                     }
