@@ -14,14 +14,14 @@ import com.vs.bcd.versus.activity.MainContainer;
  * Created by dlee on 4/29/17.
  */
 
-public class Tab4Categories extends Fragment {
+public class Tab3Categories extends Fragment {
 
     private MainContainer mHostActivity;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.tab4categories, container, false);
+        View rootView = inflater.inflate(R.layout.tab3categories, container, false);
 
 
         return rootView;

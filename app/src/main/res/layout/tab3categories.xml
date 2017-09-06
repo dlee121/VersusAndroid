@@ -12,6 +12,6 @@
         android:id="@+id/section_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Tab4 categories text"/>
+        android:text="Tab3 categories text"/>
 
 </RelativeLayout>

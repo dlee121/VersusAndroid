@@ -8,10 +8,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -20,8 +18,7 @@ import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.fragment.Tab1Newsfeed;
 import com.vs.bcd.versus.fragment.Tab2Trending;
-import com.vs.bcd.versus.fragment.Tab3RandomVS;
-import com.vs.bcd.versus.fragment.Tab4Categories;
+import com.vs.bcd.versus.fragment.Tab3Categories;
 
 import java.util.ArrayList;
 
@@ -63,8 +60,8 @@ public class MainActivity extends Fragment {
 
         tabLayout.getTabAt(0).setIcon(R.drawable.ic_trending_selected);
         tabLayout.getTabAt(1).setIcon(R.drawable.ic_trending_unselected);
-        tabLayout.getTabAt(2).setIcon(R.drawable.ic_randomvs_unselected);
-        tabLayout.getTabAt(3).setIcon(R.drawable.ic_trending_unselected);
+        tabLayout.getTabAt(2).setIcon(R.drawable.ic_trending_unselected);
+        //tabLayout.getTabAt(3).setIcon(R.drawable.ic_randomvs_unselected);
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -76,12 +73,14 @@ public class MainActivity extends Fragment {
                     case 1: //trending
                         tab.setIcon(R.drawable.ic_trending_selected);
                         break;
-                    case 2: //randomvs
-                        tab.setIcon(R.drawable.ic_randomvs_selected);
-                        break;
-                    case 3: //categories
+                    case 2: //categories
                         tab.setIcon(R.drawable.ic_trending_selected);
                         break;
+                    /*
+                    case 3: //randomvs
+                        tab.setIcon(R.drawable.ic_randomvs_selected);
+                        break;
+                    */
                     default:
                         tab.setIcon(R.drawable.ic_trending_selected);
                         break;
@@ -97,12 +96,14 @@ public class MainActivity extends Fragment {
                     case 1: //trending
                         tab.setIcon(R.drawable.ic_trending_unselected);
                         break;
-                    case 2: //randomvs
-                        tab.setIcon(R.drawable.ic_randomvs_unselected);
-                        break;
-                    case 3: //categories
+                    case 2: //categories
                         tab.setIcon(R.drawable.ic_trending_unselected);
                         break;
+                    /*
+                    case 3: //randomvs
+                        tab.setIcon(R.drawable.ic_randomvs_unselected);
+                        break;
+                    */
                     default:
                         tab.setIcon(R.drawable.ic_trending_unselected);
                         break;
@@ -172,11 +173,13 @@ public class MainActivity extends Fragment {
                     Tab2Trending tab2 = new Tab2Trending();
                     return tab2;
                 case 2:
-                    Tab3RandomVS tab3 = new Tab3RandomVS();
-                    return  tab3;
+                    Tab3Categories tab3 = new Tab3Categories();
+                    return tab3;
+                /*
                 case 3:
-                    Tab4Categories tab4 = new Tab4Categories();
-                    return tab4;
+                    Tab4RandomVS tab4 = new Tab4RandomVS();
+                    return  tab4;
+                */
             /*
                 case 4:
                     Tab5Leaderboard tab5 = new Tab5Leaderboard();
@@ -192,8 +195,8 @@ public class MainActivity extends Fragment {
 
         @Override
         public int getCount() {
-            // Show 4 total pages.
-            return 4;
+            // Show 3 total pages.
+            return 3;
         }
     }
 

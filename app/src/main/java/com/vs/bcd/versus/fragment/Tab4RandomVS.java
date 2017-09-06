@@ -1,23 +1,11 @@
 package com.vs.bcd.versus.fragment;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
-
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapperConfig;
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBScanExpression;
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.PaginatedScanList;
-
-import java.util.ArrayList;
-import java.util.Iterator;
 
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
@@ -26,14 +14,14 @@ import com.vs.bcd.versus.activity.MainContainer;
  * Created by dlee on 4/29/17.
  */
 
-public class Tab3RandomVS extends Fragment {
+public class Tab4RandomVS extends Fragment {
 
     MainContainer mHostActivity;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.tab3randomvs, container, false);
+        View rootView = inflater.inflate(R.layout.tab4randomvs, container, false);
 
 
         return rootView;
