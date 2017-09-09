@@ -214,7 +214,7 @@ public class PostPage extends Fragment {
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
-            ((MainContainer)getActivity()).setToolbarTitleTextForCP();
+            //((MainContainer)getActivity()).setToolbarTitleTextForCP();
             //TODO: get comments from DB, create the comment structure and display it here. Actually we're doing that in setContent() right now
 
             if(rootView != null) {

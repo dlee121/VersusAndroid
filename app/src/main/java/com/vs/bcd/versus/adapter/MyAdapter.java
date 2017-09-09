@@ -192,7 +192,9 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             userViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if(((MainContainer)activity).getMainFrag().getUILifeStatus()){
+                    //if(((MainContainer)activity).getMainFrag().getUILifeStatus())
+
+                    if(((MainContainer)activity).showPost()){
                         ((MainContainer)activity).postClicked(posts.get(position));
                     }
                 }

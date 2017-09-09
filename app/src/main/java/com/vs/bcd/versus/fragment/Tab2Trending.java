@@ -71,7 +71,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
         rootView = inflater.inflate(R.layout.tab2trending, container, false);
         //TODO: need to add categories. maybe a separate categories table where post IDs have rows of categories they are linked with
         //TODO: create, at the right location, list of constant enumeration to represent categories. probably at post creation page, which is for now replaced by sample data creation below
-        mHostActivity.setToolbarTitleTextForTabs("Trending");
+        //mHostActivity.setToolbarTitleTextForTabs("Trending");
 
         // SwipeRefreshLayout
         mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_container_tab2);
@@ -101,7 +101,8 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
 
         if (isVisibleToUser) {
             if(fragmentSelected) {
-                mHostActivity.setToolbarTitleTextForTabs("Trending");
+                //mHostActivity.setToolbarTitleTextForTabs("Trending");
+                //toolbar title text now set in MainActivity addOnTabSelectedListener section
             }
             else{
                 fragmentSelected = true;
@@ -170,9 +171,6 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
         final Condition rangeKeyCondition = new Condition()
                 .withComparisonOperator(ComparisonOperator.GT.toString())
                 .withAttributeValueList(new AttributeValue().withN("-1"));
-
-        //TODO: eventually do parallel computing with this to send all the queries for all the categories simulatneously
-        //TODO: currently the wait time is long as fuck. at least put a indeterminate progress bar
 
         final ThreadCounter threadCounter = new ThreadCounter(0, numCategoriesToQuery, this);
         for(int i = 0; i <  numCategoriesToQuery; i++){

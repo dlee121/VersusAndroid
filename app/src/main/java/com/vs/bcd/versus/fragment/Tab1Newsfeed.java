@@ -68,7 +68,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
         rootView = inflater.inflate(R.layout.tab1newsfeed, container, false);
         //TODO: need to add categories. maybe a separate categories table where post IDs have rows of categories they are linked with
         //TODO: create, at the right location, list of constant enumeration to represent categories. probably at post creation page, which is for now replaced by sample data creation below
-        mHostActivity.setToolbarTitleTextForTabs("Newsfeed");
+        //mHostActivity.setToolbarTitleTextForTabs("Newsfeed");
 
         // SwipeRefreshLayout
         mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_container_tab1);
@@ -98,7 +98,8 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
 
         if (isVisibleToUser) {
             if(fragmentSelected) {
-                mHostActivity.setToolbarTitleTextForTabs("Newsfeed");
+                //mHostActivity.setToolbarTitleTextForTabs("Newsfeed");
+                //toolbar title text now set in MainActivity addOnTabSelectedListener section
             }
             else{
                 fragmentSelected = true;
@@ -182,9 +183,6 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                 .withComparisonOperator(ComparisonOperator.LT.toString())
                 .withAttributeValueList(new AttributeValue().withS(maxTimestamp));
 
-        //TODO: eventually do parallel computing with this to send all the queries for all the categories simulatneously
-        //TODO: currently the wait time is long as fuck. at least put a indeterminate progress bar
-
         final ThreadCounter threadCounter = new ThreadCounter(0, numCategoriesToQuery, this);
         for(int i = 0; i <  numCategoriesToQuery; i++){
             final int index = i;
@@ -200,7 +198,6 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                                     .withRangeKeyCondition("time", rangeKeyCondition)
                                     .withScanIndexForward(false)
                                     .withLimit(retrievalLimit);
-                    Log.d("Query on Category: ", Integer.toString(queryTemplate.getCategory()));
                     /*
                     PaginatedQueryList<ActivePost> queryResults = ((MainContainer)getActivity()).getMapper().query(ActivePost.class, queryExpression);
                     queryResults.loadAllResults();
@@ -217,6 +214,8 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                         //Log.d("Load: ", "retrieved " + Integer.toString(queryResults.size()) + " more items");
                         lastEvaluatedTimeKey.put(new Integer(index), queryResults.get(queryResults.size()-1).getTime());
                     }
+                    Log.d("Query on Category: ", Integer.toString(queryTemplate.getCategory()));
+
 
                     threadCounter.increment();
                 }

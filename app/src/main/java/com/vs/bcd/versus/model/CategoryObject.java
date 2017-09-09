@@ -2,6 +2,10 @@ package com.vs.bcd.versus.model;
 
 import android.util.Log;
 
+import com.vs.bcd.versus.R;
+
+import java.util.ArrayList;
+
 import static android.R.attr.id;
 
 /**

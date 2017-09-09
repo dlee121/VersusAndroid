@@ -18,13 +18,16 @@ import java.util.List;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 
+
 public class CategoriesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private Activity activity;
     private List<CategoryObject> categories;
+    private int createpostORtab3 = 0;   //0 = for CreatePost, 1 = for Tab3Categories
 
-    public CategoriesAdapter(RecyclerView recyclerView, List<CategoryObject> categories, Activity activity) {
+    public CategoriesAdapter(RecyclerView recyclerView, List<CategoryObject> categories, Activity activity, int createpostORtab3) {
         this.categories = categories;
         this.activity = activity;
+        this.createpostORtab3 = createpostORtab3;
     }
 
     @Override
@@ -43,16 +46,39 @@ public class CategoriesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         categoryViewHolder.catIcon.setImageResource(categoryObject.getIconResID());
         categoryViewHolder.catName.setText(categoryObject.getCategoryName());
 
-        //listener for when user clicks on the category they wish to select
-        categoryViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.d("CATEGORY SELECT", "clicked " + categoryObject.getCategoryName() + ", code: " + categoryObject.getCategoryInt());
-                //TODO: this clicked item is the selected category, put that back on to CreatePost category box and navigate back to CreatePost frag
-                ((MainContainer)activity).getCreatePostFragment().setCatSelection(categoryObject.getCategoryName(), categoryObject.getCategoryInt());
-                ((MainContainer)activity).getViewPager().setCurrentItem(2);
-            }
-        });
+
+        switch (createpostORtab3){
+            case 0:
+                //CreatePost listener for when user clicks on the category they wish to select for creating post
+                categoryViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        //Log.d("CATEGORY SELECT", "clicked " + categoryObject.getCategoryName() + ", code: " + categoryObject.getCategoryInt());
+                        ((MainContainer)activity).getCreatePostFragment().setCatSelection(categoryObject.getCategoryName(), categoryObject.getCategoryInt());
+                        ((MainContainer)activity).getViewPager().setCurrentItem(2);
+                    }
+                });
+                break;
+            case 1:
+                //Tab3Categories listener for when user clicks on the category they wish to view posts from
+                categoryViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        //TODO: navigate to CategoryFragment and tell CategoryFragment which category was selected so that the appropriate query can be triggered
+                        //Log.d("CATEGORY SELECT", "clicked " + categoryObject.getCategoryName() + ", code: " + categoryObject.getCategoryInt());
+                        ((MainContainer)activity).getCategoryFragment().categoryQuery(categoryObject.getCategoryInt());
+                        ((MainContainer)activity).setToolbarTitleForCF(categoryObject.getCategoryName());
+                        ((MainContainer)activity).getViewPager().setCurrentItem(6);
+                        ((MainContainer)activity).categoryFragmentIn();
+                        ((MainContainer)activity).setLeftChevron();
+                    }
+                });
+                break;
+            default:
+                break;
+        }
+
+
     }
 
     @Override

@@ -28,9 +28,11 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.vs.bcd.versus.fragment.CategoryFragment;
 import com.vs.bcd.versus.fragment.CommentEnterFragment;
 import com.vs.bcd.versus.fragment.PostPage;
 import com.vs.bcd.versus.fragment.SelectCategory;
+import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.PostSkeleton;
 import com.vs.bcd.versus.model.SessionManager;
@@ -39,6 +41,7 @@ import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.fragment.SearchPage;
 import com.vs.bcd.versus.ViewPagerCustomDuration;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import static android.R.id.edit;
@@ -61,6 +64,7 @@ public class MainContainer extends AppCompatActivity {
     private MainActivity mainActivityFragRef;
     private CreatePost createPost;
     private PostPage postPage;
+    private CategoryFragment categoryFragment;
     private SessionManager sessionManager;
     private CommentEnterFragment commentEnterFragment;
     private AmazonS3 s3;
@@ -69,6 +73,7 @@ public class MainContainer extends AppCompatActivity {
     private ViewPagerCustomDuration mViewPager;
     private DisplayMetrics windowSize;
     private HashMap<String, String> postInDownload = new HashMap<>();
+    private boolean fromCategoryFragment = false;
 
 
 
@@ -85,31 +90,47 @@ public class MainContainer extends AppCompatActivity {
             }
         }
         else {
-            //Log.d("debug", "is not 0");
-            if(mainContainerCurrentItem == 3){  //we're in PostPage
-                //Log.d("debug", "is 1");
-                if(!postPage.isRootLevel()){
-                    //Log.d("debug", "is not root");
-                    postPage.backToParentPage();
-                }
-                else{
-                    //Log.d("debug", "is root");
-                    postPage.writeActionsToDB();
-                    xBmp = null;
-                    yBmp = null;
-                    //postPage.clearList();
+
+            switch(mainContainerCurrentItem){
+                case 3:
+                    //Log.d("debug", "is 1");
+                    if(!postPage.isRootLevel()){
+                        //Log.d("debug", "is not root");
+                        postPage.backToParentPage();
+                    }
+                    else{
+                        //Log.d("debug", "is root");
+                        postPage.writeActionsToDB();
+                        xBmp = null;
+                        yBmp = null;
+                        //postPage.clearList();
+                        if(!fromCategoryFragment){  //not from CategoryFragment, i.e. currently from Newsfeed or Trending
+                            toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                            titleTxtView.setText(lastSetTitle);
+                            mViewPager.setCurrentItem(0);
+                        }
+                        else {  //from CategoryFragment
+                            mViewPager.setCurrentItem(6);
+                        }
+                    }
+                    break;
+                case 5: //currently in SelectCategory for CreatePost
+                    mViewPager.setCurrentItem(2);   //go back to CreatePost
+                    titleTxtView.setText("Create Post");
+                    //TODO: reset fragment instead of leaving it in same state
+                    break;
+                case 6: //currently in CategoryFragment
+                    categoryFragment.clearPosts();
+                    toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                     mViewPager.setCurrentItem(0);
-                }
-            }
-            else if(mainContainerCurrentItem == 5){ //we're in category selection fragment for CreatePost
-                mViewPager.setCurrentItem(2);   //go back to CreatePost
-                titleTxtView.setText("Create Post");
-                //TODO: reset fragment instead of leaving it in same state
-            }
-            else{
-                toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
-                mViewPager.setCurrentItem(0);
-                titleTxtView.setText(lastSetTitle);
+                    categoryFragmentOut();
+                    titleTxtView.setText(lastSetTitle);
+                    break;
+                default:
+                    toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                    mViewPager.setCurrentItem(0);
+                    titleTxtView.setText(lastSetTitle);
+                    break;
             }
         }
     }
@@ -174,12 +195,19 @@ public class MainContainer extends AppCompatActivity {
                         }
                         else{
                             postPage.writeActionsToDB();
-                            toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                             //postPage.clearList();
-                            mViewPager.setCurrentItem(0);
+
+                            if(!fromCategoryFragment){  //not from CategoryFragment, i.e. currently from Newsfeed or Trending
+                                toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                                titleTxtView.setText(lastSetTitle);
+                                mViewPager.setCurrentItem(0);
+                            }
+                            else {  //from CategoryFragment
+                                mViewPager.setCurrentItem(6);
+                            }
+
                             xBmp = null;
                             yBmp = null;
-                            titleTxtView.setText(lastSetTitle);
                         }
                         break;
                     case 4: //commentEnterFragment
@@ -195,7 +223,13 @@ public class MainContainer extends AppCompatActivity {
                         titleTxtView.setText("Create Post");
                         //TODO: reset fragment instead of leaving it in same state
                         break;
-
+                    case 6: //CategoryFragment
+                        toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                        mViewPager.setCurrentItem(0);
+                        categoryFragmentOut();
+                        titleTxtView.setText(lastSetTitle);
+                        categoryFragment.clearPosts();
+                        break;
                     default:
                         break;
                 }
@@ -218,11 +252,12 @@ public class MainContainer extends AppCompatActivity {
         mViewPager = (ViewPagerCustomDuration) findViewById(R.id.container2);
         mViewPager.setScrollDurationFactor(1);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        mViewPager.setOffscreenPageLimit(6);
+        mViewPager.setOffscreenPageLimit(7);
         mViewPager.setPageTransformer(false, new FadePageTransformer());
         //mViewPager.setPageTransformer(false, new NoPageTransformer());
 
         mViewPager.setCurrentItem(0);
+        setToolbarTitleTextForTabs("Newsfeed");
 
         windowSize = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(windowSize);
@@ -241,9 +276,16 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public void setToolbarTitleTextForCP(){
-        titleTxtView.setText("");
+        titleTxtView.setText(lastSetTitle);
     }
 
+    public void setLeftChevron(){
+        toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+    }
+
+    public void setToolbarTitleForCF(String titleForCF){
+        titleTxtView.setText(titleForCF);
+    }
 
     public ImageButton getToolbarButton(){
         return toolbarButtonLeft;
@@ -303,13 +345,16 @@ public class MainContainer extends AppCompatActivity {
                     return commentEnterFragment;
                 case 5:
                     return new SelectCategory();
+                case 6:
+                    categoryFragment = new CategoryFragment();
+                    return categoryFragment;
                 default:
                     return null;
             }
         }
         @Override
         public int getCount() {
-            return 6;
+            return 7;
         }
 
         @Override
@@ -327,6 +372,8 @@ public class MainContainer extends AppCompatActivity {
                     return "COMMENT ENTER PAGE";
                 case 5:
                     return "SELECT CATEGORY";
+                case 6:
+                    return "CATEGORY";
             }
             return null;
         }
@@ -379,6 +426,10 @@ public class MainContainer extends AppCompatActivity {
 
     public PostPage getPostPage(){
         return postPage;
+    }
+
+    public CategoryFragment getCategoryFragment(){
+        return categoryFragment;
     }
 
     public void createButtonPressed(View view){
@@ -450,6 +501,45 @@ public class MainContainer extends AppCompatActivity {
 
     public CreatePost getCreatePostFragment(){
         return createPost;
+    }
+
+    public void setUpCategoriesList(ArrayList<CategoryObject> categories){
+        categories.add(new CategoryObject("Cars", R.drawable.goldmedal, 0));  //TODO: set actual icons, for now gold medal as placeholder
+        categories.add(new CategoryObject("Celebrities", R.drawable.goldmedal, 1));
+        categories.add(new CategoryObject("Culture", R.drawable.goldmedal, 2));
+        categories.add(new CategoryObject("Education", R.drawable.goldmedal, 3));
+        categories.add(new CategoryObject("Ethics/Morality", R.drawable.goldmedal, 4));
+        categories.add(new CategoryObject("Fashion", R.drawable.goldmedal, 5));
+        categories.add(new CategoryObject("Fiction", R.drawable.goldmedal, 6));
+        categories.add(new CategoryObject("Finance", R.drawable.goldmedal, 7));
+        categories.add(new CategoryObject("Food", R.drawable.goldmedal, 8));
+        categories.add(new CategoryObject("Game", R.drawable.goldmedal, 9));
+        categories.add(new CategoryObject("Law", R.drawable.goldmedal, 10));
+        categories.add(new CategoryObject("Movies", R.drawable.goldmedal, 11));
+        categories.add(new CategoryObject("Music/Artists", R.drawable.goldmedal, 12));
+        categories.add(new CategoryObject("Politics", R.drawable.goldmedal, 13));
+        categories.add(new CategoryObject("Porn", R.drawable.goldmedal, 14));
+        categories.add(new CategoryObject("Religion", R.drawable.goldmedal, 15));
+        categories.add(new CategoryObject("Restaurants", R.drawable.goldmedal, 16));
+        categories.add(new CategoryObject("Science", R.drawable.goldmedal, 17));
+        categories.add(new CategoryObject("Sex", R.drawable.goldmedal, 18));
+        categories.add(new CategoryObject("Sports", R.drawable.goldmedal, 19));
+        categories.add(new CategoryObject("Technology", R.drawable.goldmedal, 20));
+        categories.add(new CategoryObject("Travel", R.drawable.goldmedal, 21));
+        categories.add(new CategoryObject("TV Shows", R.drawable.goldmedal, 22));
+        categories.add(new CategoryObject("Weapons", R.drawable.goldmedal, 23));
+    }
+
+    public boolean showPost(){
+        int currFragIndex = mViewPager.getCurrentItem();
+        return (currFragIndex == 0 || currFragIndex == 6);
+    }
+
+    public void categoryFragmentIn(){
+        fromCategoryFragment = true;
+    }
+    public void categoryFragmentOut(){
+        fromCategoryFragment = false;
     }
 
 }

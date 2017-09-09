@@ -195,6 +195,7 @@ public class CreatePost extends Fragment {
                     public void run() {
                         activity.getPostPage().setContent(post, true);
                         activity.getViewPager().setCurrentItem(3);
+                        activity.setToolbarTitleTextForCP();
                         //getActivity().overridePendingTransition(0, 0);
                     }
                 });

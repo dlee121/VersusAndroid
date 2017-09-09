@@ -14,7 +14,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.fragment.Tab1Newsfeed;
 import com.vs.bcd.versus.fragment.Tab2Trending;
@@ -34,11 +33,11 @@ public class MainActivity extends Fragment {
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
-    private DynamoDBMapper mapper;
     private View rootView;
     private boolean childrenFragmentsUIActive = false;
     private ArrayList<View> childViews;
     private LinearLayout tabStrip;
+    private MainContainer mainContainer;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -52,6 +51,8 @@ public class MainActivity extends Fragment {
         mViewPager = (ViewPager) rootView.findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
         mViewPager.setOffscreenPageLimit(4);
+
+        mainContainer = (MainContainer)getActivity();
 
         TabLayout tabLayout = (TabLayout) rootView.findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
@@ -69,12 +70,15 @@ public class MainActivity extends Fragment {
                 switch (tab.getPosition()) {
                     case 0: //newsfeed
                         tab.setIcon(R.drawable.ic_trending_selected);
+                        mainContainer.setToolbarTitleTextForTabs("Newsfeed");
                         break;
                     case 1: //trending
                         tab.setIcon(R.drawable.ic_trending_selected);
+                        mainContainer.setToolbarTitleTextForTabs("Trending");
                         break;
                     case 2: //categories
                         tab.setIcon(R.drawable.ic_trending_selected);
+                        mainContainer.setToolbarTitleTextForTabs("Categories");
                         break;
                     /*
                     case 3: //randomvs
@@ -119,10 +123,10 @@ public class MainActivity extends Fragment {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ((MainContainer)getActivity()).getViewPager().setCurrentItem(2);
-                ((MainContainer)getActivity()).getToolbarTitleText().setText("Create Post");
-                ((MainContainer)getActivity()).getToolbarButton().setImageResource(R.drawable.ic_left_chevron);
-                ((MainContainer)getActivity()).getCreatePostFragment().resetCatSelection();
+                mainContainer.getViewPager().setCurrentItem(2);
+                mainContainer.getToolbarTitleText().setText("Create Post");
+                mainContainer.getToolbarButton().setImageResource(R.drawable.ic_left_chevron);
+                mainContainer.getCreatePostFragment().resetCatSelection();
             }
         });
 
@@ -204,9 +208,6 @@ public class MainActivity extends Fragment {
         return mViewPager;
     }
 
-    public DynamoDBMapper getMapper(){
-        return mapper;
-    }
 
     public boolean getUILifeStatus(){
         return childrenFragmentsUIActive;
