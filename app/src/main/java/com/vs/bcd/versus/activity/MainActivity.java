@@ -8,11 +8,13 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.fragment.Tab1Newsfeed;
@@ -36,6 +38,7 @@ public class MainActivity extends Fragment {
     private View rootView;
     private boolean childrenFragmentsUIActive = false;
     private ArrayList<View> childViews;
+    private ArrayList<ViewGroup.LayoutParams> LPStore;
     private LinearLayout tabStrip;
     private MainContainer mainContainer;
 
@@ -131,8 +134,10 @@ public class MainActivity extends Fragment {
         });
 
         childViews = new ArrayList<>();
+        LPStore = new ArrayList<>();
         for (int i = 0; i<((ViewGroup)rootView).getChildCount(); i++){
             childViews.add(((ViewGroup)rootView).getChildAt(i));
+            LPStore.add(childViews.get(i).getLayoutParams());
         }
 
         return rootView;
@@ -227,7 +232,7 @@ public class MainActivity extends Fragment {
                 disableChildViews();
         }
     }
-
+/*
     public void enableChildViews(){
         tabStrip.setEnabled(true);
         for(int i = 0; i < tabStrip.getChildCount(); i++) {
@@ -249,6 +254,28 @@ public class MainActivity extends Fragment {
             childViews.get(i).setEnabled(false);
             childViews.get(i).setClickable(false);
 
+        }
+    }
+*/
+
+    public void enableChildViews(){
+        /* commented these out since resetCatSelection handles these operations now
+        redimgSet = "default";
+        blackimgSet = "default";
+        */
+        for(int i = 0; i<childViews.size(); i++){
+            childViews.get(i).setEnabled(true);
+            childViews.get(i).setClickable(true);
+            childViews.get(i).setLayoutParams(LPStore.get(i));
+        }
+    }
+
+    public void disableChildViews(){
+        Log.d("disabling", "This many: " + Integer.toString(childViews.size()));
+        for(int i = 0; i<childViews.size(); i++){
+            childViews.get(i).setEnabled(false);
+            childViews.get(i).setClickable(false);
+            childViews.get(i).setLayoutParams(new RelativeLayout.LayoutParams(0,0));
         }
     }
 
