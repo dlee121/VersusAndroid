@@ -74,6 +74,7 @@ public class MainContainer extends AppCompatActivity {
     private DisplayMetrics windowSize;
     private HashMap<String, String> postInDownload = new HashMap<>();
     private boolean fromCategoryFragment = false;
+    private String currentCFTitle = "";
 
 
 
@@ -92,7 +93,19 @@ public class MainContainer extends AppCompatActivity {
         else {
 
             switch(mainContainerCurrentItem){
-                case 3:
+                case 2: //CreatePost
+                    if(!fromCategoryFragment){
+                        mViewPager.setCurrentItem(0);
+                        titleTxtView.setText(lastSetTitle);
+                        toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                    }
+                    else{
+                        mViewPager.setCurrentItem(6);
+                        titleTxtView.setText(currentCFTitle);
+                    }
+                    break;
+
+                case 3:  //PostPage
                     //Log.d("debug", "is 1");
                     if(!postPage.isRootLevel()){
                         //Log.d("debug", "is not root");
@@ -114,11 +127,13 @@ public class MainContainer extends AppCompatActivity {
                         }
                     }
                     break;
+
                 case 5: //currently in SelectCategory for CreatePost
                     mViewPager.setCurrentItem(2);   //go back to CreatePost
                     titleTxtView.setText("Create Post");
                     //TODO: reset fragment instead of leaving it in same state
                     break;
+
                 case 6: //currently in CategoryFragment
                     categoryFragment.clearPosts();
                     toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
@@ -126,6 +141,7 @@ public class MainContainer extends AppCompatActivity {
                     categoryFragmentOut();
                     titleTxtView.setText(lastSetTitle);
                     break;
+
                 default:
                     toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                     mViewPager.setCurrentItem(0);
@@ -179,16 +195,25 @@ public class MainContainer extends AppCompatActivity {
                         mViewPager.setCurrentItem(1);
                         titleTxtView.setText("Search");
                         break;
+
                     case 1: //SearchPage
                         toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                         mViewPager.setCurrentItem(0);
                         titleTxtView.setText(lastSetTitle);
                         break;
+
                     case 2: //CreatePost
-                        toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
-                        mViewPager.setCurrentItem(0);
-                        titleTxtView.setText(lastSetTitle);
+                        if(!fromCategoryFragment){
+                            mViewPager.setCurrentItem(0);
+                            titleTxtView.setText(lastSetTitle);
+                            toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                        }
+                        else{
+                            mViewPager.setCurrentItem(6);
+                            titleTxtView.setText(currentCFTitle);
+                        }
                         break;
+
                     case 3: //PostPage
                         if(!postPage.isRootLevel()){
                             postPage.backToParentPage();
@@ -210,6 +235,7 @@ public class MainContainer extends AppCompatActivity {
                             yBmp = null;
                         }
                         break;
+
                     case 4: //commentEnterFragment
                         mViewPager.setCurrentItem(3);
                         titleTxtView.setText(lastSetTitle);
@@ -218,11 +244,13 @@ public class MainContainer extends AppCompatActivity {
                         yBmp = null;
                         */
                         break;
+
                     case 5: //category selection screen for CreatePost
                         mViewPager.setCurrentItem(2);   //go back to CreatePost
                         titleTxtView.setText("Create Post");
                         //TODO: reset fragment instead of leaving it in same state
                         break;
+
                     case 6: //CategoryFragment
                         toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                         mViewPager.setCurrentItem(0);
@@ -230,6 +258,7 @@ public class MainContainer extends AppCompatActivity {
                         titleTxtView.setText(lastSetTitle);
                         categoryFragment.clearPosts();
                         break;
+
                     default:
                         break;
                 }
@@ -535,11 +564,13 @@ public class MainContainer extends AppCompatActivity {
         return (currFragIndex == 0 || currFragIndex == 6);
     }
 
-    public void categoryFragmentIn(){
+    public void categoryFragmentIn(String currentCFTitle){
         fromCategoryFragment = true;
+        this.currentCFTitle = currentCFTitle;
     }
     public void categoryFragmentOut(){
         fromCategoryFragment = false;
+        this.currentCFTitle = "";
     }
 
 }

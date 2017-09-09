@@ -69,7 +69,7 @@ public class CategoriesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                         ((MainContainer)activity).getCategoryFragment().categoryQuery(categoryObject.getCategoryInt());
                         ((MainContainer)activity).setToolbarTitleForCF(categoryObject.getCategoryName());
                         ((MainContainer)activity).getViewPager().setCurrentItem(6);
-                        ((MainContainer)activity).categoryFragmentIn();
+                        ((MainContainer)activity).categoryFragmentIn(categoryObject.getCategoryName());
                         ((MainContainer)activity).setLeftChevron();
                     }
                 });

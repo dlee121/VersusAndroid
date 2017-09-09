@@ -1,8 +1,10 @@
 package com.vs.bcd.versus.fragment;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
@@ -11,7 +13,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.widget.Button;
+import android.widget.ListAdapter;
 import android.widget.RelativeLayout;
+import android.app.AlertDialog;
+import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -28,6 +34,7 @@ import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
 import com.amazonaws.services.dynamodbv2.model.Condition;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
+import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
 import com.vs.bcd.versus.adapter.MyAdapter;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.PostSkeleton;
@@ -75,6 +82,44 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
         }
         xmlLoaded = true;
 
+        FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fabcf);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mHostActivity.getViewPager().setCurrentItem(2);
+                mHostActivity.getToolbarTitleText().setText("Create Post");
+                mHostActivity.getToolbarButton().setImageResource(R.drawable.ic_left_chevron);
+                mHostActivity.getCreatePostFragment().resetCatSelection();
+            }
+        });
+
+
+        Button sortTypeSelector = (Button) rootView.findViewById(R.id.sort_type_selector);
+        sortTypeSelector.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final String [] items = new String[] {"New", "Popular"};
+                final Integer[] icons = new Integer[] {R.drawable.goldmedal, R.drawable.goldmedal}; //TODO: change these icons to actual ones
+                ListAdapter adapter = new ArrayAdapterWithIcon(getActivity(), items, icons);
+
+                new AlertDialog.Builder(getActivity()).setTitle("Sort by")
+                    .setAdapter(adapter, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int item ) {
+                            switch(item){
+                                case 0: //Sort by New; category-time-index query.
+                                    Log.d("SortType", "sort by time");
+                                    break;
+
+                                case 1: //Sort by Popular; category-votecount-index query.
+                                    Log.d("SortType", "sort by votecount");
+                                    break;
+                            }
+                        }
+                    }).show();
+            }
+        });
+
+
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();
         for (int i = 0; i<((ViewGroup)rootView).getChildCount(); i++){
@@ -82,7 +127,6 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
             LPStore.add(childViews.get(i).getLayoutParams());
         }
         disableChildViews();
-
 
         return rootView;
     }
