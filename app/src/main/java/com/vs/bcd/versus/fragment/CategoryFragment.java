@@ -40,19 +40,15 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
 
     private ArrayList<PostSkeleton> posts = new ArrayList<>();
     private MyAdapter myAdapter;
-    private boolean fragmentSelected = false; //marks if initial loading for this fragment was already done (as in, fragment was already selected once before if true). Used so that we don't load content every time the tab gets selected.
     private View rootView;
     private MainContainer mHostActivity;
     private SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
-    private boolean displayResults = false;
     private boolean nowLoading = false;
     private HashMap<Integer, Map<String,AttributeValue>> lastEvaluatedKeysMap = new HashMap<>();
     private Map<String,AttributeValue> lastEvaluatedKey;
     private RecyclerView recyclerView;
     private int retrievalLimit = 10;    //TODO: play with this number through testing with usecases. for best UX while minimizing cost.
     SwipeRefreshLayout mSwipeRefreshLayout;
-    private int vcMultiplier = 1;
-    private int ccMultiplier = 1;
     //the two booleans below are two-way dependency thing where, if xml loads first, we trigger initial loading animation in setUserVisibleHint (which is triggered when tab becomes visible)
     //and if setUserVisibleHint(true) is triggered before xml loads, then we mark that initial loading in progress and trigger initial loading animation during xml loading in onCreateView
     private boolean initialLoadInProgress = false;

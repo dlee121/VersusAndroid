@@ -34,8 +34,7 @@ public class ThreadCounter {
     }
 
     public void increment(){
-        n.incrementAndGet();
-        if(n.get() == limit){
+        if(n.incrementAndGet() == limit){
             switch (tabNumber){
                 case 1:
                     tab1.yesDisplayResults();
