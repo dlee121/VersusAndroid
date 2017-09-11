@@ -45,7 +45,8 @@
                 android:inputType="textPersonName"
                 android:text=""
                 android:textAlignment="center"
-                android:textColor="@android:color/black" />
+                android:textColor="@android:color/black"
+                android:imeOptions="actionNext"/>
 
         </LinearLayout>
 
@@ -85,12 +86,7 @@
     </LinearLayout>
 
 
-    <Button
-        android:id="@+id/go_to_catselect"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="2"
-        android:text="Select Category" />
+
 
     <EditText
         android:id="@+id/question_in"
@@ -102,6 +98,14 @@
         android:text=""
         android:textAlignment="center"
         android:textColor="@android:color/black" />
+
+    <Button
+        android:id="@+id/go_to_catselect"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2"
+        android:text="Select Category" />
+
 
     <Button
         android:id="@+id/button_create_post"
