@@ -187,8 +187,8 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             userViewHolder.question.setText(post.getQuestion());
             userViewHolder.mainVSText.setText(post.getRedname() + " vs " + post.getBlackname());
             userViewHolder.category.setText(post.getCategoryString());
-            userViewHolder.votecount.setText(Double.toString(post.getPopularityVelocity()) + " PV");
-            //userViewHolder.votecount.setText(Integer.toString(post.getVotecount()) + " votes");
+            //userViewHolder.votecount.setText(Double.toString(post.getPopularityVelocity()) + " PV");
+            userViewHolder.votecount.setText(Integer.toString(post.getVotecount()) + " votes");
             //set CardView onClickListener to go to PostPage fragment with corresponding Post data
             userViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override

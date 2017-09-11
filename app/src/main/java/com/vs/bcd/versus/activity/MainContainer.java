@@ -305,7 +305,12 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public void setToolbarTitleTextForCP(){
-        titleTxtView.setText(lastSetTitle);
+        if(fromCategoryFragment){
+            titleTxtView.setText(currentCFTitle);
+        }
+        else{
+            titleTxtView.setText(lastSetTitle);
+        }
     }
 
     public void setLeftChevron(){

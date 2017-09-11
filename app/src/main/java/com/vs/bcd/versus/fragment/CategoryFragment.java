@@ -17,7 +17,6 @@ import android.widget.Button;
 import android.widget.ListAdapter;
 import android.widget.RelativeLayout;
 import android.app.AlertDialog;
-import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -63,7 +62,9 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
     private int currCategoryInt = 0;
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
-
+    private int NewOrPopular = 0; //0 = New, 1 = Popular
+    private final int NEW = 0;
+    private final int POPULAR = 1;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -108,10 +109,14 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
                             switch(item){
                                 case 0: //Sort by New; category-time-index query.
                                     Log.d("SortType", "sort by time");
+                                    NewOrPopular = NEW;
+                                    refreshCategoryTimeQuery();
                                     break;
 
                                 case 1: //Sort by Popular; category-votecount-index query.
                                     Log.d("SortType", "sort by votecount");
+                                    NewOrPopular = POPULAR;
+                                    refreshCategoryVotecountQuery();
                                     break;
                             }
                         }
@@ -157,8 +162,9 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
     }
 
     //grabs newest posts in the category sorted by time
-    public void categoryQuery(final int categoryInt){
+    public void categoryTimeQuery(final int categoryInt){
         //Log.d("CATFRAG", "category pressed for catfrag");
+        NewOrPopular = NEW;
 
         currCategoryInt = categoryInt;
 
@@ -232,7 +238,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
                                         if(!nowLoading){
                                             nowLoading = true;
                                             Log.d("Load", "Now Loadin More");
-                                            loadMorePosts();
+                                            loadMorePostsByTime();
                                         }
                                     }
                                 }
@@ -248,18 +254,111 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
                         }
                     });
                 }
-
-
-
-
-
             }
         };
         Thread mythread = new Thread(runnable);
         mythread.start();
     }
 
-    private void loadMorePosts() {
+    //grabs newest posts in the category sorted by time
+    public void categoryVotecountQuery(final int categoryInt){
+        //Log.d("CATFRAG", "category pressed for catfrag");
+        NewOrPopular = POPULAR;
+
+        currCategoryInt = categoryInt;
+
+        final Condition rangeKeyCondition = new Condition()
+                .withComparisonOperator(ComparisonOperator.GT.toString())
+                .withAttributeValueList(new AttributeValue().withN("-1"));
+
+        initialLoadInProgress = true;
+        if(xmlLoaded){
+            mSwipeRefreshLayout.setRefreshing(true);
+        }
+
+        Runnable runnable = new Runnable() {
+            public void run() {
+                Post queryTemplate = new Post();
+                queryTemplate.setCategory(currCategoryInt);
+                //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
+                DynamoDBQueryExpression queryExpression =
+                        new DynamoDBQueryExpression()
+                                .withHashKeyValues(queryTemplate)
+                                .withRangeKeyCondition("votecount", rangeKeyCondition)
+                                .withScanIndexForward(false)
+                                //.withConsistentRead(true)
+                                .withLimit(retrievalLimit);
+
+                QueryResultPage queryResultPage = ((MainContainer)getActivity()).getMapper().queryPage(Post.class, queryExpression);
+                ArrayList<Post> queryResults = new ArrayList<>(queryResultPage.getResults());
+
+                if(queryResults.size() < retrievalLimit){
+                    lastEvaluatedKey = null;
+                }
+                else{
+                    lastEvaluatedKey = queryResultPage.getLastEvaluatedKey();
+                }
+
+                if(!queryResults.isEmpty()){
+                    //sort the assembledResults where posts are sorted from more recent to less recent
+                    Collections.sort(queryResults, new Comparator<Post>() {
+                        @Override
+                        public int compare(Post o1, Post o2) {
+                            return o2.getVotecount() - o1.getVotecount();
+                        }
+                    });
+
+                    posts.addAll(queryResults);
+
+                    mHostActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            //find view by id and attaching adapter for the RecyclerView
+                            recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler_view_cf);
+
+                            recyclerView.setLayoutManager(new LinearLayoutManager(mHostActivity));
+                            //this is where the list is passed on to adapter
+                            myAdapter = new MyAdapter(recyclerView, posts, mHostActivity);
+                            recyclerView.setAdapter(myAdapter);
+                            initialLoadInProgress = false;
+                            mSwipeRefreshLayout.setRefreshing(false);
+
+                            recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                                @Override
+                                public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                                    LinearLayoutManager layoutManager=LinearLayoutManager.class.cast(recyclerView.getLayoutManager());
+                                    int totalItemCount = layoutManager.getItemCount();
+                                    int lastVisible = layoutManager.findLastVisibleItemPosition();
+
+                                    boolean endHasBeenReached = lastVisible + 3 >= totalItemCount;  //TODO: increase the integer (loading trigger threshold) as we get more posts, but capping it at 5 is probably sufficient
+                                    if (totalItemCount > 0 && endHasBeenReached) {
+                                        //you have reached to the bottom of your recycler view
+                                        if(!nowLoading){
+                                            nowLoading = true;
+                                            Log.d("Load", "Now Loadin More");
+                                            loadMorePostsByVotecount();
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+                else{
+                    mHostActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mSwipeRefreshLayout.setRefreshing(false);
+                        }
+                    });
+                }
+            }
+        };
+        Thread mythread = new Thread(runnable);
+        mythread.start();
+    }
+
+    private void loadMorePostsByTime() {
 
         AsyncTask<String, String, String> _Task = new AsyncTask<String, String, String>() {
 
@@ -318,6 +417,99 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
                                         }
                                     });
                                     posts.addAll(queryResults);
+                                    nowLoading = false;
+                                }
+                                else {
+                                    nowLoading = true;
+                                }
+                            }
+                        };
+                        Thread mythread = new Thread(runnable);
+                        mythread.start();
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                return null;
+            }
+            @Override
+            protected void onProgressUpdate(String... values) {
+                // TODO Auto-generated method stub
+                super.onProgressUpdate(values);
+                System.out.println("Progress : "  + values);
+            }
+
+            @Override
+            protected void onPostExecute(String result)
+            {
+                recyclerView.getAdapter().notifyDataSetChanged();
+                mSwipeRefreshLayout.setRefreshing(false);
+            }
+        };
+        _Task.execute((String[]) null);
+    }
+
+    private void loadMorePostsByVotecount() {
+
+        AsyncTask<String, String, String> _Task = new AsyncTask<String, String, String>() {
+
+            @Override
+            protected void onPreExecute() {
+                mSwipeRefreshLayout.setRefreshing(true);
+
+            }
+
+            @Override
+            protected String doInBackground(String... arg0)
+            {
+                try {
+
+                    if(lastEvaluatedKey != null){
+                        final Condition rangeKeyCondition = new Condition()
+                                .withComparisonOperator(ComparisonOperator.GT.toString())
+                                .withAttributeValueList(new AttributeValue().withN("-1"));
+
+
+                        Runnable runnable = new Runnable() {
+                            public void run() {
+                                Post queryTemplate = new Post();
+                                queryTemplate.setCategory(currCategoryInt);
+                                //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
+                                DynamoDBQueryExpression queryExpression =
+                                        new DynamoDBQueryExpression()
+                                                .withHashKeyValues(queryTemplate)
+                                                .withRangeKeyCondition("votecount", rangeKeyCondition)
+                                                .withScanIndexForward(false)
+                                                //.withConsistentRead(true)
+                                                .withLimit(retrievalLimit)
+                                                .withExclusiveStartKey(lastEvaluatedKey);
+
+                                //Log.d("Query on Category: ", Integer.toString(queryTemplate.getCategory()));
+
+                                QueryResultPage queryResultPage = ((MainContainer)getActivity()).getMapper().queryPage(Post.class, queryExpression);
+                                ArrayList<Post> queryResults = new ArrayList<>(queryResultPage.getResults());
+                                //bookmark for the range key for loading more when user scrolls down far enough and triggers "load more action"
+
+                                if(queryResults.size() < retrievalLimit){
+                                    lastEvaluatedKey = null;
+                                }
+                                else{
+                                    //Log.d("Load: ", "retrieved " + Integer.toString(queryResults.size()) + " more items");
+                                    lastEvaluatedKey = queryResultPage.getLastEvaluatedKey();
+                                }
+
+                                if(!queryResults.isEmpty()){
+                                    //sort the assembledResults where posts are sorted from more recent to less recent
+                                    Collections.sort(queryResults, new Comparator<Post>() {
+                                        //TODO: confirm that this sorts dates where most recent is at top. If not then just flip around o1 and o2: change to o2.getDate().compareTo(o1.getDate())
+                                        @Override
+                                        public int compare(Post o1, Post o2) {
+                                            return o2.getVotecount() - o1.getVotecount();
+                                        }
+                                    });
+                                    posts.addAll(queryResults);
                                     Log.d("Query on Category: ", Integer.toString(queryResults.size()));
 
                                     nowLoading = false;
@@ -359,22 +551,39 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
      */
     @Override
     public void onRefresh() {
-
-        // Fetching data from server
-        refreshCategoryFragment();
+        switch (NewOrPopular){
+            case NEW:
+                refreshCategoryTimeQuery();
+                break;
+            case POPULAR:
+                refreshCategoryVotecountQuery();
+                break;
+            default:
+                break;
+        }
     }
 
-    private void refreshCategoryFragment(){
+    private void refreshCategoryTimeQuery(){
         Log.d("Refresh", "Now Refreshing");
         //mSwipeRefreshLayout.setRefreshing(true);
         lastEvaluatedKey = null;
         posts.clear();
 
-        categoryQuery(currCategoryInt);
+        categoryTimeQuery(currCategoryInt);
         recyclerView.getAdapter().notifyDataSetChanged();
 
         nowLoading = false;
 
+    }
+
+    private void refreshCategoryVotecountQuery(){
+        lastEvaluatedKey = null;
+        posts.clear();
+
+        categoryVotecountQuery(currCategoryInt);
+        recyclerView.getAdapter().notifyDataSetChanged();
+
+        nowLoading = false;
     }
 
     public void enableChildViews(){

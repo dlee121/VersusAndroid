@@ -23,6 +23,8 @@ import com.vs.bcd.versus.fragment.Tab3Categories;
 
 import java.util.ArrayList;
 
+import static com.vs.bcd.versus.R.id.fab;
+
 public class MainActivity extends Fragment {
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -39,8 +41,10 @@ public class MainActivity extends Fragment {
     private boolean childrenFragmentsUIActive = false;
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
+    private RelativeLayout.LayoutParams fabLP;
     private LinearLayout tabStrip;
     private MainContainer mainContainer;
+    private FloatingActionButton fab;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -82,6 +86,7 @@ public class MainActivity extends Fragment {
                     case 2: //categories
                         tab.setIcon(R.drawable.ic_trending_selected);
                         mainContainer.setToolbarTitleTextForTabs("Categories");
+                        disableCPFab();
                         break;
                     /*
                     case 3: //randomvs
@@ -105,6 +110,7 @@ public class MainActivity extends Fragment {
                         break;
                     case 2: //categories
                         tab.setIcon(R.drawable.ic_trending_unselected);
+                        enableCPFab();
                         break;
                     /*
                     case 3: //randomvs
@@ -122,7 +128,8 @@ public class MainActivity extends Fragment {
             }
         });
 
-        FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fab);
+        fab = (FloatingActionButton) rootView.findViewById(R.id.fab);
+        fabLP = (RelativeLayout.LayoutParams) fab.getLayoutParams();
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -223,8 +230,12 @@ public class MainActivity extends Fragment {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
             childrenFragmentsUIActive = true;
-            if(rootView != null)
+            if(rootView != null){
                 enableChildViews();
+                if(mViewPager.getCurrentItem() == 2){
+                    disableCPFab();
+                }
+            }
         }
         else{
             childrenFragmentsUIActive = false;
@@ -232,31 +243,6 @@ public class MainActivity extends Fragment {
                 disableChildViews();
         }
     }
-/*
-    public void enableChildViews(){
-        tabStrip.setEnabled(true);
-        for(int i = 0; i < tabStrip.getChildCount(); i++) {
-            tabStrip.getChildAt(i).setClickable(true);
-        }
-        for(int i = 0; i<childViews.size(); i++){
-            childViews.get(i).setEnabled(true);
-            childViews.get(i).setClickable(true);
-
-        }
-    }
-
-    public void disableChildViews(){
-        tabStrip.setEnabled(false);
-        for(int i = 0; i < tabStrip.getChildCount(); i++) {
-            tabStrip.getChildAt(i).setClickable(false);
-        }
-        for(int i = 0; i<childViews.size(); i++){
-            childViews.get(i).setEnabled(false);
-            childViews.get(i).setClickable(false);
-
-        }
-    }
-*/
 
     public void enableChildViews(){
         /* commented these out since resetCatSelection handles these operations now
@@ -267,6 +253,7 @@ public class MainActivity extends Fragment {
             childViews.get(i).setEnabled(true);
             childViews.get(i).setClickable(true);
             childViews.get(i).setLayoutParams(LPStore.get(i));
+
         }
     }
 
@@ -277,6 +264,18 @@ public class MainActivity extends Fragment {
             childViews.get(i).setClickable(false);
             childViews.get(i).setLayoutParams(new RelativeLayout.LayoutParams(0,0));
         }
+    }
+
+    private void enableCPFab(){
+        fab.setEnabled(true);
+        fab.setClickable(true);
+        fab.setLayoutParams(fabLP);
+    }
+
+    private void disableCPFab(){
+        fab.setEnabled(false);
+        fab.setClickable(false);
+        fab.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
     }
 
 }

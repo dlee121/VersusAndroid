@@ -2,7 +2,6 @@ package com.vs.bcd.versus.adapter;
 
 import android.app.Activity;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,9 +13,6 @@ import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.R;
 
 import java.util.List;
-
-import de.hdodenhof.circleimageview.CircleImageView;
-
 
 
 public class CategoriesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -66,7 +62,7 @@ public class CategoriesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                     public void onClick(View view) {
                         //TODO: navigate to CategoryFragment and tell CategoryFragment which category was selected so that the appropriate query can be triggered
                         //Log.d("CATEGORY SELECT", "clicked " + categoryObject.getCategoryName() + ", code: " + categoryObject.getCategoryInt());
-                        ((MainContainer)activity).getCategoryFragment().categoryQuery(categoryObject.getCategoryInt());
+                        ((MainContainer)activity).getCategoryFragment().categoryTimeQuery(categoryObject.getCategoryInt());
                         ((MainContainer)activity).setToolbarTitleForCF(categoryObject.getCategoryName());
                         ((MainContainer)activity).getViewPager().setCurrentItem(6);
                         ((MainContainer)activity).categoryFragmentIn(categoryObject.getCategoryName());
