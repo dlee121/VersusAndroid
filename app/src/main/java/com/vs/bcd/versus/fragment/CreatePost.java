@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -20,6 +21,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -131,8 +134,6 @@ public class CreatePost extends Fragment {
             }
         });
 
-
-
         disableChildViews();
 
         return rootView;
@@ -215,11 +216,24 @@ public class CreatePost extends Fragment {
             Log.d("VISIBLE", "CREATE POST VISIBLE");
             if(rootView != null)
                 enableChildViews();
+                InputMethodManager imgr = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                imgr.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
+                rednameET.requestFocus();
         }
         else {
             Log.d("VISIBLE", "CREATE POST GONE");
-            if (rootView != null)
+            if (rootView != null) {
                 disableChildViews();
+
+                // Check if no view has focus:
+                View view = getActivity().getCurrentFocus();
+                if (view != null) {
+                    InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                }
+
+            }
+
         }
     }
 

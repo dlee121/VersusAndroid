@@ -158,6 +158,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
             Log.d("VISIBLE", "SEARCH POST GONE");
             if (rootView != null)
                 disableChildViews();
+
         }
     }
 

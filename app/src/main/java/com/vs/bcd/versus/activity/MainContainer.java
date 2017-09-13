@@ -2,6 +2,8 @@ package com.vs.bcd.versus.activity;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.support.design.widget.TabLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v7.app.AppCompatActivity;
@@ -28,6 +30,8 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
+import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
 import com.vs.bcd.versus.fragment.CategoryFragment;
 import com.vs.bcd.versus.fragment.CommentEnterFragment;
 import com.vs.bcd.versus.fragment.PostPage;
@@ -290,6 +294,59 @@ public class MainContainer extends AppCompatActivity {
 
         windowSize = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(windowSize);
+
+
+
+        AHBottomNavigation bottomNavigation = (AHBottomNavigation) findViewById(R.id.bottom_navigation);
+
+        // Create items
+        AHBottomNavigationItem item1 = new AHBottomNavigationItem("Main", R.drawable.goldmedal);
+        AHBottomNavigationItem item2 = new AHBottomNavigationItem("Leaderboard", R.drawable.goldmedal);
+        AHBottomNavigationItem item3 = new AHBottomNavigationItem("Notifications", R.drawable.goldmedal);
+        AHBottomNavigationItem item4 = new AHBottomNavigationItem("Me", R.drawable.goldmedal);
+
+        // Add items
+        bottomNavigation.addItem(item1);
+        bottomNavigation.addItem(item2);
+        bottomNavigation.addItem(item3);
+        bottomNavigation.addItem(item4);
+
+        // Set background color
+        bottomNavigation.setDefaultBackgroundColor(Color.parseColor("#FEFEFE"));
+
+        //always show tab titles
+        bottomNavigation.setTitleState(AHBottomNavigation.TitleState.ALWAYS_SHOW);
+
+        // Set listeners
+        bottomNavigation.setOnTabSelectedListener(new AHBottomNavigation.OnTabSelectedListener() {
+            @Override
+            public boolean onTabSelected(int position, boolean wasSelected) {
+                switch (position){
+                    case 0: //MainActivity
+                        mViewPager.setCurrentItem(0);
+                        break;
+
+                    case 1: //Leaderboard
+
+                        break;
+
+                    case 2: //Notifications
+
+                        break;
+
+                    case 3: //Me
+
+                        break;
+
+                    default:
+                        break;
+                }
+                return true;
+            }
+        });
+
+        // Set current item programmatically
+        bottomNavigation.setCurrentItem(0);
 
         Log.d("USER_INFO", sessionManager.getUserDetails().get(SessionManager.KEY_USERNAME));
 

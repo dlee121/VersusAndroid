@@ -35,7 +35,6 @@ import com.vs.bcd.versus.fragment.SearchPage;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.User;
 
-import static com.vs.bcd.versus.R.id.editText;
 
 public class SignUp extends AppCompatActivity {
 
