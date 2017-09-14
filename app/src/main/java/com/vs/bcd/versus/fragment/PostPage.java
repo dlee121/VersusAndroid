@@ -930,7 +930,6 @@ public class PostPage extends Fragment {
                                     break;
                             }
 
-
                         }
                     /*
                     else if(!tempString.equals("N")){
