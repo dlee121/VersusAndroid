@@ -87,10 +87,10 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                mHostActivity.getCreatePostFragment().resetCatSelection();
                 mHostActivity.getViewPager().setCurrentItem(2);
                 mHostActivity.getToolbarTitleText().setText("Create Post");
                 mHostActivity.getToolbarButton().setImageResource(R.drawable.ic_left_chevron);
-                mHostActivity.getCreatePostFragment().resetCatSelection();
             }
         });
 

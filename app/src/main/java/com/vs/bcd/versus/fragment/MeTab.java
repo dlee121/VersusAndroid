@@ -12,7 +12,7 @@ import com.vs.bcd.versus.R;
  * Created by dlee on 4/29/17.
  */
 
-public class Tab6Me extends Fragment {
+public class MeTab extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,

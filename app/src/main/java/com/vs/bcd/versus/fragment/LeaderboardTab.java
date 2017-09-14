@@ -14,7 +14,7 @@ import com.vs.bcd.versus.activity.MainContainer;
  * Created by dlee on 4/29/17.
  */
 
-public class Tab4RandomVS extends Fragment {
+public class LeaderboardTab extends Fragment {
 
     MainContainer mHostActivity;
 

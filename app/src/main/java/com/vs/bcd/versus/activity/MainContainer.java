@@ -79,7 +79,7 @@ public class MainContainer extends AppCompatActivity {
     private HashMap<String, String> postInDownload = new HashMap<>();
     private boolean fromCategoryFragment = false;
     private String currentCFTitle = "";
-
+    private AHBottomNavigation bottomNavigation;
 
 
     @Override
@@ -262,6 +262,21 @@ public class MainContainer extends AppCompatActivity {
                         titleTxtView.setText(lastSetTitle);
                         categoryFragment.clearPosts();
                         break;
+                /*
+                    case 7: //LeaderboardTab
+
+                        break;
+
+                    case 8: //NotificationsTab
+
+                        break;
+
+                    case 9: //MeTab
+
+                        break;
+                */
+                    //In cases 7 - 9, we disable the toolbarButtonLeft (Search/Up button), so no need to program them for now.
+
 
                     default:
                         break;
@@ -289,6 +304,63 @@ public class MainContainer extends AppCompatActivity {
         mViewPager.setPageTransformer(false, new FadePageTransformer());
         //mViewPager.setPageTransformer(false, new NoPageTransformer());
 
+        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            public void onPageScrollStateChanged(int state) {}
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
+
+            public void onPageSelected(int position) {
+                // Check if this is the page you want.
+                switch(position){
+                    //We probably only need to account for when the transition between yes-tab / no-tab happens (tabs 0, 2, 3, 6)
+                    //But if it makes no significant performance difference to include all the other tabs, we might as well, to be on safe side especially in case future developments necessitate doing so.
+                    case 0: //MainActivity
+                        enableBottomTabs();
+                        break;
+
+                    case 1: //SearchPage
+                        enableBottomTabs();
+                        break;
+
+                    case 2: //CreatePost
+                        disableBottomTabs();
+                        break;
+
+                    case 3: //PostPage
+                        disableBottomTabs();
+                        break;
+
+                    case 4: //CommentEnterFragment
+                        disableBottomTabs();
+                        break;
+
+                    case 5: //SelectCategory
+                        disableBottomTabs();
+                        break;
+
+                    case 6: //CategoryFragment
+                        enableBottomTabs();
+                        break;
+
+                    case 7: //LeaderboardTab
+                        enableBottomTabs();
+                        break;
+
+                    case 8: //NotificationsTab
+                        enableBottomTabs();
+                        break;
+
+                    case 9: //MeTab
+                        enableBottomTabs();
+                        break;
+
+                    default:
+
+                        break;
+                }
+
+            }
+        });
+
         mViewPager.setCurrentItem(0);
         setToolbarTitleTextForTabs("Newsfeed");
 
@@ -297,7 +369,7 @@ public class MainContainer extends AppCompatActivity {
 
 
 
-        AHBottomNavigation bottomNavigation = (AHBottomNavigation) findViewById(R.id.bottom_navigation);
+        bottomNavigation = (AHBottomNavigation) findViewById(R.id.bottom_navigation);
 
         // Create items
         AHBottomNavigationItem item1 = new AHBottomNavigationItem("Main", R.drawable.goldmedal);
@@ -326,15 +398,15 @@ public class MainContainer extends AppCompatActivity {
                         mViewPager.setCurrentItem(0);
                         break;
 
-                    case 1: //Leaderboard
+                    case 1: //LeaderboardTab
 
                         break;
 
-                    case 2: //Notifications
+                    case 2: //NotificationsTab
 
                         break;
 
-                    case 3: //Me
+                    case 3: //MeTab
 
                         break;
 
@@ -344,6 +416,7 @@ public class MainContainer extends AppCompatActivity {
                 return true;
             }
         });
+        bottomNavigation.setBehaviorTranslationEnabled(false);
 
         // Set current item programmatically
         bottomNavigation.setCurrentItem(0);
@@ -633,6 +706,14 @@ public class MainContainer extends AppCompatActivity {
     public void categoryFragmentOut(){
         fromCategoryFragment = false;
         this.currentCFTitle = "";
+    }
+
+    private void enableBottomTabs(){
+        bottomNavigation.restoreBottomNavigation(false);
+    }
+
+    private void disableBottomTabs(){
+        bottomNavigation.hideBottomNavigation(false);
     }
 
 }

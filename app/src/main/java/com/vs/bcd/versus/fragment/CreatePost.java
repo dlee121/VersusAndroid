@@ -214,11 +214,14 @@ public class CreatePost extends Fragment {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
             Log.d("VISIBLE", "CREATE POST VISIBLE");
-            if(rootView != null)
+            if(rootView != null){
                 enableChildViews();
-                InputMethodManager imgr = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-                imgr.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
-                rednameET.requestFocus();
+                if(currentCategorySelection < 0){
+                    InputMethodManager imgr = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imgr.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
+                    questionET.requestFocus();
+                }
+            }
         }
         else {
             Log.d("VISIBLE", "CREATE POST GONE");

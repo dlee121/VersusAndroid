@@ -88,11 +88,6 @@ public class MainActivity extends Fragment {
                         mainContainer.setToolbarTitleTextForTabs("Categories");
                         disableCPFab();
                         break;
-                    /*
-                    case 3: //randomvs
-                        tab.setIcon(R.drawable.ic_randomvs_selected);
-                        break;
-                    */
                     default:
                         tab.setIcon(R.drawable.ic_trending_selected);
                         break;
@@ -112,11 +107,6 @@ public class MainActivity extends Fragment {
                         tab.setIcon(R.drawable.ic_trending_unselected);
                         enableCPFab();
                         break;
-                    /*
-                    case 3: //randomvs
-                        tab.setIcon(R.drawable.ic_randomvs_unselected);
-                        break;
-                    */
                     default:
                         tab.setIcon(R.drawable.ic_trending_unselected);
                         break;
@@ -133,10 +123,10 @@ public class MainActivity extends Fragment {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                mainContainer.getCreatePostFragment().resetCatSelection();
                 mainContainer.getViewPager().setCurrentItem(2);
                 mainContainer.getToolbarTitleText().setText("Create Post");
                 mainContainer.getToolbarButton().setImageResource(R.drawable.ic_left_chevron);
-                mainContainer.getCreatePostFragment().resetCatSelection();
             }
         });
 
@@ -191,19 +181,6 @@ public class MainActivity extends Fragment {
                 case 2:
                     Tab3Categories tab3 = new Tab3Categories();
                     return tab3;
-                /*
-                case 3:
-                    Tab4RandomVS tab4 = new Tab4RandomVS();
-                    return  tab4;
-                */
-            /*
-                case 4:
-                    Tab5Leaderboard tab5 = new Tab5Leaderboard();
-                    return tab5;
-                case 5:
-                    Tab6Me tab6 = new Tab6Me();
-                    return tab6;
-            */
                 default:
                     return null;
             }
