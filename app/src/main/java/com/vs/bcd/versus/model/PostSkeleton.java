@@ -4,7 +4,9 @@ import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 import java.text.ParseException;
 
@@ -29,7 +31,9 @@ public class PostSkeleton {
     private int votecount;
     private int commentcount;
     private long stl;
-    private double popularityVelocity = 0;
+    private double popularityVelocity = 0;  //May move this to ActivePost if we don't plan on using this for Post as well.
+    private Map<String, String> topcomments;
+
 
     /***
      * constants representing CATEGORIES
@@ -233,6 +237,15 @@ public class PostSkeleton {
         this.stl = stl;
     }
 
+    @DynamoDBAttribute(attributeName = "topcomments")
+    public Map<String, String> getTopcomments(){
+        return topcomments;
+    }
+    public void setTopcomments(Map<String, String> topcomments){
+        this.topcomments = topcomments;
+    }
+
+
     @DynamoDBIgnore
     public String getCategoryIntAsString(){
         return Integer.toString(category);
@@ -240,6 +253,7 @@ public class PostSkeleton {
 
 
     public PostSkeleton(){
+        topcomments = new HashMap<>();
         redcount = 0;
         blackcount = 0;
         votecount = 0;

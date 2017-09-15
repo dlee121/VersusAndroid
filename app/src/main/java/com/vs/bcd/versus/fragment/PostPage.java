@@ -359,14 +359,6 @@ public class PostPage extends Fragment {
 
                 }
 
-                //TODO: vscomment table in ddb is sorted by timestamp. So a parent comment would always come before a reply comment, so sorting the list is not necessary. Confirm this, and think of any case where a reply may come before parent and cause an error while setting its parent due to parent node not yet existing because it was placed after the reply in the list.
-
-                //TODO: obtain a list of comments we want to display here (root comments and upto their grandchildren). while making the list, set VSComment.nestedLevel to 0, 1, or 2 accordingly, for indent.
-                //TODO: then create the recycler view, following Tab1Newsfeed.java's example
-
-            //Below is a debugging algorithm to see if comment structure is correctly built. with indentation to indicate nested level
-            //printNode(firstParentNode, 0);
-
             //iterate through root nodes and populate the vsComments list for use by recycler view (PostPageAdapter)
             if(firstParentNode != null){
                 setCommentList(firstParentNode);
@@ -400,28 +392,7 @@ public class PostPage extends Fragment {
                         public void onLoadMore() {
 
                             if (vsComments.size() <= 3) {
-                    /*
-                    posts.add(null);
-                    PPAdapter.notifyItemInserted(posts.size() - 1);
-                    new Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            posts.remove(posts.size() - 1);
-                            PPAdapter.notifyItemRemoved(posts.size());
 
-                            //Generating more data
-                            int index = posts.size();
-                            int end = index + 10;
-                            for (int i = index; i < end; i++) {
-                                Contact contact = new Contact();
-                                contact.setEmail("DevExchanges" + i + "@gmail.com");
-                                posts.add(contact);
-                            }
-                            PPAdapter.notifyDataSetChanged();
-                            PPAdapter.setLoaded();
-                        }
-                    }, 1500);
-                    */
                             } else {
                                 Toast.makeText(getActivity(), "Loading data completed", Toast.LENGTH_SHORT).show();
                             }

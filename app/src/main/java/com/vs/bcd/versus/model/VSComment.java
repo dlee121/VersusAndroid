@@ -24,6 +24,7 @@ public class VSComment {
     private String parent_id; //UUID of the parent comment that this comment was in response to (use 0 if root comment)
     private String author; //username of the comment's author
     private String content; //the actual content of the comment
+    private int topmedal;   //0=none, 1=bronze, 2=silver, 3=gold
     private int upvotes; //number of upvotes for this comment
     private int downvotes; //number of downvotes for this comment
     private int nestedLevel = 0;    //not used by DB.
@@ -40,6 +41,7 @@ public class VSComment {
         upvotes = 0;
         downvotes = 0;
         uservote = 0;
+        topmedal = 0;
     }
 
     @DynamoDBHashKey(attributeName = "post_id")
@@ -104,6 +106,14 @@ public class VSComment {
     }
     public void setDownvotes(int downvotes) {
         this.downvotes = downvotes;
+    }
+
+    @DynamoDBAttribute(attributeName = "topmedal")
+    public int getTopmedal(){
+        return topmedal;
+    }
+    public void setTopmedal(int topmedal){
+        this.topmedal = topmedal;
     }
 
     @DynamoDBIgnore

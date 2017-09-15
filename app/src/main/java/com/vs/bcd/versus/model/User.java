@@ -1,7 +1,10 @@
 package com.vs.bcd.versus.model;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.unmarshallers.IntegerSetUnmarshaller;
+
+import java.util.HashMap;
+import java.util.Map;
+
 
 /**
  * Created by dlee on 5/29/17.
@@ -17,6 +20,9 @@ public class User {
     private String password;
     private String email = "n/a"; //default value, since dynamodb doesn't want empty strings either email or phone may be unspecified by user
     private String phone = "n/a";
+    private int timecode;
+    private Map<String, String> medalmap;   //<post_id -> g,s,b for gold,silver,bronze
+    private int points;
 
 
     @DynamoDBAttribute(attributeName = "firstname")
@@ -75,17 +81,45 @@ public class User {
         this.phone = phone;
     }
 
+    @DynamoDBAttribute(attributeName = "points")
+    public int getPoints(){
+        return points;
+    }
+    public void setPoints(int points){
+        this.points = points;
+    }
+
+    @DynamoDBAttribute(attributeName = "timecode")
+    public int getTimecode(){
+        return timecode;
+    }
+    public void setTimecode(int timecode){
+        this.timecode = timecode;
+    }
+
+    @DynamoDBAttribute(attributeName = "medalmap")
+    public Map<String, String> getMedalmap(){
+        return medalmap;
+    }
+    public void setMedalmap(Map<String, String> medalmap){
+        this.medalmap = medalmap;
+    }
+
     public User(){
 
     }
 
     public User(String input){
+
         String[] userData = input.split("%");
         firstName = userData[0];
         lastName = userData[1];
         birthday = userData[2];
         username = userData[3];
         password = userData[4];
+        timecode = (int)( ( (System.currentTimeMillis()%10) *2 )%10 ); //possible outputs: 0,2,4,6,8, based on current millisecond from epoch
+        points = 0;
+        medalmap = new HashMap<>();
 
         //finish this thing, then do the write to db, then write session info to sharedpref and we're done with basic signup!
     }
