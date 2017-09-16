@@ -27,6 +27,8 @@ public class VSComment {
     private int topmedal;   //0=none, 1=bronze, 2=silver, 3=gold
     private int upvotes; //number of upvotes for this comment
     private int downvotes; //number of downvotes for this comment
+    private int votesum;    //upvotes - downvotes
+
     private int nestedLevel = 0;    //not used by DB.
     private int uservote = 0; //0 if NOVOTE, 1 if UPVOTE, 2 if DOWNVOTE
     private final int NOVOTE = 0;
@@ -42,6 +44,7 @@ public class VSComment {
         downvotes = 0;
         uservote = 0;
         topmedal = 0;
+        votesum = 0;
     }
 
     @DynamoDBHashKey(attributeName = "post_id")
@@ -52,7 +55,7 @@ public class VSComment {
         this.post_id = post_id;
     }
 
-    @DynamoDBRangeKey(attributeName = "timestamp")
+    @DynamoDBIndexRangeKey(localSecondaryIndexName = "post_id-timestamp-index", attributeName = "timestamp")
     public String getTimestamp() {
         return timestamp;
     }
@@ -60,7 +63,7 @@ public class VSComment {
         this.timestamp = timestamp;
     }
 
-    @DynamoDBAttribute(attributeName = "comment_id")
+    @DynamoDBRangeKey(attributeName = "comment_id")
     public String getComment_id() {
         return comment_id;
     }
@@ -114,6 +117,14 @@ public class VSComment {
     }
     public void setTopmedal(int topmedal){
         this.topmedal = topmedal;
+    }
+
+    @DynamoDBIndexRangeKey(localSecondaryIndexName = "post_id-votesum-index", attributeName = "votesum")
+    public int getVotesum(){
+        return votesum;
+    }
+    public void setVotesum(int votesum){
+        this.votesum = votesum;
     }
 
     @DynamoDBIgnore

@@ -2,7 +2,9 @@ package com.vs.bcd.versus.model;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -23,6 +25,8 @@ public class User {
     private int timecode;
     private Map<String, String> medalmap;   //<post_id -> g,s,b for gold,silver,bronze
     private int points;
+    private List<String> posts; //holds post_id UUIDs of posts created by this user
+    private List<String> comments; //holds comment_id UUIDs of comments created by this user
 
 
     @DynamoDBAttribute(attributeName = "firstname")
@@ -81,7 +85,7 @@ public class User {
         this.phone = phone;
     }
 
-    @DynamoDBAttribute(attributeName = "points")
+    @DynamoDBIndexRangeKey(globalSecondaryIndexName = "timecode-points-index", attributeName = "points")
     public int getPoints(){
         return points;
     }
@@ -89,7 +93,7 @@ public class User {
         this.points = points;
     }
 
-    @DynamoDBAttribute(attributeName = "timecode")
+    @DynamoDBIndexHashKey(globalSecondaryIndexName = "timecode-points-index", attributeName = "timecode")
     public int getTimecode(){
         return timecode;
     }
@@ -105,6 +109,22 @@ public class User {
         this.medalmap = medalmap;
     }
 
+    @DynamoDBAttribute(attributeName = "posts")
+    public List<String> getPosts(){
+        return posts;
+    }
+    public void setPosts(List<String> posts){
+        this.posts = posts;
+    }
+
+    @DynamoDBAttribute(attributeName = "comments")
+    public List<String> getComments(){
+        return comments;
+    }
+    public void setComments(List<String> comments){
+        this.comments = comments;
+    }
+
     public User(){
 
     }
@@ -117,9 +137,11 @@ public class User {
         birthday = userData[2];
         username = userData[3];
         password = userData[4];
-        timecode = (int)( ( (System.currentTimeMillis()%10) *2 )%10 ); //possible outputs: 0,2,4,6,8, based on current millisecond from epoch
+        timecode = (int)(System.currentTimeMillis()%10); //possible outputs: 0,1,2,3,4,5,6,7,8,9 based on current millisecond from epoch
         points = 0;
         medalmap = new HashMap<>();
+        posts = new ArrayList<>();
+        comments = new ArrayList<>();
 
         //finish this thing, then do the write to db, then write session info to sharedpref and we're done with basic signup!
     }

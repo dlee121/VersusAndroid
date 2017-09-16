@@ -37,8 +37,14 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
+import com.amazonaws.services.dynamodbv2.model.AttributeAction;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
+import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -49,6 +55,8 @@ import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.model.Post;
+
+import static com.amazonaws.auth.policy.actions.DynamoDBv2Actions.UpdateItem;
 
 /**
  * Created by dlee on 5/19/17.
@@ -185,11 +193,25 @@ public class CreatePost extends Fragment {
                 post.setQuestion(questiongStr);
                 post.setRedimg(redimgSet);
                 post.setBlackimg(blackimgSet);
-                ((MainContainer)getActivity()).getMapper().save(post);
+                activity.getMapper().save(post);
 
                 //create activePost, an entry into the ActivePost table, since this is a new post.
                 final ActivePost activePost = new ActivePost(post);
-                ((MainContainer)getActivity()).getMapper().save(activePost);
+                activity.getMapper().save(activePost);
+
+                //TODO: update DB User.posts list with the new postID String
+
+                UpdateItemRequest request = new UpdateItemRequest();
+                request.withTableName("user")
+                        .withKey(Collections.singletonMap("username",
+                            new AttributeValue().withS(activity.getUsername())))
+                        .withUpdateExpression("SET posts = list_append(posts, :val)")
+                        .withExpressionAttributeValues(
+                            Collections.singletonMap(":val",
+                                new AttributeValue().withL(new AttributeValue().withS(post.getPost_id()))
+                            )
+                        );
+                activity.getDDBClient().updateItem(request);
 
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
@@ -198,6 +220,7 @@ public class CreatePost extends Fragment {
                         activity.getViewPager().setCurrentItem(3);
                         activity.setToolbarTitleTextForCP();
                         //getActivity().overridePendingTransition(0, 0);
+                        activity.updateUserLocalPostsList(post.getPost_id());   //update local copy of User posts list
                     }
                 });
             }

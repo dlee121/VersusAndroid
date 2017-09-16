@@ -80,6 +80,7 @@ public class MainContainer extends AppCompatActivity {
     private boolean fromCategoryFragment = false;
     private String currentCFTitle = "";
     private AHBottomNavigation bottomNavigation;
+    private int userTimecode = -1;
 
 
     @Override
@@ -169,6 +170,8 @@ public class MainContainer extends AppCompatActivity {
         ddbClient = new AmazonDynamoDBClient(credentialsProvider);
         mapper = new DynamoDBMapper(ddbClient);
         s3 = new AmazonS3Client(credentialsProvider);
+
+        userTimecode = sessionManager.getUserTimecode();
 
 
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
@@ -714,6 +717,22 @@ public class MainContainer extends AppCompatActivity {
 
     private void disableBottomTabs(){
         bottomNavigation.hideBottomNavigation(false);
+    }
+
+    public int getUserTimecode(){
+        return userTimecode;
+    }
+
+    public String getUsername(){
+        return sessionManager.getCurrentUsername();
+    }
+
+    public void updateUserLocalPostsList(String entry){
+        sessionManager.updateUserLocalPostsList(entry);
+    }
+
+    public void updateUserLocalCommentsList(String entry){
+        sessionManager.updateUserLocalCommentsList(entry);
     }
 
 }

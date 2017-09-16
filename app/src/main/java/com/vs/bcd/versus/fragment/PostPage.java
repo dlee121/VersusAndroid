@@ -86,6 +86,7 @@ public class PostPage extends Fragment {
     private Map<String, String> actionHistoryMap;
     private int origRedCount, origBlackCount;
     private String lastSubmittedVote = "none";
+    private boolean updateDuty = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -274,7 +275,6 @@ public class PostPage extends Fragment {
     }
 */
     public void setContent(final PostSkeleton post, final boolean downloadImages){
-
         Log.d("Debug", "setContent called");
         postID = post.getPost_id();
 
@@ -286,6 +286,9 @@ public class PostPage extends Fragment {
         origBlackCount = post.getBlackcount();
         redIncrementedLast = false;
         blackIncrementedLast = false;
+
+        setUpdateDuty();    //determines if this user will have the update duty; authority to detect comment upgrade events and make DB updates accordingly
+
         Runnable runnable = new Runnable() {
             public void run() {
                 if(currentUserAction == null || !currentUserAction.getPostID().equals(postID)){
@@ -1138,4 +1141,17 @@ public class PostPage extends Fragment {
     public long getCurrPostSTL(){
         return post.getStl();
     }
+
+    private void setUpdateDuty(){
+        updateDuty = ( activity.getUserTimecode() == (int)(System.currentTimeMillis()%10) || activity.getUsername().equals(post.getAuthor()) );
+        if(updateDuty){
+            Log.d("UPDATEDUTY", "on duty");
+        }
+        else{
+            Log.d("UPDATEDUTY", "not on duty");
+        }
+    }
+
+
+
 }
