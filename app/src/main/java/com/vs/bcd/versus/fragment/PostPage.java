@@ -40,6 +40,7 @@ import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+import static android.content.ContentValues.TAG;
 import static com.vs.bcd.versus.adapter.PostPageAdapter.DOWNVOTE;
 import static com.vs.bcd.versus.adapter.PostPageAdapter.NOVOTE;
 import static com.vs.bcd.versus.adapter.PostPageAdapter.UPVOTE;
@@ -275,6 +276,20 @@ public class PostPage extends Fragment {
     }
 */
     public void setContent(final PostSkeleton post, final boolean downloadImages){
+        /*  Local postsList and commentsList contents check section
+            //used to check local lists against DB.User version to test list setup/modification
+
+            ArrayList<String> testPostsList = activity.getUserPostsList();
+            ArrayList<String> testCommentsList = activity.getUserCommentsList();
+            for(int i = 0; i<testPostsList.size();i++){
+                Log.d("listtest posts", testPostsList.get(i));
+            }
+            for(int i = 0; i<testCommentsList.size();i++){
+                Log.d("listtest comments", testCommentsList.get(i));
+            }
+        */
+
+
         Log.d("Debug", "setContent called");
         postID = post.getPost_id();
 

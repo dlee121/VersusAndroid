@@ -47,6 +47,7 @@ import com.vs.bcd.versus.ViewPagerCustomDuration;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import static android.R.id.edit;
 import static com.amazonaws.regions.ServiceAbbreviations.S3;
@@ -725,6 +726,14 @@ public class MainContainer extends AppCompatActivity {
 
     public String getUsername(){
         return sessionManager.getCurrentUsername();
+    }
+
+    public ArrayList<String> getUserPostsList(){
+        return sessionManager.getUserPostsList();
+    }
+
+    public ArrayList<String> getUserCommentsList(){
+        return sessionManager.getUserCommentsList();
     }
 
     public void updateUserLocalPostsList(String entry){

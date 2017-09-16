@@ -199,10 +199,9 @@ public class CreatePost extends Fragment {
                 final ActivePost activePost = new ActivePost(post);
                 activity.getMapper().save(activePost);
 
-                //TODO: update DB User.posts list with the new postID String
-
-                UpdateItemRequest request = new UpdateItemRequest();
-                request.withTableName("user")
+                //update DB User.posts list with the new postID String
+                UpdateItemRequest postslistUpdateRequest = new UpdateItemRequest();
+                postslistUpdateRequest.withTableName("user")
                         .withKey(Collections.singletonMap("username",
                             new AttributeValue().withS(activity.getUsername())))
                         .withUpdateExpression("SET posts = list_append(posts, :val)")
@@ -211,16 +210,16 @@ public class CreatePost extends Fragment {
                                 new AttributeValue().withL(new AttributeValue().withS(post.getPost_id()))
                             )
                         );
-                activity.getDDBClient().updateItem(request);
+                activity.getDDBClient().updateItem(postslistUpdateRequest);
 
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        activity.updateUserLocalPostsList(post.getPost_id());   //update local copy of User posts list
                         activity.getPostPage().setContent(post, true);
                         activity.getViewPager().setCurrentItem(3);
                         activity.setToolbarTitleTextForCP();
                         //getActivity().overridePendingTransition(0, 0);
-                        activity.updateUserLocalPostsList(post.getPost_id());   //update local copy of User posts list
                     }
                 });
             }

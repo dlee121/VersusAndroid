@@ -29,6 +29,7 @@ import org.w3c.dom.Text;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -82,7 +83,7 @@ public class CommentEnterFragment extends Fragment{
                 //TODO: form validation (although most strings should be acceptable as comments anyway)
                 Runnable runnable = new Runnable() {
                     public void run() {
-                        VSComment vsc = new VSComment();
+                        final VSComment vsc = new VSComment();
                         vsc.setPost_id(postID);
                         vsc.setParent_id(parentID);  //TODO: for root/reply check, which would be more efficient, checking if parent_id == "0" or checking parent_id.length() == 1?
                         vsc.setAuthor(((MainContainer)getActivity()).getSessionManager().getCurrentUsername());
@@ -117,10 +118,25 @@ public class CommentEnterFragment extends Fragment{
                             activity.getDDBClient().updateItem(request);
                         }
 
+                        //update DB User.posts list with the new postID String
+                        UpdateItemRequest commentsListUpdateRequest = new UpdateItemRequest();
+                        commentsListUpdateRequest.withTableName("user")
+                                .withKey(Collections.singletonMap("username",
+                                        new AttributeValue().withS(activity.getUsername())))
+                                .withUpdateExpression("SET comments = list_append(comments, :val)")
+                                .withExpressionAttributeValues(
+                                        Collections.singletonMap(":val",
+                                                new AttributeValue().withL(new AttributeValue().withS(vsc.getComment_id()))
+                                        )
+                                );
+                        activity.getDDBClient().updateItem(commentsListUpdateRequest);
+
                         //UI refresh. two options, one for setting up with post card and one for setting up with comment top card
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
+
+                                activity.updateUserLocalCommentsList(vsc.getComment_id());   //update local copy of User comments list
 
                                 PostPage postPage = ((MainContainer)getActivity()).getPostPage();
                                 PostPageAdapter m_adapter = postPage.getPPAdapter();
