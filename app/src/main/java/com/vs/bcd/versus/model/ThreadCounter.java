@@ -2,6 +2,7 @@ package com.vs.bcd.versus.model;
 
 import android.util.Log;
 
+import com.vs.bcd.versus.fragment.PostPage;
 import com.vs.bcd.versus.fragment.Tab1Newsfeed;
 import com.vs.bcd.versus.fragment.Tab2Trending;
 
@@ -18,6 +19,7 @@ public class ThreadCounter {
     private int tabNumber = 0;
     private Tab1Newsfeed tab1;
     private Tab2Trending tab2;
+    private PostPage postPage;
 
     public ThreadCounter (int n, int limit, Tab1Newsfeed tab1){
         this.n = new AtomicInteger(n);
@@ -33,6 +35,13 @@ public class ThreadCounter {
         tabNumber = 2;
     }
 
+    public ThreadCounter (int n, int limit, PostPage postPage){
+        this.n = new AtomicInteger(n);
+        this.limit = limit;
+        this.postPage = postPage;
+        tabNumber = 3;
+    }
+
     public void increment(){
         if(n.incrementAndGet() == limit){
             switch (tabNumber){
@@ -41,6 +50,9 @@ public class ThreadCounter {
                     break;
                 case 2:
                     tab2.yesDisplayResults();
+                    break;
+                case 3:
+                    postPage.yesExitLoop();
                     break;
                 default:
                     break;

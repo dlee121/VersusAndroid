@@ -228,7 +228,7 @@ public class MainContainer extends AppCompatActivity {
                         }
                         else{
                             postPage.writeActionsToDB();
-                            //postPage.clearList();
+                            postPage.clearList();
 
                             if(!fromCategoryFragment){  //not from CategoryFragment, i.e. currently from Newsfeed or Trending
                                 toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);

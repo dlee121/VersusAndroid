@@ -55,7 +55,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
     private RecyclerView recyclerView;
     private final Tab1Newsfeed thisTab = this;
     private int numCategoriesToQuery = 24;  //this may change if user preference or Premium user option dictates removal of certain categories from getting queried and added to Newsfeed
-    private int retrievalLimit = 5;
+    private int retrievalLimit = 10;
     SwipeRefreshLayout mSwipeRefreshLayout;
     //the two booleans below are two-way dependency thing where, if xml loads first, we trigger initial loading animation in setUserVisibleHint (which is triggered when tab becomes visible)
     //and if setUserVisibleHint(true) is triggered before xml loads, then we mark that initial loading in progress and trigger initial loading animation during xml loading in onCreateView

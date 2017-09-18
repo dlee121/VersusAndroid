@@ -56,7 +56,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
     private RecyclerView recyclerView;
     private final Tab2Trending thisTab = this;
     private int numCategoriesToQuery = 24;  //this may change if user preference or Premium user option dictates removal of certain categories from getting queried and added to Newsfeed
-    private int retrievalLimit = 5;
+    private int retrievalLimit = 10;
     SwipeRefreshLayout mSwipeRefreshLayout;
     private int vcMultiplier = 1;
     private int ccMultiplier = 1;

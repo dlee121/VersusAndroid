@@ -109,6 +109,10 @@ public class VSCNode {
         return nodeContent;
     }
 
+    public void setNestedLevel(int level){
+        nodeContent.setNestedLevel(level);
+    }
+
     public String getTimestamp(){
         return nodeContent.getTimestamp();
     }

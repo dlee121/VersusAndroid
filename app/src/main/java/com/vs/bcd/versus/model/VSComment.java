@@ -18,10 +18,10 @@ import java.util.UUID;
 @DynamoDBTable(tableName = "vscomment")
 public class VSComment {
 
+    private String parent_id; //UUID of the parent comment that this comment was in response to (use 0 if root comment)
     private String post_id; //UUID of the post this comment belongs to
     private String timestamp; //timestamp of when the comment was made
     private String comment_id; //UUID for this comment
-    private String parent_id; //UUID of the parent comment that this comment was in response to (use 0 if root comment)
     private String author; //username of the comment's author
     private String content; //the actual content of the comment
     private int topmedal;   //0=none, 1=bronze, 2=silver, 3=gold
@@ -47,20 +47,12 @@ public class VSComment {
         votesum = 0;
     }
 
-    @DynamoDBHashKey(attributeName = "post_id")
-    public String getPost_id() {
-        return post_id;
+    @DynamoDBHashKey(attributeName = "parent_id")
+    public String getParent_id() {
+        return parent_id;
     }
-    public void setPost_id(String post_id) {
-        this.post_id = post_id;
-    }
-
-    @DynamoDBIndexRangeKey(localSecondaryIndexName = "post_id-timestamp-index", attributeName = "timestamp")
-    public String getTimestamp() {
-        return timestamp;
-    }
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
+    public void setParent_id(String parent_id) {
+        this.parent_id = parent_id;
     }
 
     @DynamoDBRangeKey(attributeName = "comment_id")
@@ -71,12 +63,20 @@ public class VSComment {
         this.comment_id = comment_id;
     }
 
-    @DynamoDBAttribute(attributeName = "parent_id")
-    public String getParent_id() {
-        return parent_id;
+    @DynamoDBAttribute(attributeName = "post_id")
+    public String getPost_id() {
+        return post_id;
     }
-    public void setParent_id(String parent_id) {
-        this.parent_id = parent_id;
+    public void setPost_id(String post_id) {
+        this.post_id = post_id;
+    }
+
+    @DynamoDBIndexRangeKey(localSecondaryIndexName = "parent_id-timestamp-index", attributeName = "timestamp")
+    public String getTimestamp() {
+        return timestamp;
+    }
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
     }
 
     @DynamoDBAttribute(attributeName = "author")
@@ -119,7 +119,7 @@ public class VSComment {
         this.topmedal = topmedal;
     }
 
-    @DynamoDBIndexRangeKey(localSecondaryIndexName = "post_id-votesum-index", attributeName = "votesum")
+    @DynamoDBIndexRangeKey(localSecondaryIndexName = "parent_id-votesum-index", attributeName = "votesum")
     public int getVotesum(){
         return votesum;
     }
@@ -177,6 +177,12 @@ public class VSComment {
     }
     public void initialSetUservote(int uservote){
         this.uservote = uservote;
+    }
+
+    //sets postID and returns this VSComment instance
+    public VSComment withPostID(String post_id){
+        this.post_id = post_id;
+        return this;
     }
 
 

@@ -84,8 +84,8 @@ public class CommentEnterFragment extends Fragment{
                 Runnable runnable = new Runnable() {
                     public void run() {
                         final VSComment vsc = new VSComment();
-                        vsc.setPost_id(postID);
                         vsc.setParent_id(parentID);  //TODO: for root/reply check, which would be more efficient, checking if parent_id == "0" or checking parent_id.length() == 1?
+                        vsc.setPost_id(postID);
                         vsc.setAuthor(((MainContainer)getActivity()).getSessionManager().getCurrentUsername());
                         vsc.setContent(((TextView)(rootView.findViewById(R.id.commentInput))).getText().toString().trim());
                         activity.getMapper().save(vsc);
@@ -147,7 +147,7 @@ public class CommentEnterFragment extends Fragment{
                                 }
                                 if(post == null && subjectComment != null){
                                     postPage.hidePostPageFAB();
-                                    postPage.refreshThenSetUpPage(subjectComment);
+                                    postPage.setCommentsPage(subjectComment);
                                 }
 
                                 //TODO: refresh comments list (but not the post info part) of the PostPage when we return to it here
@@ -174,8 +174,8 @@ public class CommentEnterFragment extends Fragment{
         vsX.setText(x);
         vsY.setText(y);
         this.post = post;
-        parentID = "0";
         postID = post.getPost_id();
+        parentID = postID;
         categoryInt = post.getCategoryIntAsString();
         currSTL = post.getStl();
         subjectComment = null;

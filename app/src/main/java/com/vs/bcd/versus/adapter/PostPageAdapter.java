@@ -173,128 +173,133 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
         if (holder instanceof UserViewHolder) { //holds comments
-            //Log.d("DEBUG", "BIND EVENT");
 
-            /*
-            if(masterList.get(position) instanceof Post){
-                Log.d("debug", "this shit works");
-                masterList.remove(position);
+            boolean skip = false;
+            if(position < 8){
+                if(! (masterList.get(position) instanceof VSComment)){
+                    Log.d("wow", "duplicate post at top of list");
+                    skip = true;
+                }
             }
-            */
 
-            final VSComment currentComment = (VSComment)masterList.get(position);
+            if(!skip){
+                final VSComment currentComment = (VSComment)masterList.get(position);
 
-            //this is where values are put into the layout, from the VSComment object
+                //this is where values are put into the layout, from the VSComment object
 
-            final UserViewHolder userViewHolder = (UserViewHolder) holder;
+                final UserViewHolder userViewHolder = (UserViewHolder) holder;
 
-            if(activity.getSessionManager().getCurrentUsername().equals(currentComment)){
-                //TODO: implement UI for comments that user wrote, like edit and delete options
-            }
+                if(activity.getSessionManager().getCurrentUsername().equals(currentComment)){
+                    //TODO: implement UI for comments that user wrote, like edit and delete options
+                }
 
 
                 //set onClickListener for profile pic
-            userViewHolder.circView.setOnClickListener(new View.OnClickListener(){
-                @Override
-                public void onClick(View v){
-                    profileClicked(v);
+                userViewHolder.circView.setOnClickListener(new View.OnClickListener(){
+                    @Override
+                    public void onClick(View v){
+                        profileClicked(v);
+                    }
+                });
+
+
+                setLeftMargin(userViewHolder.circView, 150 * currentComment.getNestedLevel());  //left margin (indentation) of 150dp per nested level
+
+                if(currentComment.getComment_id().equals("2ebf9760-d9bf-4785-af68-c3993be8945d")){
+                    Log.d("debug", "this is the 2eb comment");
                 }
-            });
-
-
-            setLeftMargin(userViewHolder.circView, 150 * currentComment.getNestedLevel());  //left margin (indentation) of 150dp per nested level
-
-            if(currentComment.getComment_id().equals("2ebf9760-d9bf-4785-af68-c3993be8945d")){
-                Log.d("debug", "this is the 2eb comment");
-            }
-            switch (currentComment.getUservote()){
-                case NOVOTE:
-                    userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
-                    userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
-                    break;
-                case UPVOTE:
-                    userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
-                    break;
-                case DOWNVOTE:
-                    userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
-                    break;
-                default:
-                    userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
-                    userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
-                    break;
-            }
-
-            userViewHolder.author.setText(currentComment.getAuthor());
-            userViewHolder.timestamp.setText(getTimeString(currentComment.getTimestamp()));
-            userViewHolder.content.setText(currentComment.getContent());
-            userViewHolder.heartCount.setText( Integer.toString(currentComment.getUpvotes() - currentComment.getDownvotes()) );
-            //set CardView onClickListener to go to PostPage fragment with corresponding Comments data (this will be a PostPage without post_card)
-
-            userViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    activity.getPostPage().setCommentsPage(currentComment);
-                }
-            });
-
-            userViewHolder.replyButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    activity.getCommentEnterFragment().setContentReplyToComment(currentComment);
-                    activity.getViewPager().setCurrentItem(4);
-                }
-            });
-
-            userViewHolder.upvoteButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    int userVote = currentComment.getUservote();
-                    if(userVote == UPVOTE){
+                switch (currentComment.getUservote()){
+                    case NOVOTE:
                         userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
-                        currentComment.setUservote(NOVOTE);
-                        actionMap.put(currentComment.getComment_id(), "N");
-                        //actionMap.remove(currentComment.getComment_id());   //TODO: instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote
-                    }
-                    else if(userVote == DOWNVOTE){
                         userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+                        break;
+                    case UPVOTE:
                         userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
-                        currentComment.setUservote(UPVOTE);
-                        actionMap.put(currentComment.getComment_id(), "U");
-                    }
-                    else if(userVote == NOVOTE){
-                        userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
-                        currentComment.setUservote(UPVOTE);
-                        actionMap.put(currentComment.getComment_id(), "U");
-                    }
-                    userViewHolder.heartCount.setText( Integer.toString(currentComment.getUpvotes() - currentComment.getDownvotes()) ); //refresh heartcount display
-                }
-            });
-
-            userViewHolder.downvoteButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    int userVote = currentComment.getUservote();
-                    if(userVote == DOWNVOTE){
-                        userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
-                        currentComment.setUservote(NOVOTE);
-                        actionMap.put(currentComment.getComment_id(), "N");
-                        //actionMap.remove(currentComment.getComment_id());    //TODO: instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote
-                    }
-                    else if(userVote == UPVOTE){
+                        break;
+                    case DOWNVOTE:
+                        userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
+                        break;
+                    default:
                         userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
-                        userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
-                        currentComment.setUservote(DOWNVOTE);
-                        actionMap.put(currentComment.getComment_id(), "D");
-                    }
-                    else if(userVote == NOVOTE){
-                        userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
-                        currentComment.setUservote(DOWNVOTE);
-                        actionMap.put(currentComment.getComment_id(), "D");
-                    }
-                    userViewHolder.heartCount.setText( Integer.toString(currentComment.getUpvotes() - currentComment.getDownvotes()) );
+                        userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+                        break;
                 }
-            });
 
+                userViewHolder.author.setText(currentComment.getAuthor());
+                userViewHolder.timestamp.setText(getTimeString(currentComment.getTimestamp()));
+                userViewHolder.content.setText(currentComment.getContent());
+                userViewHolder.heartCount.setText( Integer.toString(currentComment.getUpvotes() - currentComment.getDownvotes()) );
+                //set CardView onClickListener to go to PostPage fragment with corresponding Comments data (this will be a PostPage without post_card)
+
+                userViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if(currentComment.getNestedLevel() == 2){
+                            activity.getPostPage().addGrandParentToCache(currentComment.getParent_id()); //pass in parent's id, then the function will get that parent's parent, the grandparent, and add it to the parentCache
+                        }
+                        activity.getPostPage().addParentToCache(currentComment.getParent_id());
+                        activity.getPostPage().setCommentsPage(currentComment);
+                    }
+                });
+
+                userViewHolder.replyButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        activity.getCommentEnterFragment().setContentReplyToComment(currentComment);
+                        activity.getViewPager().setCurrentItem(4);
+                    }
+                });
+
+                userViewHolder.upvoteButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        int userVote = currentComment.getUservote();
+                        if(userVote == UPVOTE){
+                            userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
+                            currentComment.setUservote(NOVOTE);
+                            actionMap.put(currentComment.getComment_id(), "N");
+                            //actionMap.remove(currentComment.getComment_id());   //TODO: instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote
+                        }
+                        else if(userVote == DOWNVOTE){
+                            userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+                            userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
+                            currentComment.setUservote(UPVOTE);
+                            actionMap.put(currentComment.getComment_id(), "U");
+                        }
+                        else if(userVote == NOVOTE){
+                            userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
+                            currentComment.setUservote(UPVOTE);
+                            actionMap.put(currentComment.getComment_id(), "U");
+                        }
+                        userViewHolder.heartCount.setText( Integer.toString(currentComment.getUpvotes() - currentComment.getDownvotes()) ); //refresh heartcount display
+                    }
+                });
+
+                userViewHolder.downvoteButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        int userVote = currentComment.getUservote();
+                        if(userVote == DOWNVOTE){
+                            userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+                            currentComment.setUservote(NOVOTE);
+                            actionMap.put(currentComment.getComment_id(), "N");
+                            //actionMap.remove(currentComment.getComment_id());    //TODO: instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote
+                        }
+                        else if(userVote == UPVOTE){
+                            userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
+                            userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
+                            currentComment.setUservote(DOWNVOTE);
+                            actionMap.put(currentComment.getComment_id(), "D");
+                        }
+                        else if(userVote == NOVOTE){
+                            userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
+                            currentComment.setUservote(DOWNVOTE);
+                            actionMap.put(currentComment.getComment_id(), "D");
+                        }
+                        userViewHolder.heartCount.setText( Integer.toString(currentComment.getUpvotes() - currentComment.getDownvotes()) );
+                    }
+                });
+            }
 
         } else if (holder instanceof PostCardViewHolder) {
             //Log.d("DEBUG", "BIND EVENT");
@@ -399,45 +404,6 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
     }
 
-    private void setUpCommentSectionList(VSCNode node){
-        node.setNestedLevelandGetComment(0);
-
-
-    }
-
-    public void setCommentList(VSCNode rootNode){
-        VSCNode tempChildNode, tempGCNode;
-        childrenList.add(rootNode.setNestedLevelandGetComment(0)); //root node
-        if(rootNode.hasChild()){    //first child
-            tempChildNode = rootNode.getFirstChild();
-            childrenList.add(tempChildNode.setNestedLevelandGetComment(1));
-
-            if(tempChildNode.hasChild()){   //first child's first child
-                tempGCNode = tempChildNode.getFirstChild();
-                childrenList.add(tempGCNode.setNestedLevelandGetComment(2));
-
-                if(tempGCNode.hasTailSibling()){    //first child's second child
-                    childrenList.add((tempGCNode.getTailSibling()).setNestedLevelandGetComment(2));
-                }
-            }
-
-            if(tempChildNode.hasTailSibling()){ //second child
-                tempChildNode = tempChildNode.getTailSibling();
-                childrenList.add(tempChildNode.setNestedLevelandGetComment(1));
-
-                if(tempChildNode.hasChild()){   //second child's first child
-                    tempGCNode = tempChildNode.getFirstChild();
-                    childrenList.add(tempGCNode.setNestedLevelandGetComment(2));
-
-                    if(tempGCNode.hasTailSibling()){    //second child's second child
-                        childrenList.add((tempGCNode.getTailSibling()).setNestedLevelandGetComment(2));
-                    }
-                }
-
-            }
-        }
-
-    }
 
     private void downloadImageFromAWS() {
 

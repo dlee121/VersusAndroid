@@ -1,5 +1,6 @@
 package com.vs.bcd.versus.fragment;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -19,20 +20,26 @@ import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 import com.amazonaws.services.dynamodbv2.model.AttributeAction;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
+import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
 import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
+import com.amazonaws.services.dynamodbv2.model.Condition;
+
 import com.vs.bcd.versus.OnLoadMoreListener;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.PostPageAdapter;
+import com.vs.bcd.versus.model.ActivePost;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.PostSkeleton;
 import com.vs.bcd.versus.model.SessionManager;
+import com.vs.bcd.versus.model.ThreadCounter;
 import com.vs.bcd.versus.model.UserAction;
 import com.vs.bcd.versus.model.VSCNode;
 import com.vs.bcd.versus.model.VSComment;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -41,6 +48,7 @@ import java.util.Map;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 import static android.content.ContentValues.TAG;
+import static android.icu.lang.UCharacter.GraphemeClusterBreak.V;
 import static com.vs.bcd.versus.adapter.PostPageAdapter.DOWNVOTE;
 import static com.vs.bcd.versus.adapter.PostPageAdapter.NOVOTE;
 import static com.vs.bcd.versus.adapter.PostPageAdapter.UPVOTE;
@@ -88,6 +96,14 @@ public class PostPage extends Fragment {
     private int origRedCount, origBlackCount;
     private String lastSubmittedVote = "none";
     private boolean updateDuty = false;
+    private int retrievalLimit = 25;
+    private Map<String,AttributeValue> lastEvaluatedKey;
+    private PostPage thisPage;
+    private boolean exitLoop = false;
+    final HashMap<String, VSCNode> nodeMap = new HashMap<>();
+    private HashMap<String, VSComment> parentCache = new HashMap<>();
+    private boolean atRootLevel = true;
+    private long queryThreadID = 0;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -121,7 +137,7 @@ public class PostPage extends Fragment {
             @Override
             public void onClick(View v) {
                 //TODO: implement a version where we reply to comments and have this function choose between that and root comment version
-                    //depending if we're at isRootLevel or not
+                //depending if we're at isRootLevel or not
                 ((MainContainer)getActivity()).getCommentEnterFragment().setContentReplyToPost(postTopic, postX, postY, post);
                 ((MainContainer)getActivity()).getViewPager().setCurrentItem(4);
             }
@@ -196,6 +212,15 @@ public class PostPage extends Fragment {
         return rootView;
     }
 
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        //save the activity to a member of this fragment
+        activity = (MainContainer)context;
+        thisPage = this;
+    }
+
     public void hidePostPageFAB(){
         Log.d("debug", "hppfab called");
         postPageFAB.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
@@ -240,6 +265,7 @@ public class PostPage extends Fragment {
     }
 
     public void clearList(){
+        nodeMap.clear();
         vsComments.clear();
     }
 
@@ -263,18 +289,287 @@ public class PostPage extends Fragment {
         }
 
     }
-/*
-    public void setPostCard(Post post){
-        ((TextView)(rootView.findViewById(R.id.post_page_question))).setText(post.getTopic());
-        ((TextView)(rootView.findViewById(R.id.post_page_redname))).setText(post.getRedname());
-        ((TextView)(rootView.findViewById(R.id.post_page_blackname))).setText(post.getBlackname());
-        ((TextView)(rootView.findViewById(R.id.post_page_redcount))).setText(Integer.toString(post.getRedcount()));
-        ((TextView)(rootView.findViewById(R.id.post_page_blackcount))).setText(Integer.toString(post.getBlackcount()));
 
-        RV.createVi
+    /*
+    grab 25 roots.
+        then iterate through each roots
+            for each root, get two children
+                for each children, get two children
+            then we will have two children and four grandchildren per root, and 25 such roots.
+    LoadMore loads more roots and does same thing.
+    */
 
+    //automatically includes Post Card in the vsComments list for recycler view if rootParentId equals postID,
+    // so use it for all PostPage set up cases where we query by votesum
+    private void commentVotesumQuery(final String rootParentID, final boolean downloadImages){
+        //nodeMap.clear();
+        //vsComments.clear();
+
+        final ArrayList<VSComment> rootComments = new ArrayList<>();
+        final ArrayList<VSComment> childComments = new ArrayList<>();
+        final ArrayList<VSComment> grandchildComments = new ArrayList<>();
+
+        /*
+        BY THE TIME THIS FUNCTION IS CALLED, post SHOULD BE SET SO WE CAN JUST GET THE hashkey = parent_id = post_id FROM THERE
+        We also put together the structure and display onto recycler view all on here too
+        */
+        final Condition rangeKeyCondition = new Condition()
+                .withComparisonOperator(ComparisonOperator.GT.toString())
+                .withAttributeValueList(new AttributeValue().withN("-1"));
+
+        Runnable runnable = new Runnable() {
+            public void run() {
+                long thisThreadID = Thread.currentThread().getId();
+                final List<Object> masterList = new ArrayList<>();
+
+                //vsComments.clear();
+                nodeMap.clear();
+
+                if(rootParentID.equals(postID)) {
+                    //vsComments.add(0, post);
+                    masterList.add(0,post);
+                }
+
+                VSComment queryTemplate = new VSComment();
+                queryTemplate.setParent_id(rootParentID);
+
+                DynamoDBQueryExpression queryExpression =
+                        new DynamoDBQueryExpression()
+                                .withHashKeyValues(queryTemplate)
+                                .withRangeKeyCondition("votesum", rangeKeyCondition)
+                                .withScanIndexForward(false)
+                                .withLimit(retrievalLimit);
+
+                //get the root comments
+                QueryResultPage queryResultPage = activity.getMapper().queryPage(VSComment.class, queryExpression);
+                rootComments.addAll(queryResultPage.getResults());
+
+                VSCNode prevNode = null;
+                exitLoop = false;
+                if(!rootComments.isEmpty()){
+                    //get the children while setting up nodeMap with root comments
+                    final ThreadCounter threadCounter = new ThreadCounter(0, rootComments.size(), thisPage);
+                    for(int i = 0; i < rootComments.size(); i++){
+                        if(thisThreadID != queryThreadID){
+                            Log.d("wow", "broke out of old query thread");
+                            return;
+                        }
+                        VSCNode cNode = new VSCNode(rootComments.get(i).withPostID(postID));
+                        final String commentID = cNode.getCommentID();
+
+                        Log.d("wow", "child query, parentID to query: " + commentID);
+
+
+                        cNode.setNestedLevel(0);
+
+                        if(prevNode != null){
+                            prevNode.setTailSibling(cNode);
+                            cNode.setHeadSibling(prevNode);
+                        }
+
+                        nodeMap.put(commentID, cNode);
+                        prevNode = cNode;
+
+                        Runnable runnable = new Runnable() {
+                            public void run() {
+                                VSComment queryTemplate = new VSComment();
+                                queryTemplate.setParent_id(commentID);
+                                //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
+                                DynamoDBQueryExpression childQueryExpression =
+                                        new DynamoDBQueryExpression()
+                                                .withHashKeyValues(queryTemplate)
+                                                .withRangeKeyCondition("votesum", rangeKeyCondition)
+                                                .withScanIndexForward(false)
+                                                .withLimit(2);
+
+                                QueryResultPage childQueryResultPage = activity.getMapper().queryPage(VSComment.class, childQueryExpression);
+                                childComments.addAll(childQueryResultPage.getResults());
+
+                                Log.d("wow", "child query result size: " + childComments.size());
+
+                                threadCounter.increment();
+                            }
+                        };
+                        Thread mythread = new Thread(runnable);
+                        mythread.start();
+                    }
+
+                    long end = System.currentTimeMillis() + 10*1000; // 10 seconds * 1000 ms/sec
+
+                    while(!exitLoop && System.currentTimeMillis() < end){
+                        if(thisThreadID != queryThreadID){
+                            Log.d("wow", "broke out of old query thread");
+                            return;
+                        }
+                    }
+                    exitLoop = false;
+                }
+                Log.d("wow", "child query result size at the end: " + childComments.size());
+                exitLoop = false;
+                if(!childComments.isEmpty()){
+                    //get the grandchildren while setting up nodeMap with child comments
+                    final ThreadCounter threadCounter2 = new ThreadCounter(0, childComments.size(), thisPage);
+                    prevNode = null;
+                    for(int i = 0; i < childComments.size(); i++){
+                        if(thisThreadID != queryThreadID){
+                            Log.d("wow", "broke out of old query thread");
+                            return;
+                        }
+
+                        VSCNode cNode = new VSCNode(childComments.get(i).withPostID(postID));
+                        final String commentID = cNode.getCommentID();
+
+                        cNode.setNestedLevel(1);
+                        VSCNode parentNode = nodeMap.get(cNode.getParentID());
+                        if(parentNode != null && !parentNode.hasChild()){
+                            parentNode.setFirstChild(cNode);
+                            cNode.setParent(parentNode);
+                        }
+
+                        if(prevNode != null){
+                            prevNode.setTailSibling(cNode);
+                            cNode.setHeadSibling(prevNode);
+                        }
+
+                        nodeMap.put(commentID, cNode);
+                        prevNode = cNode;
+
+                        Runnable runnable = new Runnable() {
+                            public void run() {
+                                VSComment queryTemplate = new VSComment();
+                                queryTemplate.setParent_id(commentID);
+                                //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
+                                DynamoDBQueryExpression gChildQueryExpression =
+                                        new DynamoDBQueryExpression()
+                                                .withHashKeyValues(queryTemplate)
+                                                .withRangeKeyCondition("votesum", rangeKeyCondition)
+                                                .withScanIndexForward(false)
+                                                .withLimit(2);
+
+                                QueryResultPage gChildQueryResultPage = activity.getMapper().queryPage(VSComment.class, gChildQueryExpression);
+                                grandchildComments.addAll(gChildQueryResultPage.getResults());
+                                threadCounter2.increment();
+                            }
+                        };
+                        Thread mythread = new Thread(runnable);
+                        mythread.start();
+                    }
+
+                    long end2 = System.currentTimeMillis() + 10*1000; // 10 seconds * 1000 ms/sec
+
+                    while(!exitLoop && System.currentTimeMillis() < end2){
+                        if(thisThreadID != queryThreadID){
+                            Log.d("wow", "broke out of old query thread");
+                            return;
+                        }
+                    }
+                    exitLoop = false;
+                }
+
+                //set up nodeMap with grandchild comments
+                prevNode = null;
+                for (int i = 0; i < grandchildComments.size(); i++){
+
+                    if(thisThreadID != queryThreadID){
+                        Log.d("wow", "broke out of old query thread");
+                        return;
+                    }
+
+                    VSCNode cNode = new VSCNode(grandchildComments.get(i).withPostID(postID));
+                    cNode.setNestedLevel(2);
+                    VSCNode parentNode = nodeMap.get(cNode.getParentID());
+                    if(parentNode != null && !parentNode.hasChild()){
+                        parentNode.setFirstChild(cNode);
+                        cNode.setParent(parentNode);
+                    }
+
+                    if(prevNode != null){
+                        prevNode.setTailSibling(cNode);
+                        cNode.setHeadSibling(prevNode);
+                    }
+
+                    nodeMap.put(cNode.getCommentID(), cNode);
+                    prevNode = cNode;
+                }
+
+
+                //set up comments list using the first root comment node
+                //set currentRootLevelNode = first root comment's node if it exists
+                VSCNode temp;
+                if(!rootComments.isEmpty()){
+                    temp = nodeMap.get(rootComments.get(0).getComment_id());
+                    if(temp != null && thisThreadID == queryThreadID){
+                        currentRootLevelNode = temp;
+                        setCommentList(temp, masterList);
+                    }
+                }
+                for(int i = 1; i<rootComments.size(); i++){ //we already did i=0 above so start at i=1
+                    if(thisThreadID != queryThreadID){
+                        Log.d("wow", "broke out of old query thread");
+                        return;
+                    }
+
+                    temp = nodeMap.get(rootComments.get(i).getComment_id());
+                    if(temp != null){
+                        setCommentList(temp, masterList);
+                    }
+                }
+
+                if(rootComments.size() < retrievalLimit){
+                    lastEvaluatedKey = null;
+                }
+                else{
+                    //Log.d("Load: ", "retrieved " + Integer.toString(queryResults.size()) + " more items");
+                    lastEvaluatedKey = queryResultPage.getLastEvaluatedKey();
+                }
+
+                //run UI updates on UI Thread
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        //find view by id and attaching adapter for the RecyclerView
+                        RV.setLayoutManager(new LinearLayoutManager(getActivity()));
+
+                        //if true then we got the root comments whose parentID is postID ("rootest roots"), so include the post card for the PostPage view
+                        //this if condition also determines the boolean parameter at the end of PostPageAdapter constructor to notify adapter if it should set up Post Card
+                        if(rootParentID.equals(postID)){
+                            atRootLevel = true;
+                            PPAdapter = new PostPageAdapter(RV, masterList, post, activity, downloadImages, true);
+                        }
+                        else{
+                            atRootLevel = false;
+                            PPAdapter = new PostPageAdapter(RV, masterList, post, activity, downloadImages, false);
+                        }
+
+                        if(applyActions){
+                            applyUserActions();
+                        }
+
+                        RV.setAdapter(PPAdapter);
+                        activity.setPostInDownload(postID, "done");
+
+                        //set load more listener for the RecyclerView adapter
+                        PPAdapter.setOnLoadMoreListener(new OnLoadMoreListener() {
+                            @Override
+                            public void onLoadMore() {
+
+                                if (masterList.size() <= 3) {
+
+                                } else {
+                                    Toast.makeText(getActivity(), "Loading data completed", Toast.LENGTH_SHORT).show();
+                                }
+
+                            }
+                        });
+                    }
+                });
+            }
+        };
+        Thread mythread = new Thread(runnable);
+        queryThreadID = mythread.getId();
+        mythread.start();
     }
-*/
+
     public void setContent(final PostSkeleton post, final boolean downloadImages){
         /*  Local postsList and commentsList contents check section
             //used to check local lists against DB.User version to test list setup/modification
@@ -289,20 +584,28 @@ public class PostPage extends Fragment {
             }
         */
 
-
         Log.d("Debug", "setContent called");
+        this.post = post;
+
         postID = post.getPost_id();
 
         postTopic = post.getQuestion();
         postX = post.getRedname();
         postY = post.getBlackname();
-        this.post = post;
         origRedCount = post.getRedcount();
         origBlackCount = post.getBlackcount();
         redIncrementedLast = false;
         blackIncrementedLast = false;
 
+        parentCache.clear();
+
+        if(RV != null && RV.getAdapter() != null){
+            ((PostPageAdapter)(RV.getAdapter())).clearList();
+        }
+
         setUpdateDuty();    //determines if this user will have the update duty; authority to detect comment upgrade events and make DB updates accordingly
+
+        currentRootLevelNode = null;
 
         Runnable runnable = new Runnable() {
             public void run() {
@@ -319,163 +622,47 @@ public class PostPage extends Fragment {
                 actionMap = currentUserAction.getActionRecord();
                 deepCopyToActionHistoryMap(actionMap);
 
-                VSComment vscommentToQuery = new VSComment();
-                vscommentToQuery.setPost_id(postID);
-
-                DynamoDBQueryExpression queryExpression = new DynamoDBQueryExpression().withHashKeyValues(vscommentToQuery);
-                PaginatedQueryList<VSComment> result = ((MainContainer)getActivity()).getMapper().query(VSComment.class, queryExpression);
-                result.loadAllResults();
-
-                Iterator<VSComment> it = result.iterator();
-
-
-                //below, we form the comment structure. each comment is a node in doubly linked list. So we only need the root comment that is at the top to traverse the comment tree to display all the comments.
-                VSCNode firstParentNode = null; //holds the first parent node, which holds the comment that appears at the top of the hierarchy.
-                VSCNode latestParentNode = null;  //holds the latest parent node we worked with. Used for assigning sibling order for parent nodes (root comments)
-                nodeTable = new Hashtable(result.size());    //Hashtable to assist in assigning children/siblings.
-                //TODO: Hashtable should be big enough to prevent collision as that fucks up the algorithm below. Right? Test if that's the case.
-                VSCNode currNode, pNode;
-                while (it.hasNext()) {
-
-                    currNode = new VSCNode(it.next());
-                    pNode = null;   //temporary node holder
-
-                    //TODO: figure out how to add siblings, child, parent and all that most efficiently
-                    if(currNode.isRoot()){  //this is a parent node, AKA a root comment node
-                        if(latestParentNode == null) {    //this is the first parent node to be worked with here
-                            currentRootLevelNode = currNode;
-                            firstRoot = currNode;
-                            firstParentNode = currNode;
-                            latestParentNode = currNode;
-                        }
-                        else{
-                            latestParentNode.setTailSibling(currNode);
-                            currNode.setHeadSibling(latestParentNode);
-                            latestParentNode = currNode;
-                        }
-                        //nodeTable.put(currNode.getCommentID(), currNode); //since this is a parent node, KEY = Comment_ID
-                    }
-                    else { //this is a child node, AKA reply node
-                        pNode = nodeTable.put(currNode.getParentID(), currNode);    //pNode holds whatever value was mapped for this key, if any, that is now overwritten
-
-                        if(pNode.getParentID().trim().equals(currNode.getParentID().trim())) { //same parents => siblings
-                            //currNode is not a first_child, so we need to assign some siblings here.
-                            // pNode currently holds the Head Sibling for currNode. Therefore currNode is Tail Sibling of pNode
-                            //head_sibling holds comment that is displayed immediately above the node, and tail_sibling holds comment that is displayed immediately below the node.
-                            //TODO: Implement the following: this sibling order is determined by upvotes-downvotes score, and then timestamp as tie breaker (and in the rare occasion of a tie again, use username String lexical comparison)
-                            //TODO: For now just use timestamp (default sort order of query result) to assign sibling order. Eventually this ordering has to reflect vote score and aforementioned tiebreakers.
-                            pNode.setTailSibling(currNode);
-                            currNode.setHeadSibling(pNode);
-                        }
-                        else{   //different parents => parent-child relationship detected => first child. so this would happen for the first bucket collision, where the first item in there would have been the parent node hashed under its own comment_id as per this line: nodeTable.put(currNode.getCommentID(), currNode) at the bottom of this while loop, and the second item causing the collision would be the child comment hashed under its parent_id
-                            pNode.setFirstChild(currNode);  //set currNode as first_child of its parentNode
-                            currNode.setParent(pNode);
-                        }
-                    }
-
-                    nodeTable.put(currNode.getCommentID(), currNode);   //add this node to the hash table so that its children, if any, can find it in the table.
-
-                }
-
-            //iterate through root nodes and populate the vsComments list for use by recycler view (PostPageAdapter)
-            if(firstParentNode != null){
-                setCommentList(firstParentNode);
-                while(firstParentNode.hasTailSibling()){
-                    firstParentNode = firstParentNode.getTailSibling();
-                    setCommentList(firstParentNode);
-                }
-            }
-
-
-            //run UI updates on UI Thread
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    //find view by id and attaching adapter for the RecyclerView
-                    RV.setLayoutManager(new LinearLayoutManager(getActivity()));
-                    vsComments.add(0, post);
-                    //insert post card into the adapter
-
-                    if(applyActions){
-                        applyUserActions();
-                    }
-
-                    PPAdapter = new PostPageAdapter(RV, vsComments, post, (MainContainer)getActivity(), downloadImages, true);
-                    RV.setAdapter(PPAdapter);
-                    activity.setPostInDownload(postID, "done");
-
-                    //set load more listener for the RecyclerView adapter
-                    PPAdapter.setOnLoadMoreListener(new OnLoadMoreListener() {
-                        @Override
-                        public void onLoadMore() {
-
-                            if (vsComments.size() <= 3) {
-
-                            } else {
-                                Toast.makeText(getActivity(), "Loading data completed", Toast.LENGTH_SHORT).show();
-                            }
-
-                        }
-                    });
-
-
-                }
-            });
+                commentVotesumQuery(postID, downloadImages);
             }
         };
         Thread mythread = new Thread(runnable);
         mythread.start();
+
     }
 
-    //TODO: currently just prints string representation in Logcat. Modify to insert TextView representation into PostPage layout
-    public void printNode(VSCNode node, int level){
-        String indent = "";
-        for(int i=0; i<level; i++){
-            indent += "\t";
-        }
-        Log.d("NODE", indent + node.getNodeContent().getContent());
-        if(node.getFirstChild() != null) {
-            printNode(node.getFirstChild(), level + 1);
-        }
-        if(node.getTailSibling() != null) {
-            printNode(node.getTailSibling(), level);
-
-        }
-    }
-
-    public void setCommentList(VSCNode rootNode){
+    public void setCommentList(VSCNode rootNode, List<Object> mList){
         VSCNode tempChildNode, tempGCNode;
+        if(rootNode != null){
+            mList.add(rootNode.getNodeContent()); //root node
+            if(rootNode.hasChild()){    //first child
+                tempChildNode = rootNode.getFirstChild();
+                mList.add(tempChildNode.getNodeContent());
 
-        vsComments.add(rootNode.setNestedLevelandGetComment(0)); //root node
-        if(rootNode.hasChild()){    //first child
-            tempChildNode = rootNode.getFirstChild();
-            vsComments.add(tempChildNode.setNestedLevelandGetComment(1));
-
-            if(tempChildNode.hasChild()){   //first child's first child
-                tempGCNode = tempChildNode.getFirstChild();
-                vsComments.add(tempGCNode.setNestedLevelandGetComment(2));
-
-                if(tempGCNode.hasTailSibling()){    //first child's second child
-                    vsComments.add((tempGCNode.getTailSibling()).setNestedLevelandGetComment(2));
-                }
-            }
-
-            if(tempChildNode.hasTailSibling()){ //second child
-                tempChildNode = tempChildNode.getTailSibling();
-                vsComments.add(tempChildNode.setNestedLevelandGetComment(1));
-
-                if(tempChildNode.hasChild()){   //second child's first child
+                if(tempChildNode.hasChild()){   //first child's first child
                     tempGCNode = tempChildNode.getFirstChild();
-                    vsComments.add(tempGCNode.setNestedLevelandGetComment(2));
+                    mList.add(tempGCNode.getNodeContent());
 
-                    if(tempGCNode.hasTailSibling()){    //second child's second child
-                        vsComments.add((tempGCNode.getTailSibling()).setNestedLevelandGetComment(2));
+                    if(tempGCNode.hasTailSibling()){    //first child's second child
+                        mList.add((tempGCNode.getTailSibling()).getNodeContent());
                     }
                 }
 
+                if(tempChildNode.hasTailSibling()){ //second child
+                    tempChildNode = tempChildNode.getTailSibling();
+                    mList.add(tempChildNode.getNodeContent());
+
+                    if(tempChildNode.hasChild()){   //second child's first child
+                        tempGCNode = tempChildNode.getFirstChild();
+                        mList.add(tempGCNode.getNodeContent());
+
+                        if(tempGCNode.hasTailSibling()){    //second child's second child
+                            mList.add((tempGCNode.getTailSibling()).getNodeContent());
+                        }
+                    }
+
+                }
             }
         }
-
     }
 
     public PostPageAdapter getPPAdapter(){
@@ -487,6 +674,8 @@ public class PostPage extends Fragment {
     public void setUpTopCard(VSComment clickedComment){
 
         topCardContent = clickedComment;
+
+        atRootLevel = false;
 
         if(ppfabActive){
             hidePostPageFAB();
@@ -546,266 +735,47 @@ public class PostPage extends Fragment {
         topCard.setEnabled(false);
         topCard.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
         showPostPageFAB();
+        atRootLevel = true;
     }
 
-    //used when descending into nested levels, so when pageNestedLevel > 0
-    public void setCommentsPage(VSComment clickedComment){
+    //used when expanding into nested levels, so when pageNestedLevel > 0
+    public void setCommentsPage(VSComment subjectComment){
 
-        Log.d("comment", "processing comment click");
-
-
-
-        setUpTopCard(clickedComment);
-
-        //note that VSCNode child is not necessarily a child of clickedComment, it could be the clickedComment itself if the comment currently has no child, that's how the nodeTable is used here
-        VSCNode child = nodeTable.get(clickedComment.getComment_id()); //last child of clicked comment. or, if clicked comment currently does not have a child, it would be the node of the clicked comment itself.
-
-        Log.d("comment", "clickedCommentID: " + clickedComment.getComment_id());
-        Log.d("comment", "nodeCommentID: " + child.getCommentID());
-
-        boolean commentCurrentlyChildless = child.getCommentID().equals(clickedComment.getComment_id());
-
-        if(child != null){
-            clearList();
-            pageNestedLevel++;
-            currentRootLevelNode = child;   //in case of currently childless comment, we need to fix this because currentRootLevelNode should hold clickedComment's child and not itself; we fix this by assigning a dummy child node inside the 'else' condition to the below 'if' statement which is reached when clickedComment is found to be currently childless
-
-            if(!commentCurrentlyChildless){  //if child is not null && child.commentID does not equal clickedComment.commentID (if equal, it would indicate that clickedComment is currently childless, so no need to set up comment card views with PostPageAdapter)
-                //get the first child
-                while(child.hasHeadSibling()){
-                    child = child.getHeadSibling();
-                }
-                currentRootLevelNode = child;
-
-                setCommentList(child);
-
-                //populate childList with the comments we want for the comment section, children and grandchildren of the clicked comment
-                //in order
-                while(child.hasTailSibling()){
-                    child = child.getTailSibling();
-                    setCommentList(child);
-                }
-
-                applyUserActions();
-
-                //find view by id and attaching adapter for the RecyclerView
-                RV.setLayoutManager(new LinearLayoutManager(getActivity()));
-                PPAdapter = new PostPageAdapter(RV, vsComments, post, (MainContainer)getActivity(), false, false);
-                RV.setAdapter(PPAdapter);
-
-                //set load more listener for the RecyclerView adapter
-                PPAdapter.setOnLoadMoreListener(new OnLoadMoreListener() {
-                    @Override
-                    public void onLoadMore() {
-
-                        if (vsComments.size() <= 3) {
-                        /*
-                        posts.add(null);
-                        PPAdapter.notifyItemInserted(posts.size() - 1);
-                        new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                posts.remove(posts.size() - 1);
-                                PPAdapter.notifyItemRemoved(posts.size());
-
-                                //Generating more data
-                                int index = posts.size();
-                                int end = index + 10;
-                                for (int i = index; i < end; i++) {
-                                    Contact contact = new Contact();
-                                    contact.setEmail("DevExchanges" + i + "@gmail.com");
-                                    posts.add(contact);
-                                }
-                                PPAdapter.notifyDataSetChanged();
-                                PPAdapter.setLoaded();
-                            }
-                        }, 1500);
-                        */
-                        } else {
-                            //Toast.makeText(getActivity(), "Loading data completed", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-            }
-
-            else {  //we get here if clickedComment is currently childless, skipping the above 'if' block which sets up card views with the PostPageAdapter.
-                //like we said above, we fix the currentRootLevelNode to hold a dummy child node, to make navigation work (which requires that this variable holds clickedComment's first child and not clickedComment itself which is the case here)
-                Log.d("comment", "dummy assignment");
-                currentRootLevelNode = new VSCNode(null, currentRootLevelNode); //this only
-
-            }
-
+        if(RV != null && RV.getAdapter() != null){
+            ((PostPageAdapter)(RV.getAdapter())).clearList();
         }
 
-    }
+        setUpTopCard(subjectComment);
+        //parentCache.put(subjectComment.getComment_id(), subjectComment);
 
-    public void setCommentsPageWithCurrentNode (){
-        VSCNode node = currentRootLevelNode;
+        commentVotesumQuery(subjectComment.getComment_id(), false);
 
-        if(node != null){
-            pageNestedLevel--;
-            clearList();
-
-            if(isRootLevel()) {
-                hideTopCard();
-                vsComments.add(0, post);
-            }
-            else{
-                setUpTopCard(currentRootLevelNode.getParent().getNodeContent());
-            }
-
-            setCommentList(node);
-            //populate childList with the comments we want for the comment section, children and grandchildren of the clicked comment
-            //in order
-            while(node.hasTailSibling()){
-                node = node.getTailSibling();
-                setCommentList(node);
-            }
-
-            applyUserActions();
-            //find view by id and attaching adapter for the RecyclerView
-            RV.setLayoutManager(new LinearLayoutManager(getActivity()));
-            PPAdapter = new PostPageAdapter(RV, vsComments, post, (MainContainer)getActivity(), false, isRootLevel());
-            RV.setAdapter(PPAdapter);
-
-            //set load more listener for the RecyclerView adapter
-            PPAdapter.setOnLoadMoreListener(new OnLoadMoreListener() {
-                @Override
-                public void onLoadMore() {
-
-                    if (vsComments.size() <= 3) {
-                    /*
-                    posts.add(null);
-                    PPAdapter.notifyItemInserted(posts.size() - 1);
-                    new Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            posts.remove(posts.size() - 1);
-                            PPAdapter.notifyItemRemoved(posts.size());
-
-                            //Generating more data
-                            int index = posts.size();
-                            int end = index + 10;
-                            for (int i = index; i < end; i++) {
-                                Contact contact = new Contact();
-                                contact.setEmail("DevExchanges" + i + "@gmail.com");
-                                posts.add(contact);
-                            }
-                            PPAdapter.notifyDataSetChanged();
-                            PPAdapter.setLoaded();
-                        }
-                    }, 1500);
-                    */
-                    } else {
-                        //Toast.makeText(getActivity(), "Loading data completed", Toast.LENGTH_SHORT).show();
-                    }
-
-                }
-            });
-
-        }
     }
 
     //only called when we're not on pageNestedLevel 0, so when ascending up nested levels towards root level. so not called in root level (in root level we simply exit out of PostPage on UpButton click)
     public void backToParentPage(){
 
-        currentRootLevelNode = currentRootLevelNode.getParent();
-
-        while(currentRootLevelNode.hasHeadSibling()){
-            currentRootLevelNode = currentRootLevelNode.getHeadSibling();
+        if(RV != null && RV.getAdapter() != null){
+            ((PostPageAdapter)(RV.getAdapter())).clearList();
         }
-        setCommentsPageWithCurrentNode();
+
+        String tempParentID = topCardContent.getParent_id();
+
+        if(tempParentID.equals(postID)){
+            hideTopCard();
+        }
+        else{
+            setUpTopCard(parentCache.get(tempParentID));
+        }
+
+        commentVotesumQuery(tempParentID, false);
 
     }
 
     public boolean isRootLevel(){
-        return currentRootLevelNode == null || !currentRootLevelNode.hasParent();
+        return atRootLevel;
     }
 
-    public void refreshThenSetUpPage(final VSComment current){
-        Runnable runnable = new Runnable() {
-            public void run() {
-                VSComment vscommentToQuery = new VSComment();
-                vscommentToQuery.setPost_id(postID);
-
-                DynamoDBQueryExpression queryExpression = new DynamoDBQueryExpression().withHashKeyValues(vscommentToQuery);
-                PaginatedQueryList<VSComment> result = ((MainContainer)getActivity()).getMapper().query(VSComment.class, queryExpression);
-                result.loadAllResults();
-
-                Iterator<VSComment> it = result.iterator();
-
-
-                //below, we form the comment structure. each comment is a node in doubly linked list. So we only need to root comment that is at the top to traverse the comment tree to display all the comments.
-                VSCNode firstParentNode = null; //holds the first parent node, which holds the comment that appears at the top of the hierarchy.
-                VSCNode latestParentNode = null;  //holds the latest parent node we worked with. Used for assigning sibling order for parent nodes (root comments)
-                nodeTable = new Hashtable(result.size());    //Hashtable to assist in assigning children/siblings.
-                //TODO: Hashtable should be big enough to prevent collision as that fucks up the algorithm below. Right? Test if that's the case.
-                while (it.hasNext()) {
-                    VSCNode currNode = new VSCNode(it.next());
-                    VSCNode pNode = null;   //temporary node holder
-                    //TODO: figure out how to add siblings, child, parent and all that most efficiently
-                    if(currNode.isRoot()){  //this is a parent node, AKA a root comment node
-                        if(latestParentNode == null) {    //this is the first parent node to be worked with here
-                            currentRootLevelNode = currNode;
-                            firstRoot = currNode;
-                            firstParentNode = currNode;
-                            latestParentNode = currNode;
-                        }
-                        else{
-                            latestParentNode.setTailSibling(currNode);
-                            currNode.setHeadSibling(latestParentNode);
-                            latestParentNode = currNode;
-                        }
-                        //nodeTable.put(currNode.getCommentID(), currNode); //since this is a parent node, KEY = Comment_ID
-                    }
-                    else { //this is a child node, AKA reply node
-                        pNode = nodeTable.put(currNode.getParentID(), currNode);    //pNode holds whatever value was mapped for this key, if any, that is now overwritten
-
-                        if(pNode.getParentID().trim().equals(currNode.getParentID().trim())) { //same parents => siblings
-                            //currNode is not a first_child, so we need to assign some siblings here.
-                            // pNode currently holds the Head Sibling for currNode. Therefore currNode is Tail Sibling of pNode
-                            //head_sibling holds comment that is displayed immediately above the node, and tail_sibling holds comment that is displayed immediately below the node.
-                            //TODO: Implement the following: this sibling order is determined by upvotes-downvotes score, and then timestamp as tie breaker (and in the rare occasion of a tie again, use username String lexical comparison)
-                            //TODO: For now just use timestamp (default sort order of query result) to assign sibling order. Eventually this ordering has to reflect vote score and aforementioned tiebreakers.
-                            pNode.setTailSibling(currNode);
-                            currNode.setHeadSibling(pNode);
-                        }
-                        else{   //different parents => parent-child relationship detected => first child
-                            pNode.setFirstChild(currNode);  //set currNode as first_child of its parentNode
-                            currNode.setParent(pNode);
-                        }
-                    }
-                    nodeTable.put(currNode.getCommentID(), currNode);   //add this node to the hash table so that its children, if any, can find it in the table
-                }
-                //TODO: vscomment table in ddb is sorted by timestamp. So a parent comment would always come before a reply comment, so sorting the list is not necessary. Confirm this, and think of any case where a reply may come before parent and cause an error while setting its parent due to parent node not yet existing because it was placed after the reply in the list.
-
-                //TODO: obtain a list of comments we want to display here (root comments and upto their grandchildren). while making the list, set VSComment.nestedLevel to 0, 1, or 2 accordingly, for indent.
-                //TODO: then create the recycler view, following Tab1Newsfeed.java's example
-
-                //Below is a debugging algorithm to see if comment structure is correctly built. with indentation to indicate nested level
-                //printNode(firstParentNode, 0);
-
-                //iterate through root nodes and populate the vsComments list for use by recycler view (PostPageAdapter)
-                if(firstParentNode != null){
-                    setCommentList(firstParentNode);
-                    while(firstParentNode.hasTailSibling()){
-                        firstParentNode = firstParentNode.getTailSibling();
-                        setCommentList(firstParentNode);
-                    }
-                }
-
-                //run UI updates on UI Thread
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        setCommentsPage(current);
-                    }
-                });
-            }
-        };
-        Thread mythread = new Thread(runnable);
-        mythread.start();
-    }
 
     public Map<String, String> getActionMap(){
         return actionMap;
@@ -1167,6 +1137,26 @@ public class PostPage extends Fragment {
         }
     }
 
+    public void yesExitLoop(){
+        exitLoop = true;
+    }
+
+    //String grandchildsParentsID is the parentID of the clicked grandchild comment,
+    // hence the parentID of grandchildsPaarent would be commentID of the grandchild we're adding to the parentCache
+    public void addGrandParentToCache(String grandchildParentID){
+        //temp is the grandparent node of the clicked grandchild comment
+        VSCNode temp = nodeMap.get( nodeMap.get(grandchildParentID).getParentID() );
+        parentCache.put(temp.getCommentID(), temp.getNodeContent());
+
+    }
+
+    public void addParentToCache(String parentID){
+        if(!parentID.equals(postID)){
+            VSCNode temp = nodeMap.get(parentID);
+            parentCache.put(temp.getCommentID(), temp.getNodeContent());
+        }
+
+    }
 
 
 }
