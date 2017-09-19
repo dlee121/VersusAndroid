@@ -1,7 +1,5 @@
 package com.vs.bcd.versus.adapter;
 
-import android.app.Activity;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -9,11 +7,8 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.ShapeDrawable;
-import android.graphics.drawable.shapes.OvalShape;
 import android.graphics.drawable.shapes.RectShape;
-import android.graphics.drawable.shapes.Shape;
 import android.os.AsyncTask;
-import android.renderscript.ScriptGroup;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -27,44 +22,28 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBQueryExpression;
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.PaginatedQueryList;
-import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.vs.bcd.versus.OnLoadMoreListener;
-import com.vs.bcd.versus.activity.MainActivity;
 import com.vs.bcd.versus.activity.MainContainer;
-import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.model.PostSkeleton;
 import com.vs.bcd.versus.model.UserAction;
-import com.vs.bcd.versus.model.VSCNode;
 import com.vs.bcd.versus.model.VSComment;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
-
-import static android.os.Build.ID;
-import static com.vs.bcd.versus.R.id.imageView;
 
 
 public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -258,7 +237,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                             userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
                             currentComment.setUservote(NOVOTE);
                             actionMap.put(currentComment.getComment_id(), "N");
-                            //actionMap.remove(currentComment.getComment_id());   //TODO: instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote
+                            //actionMap.remove(currentComment.getComment_id());   //instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote if there were a past vote
                         }
                         else if(userVote == DOWNVOTE){
                             userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
@@ -283,7 +262,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                             userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
                             currentComment.setUservote(NOVOTE);
                             actionMap.put(currentComment.getComment_id(), "N");
-                            //actionMap.remove(currentComment.getComment_id());    //TODO: instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote
+                            //actionMap.remove(currentComment.getComment_id());   //instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote if there were a past vote
                         }
                         else if(userVote == UPVOTE){
                             userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
@@ -704,22 +683,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 return "";
         }
     }
-/*
-    public void highlightButtons(RecyclerView.ViewHolder holder, int selection){
-        if(selection == NOVOTE){
-            ((CategoryViewHolder)holder).upvoteButton.setImageResource(R.drawable.ic_heart);
-            ((CategoryViewHolder)holder).downvoteButton.setImageResource(R.drawable.ic_heart_broken);
-        }
-        if(selection == UPVOTE){
-            ((CategoryViewHolder)holder).upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
-            ((CategoryViewHolder)holder).downvoteButton.setImageResource(R.drawable.ic_heart_broken);
-        }
-        if(selection == DOWNVOTE){
-            ((CategoryViewHolder)holder).upvoteButton.setImageResource(R.drawable.ic_heart);
-            ((CategoryViewHolder)holder).downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
-        }
-    }
-*/
+
     //sets mask and also sets the drawable to corresponding imageview
     private void setImageMask(int maskCode, int redOrBlack){
 

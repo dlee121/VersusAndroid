@@ -150,6 +150,7 @@ public class VSComment {
                     downvotes--;
                     Log.d("uservote update", "downvote --");
                 }
+                votesum--;
                 break;
 
             case UPVOTE:
@@ -158,6 +159,9 @@ public class VSComment {
                 if(this.uservote == DOWNVOTE){
                     downvotes--;
                     Log.d("uservote update", "downvote --");
+                }
+                else{
+                    votesum++;
                 }
                 break;
 
@@ -168,6 +172,9 @@ public class VSComment {
                     upvotes--;
                     Log.d("uservote update", "upvote --");
                 }
+                else{
+                    votesum++;
+                }
                 break;
 
             default:
@@ -177,6 +184,23 @@ public class VSComment {
     }
     public void initialSetUservote(int uservote){
         this.uservote = uservote;
+    }
+
+    public void decrementAndSetN(int prevVote){
+
+        switch (prevVote){
+            case UPVOTE:
+                    upvotes--;
+                break;
+
+            case DOWNVOTE:
+                    downvotes--;
+                break;
+        }
+
+        uservote = NOVOTE;
+        votesum--;
+
     }
 
     //sets postID and returns this VSComment instance

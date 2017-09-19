@@ -28,8 +28,6 @@ import com.vs.bcd.versus.OnLoadMoreListener;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.PostPageAdapter;
-import com.vs.bcd.versus.model.ActivePost;
-import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.PostSkeleton;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.ThreadCounter;
@@ -39,16 +37,11 @@ import com.vs.bcd.versus.model.VSComment;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-import static android.content.ContentValues.TAG;
-import static android.icu.lang.UCharacter.GraphemeClusterBreak.V;
 import static com.vs.bcd.versus.adapter.PostPageAdapter.DOWNVOTE;
 import static com.vs.bcd.versus.adapter.PostPageAdapter.NOVOTE;
 import static com.vs.bcd.versus.adapter.PostPageAdapter.UPVOTE;
@@ -76,7 +69,6 @@ public class PostPage extends Fragment {
     private ViewGroup.LayoutParams RVLayoutParams;
     private RecyclerView RV;
     private LayoutInflater layoutInflater;
-    private Hashtable<String, VSCNode> nodeTable;
     private VSCNode currentRootLevelNode = null;    //This is the first child of current TopCard content. will be null at post level. we grab currentRootLevelNode.getParentNode() to go back up a level when up button is pressed in comment section view
     private VSCNode prevRootLevelNode = null;
     private VSCNode firstRoot = null; //first comment in root level, as in parent_id = "0"
@@ -88,11 +80,11 @@ public class PostPage extends Fragment {
     private FloatingActionButton postPageFAB;
     private RelativeLayout.LayoutParams fabLP;
     private VSComment topCardContent = null;
-    private UserAction currentUserAction;
+    private UserAction userAction;
     private boolean applyActions = true;
     private boolean redIncrementedLast, blackIncrementedLast;
     private Map<String, String> actionMap;
-    private Map<String, String> actionHistoryMap;
+    private Map<String, String> actionHistoryMap; //used to store previous user action on a comment, if any, for comparing with current user action, e.g. if user chose upvote and previously chose downvote, then we need to do both increment upvote and decrement downvote
     private int origRedCount, origBlackCount;
     private String lastSubmittedVote = "none";
     private boolean updateDuty = false;
@@ -164,7 +156,7 @@ public class PostPage extends Fragment {
                         topCardUpvoteButton.setImageResource(R.drawable.ic_heart);
                         topCardContent.setUservote(NOVOTE);
                         actionMap.put(topCardContent.getComment_id(), "N");
-                        //actionMap.remove(topCardContent.getComment_id());   //TODO: instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote
+                        //actionMap.remove(currentComment.getComment_id());   //instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote if there were a past vote
                     }
                     else if(userVote == DOWNVOTE){
                         topCardDownvoteButton.setImageResource(R.drawable.ic_heart_broken);
@@ -191,7 +183,7 @@ public class PostPage extends Fragment {
                         topCardDownvoteButton.setImageResource(R.drawable.ic_heart_broken);
                         topCardContent.setUservote(NOVOTE);
                         actionMap.put(topCardContent.getComment_id(), "N");
-                        //actionMap.remove(topCardContent.getComment_id());   //TODO: instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote
+                        //actionMap.remove(currentComment.getComment_id());   //instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote if there were a past vote
                     }
                     else if(userVote == UPVOTE){
                         topCardUpvoteButton.setImageResource(R.drawable.ic_heart);
@@ -302,8 +294,7 @@ public class PostPage extends Fragment {
     //automatically includes Post Card in the vsComments list for recycler view if rootParentId equals postID,
     // so use it for all PostPage set up cases where we query by votesum
     private void commentVotesumQuery(final String rootParentID, final boolean downloadImages){
-        //nodeMap.clear();
-        //vsComments.clear();
+
 
         final ArrayList<VSComment> rootComments = new ArrayList<>();
         final ArrayList<VSComment> childComments = new ArrayList<>();
@@ -323,7 +314,7 @@ public class PostPage extends Fragment {
                 final List<Object> masterList = new ArrayList<>();
 
                 //vsComments.clear();
-                nodeMap.clear();
+                //nodeMap.clear();
 
                 if(rootParentID.equals(postID)) {
                     //vsComments.add(0, post);
@@ -527,6 +518,15 @@ public class PostPage extends Fragment {
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+
+                        if(applyActions){
+                            applyUserActions();
+                        }
+                        else{
+                            Log.d("wow", "applyActions is false");
+                        }
+
+
                         //find view by id and attaching adapter for the RecyclerView
                         RV.setLayoutManager(new LinearLayoutManager(getActivity()));
 
@@ -539,10 +539,6 @@ public class PostPage extends Fragment {
                         else{
                             atRootLevel = false;
                             PPAdapter = new PostPageAdapter(RV, masterList, post, activity, downloadImages, false);
-                        }
-
-                        if(applyActions){
-                            applyUserActions();
                         }
 
                         RV.setAdapter(PPAdapter);
@@ -570,7 +566,7 @@ public class PostPage extends Fragment {
         mythread.start();
     }
 
-    public void setContent(final PostSkeleton post, final boolean downloadImages){
+    public void setContent(final PostSkeleton post, final boolean downloadImages){  //downloadImages signifies initial post page set up
         /*  Local postsList and commentsList contents check section
             //used to check local lists against DB.User version to test list setup/modification
 
@@ -609,17 +605,17 @@ public class PostPage extends Fragment {
 
         Runnable runnable = new Runnable() {
             public void run() {
-                if(currentUserAction == null || !currentUserAction.getPostID().equals(postID)){
-                    currentUserAction = activity.getMapper().load(UserAction.class, sessionManager.getCurrentUsername(), postID);   //TODO: catch exception for this query
+                if(userAction == null || !userAction.getPostID().equals(postID)){
+                    userAction = activity.getMapper().load(UserAction.class, sessionManager.getCurrentUsername(), postID);   //TODO: catch exception for this query
                     //Log.d("DB", "download attempt for UserAction");
                 }
                 applyActions = true;
-                if(currentUserAction == null){
-                    currentUserAction = new UserAction(sessionManager.getCurrentUsername(), postID);
+                if(userAction == null){
+                    userAction = new UserAction(sessionManager.getCurrentUsername(), postID);
                     applyActions = false;
                 }
-                lastSubmittedVote = currentUserAction.getVotedSide();
-                actionMap = currentUserAction.getActionRecord();
+                lastSubmittedVote = userAction.getVotedSide();
+                actionMap = userAction.getActionRecord();
                 deepCopyToActionHistoryMap(actionMap);
 
                 commentVotesumQuery(postID, downloadImages);
@@ -776,11 +772,6 @@ public class PostPage extends Fragment {
         return atRootLevel;
     }
 
-
-    public Map<String, String> getActionMap(){
-        return actionMap;
-    }
-
     public VSCNode getParent(VSCNode childnode){
         while(childnode.hasHeadSibling()){
             childnode = childnode.getHeadSibling();
@@ -794,10 +785,7 @@ public class PostPage extends Fragment {
     public void applyUserActions(){
         VSCNode temp;
         for(Map.Entry<String, String> entry : actionMap.entrySet()){
-            temp = nodeTable.get(entry.getKey());
-            if(!temp.getCommentID().equals(entry.getKey())){ //this means we retrieved a child of the node we are looking for
-                temp = getParent(temp); //now temp is the node we are looking for
-            }
+            temp = nodeMap.get(entry.getKey());
             if(temp == null){
                 Log.d("DEBUG", "This is unexpected, this is a bug. PostPage.java line 801");
                 return;
@@ -805,48 +793,80 @@ public class PostPage extends Fragment {
             //now temp should be the node we want to work with
 
             switch(entry.getValue()){
-                //TODO: we record and handle "N" case which is when user initially voted and then clicked it again to cancel the vote, keep the N until we decrement past vote and then it can be removed from actionmap after the decrement for DB is performed
+                //we record and handle "N" case which is when user initially voted and then clicked it again to cancel the vote,
+                //keep the N until we decrement past vote
+                // and then it is removed from actionmap after the decrement for DB is performed
                 case "U":
-                    temp.getNodeContent().initialSetUservote(UPVOTE);
+                    if(actionHistoryMap.get(entry.getKey()) != null){
+                        temp.getNodeContent().initialSetUservote(UPVOTE);
+                        //Log.d("updatewow", "wtf UPVOTE");
+                    }
+                    else{ //this was a new action made in this current post session
+                        //so this is going to be a current session action that needs to be manually applied
+                        temp.getNodeContent().setUservote(UPVOTE);
+                        //Log.d("updatewow", "updating comment with UPVOTE");
+                    }
                     break;
                 case "D":
-                    temp.getNodeContent().initialSetUservote(DOWNVOTE);
+                    if(actionHistoryMap.get(entry.getKey()) != null){
+                        temp.getNodeContent().initialSetUservote(DOWNVOTE);
+                        //Log.d("updatewow", "wtf DOWNVOTE");
+                    }
+                    else{ //this was a new action made in this current post session
+                        //so this is going to be a current session action that needs to be manually applied
+                        temp.getNodeContent().setUservote(DOWNVOTE);
+                        //Log.d("updatewow", "updating comment with DOWNVOTE");
+                    }
+                    break;
+                case "N":   //"N" doesn't get written to DB because we remove it before uploading actionMap through UserAction object
+                            //so this is going to be a current session action that needs to be manually applied
+                    String historyStr = actionHistoryMap.get(entry.getKey());
+                    if(historyStr != null){
+                        if(historyStr.equals("U")){
+                            temp.getNodeContent().decrementAndSetN(UPVOTE);
+                        }
+                        else {  //since DB doesn't store "N", we can safely assume this is "D"
+                            temp.getNodeContent().decrementAndSetN(DOWNVOTE);
+                        }
+                        //Log.d("updatewow", "updating comment with NOVOTE");
+                    }
+
                     break;
             }
+
+
+
         }
     }
 
     //TODO:this is where we do user action synchronization I believe it would be called
     //Try to use this function for all action synchronization updates, because we do some stuff to keep track of synchronization
     public void writeActionsToDB(){
-        if(currentUserAction != null) {
+        if(userAction != null) {
             Runnable runnable = new Runnable() {
                 public void run() {
                     List<String> markedForRemoval = new ArrayList<>();
 
 
-                    String tempString;
+                    String actionHistoryEntryValue;
                     VSCNode tempNode;
                     boolean updateForNRemoval = false;
 
-                    for (Map.Entry<String, String> entry : actionMap.entrySet()) {
-                        tempString = actionHistoryMap.get(entry.getKey());
+                    for (Map.Entry<String, String> entry : actionMap.entrySet()) {  //first record of user action on this comment
+                        actionHistoryEntryValue = actionHistoryMap.get(entry.getKey());
 
-                        if (tempString == null) {
+                        if (actionHistoryEntryValue == null) {
                             //just increment
                             HashMap<String, AttributeValue> keyMap =
                                     new HashMap<>();
-                            keyMap.put("post_id", new AttributeValue().withS(postID));  //partition key
-                            tempNode = nodeTable.get(entry.getKey());
-                            if (!tempNode.getCommentID().equals(entry.getKey())) {
-                                tempNode = getParent(tempNode);
-                            }
-                            keyMap.put("timestamp", new AttributeValue().withS(tempNode.getTimestamp()));   //sort key
+                            tempNode = nodeMap.get(entry.getKey());
+                            keyMap.put("parent_id", new AttributeValue().withS(tempNode.getParentID()));  //partition key
+                            keyMap.put("comment_id", new AttributeValue().withS(entry.getKey()));   //sort key
 
                             HashMap<String, AttributeValueUpdate> updates =
                                     new HashMap<>();
 
-                            AttributeValueUpdate avu;
+                            AttributeValueUpdate avu, avv;
                             switch (entry.getValue()) {
                                 case "U":
                                     Log.d("DB update", "upvote increment");
@@ -854,6 +874,11 @@ public class PostPage extends Fragment {
                                             .withValue(new AttributeValue().withN("1"))
                                             .withAction(AttributeAction.ADD);
                                     updates.put("upvotes", avu);
+
+                                    avv = new AttributeValueUpdate()
+                                            .withValue(new AttributeValue().withN("1"))
+                                            .withAction(AttributeAction.ADD);
+                                    updates.put("votesum", avv);
 
                                     UpdateItemRequest request = new UpdateItemRequest()
                                             .withTableName("vscomment")
@@ -873,6 +898,11 @@ public class PostPage extends Fragment {
                                             .withAction(AttributeAction.ADD);
                                     updates.put("downvotes", avu);
 
+                                    avv = new AttributeValueUpdate()
+                                            .withValue(new AttributeValue().withN("1"))
+                                            .withAction(AttributeAction.ADD);
+                                    updates.put("votesum", avv);
+
                                     request = new UpdateItemRequest()
                                             .withTableName("vscomment")
                                             .withKey(keyMap)
@@ -891,27 +921,24 @@ public class PostPage extends Fragment {
 
                         }
                     /*
-                    else if(!tempString.equals("N")){
+                    else if(!actionHistoryEntryValue.equals("N")){
                         Log.d("debug", "so this happens");
                     }
                     */
-                        else if (!tempString.equals(entry.getValue())) {
-                            if (tempString.equals("N")) {
+                        else if (!actionHistoryEntryValue.equals(entry.getValue())) {   //modifying exisiting record of user action on this comment
+                            if (actionHistoryEntryValue.equals("N")) {
                                 Log.d("DB update", "this is the source of error. we don't decrement opposite in this case");
                             }
                             //increment current and decrement past
                             HashMap<String, AttributeValue> keyMap =
                                     new HashMap<>();
-                            keyMap.put("post_id", new AttributeValue().withS(postID));  //partition key
-                            tempNode = nodeTable.get(entry.getKey());
-                            if (!tempNode.getCommentID().equals(entry.getKey())) {
-                                tempNode = getParent(tempNode);
-                            }
-                            keyMap.put("timestamp", new AttributeValue().withS(tempNode.getTimestamp()));   //sort key //TODO:sort key which we'll eventually change
+                            tempNode = nodeMap.get(entry.getKey());
+                            keyMap.put("parent_id", new AttributeValue().withS(tempNode.getParentID()));  //partition key
+                            keyMap.put("comment_id", new AttributeValue().withS(entry.getKey()));   //sort key //TODO:sort key which we'll eventually change
 
                             HashMap<String, AttributeValueUpdate> updates =
                                     new HashMap<>();
-                            AttributeValueUpdate avu, avd;
+                            AttributeValueUpdate avu, avd, avv;
                             UpdateItemRequest request;
 
                             switch (entry.getValue()) {
@@ -974,6 +1001,11 @@ public class PostPage extends Fragment {
                                                 .withAction(AttributeAction.ADD);
                                         updates.put("downvotes", avd);
                                     }
+                                    avv = new AttributeValueUpdate()
+                                            .withValue(new AttributeValue().withN("-1"))
+                                            .withAction(AttributeAction.ADD);
+                                    updates.put("votesum", avv);
+
                                     request = new UpdateItemRequest()
                                             .withTableName("vscomment")
                                             .withKey(keyMap)
@@ -992,7 +1024,7 @@ public class PostPage extends Fragment {
                         }
                     }
 
-                    if (!lastSubmittedVote.equals(currentUserAction.getVotedSide())) {
+                    if (!lastSubmittedVote.equals(userAction.getVotedSide())) {
                         String redOrBlack;
                         boolean decrement = false;
                         if (redIncrementedLast) {
@@ -1055,7 +1087,7 @@ public class PostPage extends Fragment {
                         }
 
                         //update lastSubmittedVote
-                        lastSubmittedVote = currentUserAction.getVotedSide();
+                        lastSubmittedVote = userAction.getVotedSide();
 
                     }
 
@@ -1066,7 +1098,7 @@ public class PostPage extends Fragment {
                     }
 
                     if (!actionMap.isEmpty() || redIncrementedLast != blackIncrementedLast || updateForNRemoval) { //user made comment action(s) OR voted for a side in the post
-                        activity.getMapper().save(currentUserAction, new DynamoDBMapperConfig(DynamoDBMapperConfig.SaveBehavior.CLOBBER));
+                        activity.getMapper().save(userAction, new DynamoDBMapperConfig(DynamoDBMapperConfig.SaveBehavior.CLOBBER));
                         //TODO: the below line to deep copy action history is currently commented out because this code currently only executes on PostPage exit. However, once we need to write UserAction to DB while user is still inside PostPage, then we should uncomment the line below to keep actionHistoryMap up to date with current version of actionMap in the DB that has just been updated by the line above.
                         //if(exiting post page)
                         // deepCopyToActionHistoryMap(actionMap);
@@ -1082,27 +1114,27 @@ public class PostPage extends Fragment {
     }
 
     public void redVotePressed(){
-        if(currentUserAction.getVotedSide().equals("BLK")){
+        if(userAction.getVotedSide().equals("BLK")){
             post.decrementBlackCount();
         }
         post.incrementRedCount();
-        currentUserAction.setVotedSide("RED");
+        userAction.setVotedSide("RED");
         redIncrementedLast = true;
         blackIncrementedLast = false;
     }
 
     public void blackVotePressed(){
-        if(currentUserAction.getVotedSide().equals("RED")){
+        if(userAction.getVotedSide().equals("RED")){
             post.decrementRedCount();
         }
         post.incrementBlackCount();
-        currentUserAction.setVotedSide("BLK");
+        userAction.setVotedSide("BLK");
         blackIncrementedLast = true;
         redIncrementedLast = false;
     }
 
     public UserAction getUserAction(){
-        return currentUserAction;
+        return userAction;
     }
 
     public String getPostPagePostID(){
@@ -1157,6 +1189,7 @@ public class PostPage extends Fragment {
         }
 
     }
+
 
 
 }

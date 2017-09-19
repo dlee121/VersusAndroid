@@ -120,9 +120,9 @@ public class MainContainer extends AppCompatActivity {
                     else{
                         //Log.d("debug", "is root");
                         postPage.writeActionsToDB();
+                        //postPage.clearList();
                         xBmp = null;
                         yBmp = null;
-                        //postPage.clearList();
                         if(!fromCategoryFragment){  //not from CategoryFragment, i.e. currently from Newsfeed or Trending
                             toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                             titleTxtView.setText(lastSetTitle);
@@ -228,7 +228,7 @@ public class MainContainer extends AppCompatActivity {
                         }
                         else{
                             postPage.writeActionsToDB();
-                            postPage.clearList();
+                            //postPage.clearList();
 
                             if(!fromCategoryFragment){  //not from CategoryFragment, i.e. currently from Newsfeed or Trending
                                 toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
