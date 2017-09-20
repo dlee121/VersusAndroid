@@ -207,7 +207,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 userViewHolder.author.setText(currentComment.getAuthor());
                 userViewHolder.timestamp.setText(getTimeString(currentComment.getTimestamp()));
                 userViewHolder.content.setText(currentComment.getContent());
-                userViewHolder.heartCount.setText( Integer.toString(currentComment.getUpvotes() - currentComment.getDownvotes()) );
+                userViewHolder.heartCount.setText( Integer.toString(currentComment.heartsTotal()) );
                 //set CardView onClickListener to go to PostPage fragment with corresponding Comments data (this will be a PostPage without post_card)
 
                 userViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -250,7 +250,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                             currentComment.setUservote(UPVOTE);
                             actionMap.put(currentComment.getComment_id(), "U");
                         }
-                        userViewHolder.heartCount.setText( Integer.toString(currentComment.getUpvotes() - currentComment.getDownvotes()) ); //refresh heartcount display
+                        userViewHolder.heartCount.setText( Integer.toString(currentComment.heartsTotal()) ); //refresh heartcount display
                     }
                 });
 
@@ -275,7 +275,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                             currentComment.setUservote(DOWNVOTE);
                             actionMap.put(currentComment.getComment_id(), "D");
                         }
-                        userViewHolder.heartCount.setText( Integer.toString(currentComment.getUpvotes() - currentComment.getDownvotes()) );
+                        userViewHolder.heartCount.setText( Integer.toString(currentComment.heartsTotal()) );
                     }
                 });
             }

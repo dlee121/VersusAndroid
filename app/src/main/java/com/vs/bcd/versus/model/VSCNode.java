@@ -113,7 +113,20 @@ public class VSCNode {
         nodeContent.setNestedLevel(level);
     }
 
+    public int getUpvotes(){
+        return nodeContent.getUpvotes();
+    }
+
+    public int getDownvotes(){
+        return nodeContent.getDownvotes();
+    }
+
+    public int getVotecount(){
+        return nodeContent.votesCount();
+    }
+
     public String getTimestamp(){
         return nodeContent.getTimestamp();
     }
+
 }

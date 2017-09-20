@@ -169,7 +169,7 @@ public class PostPage extends Fragment {
                         topCardContent.setUservote(UPVOTE);
                         actionMap.put(topCardContent.getComment_id(), "U");
                     }
-                    topCardHeartCount.setText( Integer.toString(topCardContent.getUpvotes() - topCardContent.getDownvotes()) );
+                    topCardHeartCount.setText( Integer.toString(topCardContent.heartsTotal()) );
                 }
             }
         });
@@ -196,7 +196,7 @@ public class PostPage extends Fragment {
                         topCardContent.setUservote(DOWNVOTE);
                         actionMap.put(topCardContent.getComment_id(), "D");
                     }
-                    topCardHeartCount.setText( Integer.toString(topCardContent.getUpvotes() - topCardContent.getDownvotes()) );
+                    topCardHeartCount.setText( Integer.toString(topCardContent.heartsTotal()) );
                 }
             }
         });
@@ -259,14 +259,21 @@ public class PostPage extends Fragment {
     public void clearList(){
         nodeMap.clear();
         vsComments.clear();
+        topCardContent = null;
     }
 
     public void enableChildViews(){
         for(int i = 0; i<childViews.size(); i++){
             if( !(childViews.get(i) instanceof FloatingActionButton && ppfabActive == false) ){
+
                 childViews.get(i).setEnabled(true);
                 childViews.get(i).setClickable(true);
-                childViews.get(i).setLayoutParams(LPStore.get(i));
+                if(childViews.get(i).getId() == R.id.topCard && topCardContent != null){//for re-entry from CommentEnterFragment. Without this setUpTopCard, enableChildViews hides top card from view
+                    setUpTopCard(topCardContent);
+                }
+                else{
+                    childViews.get(i).setLayoutParams(LPStore.get(i));
+                }
             }
         }
     }
@@ -283,17 +290,17 @@ public class PostPage extends Fragment {
     }
 
     /*
-    grab 25 roots.
+    grab n roots. n = retrievalLimit.
         then iterate through each roots
             for each root, get two children
                 for each children, get two children
-            then we will have two children and four grandchildren per root, and 25 such roots.
+            then we will have two children and four grandchildren per root, and n such roots.
     LoadMore loads more roots and does same thing.
     */
 
     //automatically includes Post Card in the vsComments list for recycler view if rootParentId equals postID,
-    // so use it for all PostPage set up cases where we query by votesum
-    private void commentVotesumQuery(final String rootParentID, final boolean downloadImages){
+    // so use it for all PostPage set up cases where we query by upvotes
+    private void commentUpvotesQuery(final String rootParentID, final boolean downloadImages){
 
 
         final ArrayList<VSComment> rootComments = new ArrayList<>();
@@ -316,24 +323,21 @@ public class PostPage extends Fragment {
                 //vsComments.clear();
                 //nodeMap.clear();
 
-                if(rootParentID.equals(postID)) {
-                    //vsComments.add(0, post);
-                    masterList.add(0,post);
-                }
-
                 VSComment queryTemplate = new VSComment();
                 queryTemplate.setParent_id(rootParentID);
 
                 DynamoDBQueryExpression queryExpression =
                         new DynamoDBQueryExpression()
                                 .withHashKeyValues(queryTemplate)
-                                .withRangeKeyCondition("votesum", rangeKeyCondition)
+                                .withRangeKeyCondition("upvotes", rangeKeyCondition)
                                 .withScanIndexForward(false)
                                 .withLimit(retrievalLimit);
 
                 //get the root comments
                 QueryResultPage queryResultPage = activity.getMapper().queryPage(VSComment.class, queryExpression);
                 rootComments.addAll(queryResultPage.getResults());
+
+                chunkSorter(rootComments);
 
                 VSCNode prevNode = null;
                 exitLoop = false;
@@ -369,7 +373,7 @@ public class PostPage extends Fragment {
                                 DynamoDBQueryExpression childQueryExpression =
                                         new DynamoDBQueryExpression()
                                                 .withHashKeyValues(queryTemplate)
-                                                .withRangeKeyCondition("votesum", rangeKeyCondition)
+                                                .withRangeKeyCondition("upvotes", rangeKeyCondition)
                                                 .withScanIndexForward(false)
                                                 .withLimit(2);
 
@@ -398,9 +402,9 @@ public class PostPage extends Fragment {
                 Log.d("wow", "child query result size at the end: " + childComments.size());
                 exitLoop = false;
                 if(!childComments.isEmpty()){
+
                     //get the grandchildren while setting up nodeMap with child comments
                     final ThreadCounter threadCounter2 = new ThreadCounter(0, childComments.size(), thisPage);
-                    prevNode = null;
                     for(int i = 0; i < childComments.size(); i++){
                         if(thisThreadID != queryThreadID){
                             Log.d("wow", "broke out of old query thread");
@@ -412,18 +416,28 @@ public class PostPage extends Fragment {
 
                         cNode.setNestedLevel(1);
                         VSCNode parentNode = nodeMap.get(cNode.getParentID());
-                        if(parentNode != null && !parentNode.hasChild()){
-                            parentNode.setFirstChild(cNode);
-                            cNode.setParent(parentNode);
-                        }
-
-                        if(prevNode != null){
-                            prevNode.setTailSibling(cNode);
-                            cNode.setHeadSibling(prevNode);
+                        if(parentNode != null) {
+                            if(!parentNode.hasChild()){
+                                parentNode.setFirstChild(cNode);
+                                cNode.setParent(parentNode);
+                            }
+                            else{
+                                VSCNode sibling = parentNode.getFirstChild();
+                                if(sibling.getUpvotes() == cNode.getUpvotes() && sibling.getVotecount() < cNode.getVotecount()){
+                                    sibling.setParent(null);
+                                    cNode.setParent(parentNode);
+                                    parentNode.setFirstChild(cNode);
+                                    cNode.setTailSibling(sibling);
+                                    sibling.setHeadSibling(cNode);
+                                }
+                                else{
+                                    sibling.setTailSibling(cNode);
+                                    cNode.setHeadSibling(sibling);
+                                }
+                            }
                         }
 
                         nodeMap.put(commentID, cNode);
-                        prevNode = cNode;
 
                         Runnable runnable = new Runnable() {
                             public void run() {
@@ -433,7 +447,7 @@ public class PostPage extends Fragment {
                                 DynamoDBQueryExpression gChildQueryExpression =
                                         new DynamoDBQueryExpression()
                                                 .withHashKeyValues(queryTemplate)
-                                                .withRangeKeyCondition("votesum", rangeKeyCondition)
+                                                .withRangeKeyCondition("upvotes", rangeKeyCondition)
                                                 .withScanIndexForward(false)
                                                 .withLimit(2);
 
@@ -458,29 +472,44 @@ public class PostPage extends Fragment {
                 }
 
                 //set up nodeMap with grandchild comments
-                prevNode = null;
-                for (int i = 0; i < grandchildComments.size(); i++){
+                if(!grandchildComments.isEmpty()){
+                    //TODO: run chunkSorter on grandchildComments here
 
-                    if(thisThreadID != queryThreadID){
-                        Log.d("wow", "broke out of old query thread");
-                        return;
+                    for (int i = 0; i < grandchildComments.size(); i++){
+
+                        if(thisThreadID != queryThreadID){
+                            Log.d("wow", "broke out of old query thread");
+                            return;
+                        }
+
+                        VSCNode cNode = new VSCNode(grandchildComments.get(i).withPostID(postID));
+                        cNode.setNestedLevel(2);
+
+                        VSCNode parentNode = nodeMap.get(cNode.getParentID());
+                        if(parentNode != null) {
+                            if(!parentNode.hasChild()){
+                                parentNode.setFirstChild(cNode);
+                                cNode.setParent(parentNode);
+                            }
+                            else{
+                                VSCNode sibling = parentNode.getFirstChild();
+                                if(sibling.getUpvotes() == cNode.getUpvotes() && sibling.getVotecount() < cNode.getVotecount()){
+                                    sibling.setParent(null);
+                                    cNode.setParent(parentNode);
+                                    parentNode.setFirstChild(cNode);
+                                    cNode.setTailSibling(sibling);
+                                    sibling.setHeadSibling(cNode);
+                                }
+                                else{
+                                    sibling.setTailSibling(cNode);
+                                    cNode.setHeadSibling(sibling);
+                                }
+                            }
+                        }
+
+                        nodeMap.put(cNode.getCommentID(), cNode);
                     }
 
-                    VSCNode cNode = new VSCNode(grandchildComments.get(i).withPostID(postID));
-                    cNode.setNestedLevel(2);
-                    VSCNode parentNode = nodeMap.get(cNode.getParentID());
-                    if(parentNode != null && !parentNode.hasChild()){
-                        parentNode.setFirstChild(cNode);
-                        cNode.setParent(parentNode);
-                    }
-
-                    if(prevNode != null){
-                        prevNode.setTailSibling(cNode);
-                        cNode.setHeadSibling(prevNode);
-                    }
-
-                    nodeMap.put(cNode.getCommentID(), cNode);
-                    prevNode = cNode;
                 }
 
 
@@ -520,12 +549,17 @@ public class PostPage extends Fragment {
                     public void run() {
 
                         if(applyActions){
-                            applyUserActions();
+                            applyUserActions(masterList);
                         }
                         else{
                             Log.d("wow", "applyActions is false");
                         }
 
+                        //Make sure to do this after applyUserActions because applyUserActions doesn't expect post object in the list
+                        if(rootParentID.equals(postID)) {
+                            //vsComments.add(0, post);
+                            masterList.add(0,post);
+                        }
 
                         //find view by id and attaching adapter for the RecyclerView
                         RV.setLayoutManager(new LinearLayoutManager(getActivity()));
@@ -618,7 +652,7 @@ public class PostPage extends Fragment {
                 actionMap = userAction.getActionRecord();
                 deepCopyToActionHistoryMap(actionMap);
 
-                commentVotesumQuery(postID, downloadImages);
+                commentUpvotesQuery(postID, downloadImages);
             }
         };
         Thread mythread = new Thread(runnable);
@@ -670,7 +704,6 @@ public class PostPage extends Fragment {
     public void setUpTopCard(VSComment clickedComment){
 
         topCardContent = clickedComment;
-
         atRootLevel = false;
 
         if(ppfabActive){
@@ -693,7 +726,7 @@ public class PostPage extends Fragment {
         timestamp.setText(PPAdapter.getTimeString(clickedComment.getTimestamp()));
         author.setText(clickedComment.getAuthor());
         content.setText(clickedComment.getContent());
-        heartCount.setText(Integer.toString(clickedComment.getUpvotes() - clickedComment.getDownvotes()));
+        heartCount.setText(Integer.toString(clickedComment.heartsTotal()));
 
         switch (clickedComment.getUservote()){
             case 0: //NOVOTE
@@ -721,12 +754,14 @@ public class PostPage extends Fragment {
             lp.bottomMargin = 154;
             topCard.setLayoutParams(lp);
             topCardActive = true;
-        }
+            Log.d("tpwow", topCardContent.getContent());
 
+        }
     }
 
     public void hideTopCard(){
         topCardActive = false;
+        topCardContent = null;
         topCard.findViewById(R.id.replybuttontc).setEnabled(false);
         topCard.setEnabled(false);
         topCard.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
@@ -736,15 +771,13 @@ public class PostPage extends Fragment {
 
     //used when expanding into nested levels, so when pageNestedLevel > 0
     public void setCommentsPage(VSComment subjectComment){
-
         if(RV != null && RV.getAdapter() != null){
             ((PostPageAdapter)(RV.getAdapter())).clearList();
         }
-
         setUpTopCard(subjectComment);
         //parentCache.put(subjectComment.getComment_id(), subjectComment);
 
-        commentVotesumQuery(subjectComment.getComment_id(), false);
+        commentUpvotesQuery(subjectComment.getComment_id(), false);
 
     }
 
@@ -764,7 +797,7 @@ public class PostPage extends Fragment {
             setUpTopCard(parentCache.get(tempParentID));
         }
 
-        commentVotesumQuery(tempParentID, false);
+        commentUpvotesQuery(tempParentID, false);
 
     }
 
@@ -782,59 +815,57 @@ public class PostPage extends Fragment {
     //only call this after nodeTable and vsComments have been set up, but before passing vsComments into a PPAdapter instance
     //sets up VSComment.uservote for comments that user upvoted or downvoted
     //this is only used after downloading for initial uservote setup
-    public void applyUserActions(){
+    public void applyUserActions(List<Object> commentsList){
         VSCNode temp;
-        for(Map.Entry<String, String> entry : actionMap.entrySet()){
-            temp = nodeMap.get(entry.getKey());
+
+        for(int i = 0; i<commentsList.size(); i++){
+            temp = nodeMap.get(((VSComment)commentsList.get(i)).getComment_id());
+
             if(temp == null){
                 Log.d("DEBUG", "This is unexpected, this is a bug. PostPage.java line 801");
                 return;
             }
-            //now temp should be the node we want to work with
 
-            switch(entry.getValue()){
-                //we record and handle "N" case which is when user initially voted and then clicked it again to cancel the vote,
-                //keep the N until we decrement past vote
-                // and then it is removed from actionmap after the decrement for DB is performed
-                case "U":
-                    if(actionHistoryMap.get(entry.getKey()) != null){
-                        temp.getNodeContent().initialSetUservote(UPVOTE);
-                        //Log.d("updatewow", "wtf UPVOTE");
-                    }
-                    else{ //this was a new action made in this current post session
-                        //so this is going to be a current session action that needs to be manually applied
-                        temp.getNodeContent().setUservote(UPVOTE);
-                        //Log.d("updatewow", "updating comment with UPVOTE");
-                    }
-                    break;
-                case "D":
-                    if(actionHistoryMap.get(entry.getKey()) != null){
-                        temp.getNodeContent().initialSetUservote(DOWNVOTE);
-                        //Log.d("updatewow", "wtf DOWNVOTE");
-                    }
-                    else{ //this was a new action made in this current post session
-                        //so this is going to be a current session action that needs to be manually applied
-                        temp.getNodeContent().setUservote(DOWNVOTE);
-                        //Log.d("updatewow", "updating comment with DOWNVOTE");
-                    }
-                    break;
-                case "N":   //"N" doesn't get written to DB because we remove it before uploading actionMap through UserAction object
+            String currentValue = actionMap.get(temp.getCommentID());
+            String historyValue = actionHistoryMap.get(temp.getCommentID());
+            if(currentValue != null){
+                switch(actionMap.get(temp.getCommentID())){
+                    //we record and handle "N" case which is when user initially voted and then clicked it again to cancel the vote,
+                    //keep the N until we decrement past vote
+                    // and then it is removed from actionmap after the decrement for DB is performed
+                    case "U":
+                        if(historyValue != null && historyValue.equals("U")){
+                            temp.getNodeContent().initialSetUservote(UPVOTE);
+                        }
+                        else {
+                            //this was a new action made in this current post session
                             //so this is going to be a current session action that needs to be manually applied
-                    String historyStr = actionHistoryMap.get(entry.getKey());
-                    if(historyStr != null){
-                        if(historyStr.equals("U")){
-                            temp.getNodeContent().decrementAndSetN(UPVOTE);
+                            temp.getNodeContent().updateUservoteAndDecrement(UPVOTE);
                         }
-                        else {  //since DB doesn't store "N", we can safely assume this is "D"
-                            temp.getNodeContent().decrementAndSetN(DOWNVOTE);
+                        break;
+                    case "D":
+                        if(historyValue != null && historyValue.equals("D")){
+                            temp.getNodeContent().initialSetUservote(DOWNVOTE);
                         }
-                        //Log.d("updatewow", "updating comment with NOVOTE");
-                    }
-
-                    break;
+                        else {
+                            //this was a new action made in this current post session
+                            //so this is going to be a current session action that needs to be manually applied
+                            temp.getNodeContent().updateUservoteAndDecrement(DOWNVOTE);
+                        }
+                        break;
+                    case "N":   //"N" doesn't get written to DB because we remove it before uploading actionMap through UserAction object
+                        //so this is going to be a current session action that needs to be manually applied
+                        if(historyValue != null){
+                            if(historyValue.equals("U")){
+                                temp.getNodeContent().decrementAndSetN(UPVOTE);
+                            }
+                            else {  //since DB doesn't store "N", we can safely assume this is "D"
+                                temp.getNodeContent().decrementAndSetN(DOWNVOTE);
+                            }
+                        }
+                        break;
+                }
             }
-
-
 
         }
     }
@@ -866,7 +897,7 @@ public class PostPage extends Fragment {
                             HashMap<String, AttributeValueUpdate> updates =
                                     new HashMap<>();
 
-                            AttributeValueUpdate avu, avv;
+                            AttributeValueUpdate avu;
                             switch (entry.getValue()) {
                                 case "U":
                                     Log.d("DB update", "upvote increment");
@@ -874,11 +905,6 @@ public class PostPage extends Fragment {
                                             .withValue(new AttributeValue().withN("1"))
                                             .withAction(AttributeAction.ADD);
                                     updates.put("upvotes", avu);
-
-                                    avv = new AttributeValueUpdate()
-                                            .withValue(new AttributeValue().withN("1"))
-                                            .withAction(AttributeAction.ADD);
-                                    updates.put("votesum", avv);
 
                                     UpdateItemRequest request = new UpdateItemRequest()
                                             .withTableName("vscomment")
@@ -897,11 +923,6 @@ public class PostPage extends Fragment {
                                             .withValue(new AttributeValue().withN("1"))
                                             .withAction(AttributeAction.ADD);
                                     updates.put("downvotes", avu);
-
-                                    avv = new AttributeValueUpdate()
-                                            .withValue(new AttributeValue().withN("1"))
-                                            .withAction(AttributeAction.ADD);
-                                    updates.put("votesum", avv);
 
                                     request = new UpdateItemRequest()
                                             .withTableName("vscomment")
@@ -938,7 +959,7 @@ public class PostPage extends Fragment {
 
                             HashMap<String, AttributeValueUpdate> updates =
                                     new HashMap<>();
-                            AttributeValueUpdate avu, avd, avv;
+                            AttributeValueUpdate avu, avd;
                             UpdateItemRequest request;
 
                             switch (entry.getValue()) {
@@ -1001,10 +1022,6 @@ public class PostPage extends Fragment {
                                                 .withAction(AttributeAction.ADD);
                                         updates.put("downvotes", avd);
                                     }
-                                    avv = new AttributeValueUpdate()
-                                            .withValue(new AttributeValue().withN("-1"))
-                                            .withAction(AttributeAction.ADD);
-                                    updates.put("votesum", avv);
 
                                     request = new UpdateItemRequest()
                                             .withTableName("vscomment")
@@ -1186,6 +1203,79 @@ public class PostPage extends Fragment {
         if(!parentID.equals(postID)){
             VSCNode temp = nodeMap.get(parentID);
             parentCache.put(temp.getCommentID(), temp.getNodeContent());
+            Log.d("parentcache", "heartcount: " + Integer.toString(temp.getNodeContent().heartsTotal()));
+        }
+
+    }
+
+    //called with query results before nodeMap setup
+    private void chunkSorter(List<VSComment> commentsList){
+
+        if(commentsList.size() > 1){
+            ArrayList<ArrayList<VSComment>> chunksList = new ArrayList<>();   //chunks are added in upvote order since nodes are already sorted by upvotes from the query
+
+            int chunkListIndex = 0;
+            int currentChunkUpvotes = commentsList.get(0).getUpvotes();
+
+            ArrayList<VSComment> firstChunkEntry = new ArrayList<>();
+            firstChunkEntry.add(commentsList.get(0));
+            chunksList.add(firstChunkEntry);
+
+            for(int i = 1; i<commentsList.size(); i++){
+                VSComment commentItem = commentsList.get(i);
+                if(commentItem.getUpvotes() == currentChunkUpvotes){
+                    chunksList.get(chunkListIndex).add(commentItem);
+                }
+                else {
+                    chunkListIndex++;
+                    currentChunkUpvotes = commentItem.getUpvotes();
+                    ArrayList<VSComment> freshChunkEntry = new ArrayList<>();
+                    freshChunkEntry.add(commentItem);
+                    chunksList.add(freshChunkEntry);
+                }
+            }
+
+            //go through each chunk and sort as needed, and if we sort, then write it over the corresponding section of commentsList
+            int chunkInsertionIndex = 0;
+
+            for(ArrayList<VSComment> chunk : chunksList){
+                if(chunk.size() == 1){   //a chunk with only single item means no sorting occured in it, and chunks have minimum size of 1.
+                    chunkInsertionIndex += 1;
+                }
+                else {
+
+                    boolean chunkSorted = false;
+                    VSComment chunkItem;
+                    for(int right = 1; right< chunk.size(); right++){ //iterate over this chunk
+                        chunkItem = chunk.get(right);
+                        int insertionIndex = right;
+                        for(int left = right-1; left >= 0; left--){
+                            if(chunkItem.heartsTotal() > chunk.get(left).heartsTotal()){
+                                insertionIndex = left;
+                            }
+                        }
+
+                        if(insertionIndex < right){
+                            VSComment temp = chunkItem;
+                            chunk.set(right, chunk.get(insertionIndex));
+                            chunk.set(insertionIndex, temp);
+                            chunkSorted = true;
+                        }
+                    }
+
+                    if(chunkSorted){
+                        for(int chunkIndex = 0; chunkIndex<chunk.size(); chunkIndex++){
+                            commentsList.set(chunkInsertionIndex, chunk.get(chunkIndex));
+                            chunkInsertionIndex++;
+                        }
+                    }
+                    else {
+                        chunkInsertionIndex += chunk.size();
+                    }
+
+                }
+
+            }
         }
 
     }

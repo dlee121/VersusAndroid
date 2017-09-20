@@ -27,7 +27,6 @@ public class VSComment {
     private int topmedal;   //0=none, 1=bronze, 2=silver, 3=gold
     private int upvotes; //number of upvotes for this comment
     private int downvotes; //number of downvotes for this comment
-    private int votesum;    //upvotes - downvotes
 
     private int nestedLevel = 0;    //not used by DB.
     private int uservote = 0; //0 if NOVOTE, 1 if UPVOTE, 2 if DOWNVOTE
@@ -44,7 +43,6 @@ public class VSComment {
         downvotes = 0;
         uservote = 0;
         topmedal = 0;
-        votesum = 0;
     }
 
     @DynamoDBHashKey(attributeName = "parent_id")
@@ -95,7 +93,7 @@ public class VSComment {
         this.content = content;
     }
 
-    @DynamoDBAttribute(attributeName = "upvotes")
+    @DynamoDBIndexRangeKey(localSecondaryIndexName = "parent_id-upvotes-index", attributeName = "upvotes")
     public int getUpvotes() {
         return upvotes;
     }
@@ -119,14 +117,6 @@ public class VSComment {
         this.topmedal = topmedal;
     }
 
-    @DynamoDBIndexRangeKey(localSecondaryIndexName = "parent_id-votesum-index", attributeName = "votesum")
-    public int getVotesum(){
-        return votesum;
-    }
-    public void setVotesum(int votesum){
-        this.votesum = votesum;
-    }
-
     @DynamoDBIgnore
     public int getNestedLevel(){
         return nestedLevel;
@@ -140,6 +130,8 @@ public class VSComment {
         return uservote;
     }
     public void setUservote(int uservote){  //use this only for when user clicks heart or broken heart. not for initial setting of uservote after download from DB
+        Log.d("uservote update", "heartcount before change: " + Integer.toString(heartsTotal()));
+
         switch (uservote){
             case NOVOTE:
                 if(this.uservote == UPVOTE){
@@ -150,7 +142,8 @@ public class VSComment {
                     downvotes--;
                     Log.d("uservote update", "downvote --");
                 }
-                votesum--;
+                Log.d("uservote update", "heartcount: " + Integer.toString(heartsTotal()));
+
                 break;
 
             case UPVOTE:
@@ -160,9 +153,8 @@ public class VSComment {
                     downvotes--;
                     Log.d("uservote update", "downvote --");
                 }
-                else{
-                    votesum++;
-                }
+                Log.d("uservote update", "heartcount: " + Integer.toString(heartsTotal()));
+
                 break;
 
             case DOWNVOTE:
@@ -172,9 +164,8 @@ public class VSComment {
                     upvotes--;
                     Log.d("uservote update", "upvote --");
                 }
-                else{
-                    votesum++;
-                }
+                Log.d("uservote update", "heartcount: " + Integer.toString(heartsTotal()));
+
                 break;
 
             default:
@@ -199,7 +190,6 @@ public class VSComment {
         }
 
         uservote = NOVOTE;
-        votesum--;
 
     }
 
@@ -207,6 +197,31 @@ public class VSComment {
     public VSComment withPostID(String post_id){
         this.post_id = post_id;
         return this;
+    }
+
+    public void updateUservoteAndDecrement(int uservote){
+        switch (uservote){
+            case UPVOTE:
+                this.uservote = uservote;
+                upvotes++;
+                downvotes--;
+                break;
+
+            case DOWNVOTE:
+                this.uservote = uservote;
+                downvotes++;
+                upvotes--;
+                break;
+
+            //we don't use this for NOVOTE so ignore all other cases
+        }
+    }
+
+    public int heartsTotal(){
+        return upvotes - downvotes;
+    }
+    public int votesCount(){
+        return upvotes + downvotes;
     }
 
 
