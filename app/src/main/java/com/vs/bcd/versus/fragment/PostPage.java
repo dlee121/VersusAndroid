@@ -1061,11 +1061,9 @@ public class PostPage extends Fragment {
             topCard.setEnabled(true);
             RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
             topCard.findViewById(R.id.replybuttontc).setEnabled(true);
-            lp.bottomMargin = 154;
+            //lp.bottomMargin = 154;
             topCard.setLayoutParams(lp);
             topCardActive = true;
-            Log.d("tpwow", topCardContent.getContent());
-
         }
     }
 
@@ -1599,6 +1597,20 @@ public class PostPage extends Fragment {
 
             }
         }
+
+    }
+
+    private void hidePostCardSortToggle(){
+        //call a method on postpagefragmentAdapter that makes it make the change inside it on the postcardViewholder
+    }
+    private void showPostCardSortToggle(){
+        //call a method on postpagefragmentAdapter that makes it make the change inside it on the postcardViewholder
+    }
+
+    private void hideTopcardSortToggle(){
+
+    }
+    private void showTopcardSortToggle(){
 
     }
 

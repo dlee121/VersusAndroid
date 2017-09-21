@@ -92,8 +92,7 @@
             android:id="@+id/graphbox"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_below="@id/linlaypoca"
-            >
+            android:layout_below="@id/linlaypoca">
 
             <View
                 android:id="@+id/redgraphview"
@@ -111,6 +110,15 @@
                 android:background="@drawable/blackgraph"/>
 
         </RelativeLayout>
+
+        <Button
+            android:id="@+id/sort_type_selector_pc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/linlaypoca"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:text="Sort By (replace with a sort by icon like reddit)" />
 
     </RelativeLayout>
 </android.support.v7.widget.CardView>
