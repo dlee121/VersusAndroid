@@ -333,8 +333,12 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 }
             });
 
-
-
+            postCard.sortTypeSelector.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    activity.getPostPage().selectSortType();
+                }
+            });
 
             //TODO: have a field that lets me know if this post contains left / right images so that I do S3 query only when I have to.
             //TODO: and clear the BMP's whenever the fragment detaches, i think we already clear most fields anyway but still
@@ -532,6 +536,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         public ImageView blackImage;
         public View redgraphView;
         public RelativeLayout graphBox;
+        public Button sortTypeSelector;
 
         public PostCardViewHolder (View view){
             super(view);
@@ -542,6 +547,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             blackImage = (ImageView)view.findViewById(R.id.blackiv);
             redgraphView = view.findViewById(R.id.redgraphview);
             graphBox = (RelativeLayout)view.findViewById(R.id.graphbox);
+            sortTypeSelector = (Button)view.findViewById(R.id.sort_type_selector_pc);
         }
     }
 

@@ -54,7 +54,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
     private Map<String,AttributeValue> lastEvaluatedKey;
     private RecyclerView recyclerView;
     private int retrievalLimit = 10;    //TODO: play with this number through testing with usecases. for best UX while minimizing cost.
-    SwipeRefreshLayout mSwipeRefreshLayout;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
     //the two booleans below are two-way dependency thing where, if xml loads first, we trigger initial loading animation in setUserVisibleHint (which is triggered when tab becomes visible)
     //and if setUserVisibleHint(true) is triggered before xml loads, then we mark that initial loading in progress and trigger initial loading animation during xml loading in onCreateView
     private boolean initialLoadInProgress = false;
@@ -62,7 +62,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
     private int currCategoryInt = 0;
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
-    private int NewOrPopular = 0; //0 = New, 1 = Popular
+    private int sortType = 0; //0 = New, 1 = Popular
     private final int NEW = 0;
     private final int POPULAR = 1;
 
@@ -109,13 +109,13 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
                             switch(item){
                                 case 0: //Sort by New; category-time-index query.
                                     Log.d("SortType", "sort by time");
-                                    NewOrPopular = NEW;
+                                    sortType = NEW;
                                     refreshCategoryTimeQuery();
                                     break;
 
                                 case 1: //Sort by Popular; category-votecount-index query.
                                     Log.d("SortType", "sort by votecount");
-                                    NewOrPopular = POPULAR;
+                                    sortType = POPULAR;
                                     refreshCategoryVotecountQuery();
                                     break;
                             }
@@ -165,7 +165,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
     //grabs newest posts in the category sorted by time
     public void categoryTimeQuery(final int categoryInt){
         //Log.d("CATFRAG", "category pressed for catfrag");
-        NewOrPopular = NEW;
+        sortType = NEW;
 
         currCategoryInt = categoryInt;
 
@@ -264,7 +264,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
     //grabs newest posts in the category sorted by time
     public void categoryVotecountQuery(final int categoryInt){
         //Log.d("CATFRAG", "category pressed for catfrag");
-        NewOrPopular = POPULAR;
+        sortType = POPULAR;
 
         currCategoryInt = categoryInt;
 
@@ -552,7 +552,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
      */
     @Override
     public void onRefresh() {
-        switch (NewOrPopular){
+        switch (sortType){
             case NEW:
                 refreshCategoryTimeQuery();
                 break;

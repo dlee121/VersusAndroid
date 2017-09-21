@@ -127,6 +127,7 @@
             android:textAllCaps="false"
             android:textSize="12sp"
             style="?android:attr/borderlessButtonStyle"/>
+
         <Button
             android:id="@+id/sort_type_selector_topcard"
             android:layout_width="match_parent"
@@ -140,13 +141,19 @@
 
     </RelativeLayout>
 
-
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recycler_view_cs"
-        android:layout_below="@id/topCard"
+    <android.support.v4.widget.SwipeRefreshLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/swipe_container_postpage"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="match_parent"
+        android:layout_below="@id/topCard">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recycler_view_cs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </android.support.v4.widget.SwipeRefreshLayout>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/postpage_fab"

@@ -1,9 +1,12 @@
 package com.vs.bcd.versus.fragment;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -12,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ListAdapter;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,6 +31,7 @@ import com.amazonaws.services.dynamodbv2.model.Condition;
 import com.vs.bcd.versus.OnLoadMoreListener;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
+import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
 import com.vs.bcd.versus.adapter.PostPageAdapter;
 import com.vs.bcd.versus.model.PostSkeleton;
 import com.vs.bcd.versus.model.SessionManager;
@@ -54,7 +59,7 @@ import static com.vs.bcd.versus.adapter.PostPageAdapter.UPVOTE;
  * Created by dlee on 6/7/17.
  */
 
-public class PostPage extends Fragment {
+public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     private EditText commentInput;
     private RelativeLayout mRelativeLayout;
@@ -99,6 +104,14 @@ public class PostPage extends Fragment {
     private HashMap<String, VSComment> parentCache = new HashMap<>();
     private boolean atRootLevel = true;
     private long queryThreadID = 0;
+    private int sortType = 1; //0 = New, 1 = Popular
+    private final int NEW = 0;
+    private final int POPULAR = 1;
+    private boolean nowLoading = false;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
+    private boolean initialLoadInProgress = false;
+    private boolean xmlLoaded = false;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -143,6 +156,13 @@ public class PostPage extends Fragment {
             public void onClick(View v) {
                 activity.getCommentEnterFragment().setContentReplyToComment(topCardContent);
                 activity.getViewPager().setCurrentItem(4);
+            }
+        });
+
+        topCard.findViewById(R.id.sort_type_selector_topcard).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                selectSortType();
             }
         });
 
@@ -204,6 +224,16 @@ public class PostPage extends Fragment {
             }
         });
 
+        // SwipeRefreshLayout
+        mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_container_postpage);
+        mSwipeRefreshLayout.setOnRefreshListener(this);
+
+        if(initialLoadInProgress){
+            mSwipeRefreshLayout.setRefreshing(true);
+        }
+        xmlLoaded = true;
+
+
         return rootView;
     }
 
@@ -230,6 +260,23 @@ public class PostPage extends Fragment {
         postPageFAB.setLayoutParams(fabLP);
         postPageFAB.setClickable(true);
         ppfabActive = true;
+    }
+
+    /**
+     * This method is called when swipe refresh is pulled down
+     */
+    @Override
+    public void onRefresh() {
+        switch (sortType){
+            case POPULAR:
+                refreshCommentUpvotesQuery();
+                break;
+            case NEW:
+                refreshCommentTimestampQuery();
+                break;
+            default:
+                break;
+        }
     }
 
     @Override
@@ -402,6 +449,15 @@ public class PostPage extends Fragment {
                     }
                     exitLoop = false;
                 }
+                else if(!rootParentID.equals(postID)){
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mSwipeRefreshLayout.setRefreshing(false);
+                        }
+                    });
+                    return;
+                }
                 Log.d("wow", "child query result size at the end: " + childComments.size());
                 exitLoop = false;
                 if(!childComments.isEmpty()){
@@ -580,6 +636,7 @@ public class PostPage extends Fragment {
 
                         RV.setAdapter(PPAdapter);
                         activity.setPostInDownload(postID, "done");
+                        mSwipeRefreshLayout.setRefreshing(false);
 
                         //set load more listener for the RecyclerView adapter
                         PPAdapter.setOnLoadMoreListener(new OnLoadMoreListener() {
@@ -604,7 +661,7 @@ public class PostPage extends Fragment {
     }
 
 
-    private void commentTimeQuery(final String rootParentID, final boolean downloadImages){
+    private void commentTimestampQuery(final String rootParentID, final boolean downloadImages){
 
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
         final String currentTime = df.format(new Date());
@@ -635,7 +692,7 @@ public class PostPage extends Fragment {
                 DynamoDBQueryExpression queryExpression =
                         new DynamoDBQueryExpression()
                                 .withHashKeyValues(queryTemplate)
-                                .withRangeKeyCondition("time", rangeKeyCondition)
+                                .withRangeKeyCondition("timestamp", rangeKeyCondition)
                                 .withScanIndexForward(false)
                                 .withLimit(retrievalLimit);
 
@@ -706,6 +763,15 @@ public class PostPage extends Fragment {
                         }
                     }
                     exitLoop = false;
+                }
+                else if(!rootParentID.equals(postID)){
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mSwipeRefreshLayout.setRefreshing(false);
+                        }
+                    });
+                    return;
                 }
                 Log.d("wow", "child query result size at the end: " + childComments.size());
                 exitLoop = false;
@@ -885,6 +951,8 @@ public class PostPage extends Fragment {
 
                         RV.setAdapter(PPAdapter);
                         activity.setPostInDownload(postID, "done");
+                        mSwipeRefreshLayout.setRefreshing(false);
+
 
                         //set load more listener for the RecyclerView adapter
                         PPAdapter.setOnLoadMoreListener(new OnLoadMoreListener() {
@@ -906,6 +974,35 @@ public class PostPage extends Fragment {
         Thread mythread = new Thread(runnable);
         queryThreadID = mythread.getId();
         mythread.start();
+    }
+
+
+
+    private void refreshCommentUpvotesQuery(){
+        mSwipeRefreshLayout.setRefreshing(true);
+
+        lastEvaluatedKey = null;
+        clearList();
+
+        commentUpvotesQuery(postID, false);
+
+        RV.getAdapter().notifyDataSetChanged();
+
+        nowLoading = false;
+    }
+
+    private void refreshCommentTimestampQuery(){
+        mSwipeRefreshLayout.setRefreshing(true);
+
+        lastEvaluatedKey = null;
+        clearList();
+
+        commentTimestampQuery(postID, false);
+
+        RV.getAdapter().notifyDataSetChanged();
+
+        nowLoading = false;
+
     }
 
 
@@ -946,6 +1043,11 @@ public class PostPage extends Fragment {
         setUpdateDuty();    //determines if this user will have the update duty; authority to detect comment upgrade events and make DB updates accordingly
 
         currentRootLevelNode = null;
+
+        initialLoadInProgress = true;
+        if(xmlLoaded){
+            mSwipeRefreshLayout.setRefreshing(true);
+        }
 
         Runnable runnable = new Runnable() {
             public void run() {
@@ -1600,17 +1702,29 @@ public class PostPage extends Fragment {
 
     }
 
-    private void hidePostCardSortToggle(){
-        //call a method on postpagefragmentAdapter that makes it make the change inside it on the postcardViewholder
-    }
-    private void showPostCardSortToggle(){
-        //call a method on postpagefragmentAdapter that makes it make the change inside it on the postcardViewholder
-    }
+    public void selectSortType(){
+        final String [] items = new String[] {"Popular", "New"};
+        final Integer[] icons = new Integer[] {R.drawable.goldmedal, R.drawable.goldmedal}; //TODO: change these icons to actual ones
+        ListAdapter adapter = new ArrayAdapterWithIcon(getActivity(), items, icons);
 
-    private void hideTopcardSortToggle(){
+        new AlertDialog.Builder(getActivity()).setTitle("Sort by")
+                .setAdapter(adapter, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int item ) {
+                        switch(item){
+                            case 0: //Sort by Popular; parent_id-upvotes-index query.
+                                Log.d("SortType", "sort by upvotes");
+                                sortType = POPULAR;
+                                refreshCommentUpvotesQuery();
+                                break;
 
-    }
-    private void showTopcardSortToggle(){
+                            case 1: //Sort by New; parent_id-time-index query.
+                                Log.d("SortType", "sort by time");
+                                sortType = NEW;
+                                refreshCommentTimestampQuery();
+                                break;
+                        }
+                    }
+                }).show();
 
     }
 
