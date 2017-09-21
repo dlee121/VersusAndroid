@@ -1196,6 +1196,7 @@ public class PostPage extends Fragment {
         //temp is the grandparent node of the clicked grandchild comment
         VSCNode temp = nodeMap.get( nodeMap.get(grandchildParentID).getParentID() );
         parentCache.put(temp.getCommentID(), temp.getNodeContent());
+        Log.d("grandparentcache", "content: " + temp.getNodeContent().getContent() + "\ngrandparentCacheSize: " + Integer.toString(parentCache.size()));
 
     }
 
@@ -1203,9 +1204,14 @@ public class PostPage extends Fragment {
         if(!parentID.equals(postID)){
             VSCNode temp = nodeMap.get(parentID);
             parentCache.put(temp.getCommentID(), temp.getNodeContent());
-            Log.d("parentcache", "heartcount: " + Integer.toString(temp.getNodeContent().heartsTotal()));
+            Log.d("parentcache", "content: " + temp.getNodeContent().getContent() + "\nparentCacheSize: " + Integer.toString(parentCache.size()));
         }
 
+    }
+
+    public void addThisToCache(String commentID){
+        VSCNode temp = nodeMap.get(commentID);
+        parentCache.put(temp.getCommentID(), temp.getNodeContent());
     }
 
     //called with query results before nodeMap setup
