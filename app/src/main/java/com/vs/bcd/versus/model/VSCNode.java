@@ -125,6 +125,16 @@ public class VSCNode {
         return nodeContent.votesCount();
     }
 
+    public void updateUservoteAndDecrement(int uservote){
+        nodeContent.updateUservoteAndDecrement(uservote);
+    }
+
+    public void updateUservote(int uservote){
+        nodeContent.updateUservote(uservote);
+    }
+
+
+
     public String getTimestamp(){
         return nodeContent.getTimestamp();
     }

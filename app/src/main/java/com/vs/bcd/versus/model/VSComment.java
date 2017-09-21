@@ -217,6 +217,19 @@ public class VSComment {
         }
     }
 
+    public void updateUservote(int uservote){
+        switch (uservote){
+            case UPVOTE:
+                this.uservote = uservote;
+                upvotes++;
+                break;
+            case DOWNVOTE:
+                this.uservote = uservote;
+                downvotes++;
+                break;
+        }
+    }
+
     public int heartsTotal(){
         return upvotes - downvotes;
     }

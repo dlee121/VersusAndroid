@@ -834,23 +834,29 @@ public class PostPage extends Fragment {
                     //keep the N until we decrement past vote
                     // and then it is removed from actionmap after the decrement for DB is performed
                     case "U":
-                        if(historyValue != null && historyValue.equals("U")){
-                            temp.getNodeContent().initialSetUservote(UPVOTE);
+                        if(historyValue == null){
+                            temp.updateUservote(UPVOTE);
                         }
-                        else {
-                            //this was a new action made in this current post session
-                            //so this is going to be a current session action that needs to be manually applied
-                            temp.getNodeContent().updateUservoteAndDecrement(UPVOTE);
+                        else{
+                            if(historyValue.equals("U")){
+                                temp.getNodeContent().initialSetUservote(UPVOTE);
+                            }
+                            else{
+                                temp.updateUservoteAndDecrement(UPVOTE);
+                            }
                         }
                         break;
                     case "D":
-                        if(historyValue != null && historyValue.equals("D")){
-                            temp.getNodeContent().initialSetUservote(DOWNVOTE);
+                        if(historyValue == null){
+                            temp.updateUservote(DOWNVOTE);
                         }
-                        else {
-                            //this was a new action made in this current post session
-                            //so this is going to be a current session action that needs to be manually applied
-                            temp.getNodeContent().updateUservoteAndDecrement(DOWNVOTE);
+                        else{
+                            if(historyValue.equals("D")){
+                                temp.getNodeContent().initialSetUservote(DOWNVOTE);
+                            }
+                            else{
+                                temp.updateUservoteAndDecrement(DOWNVOTE);
+                            }
                         }
                         break;
                     case "N":   //"N" doesn't get written to DB because we remove it before uploading actionMap through UserAction object
