@@ -33,6 +33,7 @@ import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
 import com.vs.bcd.versus.adapter.PostPageAdapter;
+import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.PostSkeleton;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.ThreadCounter;
@@ -77,7 +78,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private ViewGroup.LayoutParams RVLayoutParams;
     private RecyclerView RV;
     private LayoutInflater layoutInflater;
-    private VSCNode currentRootLevelNode = null;    //This is the first child of current TopCard content. will be null at post level. we grab currentRootLevelNode.getParentNode() to go back up a level when up button is pressed in comment section view
     private VSCNode prevRootLevelNode = null;
     private VSCNode firstRoot = null; //first comment in root level, as in parent_id = "0"
     private int pageNestedLevel = 0;    //increase / decrease as we get click into and out of comments
@@ -111,6 +111,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private boolean initialLoadInProgress = false;
     private boolean xmlLoaded = false;
+    private volatile boolean dbWriteComplete = false;
 
 
     @Override
@@ -267,16 +268,87 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
      */
     @Override
     public void onRefresh() {
-        switch (sortType){
-            case POPULAR:
-                refreshCommentUpvotesQuery();
-                break;
-            case NEW:
-                refreshCommentTimestampQuery();
-                break;
-            default:
-                break;
-        }
+        dbWriteComplete = false;
+
+        writeActionsToDB();
+
+        mSwipeRefreshLayout.setRefreshing(true);
+
+        Runnable runnable = new Runnable() {
+            public void run() {
+                try{
+                    long end = System.currentTimeMillis() + 8*1000; // 8 seconds * 1000 ms/sec
+
+                    while(!dbWriteComplete && System.currentTimeMillis() < end){
+
+                    }
+                    if(!dbWriteComplete){
+                        Log.d("PostPageRefresh", "user actions dbWrite timeout");
+                        dbWriteComplete = true;
+                    }
+
+                    post = activity.getMapper().load(Post.class, post.getCategory(), postID);
+
+                    postID = post.getPost_id();
+
+                    postTopic = post.getQuestion();
+                    postX = post.getRedname();
+                    postY = post.getBlackname();
+                    origRedCount = post.getRedcount();
+                    origBlackCount = post.getBlackcount();
+                    redIncrementedLast = false;
+                    blackIncrementedLast = false;
+
+                    parentCache.clear();
+                    /*  commented out for now because we might not need to delete RV display list contents like that
+                    if(RV != null && RV.getAdapter() != null){
+                        ((PostPageAdapter)(RV.getAdapter())).clearList();
+                    }
+                    */
+                    setUpdateDuty();    //determines if this user will have the update duty; authority to detect comment upgrade events and make DB updates accordingly
+
+                    switch (sortType){
+                        case POPULAR:
+                            refreshCommentUpvotesQuery();
+                            break;
+                        case NEW:
+                            refreshCommentTimestampQuery();
+                            break;
+                        default:
+                            break;
+                    }
+
+                }catch (Throwable t){
+
+                }
+
+            }
+        };
+        Thread mythread = new Thread(runnable);
+        mythread.start();
+    }
+
+
+    private void refreshCommentUpvotesQuery(){
+
+        lastEvaluatedKey = null;
+        clearList();
+
+        commentUpvotesQuery(postID, false);
+
+        nowLoading = false;
+
+    }
+
+    private void refreshCommentTimestampQuery(){
+
+        lastEvaluatedKey = null;
+        clearList();
+
+        commentTimestampQuery(postID, false);
+
+        nowLoading = false;
+
     }
 
     @Override
@@ -572,17 +644,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 }
 
 
-                //set up comments list using the first root comment node
-                //set currentRootLevelNode = first root comment's node if it exists
+                //set up comments list
                 VSCNode temp;
-                if(!rootComments.isEmpty()){
-                    temp = nodeMap.get(rootComments.get(0).getComment_id());
-                    if(temp != null && thisThreadID == queryThreadID){
-                        currentRootLevelNode = temp;
-                        setCommentList(temp, masterList);
-                    }
-                }
-                for(int i = 1; i<rootComments.size(); i++){ //we already did i=0 above so start at i=1
+                for(int i = 0; i<rootComments.size(); i++){
                     if(thisThreadID != queryThreadID){
                         Log.d("wow", "broke out of old query thread");
                         return;
@@ -887,17 +951,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 }
 
 
-                //set up comments list using the first root comment node
-                //set currentRootLevelNode = first root comment's node if it exists
+                //set up comments list
                 VSCNode temp;
-                if(!rootComments.isEmpty()){
-                    temp = nodeMap.get(rootComments.get(0).getComment_id());
-                    if(temp != null && thisThreadID == queryThreadID){
-                        currentRootLevelNode = temp;
-                        setCommentList(temp, masterList);
-                    }
-                }
-                for(int i = 1; i<rootComments.size(); i++){ //we already did i=0 above so start at i=1
+                for(int i = 0; i<rootComments.size(); i++){
                     if(thisThreadID != queryThreadID){
                         Log.d("wow", "broke out of old query thread");
                         return;
@@ -978,33 +1034,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
 
 
-    private void refreshCommentUpvotesQuery(){
-        mSwipeRefreshLayout.setRefreshing(true);
-
-        lastEvaluatedKey = null;
-        clearList();
-
-        commentUpvotesQuery(postID, false);
-
-        RV.getAdapter().notifyDataSetChanged();
-
-        nowLoading = false;
-    }
-
-    private void refreshCommentTimestampQuery(){
-        mSwipeRefreshLayout.setRefreshing(true);
-
-        lastEvaluatedKey = null;
-        clearList();
-
-        commentTimestampQuery(postID, false);
-
-        RV.getAdapter().notifyDataSetChanged();
-
-        nowLoading = false;
-
-    }
-
 
 
     public void setContent(final PostSkeleton post, final boolean downloadImages){  //downloadImages signifies initial post page set up
@@ -1041,8 +1070,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
 
         setUpdateDuty();    //determines if this user will have the update duty; authority to detect comment upgrade events and make DB updates accordingly
-
-        currentRootLevelNode = null;
 
         initialLoadInProgress = true;
         if(xmlLoaded){
@@ -1538,6 +1565,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                     }
 
+                    dbWriteComplete = true;
                 }
             };
 
