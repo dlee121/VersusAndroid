@@ -514,6 +514,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public void clearList(){
         Log.d("Clear", "Before List Size: " + Integer.toString(masterList.size()));
         masterList.clear();
+        notifyDataSetChanged();
         Log.d("Clear", "After List Size: " + Integer.toString(masterList.size()));
 
     }

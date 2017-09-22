@@ -133,6 +133,9 @@ public class VSCNode {
         nodeContent.updateUservote(uservote);
     }
 
+    public void setUserVote(int uservote){
+        nodeContent.setUservote(uservote);
+    }
 
 
     public String getTimestamp(){

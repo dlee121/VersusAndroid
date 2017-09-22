@@ -193,6 +193,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         topCardContent.setUservote(UPVOTE);
                         actionMap.put(topCardContent.getComment_id(), "U");
                     }
+                    Log.d("topcardrefresh", "topCardContent hearts total: " + Integer.toString(parentCache.get(topCardContent.getComment_id()).heartsTotal()));
                     topCardHeartCount.setText( Integer.toString(topCardContent.heartsTotal()) );
                 }
             }
@@ -286,26 +287,57 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         Log.d("PostPageRefresh", "user actions dbWrite timeout");
                         dbWriteComplete = true;
                     }
-
-                    post = activity.getMapper().load(Post.class, post.getCategory(), postID);
-
-                    postID = post.getPost_id();
-
-                    postTopic = post.getQuestion();
-                    postX = post.getRedname();
-                    postY = post.getBlackname();
-                    origRedCount = post.getRedcount();
-                    origBlackCount = post.getBlackcount();
-                    redIncrementedLast = false;
-                    blackIncrementedLast = false;
-
-                    parentCache.clear();
-                    /*  commented out for now because we might not need to delete RV display list contents like that
-                    if(RV != null && RV.getAdapter() != null){
-                        ((PostPageAdapter)(RV.getAdapter())).clearList();
+                    else{
+                        Log.d("PostPageRefresh", "user actions dbWrite successful");
                     }
-                    */
-                    setUpdateDuty();    //determines if this user will have the update duty; authority to detect comment upgrade events and make DB updates accordingly
+
+                    //update post card if atRootLevel, else update top card
+                    if(atRootLevel){
+                        post = activity.getMapper().load(Post.class, post.getCategory(), postID);
+
+                        postID = post.getPost_id();
+
+                        postTopic = post.getQuestion();
+                        postX = post.getRedname();
+                        postY = post.getBlackname();
+                        origRedCount = post.getRedcount();
+                        origBlackCount = post.getBlackcount();
+                        redIncrementedLast = false;
+                        blackIncrementedLast = false;
+
+                        //parentCache.clear();
+                        /*  commented out for now because we might not need to delete RV display list contents like that
+                        if(RV != null && RV.getAdapter() != null){
+                            ((PostPageAdapter)(RV.getAdapter())).clearList();
+                        }
+                        */
+                        setUpdateDuty();    //determines if this user will have the update duty; authority to detect comment upgrade events and make DB updates accordingly
+                    }
+                    else{
+                        final VSComment updatedTopCardContent = activity.getMapper().load(VSComment.class, topCardContent.getParent_id(), topCardContent.getComment_id());
+                        nodeMap.get(topCardContent.getComment_id()).setNodeContent(updatedTopCardContent);
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                String actionEntry = actionMap.get(updatedTopCardContent.getComment_id());
+                                if(actionEntry != null){
+                                    switch (actionEntry){
+                                        case "U":
+                                            updatedTopCardContent.initialSetUservote(UPVOTE);
+                                            break;
+
+                                        case "D":
+                                            updatedTopCardContent.initialSetUservote(DOWNVOTE);
+                                            break;
+                                        //we ignore case "N" because uservote is 0 by default so we don't need to set it here
+                                    }
+                                }
+                                parentCache.put(updatedTopCardContent.getComment_id(), updatedTopCardContent);
+                                setUpTopCard(parentCache.get(updatedTopCardContent.getComment_id()));
+                            }
+                        });
+                    }
+
 
                     switch (sortType){
                         case POPULAR:
@@ -332,9 +364,15 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private void refreshCommentUpvotesQuery(){
 
         lastEvaluatedKey = null;
-        clearList();
+        //clearList();
 
-        commentUpvotesQuery(postID, false);
+        if(atRootLevel){
+            commentUpvotesQuery(postID, false);
+        }
+        else {
+            commentUpvotesQuery(topCardContent.getComment_id(), false);
+        }
+
 
         nowLoading = false;
 
@@ -343,9 +381,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private void refreshCommentTimestampQuery(){
 
         lastEvaluatedKey = null;
-        clearList();
+        //clearList();
 
-        commentTimestampQuery(postID, false);
+        if(atRootLevel){
+            commentTimestampQuery(postID, false);
+        }
+        else {
+            commentTimestampQuery(topCardContent.getComment_id(), false);
+        }
 
         nowLoading = false;
 
@@ -1266,7 +1309,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             String currentValue = actionMap.get(temp.getCommentID());
             String historyValue = actionHistoryMap.get(temp.getCommentID());
             if(currentValue != null){
-                switch(actionMap.get(temp.getCommentID())){
+                switch(currentValue){
                     //we record and handle "N" case which is when user initially voted and then clicked it again to cancel the vote,
                     //keep the N until we decrement past vote
                     // and then it is removed from actionmap after the decrement for DB is performed
