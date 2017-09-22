@@ -66,6 +66,9 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
     private final int NEW = 0;
     private final int POPULAR = 1;
 
+    private int loadThreshold = 3;
+
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -99,28 +102,28 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
         sortTypeSelector.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final String [] items = new String[] {"New", "Popular"};
+                final String [] items = new String[] {"Popular", "New"};
                 final Integer[] icons = new Integer[] {R.drawable.goldmedal, R.drawable.goldmedal}; //TODO: change these icons to actual ones
                 ListAdapter adapter = new ArrayAdapterWithIcon(getActivity(), items, icons);
 
                 new AlertDialog.Builder(getActivity()).setTitle("Sort by")
-                    .setAdapter(adapter, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int item ) {
-                            switch(item){
-                                case 0: //Sort by New; category-time-index query.
-                                    Log.d("SortType", "sort by time");
-                                    sortType = NEW;
-                                    refreshCategoryTimeQuery();
-                                    break;
+                        .setAdapter(adapter, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int item ) {
+                                switch(item){
+                                    case 0: //Sort by Popular; category-votecount-index query.
+                                        Log.d("SortType", "sort by votecount");
+                                        sortType = POPULAR;
+                                        refreshCategoryVotecountQuery();
+                                        break;
 
-                                case 1: //Sort by Popular; category-votecount-index query.
-                                    Log.d("SortType", "sort by votecount");
-                                    sortType = POPULAR;
-                                    refreshCategoryVotecountQuery();
-                                    break;
+                                    case 1: //Sort by New; category-time-index query.
+                                        Log.d("SortType", "sort by time");
+                                        sortType = NEW;
+                                        refreshCategoryTimeQuery();
+                                        break;
+                                }
                             }
-                        }
-                    }).show();
+                        }).show();
             }
         });
 
@@ -233,7 +236,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
                                     int totalItemCount = layoutManager.getItemCount();
                                     int lastVisible = layoutManager.findLastVisibleItemPosition();
 
-                                    boolean endHasBeenReached = lastVisible + 3 >= totalItemCount;  //TODO: increase the integer (loading trigger threshold) as we get more posts, but capping it at 5 is probably sufficient
+                                    boolean endHasBeenReached = lastVisible + loadThreshold >= totalItemCount;  //TODO: increase the loadThreshold as we get more posts, but capping it at 5 is probably sufficient
                                     if (totalItemCount > 0 && endHasBeenReached) {
                                         //you have reached to the bottom of your recycler view
                                         if(!nowLoading){
@@ -379,54 +382,48 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
                                 .withComparisonOperator(ComparisonOperator.LT.toString())
                                 .withAttributeValueList(new AttributeValue().withS(df.format(new Date())));
 
+                        Post queryTemplate = new Post();
+                        queryTemplate.setCategory(currCategoryInt);
+                        //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
+                        DynamoDBQueryExpression queryExpression =
+                                new DynamoDBQueryExpression()
+                                        .withHashKeyValues(queryTemplate)
+                                        .withRangeKeyCondition("time", rangeKeyCondition)
+                                        .withScanIndexForward(false)
+                                        //.withConsistentRead(true)
+                                        .withLimit(retrievalLimit)
+                                        .withExclusiveStartKey(lastEvaluatedKey);
 
-                        Runnable runnable = new Runnable() {
-                            public void run() {
-                                Post queryTemplate = new Post();
-                                queryTemplate.setCategory(currCategoryInt);
-                                //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
-                                DynamoDBQueryExpression queryExpression =
-                                        new DynamoDBQueryExpression()
-                                                .withHashKeyValues(queryTemplate)
-                                                .withRangeKeyCondition("time", rangeKeyCondition)
-                                                .withScanIndexForward(false)
-                                                //.withConsistentRead(true)
-                                                .withLimit(retrievalLimit)
-                                                .withExclusiveStartKey(lastEvaluatedKey);
+                        //Log.d("Query on Category: ", Integer.toString(queryTemplate.getCategory()));
 
-                                //Log.d("Query on Category: ", Integer.toString(queryTemplate.getCategory()));
+                        QueryResultPage queryResultPage = ((MainContainer)getActivity()).getMapper().queryPage(Post.class, queryExpression);
+                        ArrayList<Post> queryResults = new ArrayList<>(queryResultPage.getResults());
+                        //bookmark for the range key for loading more when user scrolls down far enough and triggers "load more action"
 
-                                QueryResultPage queryResultPage = ((MainContainer)getActivity()).getMapper().queryPage(Post.class, queryExpression);
-                                ArrayList<Post> queryResults = new ArrayList<>(queryResultPage.getResults());
-                                //bookmark for the range key for loading more when user scrolls down far enough and triggers "load more action"
+                        if(queryResults.size() < retrievalLimit){
+                            lastEvaluatedKey = null;
+                        }
+                        else{
+                            //Log.d("Load: ", "retrieved " + Integer.toString(queryResults.size()) + " more items");
+                            lastEvaluatedKey = queryResultPage.getLastEvaluatedKey();
+                        }
 
-                                if(queryResults.size() < retrievalLimit){
-                                    lastEvaluatedKey = null;
+                        if(!queryResults.isEmpty()){
+                            //sort the assembledResults where posts are sorted from more recent to less recent
+                            Collections.sort(queryResults, new Comparator<Post>() {
+                                //TODO: confirm that this sorts dates where most recent is at top. If not then just flip around o1 and o2: change to o2.getDate().compareTo(o1.getDate())
+                                @Override
+                                public int compare(Post o1, Post o2) {
+                                    return o2.getDate().compareTo(o1.getDate());
                                 }
-                                else{
-                                    //Log.d("Load: ", "retrieved " + Integer.toString(queryResults.size()) + " more items");
-                                    lastEvaluatedKey = queryResultPage.getLastEvaluatedKey();
-                                }
+                            });
+                            posts.addAll(queryResults);
+                            nowLoading = false;
+                        }
+                        else {
+                            nowLoading = true;
+                        }
 
-                                if(!queryResults.isEmpty()){
-                                    //sort the assembledResults where posts are sorted from more recent to less recent
-                                    Collections.sort(queryResults, new Comparator<Post>() {
-                                        //TODO: confirm that this sorts dates where most recent is at top. If not then just flip around o1 and o2: change to o2.getDate().compareTo(o1.getDate())
-                                        @Override
-                                        public int compare(Post o1, Post o2) {
-                                            return o2.getDate().compareTo(o1.getDate());
-                                        }
-                                    });
-                                    posts.addAll(queryResults);
-                                    nowLoading = false;
-                                }
-                                else {
-                                    nowLoading = true;
-                                }
-                            }
-                        };
-                        Thread mythread = new Thread(runnable);
-                        mythread.start();
                     }
 
                 } catch (Exception e) {
@@ -445,7 +442,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
             @Override
             protected void onPostExecute(String result)
             {
-                recyclerView.getAdapter().notifyDataSetChanged();
+                //recyclerView.getAdapter().notifyDataSetChanged();
                 mSwipeRefreshLayout.setRefreshing(false);
             }
         };
@@ -472,56 +469,49 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
                                 .withComparisonOperator(ComparisonOperator.GT.toString())
                                 .withAttributeValueList(new AttributeValue().withN("-1"));
 
+                        Post queryTemplate = new Post();
+                        queryTemplate.setCategory(currCategoryInt);
+                        //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
+                        DynamoDBQueryExpression queryExpression =
+                                new DynamoDBQueryExpression()
+                                        .withHashKeyValues(queryTemplate)
+                                        .withRangeKeyCondition("votecount", rangeKeyCondition)
+                                        .withScanIndexForward(false)
+                                        //.withConsistentRead(true)
+                                        .withLimit(retrievalLimit)
+                                        .withExclusiveStartKey(lastEvaluatedKey);
 
-                        Runnable runnable = new Runnable() {
-                            public void run() {
-                                Post queryTemplate = new Post();
-                                queryTemplate.setCategory(currCategoryInt);
-                                //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
-                                DynamoDBQueryExpression queryExpression =
-                                        new DynamoDBQueryExpression()
-                                                .withHashKeyValues(queryTemplate)
-                                                .withRangeKeyCondition("votecount", rangeKeyCondition)
-                                                .withScanIndexForward(false)
-                                                //.withConsistentRead(true)
-                                                .withLimit(retrievalLimit)
-                                                .withExclusiveStartKey(lastEvaluatedKey);
+                        //Log.d("Query on Category: ", Integer.toString(queryTemplate.getCategory()));
 
-                                //Log.d("Query on Category: ", Integer.toString(queryTemplate.getCategory()));
+                        QueryResultPage queryResultPage = ((MainContainer)getActivity()).getMapper().queryPage(Post.class, queryExpression);
+                        ArrayList<Post> queryResults = new ArrayList<>(queryResultPage.getResults());
+                        //bookmark for the range key for loading more when user scrolls down far enough and triggers "load more action"
 
-                                QueryResultPage queryResultPage = ((MainContainer)getActivity()).getMapper().queryPage(Post.class, queryExpression);
-                                ArrayList<Post> queryResults = new ArrayList<>(queryResultPage.getResults());
-                                //bookmark for the range key for loading more when user scrolls down far enough and triggers "load more action"
+                        if(queryResults.size() < retrievalLimit){
+                            lastEvaluatedKey = null;
+                        }
+                        else{
+                            //Log.d("Load: ", "retrieved " + Integer.toString(queryResults.size()) + " more items");
+                            lastEvaluatedKey = queryResultPage.getLastEvaluatedKey();
+                        }
 
-                                if(queryResults.size() < retrievalLimit){
-                                    lastEvaluatedKey = null;
+                        if(!queryResults.isEmpty()){
+                            //sort the assembledResults where posts are sorted from more recent to less recent
+                            Collections.sort(queryResults, new Comparator<Post>() {
+                                //TODO: confirm that this sorts dates where most recent is at top. If not then just flip around o1 and o2: change to o2.getDate().compareTo(o1.getDate())
+                                @Override
+                                public int compare(Post o1, Post o2) {
+                                    return o2.getVotecount() - o1.getVotecount();
                                 }
-                                else{
-                                    //Log.d("Load: ", "retrieved " + Integer.toString(queryResults.size()) + " more items");
-                                    lastEvaluatedKey = queryResultPage.getLastEvaluatedKey();
-                                }
+                            });
+                            posts.addAll(queryResults);
+                            Log.d("Query on Category: ", Integer.toString(queryResults.size()));
 
-                                if(!queryResults.isEmpty()){
-                                    //sort the assembledResults where posts are sorted from more recent to less recent
-                                    Collections.sort(queryResults, new Comparator<Post>() {
-                                        //TODO: confirm that this sorts dates where most recent is at top. If not then just flip around o1 and o2: change to o2.getDate().compareTo(o1.getDate())
-                                        @Override
-                                        public int compare(Post o1, Post o2) {
-                                            return o2.getVotecount() - o1.getVotecount();
-                                        }
-                                    });
-                                    posts.addAll(queryResults);
-                                    Log.d("Query on Category: ", Integer.toString(queryResults.size()));
-
-                                    nowLoading = false;
-                                }
-                                else {
-                                    nowLoading = true;
-                                }
-                            }
-                        };
-                        Thread mythread = new Thread(runnable);
-                        mythread.start();
+                            nowLoading = false;
+                        }
+                        else {
+                            nowLoading = true;
+                        }
                     }
 
                 } catch (Exception e) {
@@ -540,7 +530,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
             @Override
             protected void onPostExecute(String result)
             {
-                recyclerView.getAdapter().notifyDataSetChanged();
+                //recyclerView.getAdapter().notifyDataSetChanged();
                 mSwipeRefreshLayout.setRefreshing(false);
             }
         };

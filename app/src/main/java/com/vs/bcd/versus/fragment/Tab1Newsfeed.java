@@ -62,6 +62,8 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
     private boolean initialLoadInProgress = false;
     private boolean xmlLoaded = false;  //marks whether or not xml has finished getting inflated.
 
+    private int loadThreshold = 3;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -152,7 +154,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                                         int totalItemCount = layoutManager.getItemCount();
                                         int lastVisible = layoutManager.findLastVisibleItemPosition();
 
-                                        boolean endHasBeenReached = lastVisible + 3 >= totalItemCount;  //TODO: increase the integer (loading trigger threshold) as we get more posts, but capping it at 5 is probably sufficient
+                                        boolean endHasBeenReached = lastVisible + loadThreshold >= totalItemCount;  //TODO: increase the loadThreshold as we get more posts, but capping it at 5 is probably sufficient
                                         if (totalItemCount > 0 && endHasBeenReached) {
                                             //you have reached to the bottom of your recycler view
                                             if(!nowLoading){

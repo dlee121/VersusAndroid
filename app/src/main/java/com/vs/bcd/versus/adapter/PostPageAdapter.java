@@ -773,4 +773,9 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         postCard.graphBox.setLayoutParams(graphBoxParams);
     }
 
+    public void appendToList(List<Object> listInput){
+        masterList.addAll(listInput);
+        notifyDataSetChanged();
+    }
+
 }
