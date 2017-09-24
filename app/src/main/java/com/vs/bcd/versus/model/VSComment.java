@@ -33,6 +33,7 @@ public class VSComment {
     private final int NOVOTE = 0;
     private final int UPVOTE = 1;
     private final int DOWNVOTE = 2;
+    private int currentMedal = 0;   //current medal to display for UI
 
 
     public VSComment(){
@@ -115,6 +116,14 @@ public class VSComment {
     }
     public void setTopmedal(int topmedal){
         this.topmedal = topmedal;
+    }
+
+    @DynamoDBIgnore
+    public int getCurrentMedal(){
+        return currentMedal;
+    }
+    public void setCurrentMedal(int currentMedal){
+        this.currentMedal = currentMedal;
     }
 
     @DynamoDBIgnore

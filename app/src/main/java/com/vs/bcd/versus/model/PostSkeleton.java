@@ -32,7 +32,6 @@ public class PostSkeleton {
     private int commentcount;
     private long stl;
     private double popularityVelocity = 0;  //May move this to ActivePost if we don't plan on using this for Post as well.
-    private Map<String, String> topcomments;
 
 
     /***
@@ -237,15 +236,6 @@ public class PostSkeleton {
         this.stl = stl;
     }
 
-    @DynamoDBAttribute(attributeName = "topcomments")
-    public Map<String, String> getTopcomments(){
-        return topcomments;
-    }
-    public void setTopcomments(Map<String, String> topcomments){
-        this.topcomments = topcomments;
-    }
-
-
     @DynamoDBIgnore
     public String getCategoryIntAsString(){
         return Integer.toString(category);
@@ -253,7 +243,6 @@ public class PostSkeleton {
 
 
     public PostSkeleton(){
-        topcomments = new HashMap<>();
         redcount = 0;
         blackcount = 0;
         votecount = 0;

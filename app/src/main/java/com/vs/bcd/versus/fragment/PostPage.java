@@ -3,6 +3,7 @@ package com.vs.bcd.versus.fragment;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -23,6 +24,7 @@ import android.widget.Toast;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 import com.amazonaws.services.dynamodbv2.model.AttributeAction;
+import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
 import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
@@ -44,6 +46,7 @@ import com.vs.bcd.versus.model.VSComment;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -96,7 +99,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private Map<String, String> actionHistoryMap; //used to store previous user action on a comment, if any, for comparing with current user action, e.g. if user chose upvote and previously chose downvote, then we need to do both increment upvote and decrement downvote
     private int origRedCount, origBlackCount;
     private String lastSubmittedVote = "none";
-    private boolean updateDuty = false;
     private int retrievalLimit = 25;
     private Map<String,AttributeValue> lastEvaluatedKey;
     private PostPage thisPage;
@@ -113,8 +115,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private boolean initialLoadInProgress = false;
     private boolean xmlLoaded = false;
     private volatile boolean dbWriteComplete = false;
-
+    private int minUpvotes = 5;
     private int loadThreshold = 5;
+
+    private int goldPoints = 30;
+    private int silverPoints = 15;
+    private int bronzePoints = 5;
+
+
 
 
     @Override
@@ -317,7 +325,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             ((PostPageAdapter)(RV.getAdapter())).clearList();
                         }
                         */
-                        setUpdateDuty();    //determines if this user will have the update duty; authority to detect comment upgrade events and make DB updates accordingly
                     }
                     else{
                         final VSComment updatedTopCardContent = activity.getMapper().load(VSComment.class, topCardContent.getParent_id(), topCardContent.getComment_id());
@@ -510,9 +517,18 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                 chunkSorter(rootComments);
 
+
                 VSCNode prevNode = null;
+
+                final HashMap<Integer, VSComment> medalUpgradeMap = new HashMap<>();
+                final HashSet<String> medalWinners = new HashSet<>();
                 exitLoop = false;
+
                 if(!rootComments.isEmpty()){
+                    int currMedalNumber = 3; //starting with 3, which is gold medal
+                    int prevUpvotes = rootComments.get(0).getUpvotes();
+                    VSComment currComment; //use as read-only in for-loop below
+
                     //get the children while setting up nodeMap with root comments
                     final ThreadCounter threadCounter = new ThreadCounter(0, rootComments.size(), thisPage);
                     for(int i = 0; i < rootComments.size(); i++){
@@ -520,8 +536,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             Log.d("wow", "broke out of old query thread");
                             return;
                         }
-                        VSCNode cNode = new VSCNode(rootComments.get(i).withPostID(postID));
-                        final String commentID = cNode.getCommentID();
+                        currComment = rootComments.get(i);
+                        VSCNode cNode = new VSCNode(currComment.withPostID(postID));
+                        final String commentID = currComment.getComment_id();
 
                         Log.d("wow", "child query, parentID to query: " + commentID);
 
@@ -535,6 +552,26 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                         nodeMap.put(commentID, cNode);
                         prevNode = cNode;
+
+                        //medal handling
+                        if(atRootLevel && currMedalNumber > 0){
+                            if(currComment.getUpvotes() >= minUpvotes){ //need to meet upvotes minimum to be cosidered for medals
+                                if(currComment.getUpvotes() < prevUpvotes){
+                                    currMedalNumber--;
+                                    prevUpvotes = currComment.getUpvotes();
+                                }
+                                if(currMedalNumber > 0){
+                                    if(currComment.getTopmedal() < currMedalNumber){ //upgrade event detected
+                                        medalUpgradeMap.put(new Integer(currMedalNumber), currComment);
+                                        medalWinners.add(currComment.getAuthor());
+                                    }
+                                    cNode.setCurrentMedal(currMedalNumber);
+                                }
+                            }
+                            else{ //if current comment doesn't meet minimum upvotes requirement for medals, that means subsequent comments won't either, so no more need to handle medals.
+                                currMedalNumber = 0; //this will stop subsequent medal handling for this query
+                            }
+                        }
 
                         Runnable runnable = new Runnable() {
                             public void run() {
@@ -579,6 +616,15 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     });
                     return;
                 }
+
+                if(!medalUpgradeMap.isEmpty()) {
+                    //set update duty
+                    //if no update duty then set update duty true if user authored one of the comments
+                    //update DB is update duty true.
+                    medalsUpdateDB(medalUpgradeMap, medalWinners);
+                }
+
+
                 Log.d("wow", "child query result size at the end: " + childComments.size());
                 exitLoop = false;
                 if(!childComments.isEmpty()){
@@ -1129,8 +1175,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         if(RV != null && RV.getAdapter() != null){
             ((PostPageAdapter)(RV.getAdapter())).clearList();
         }
-
-        setUpdateDuty();    //determines if this user will have the update duty; authority to detect comment upgrade events and make DB updates accordingly
 
         initialLoadInProgress = true;
         if(xmlLoaded){
@@ -1709,16 +1753,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         return post.getStl();
     }
 
-    private void setUpdateDuty(){
-        updateDuty = ( activity.getUserTimecode() == (int)(System.currentTimeMillis()%10) || activity.getUsername().equals(post.getAuthor()) );
-        if(updateDuty){
-            Log.d("UPDATEDUTY", "on duty");
-        }
-        else{
-            Log.d("UPDATEDUTY", "not on duty");
-        }
-    }
-
     public void yesExitLoop(){
         exitLoop = true;
     }
@@ -2196,7 +2230,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         QueryResultPage queryResultPage = activity.getMapper().queryPage(VSComment.class, queryExpression);
                         rootComments.addAll(queryResultPage.getResults());
 
-                        chunkSorter(rootComments);
+                        //chunkSorter(rootComments); no chunk sorting necessary for timestamp sort order
 
                         final Condition childrenRKCondition = new Condition()
                                 .withComparisonOperator(ComparisonOperator.GT.toString())
@@ -2459,6 +2493,152 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         };
         Thread mythread = new Thread(runnable);
         queryThreadID = mythread.getId();
+        mythread.start();
+    }
+
+    private void medalsUpdateDB(final HashMap<Integer, VSComment> upgradeMap, HashSet<String> newMedalists){
+
+        //user gets updateDuty if user.timecode matches the one given at query time, or if user authored the post, or if user won a medal in this upgrade event
+        //so if none of those conditions are met then exit the function with a return.
+        if( ! (activity.getUserTimecode() == (int)(System.currentTimeMillis()%10) || activity.getUsername().equals(post.getAuthor()) || newMedalists.contains(activity.getUsername())) ){
+            return;
+        }
+
+        Runnable runnable = new Runnable() {
+            public void run() {
+
+                try {
+
+                    int pointsIncrement = 0;
+
+                    for(HashMap.Entry<Integer, VSComment> entry : upgradeMap.entrySet()){
+                        //update user medal count, decrementing previous medal's count
+                        //update vscomment topmedal
+                        //update user points, incrementing by appropriate increment amount, not overlapping with points from previous medals, determined by difference between comment.topMedal and the medal that was won
+                        int currentMedal = entry.getKey();
+
+                        HashMap<String, AttributeValueUpdate> userUpdates = new HashMap<>();
+                        HashMap<String, AttributeValueUpdate> vscUpdates = new HashMap<>();
+                        AttributeValueUpdate avi, avd, avp, avc;
+                        HashMap<String, AttributeValue> userKeyMap = new HashMap<>();
+                        HashMap<String, AttributeValue> vscommentKeyMap = new HashMap<>();
+
+                        userKeyMap.put("username", new AttributeValue().withS(activity.getUsername()));  //partition key
+                        vscommentKeyMap.put("parent_id", new AttributeValue().withS(entry.getValue().getParent_id()));
+                        vscommentKeyMap.put("comment_id", new AttributeValue().withS(entry.getValue().getComment_id()));
+
+                        switch(currentMedal){   //set updates for user num_g/num_s/num_b increment and comment topmedal
+                            case 3: //gold medal won
+                                pointsIncrement = goldPoints;
+
+                                avi = new AttributeValueUpdate()
+                                        .withValue(new AttributeValue().withN("1"))
+                                        .withAction(AttributeAction.ADD);
+
+                                userUpdates.put("num_g", avi);
+
+                                break;
+
+                            case 2: //silver medal won
+                                pointsIncrement = silverPoints;
+
+                                avi = new AttributeValueUpdate()
+                                        .withValue(new AttributeValue().withN("1"))
+                                        .withAction(AttributeAction.ADD);
+
+                                userUpdates.put("num_s", avi);
+
+                                break;
+
+                            case 1: //bronze medal won
+                                pointsIncrement = bronzePoints;
+
+                                avi = new AttributeValueUpdate()
+                                        .withValue(new AttributeValue().withN("1"))
+                                        .withAction(AttributeAction.ADD);
+
+                                userUpdates.put("num_b", avi);
+
+                                break;
+                        }
+
+                        switch(entry.getValue().getTopmedal()){ //set updates for user num_s/num_b decrement and points
+                            case 0: //went from no medal to currentMedal
+
+
+                                break;
+
+                            case 1: //went from bronze to currentMedal
+                                pointsIncrement -= bronzePoints;
+
+                                avd = new AttributeValueUpdate()
+                                        .withValue(new AttributeValue().withN("-1"))
+                                        .withAction(AttributeAction.ADD);
+
+                                userUpdates.put("num_b", avd);
+
+                                break;
+
+                            case 2: //went from silver to currentMedal
+                                pointsIncrement -= silverPoints;
+
+                                avd = new AttributeValueUpdate()
+                                        .withValue(new AttributeValue().withN("-1"))
+                                        .withAction(AttributeAction.ADD);
+
+                                userUpdates.put("num_s", avd);
+
+                                break;
+
+                            //no case 3 if it was already gold then it's not a upgrade event
+
+                        }
+
+                        //update topmedal on local comment object in nodeMap
+                        //nodeMap.get(entry.getValue()).setTopMedal(currentMedal); I think the below version would work fine, I believe it maps to same object that is also linked to VSCNode objects in nodeMap
+                        entry.getValue().setTopmedal(currentMedal);
+                        //the below debug statement is to confirm the statement above, delete it eventually
+                        Log.d("topmedal", "currentMedal = " + Integer.toString(currentMedal) + "\nnodeMap updated topmedal: " + Integer.toString(nodeMap.get(entry.getValue().getComment_id()).getNodeContent().getTopmedal()));
+
+                        //set up points update
+                        avp = new AttributeValueUpdate()
+                                .withValue(new AttributeValue().withN(Integer.toString(pointsIncrement)))
+                                .withAction(AttributeAction.ADD);
+
+                        userUpdates.put("points", avp);
+
+                        //update user attributes (medal counters and points)
+                        UpdateItemRequest userUpdateRequest = new UpdateItemRequest()
+                                .withTableName("user")
+                                .withKey(userKeyMap)
+                                .withAttributeUpdates(userUpdates);
+
+                        activity.getDDBClient().updateItem(userUpdateRequest);
+
+
+                        //update vscomment topmedal
+                        avc = new AttributeValueUpdate()
+                                .withValue(new AttributeValue().withN(Integer.toString(currentMedal)))
+                                .withAction(AttributeAction.PUT);
+
+                        vscUpdates.put("topmedal", avc);
+
+                        UpdateItemRequest vscUpdateRequest = new UpdateItemRequest()
+                                .withTableName("vscomment")
+                                .withKey(vscommentKeyMap)
+                                .withAttributeUpdates(vscUpdates);
+
+                        activity.getDDBClient().updateItem(vscUpdateRequest);
+                    }
+
+                }
+                catch (Throwable t){
+
+                }
+
+            }
+        };
+        Thread mythread = new Thread(runnable);
         mythread.start();
     }
 

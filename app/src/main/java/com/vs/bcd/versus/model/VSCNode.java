@@ -137,6 +137,16 @@ public class VSCNode {
         nodeContent.setUservote(uservote);
     }
 
+    public void setTopMedal(int topMedal){
+        nodeContent.setTopmedal(topMedal);
+    }
+
+    public int getCurrentMedal(){
+        return nodeContent.getCurrentMedal();
+    }
+    public void setCurrentMedal(int currentMedal){
+        nodeContent.setCurrentMedal(currentMedal);
+    }
 
     public String getTimestamp(){
         return nodeContent.getTimestamp();

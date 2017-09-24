@@ -23,10 +23,12 @@ public class User {
     private String email = "n/a"; //default value, since dynamodb doesn't want empty strings either email or phone may be unspecified by user
     private String phone = "n/a";
     private int timecode;
-    private Map<String, String> medalmap;   //<post_id -> g,s,b for gold,silver,bronze
     private int points;
     private List<String> posts; //holds post_id UUIDs of posts created by this user
     private List<String> comments; //holds comment_id UUIDs of comments created by this user
+    private int num_g;  //number of gold medals this user has
+    private int num_s;  //number of silver medals this user has
+    private int num_b;  //number of bronze medals this user has
 
 
     @DynamoDBAttribute(attributeName = "firstname")
@@ -101,14 +103,6 @@ public class User {
         this.timecode = timecode;
     }
 
-    @DynamoDBAttribute(attributeName = "medalmap")
-    public Map<String, String> getMedalmap(){
-        return medalmap;
-    }
-    public void setMedalmap(Map<String, String> medalmap){
-        this.medalmap = medalmap;
-    }
-
     @DynamoDBAttribute(attributeName = "posts")
     public List<String> getPosts(){
         return posts;
@@ -125,6 +119,32 @@ public class User {
         this.comments = comments;
     }
 
+    @DynamoDBAttribute(attributeName = "num_g")
+    public int getNum_g(){
+        return num_g;
+    }
+    public void setNum_g(int num_g){
+        this.num_g = num_g;
+    }
+
+    @DynamoDBAttribute(attributeName = "num_s")
+    public int getNum_s(){
+        return num_s;
+    }
+    public void setNum_s(int num_s){
+        this.num_s = num_s;
+    }
+
+    @DynamoDBAttribute(attributeName = "num_b")
+    public int getNum_b(){
+        return num_b;
+    }
+    public void setNum_b(int num_b){
+        this.num_b = num_b;
+    }
+
+
+
     public User(){
 
     }
@@ -139,7 +159,9 @@ public class User {
         password = userData[4];
         timecode = (int)(System.currentTimeMillis()%10); //possible outputs: 0,1,2,3,4,5,6,7,8,9 based on current millisecond from epoch
         points = 0;
-        medalmap = new HashMap<>();
+        num_g = 0;
+        num_s = 0;
+        num_b = 0;
         posts = new ArrayList<>();
         comments = new ArrayList<>();
 
