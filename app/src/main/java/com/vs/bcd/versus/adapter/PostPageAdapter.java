@@ -8,6 +8,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
+import android.media.Image;
 import android.os.AsyncTask;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
@@ -16,6 +17,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -206,6 +208,55 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
                 userViewHolder.author.setText(currentComment.getAuthor());
                 userViewHolder.timestamp.setText(getTimeString(currentComment.getTimestamp()));
+                final int imgOffset = 8;
+                final TextView timeTV = userViewHolder.timestamp;
+                switch (currentComment.getCurrentMedal()){
+                    case 0:
+                        break; //no medal, default currentMedal value
+                    case 1: //bronze
+                        timeTV.getViewTreeObserver()
+                                .addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                                    @Override
+                                    public void onGlobalLayout() {
+                                        Drawable img = ContextCompat.getDrawable(activity, R.drawable.bronzemedal);
+                                        img.setBounds(0, 0, img.getIntrinsicWidth() * timeTV.getMeasuredHeight() / img.getIntrinsicHeight() + imgOffset, timeTV.getMeasuredHeight()+imgOffset);
+                                        timeTV.setCompoundDrawables(null, null, img, null);
+                                        timeTV.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                                        timeTV.setCompoundDrawablePadding(10);
+                                    }
+                                });
+
+                        break;
+                    case 2: //silver
+                        timeTV.getViewTreeObserver()
+                                .addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                                    @Override
+                                    public void onGlobalLayout() {
+                                        Drawable img = ContextCompat.getDrawable(activity, R.drawable.silvermedal);
+                                        img.setBounds(0, 0, img.getIntrinsicWidth() * timeTV.getMeasuredHeight() / img.getIntrinsicHeight() + imgOffset, timeTV.getMeasuredHeight()+imgOffset);
+                                        timeTV.setCompoundDrawables(null, null, img, null);
+                                        timeTV.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                                        timeTV.setCompoundDrawablePadding(10);
+                                    }
+                                });
+
+                        break;
+                    case 3: //gold
+                        timeTV.getViewTreeObserver()
+                                .addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                                    @Override
+                                    public void onGlobalLayout() {
+                                        Drawable img = ContextCompat.getDrawable(activity, R.drawable.goldmedal);
+                                        img.setBounds(0, 0, img.getIntrinsicWidth() * timeTV.getMeasuredHeight() / img.getIntrinsicHeight() + imgOffset, timeTV.getMeasuredHeight()+imgOffset);
+                                        timeTV.setCompoundDrawables(null, null, img, null);
+                                        timeTV.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                                        timeTV.setCompoundDrawablePadding(10);
+                                    }
+                                });
+
+                        break;
+                }
+
                 userViewHolder.content.setText(currentComment.getContent());
                 userViewHolder.heartCount.setText( Integer.toString(currentComment.heartsTotal()) );
                 //set CardView onClickListener to go to PostPage fragment with corresponding Comments data (this will be a PostPage without post_card)
@@ -213,7 +264,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 userViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        Log.d("topmedal", Integer.toString(currentComment.getTopmedal()));
+                        Log.d("topmedal", Integer.toString(currentComment.getCurrentMedal()));
                         if(currentComment.getNestedLevel() == 2){
                             activity.getPostPage().addGrandParentToCache(currentComment.getParent_id()); //pass in parent's id, then the function will get that parent's parent, the grandparent, and add it to the parentCache
                         }

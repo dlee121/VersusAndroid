@@ -527,7 +527,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 if(!rootComments.isEmpty()){
                     int currMedalNumber = 3; //starting with 3, which is gold medal
                     int prevUpvotes = rootComments.get(0).getUpvotes();
-                    VSComment currComment; //use as read-only in for-loop below
+                    VSComment currComment;
 
                     //get the children while setting up nodeMap with root comments
                     final ThreadCounter threadCounter = new ThreadCounter(0, rootComments.size(), thisPage);
