@@ -1,42 +1,24 @@
 package com.vs.bcd.versus.activity;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.PopupMenu;
-import android.view.MenuInflater;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.vs.bcd.versus.R;
-import com.vs.bcd.versus.activity.WhatsYourBirthday;
 
-import com.amazonaws.auth.CognitoCachingCredentialsProvider;
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.vs.bcd.versus.model.FormValidator;
-import com.vs.bcd.versus.model.User;
 
 import java.util.ArrayList;
-
-import static android.R.id.input;
-import static android.R.id.message;
-import static android.provider.AlarmClock.EXTRA_MESSAGE;
 
 
 public class WhatsYourName extends Fragment {
@@ -56,7 +38,7 @@ public class WhatsYourName extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        rootView = inflater.inflate(R.layout.fragment_yo_name, container, false);
+        rootView = inflater.inflate(R.layout.fragment_signup_name, container, false);
         activity = (SignUp)getActivity();
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();

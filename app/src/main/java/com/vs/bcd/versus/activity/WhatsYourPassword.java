@@ -15,7 +15,6 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.vs.bcd.versus.R;
@@ -23,8 +22,6 @@ import com.vs.bcd.versus.model.FormValidator;
 import com.vs.bcd.versus.model.SessionManager;
 
 import java.util.ArrayList;
-
-import static com.vs.bcd.versus.R.string.next;
 
 public class WhatsYourPassword extends Fragment {
 
@@ -47,7 +44,7 @@ public class WhatsYourPassword extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        rootView = inflater.inflate(R.layout.fragment_yo_asswordpay, container, false);
+        rootView = inflater.inflate(R.layout.fragment_signup_pw, container, false);
         activity = (SignUp)getActivity();
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();

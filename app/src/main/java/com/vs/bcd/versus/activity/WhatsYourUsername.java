@@ -1,29 +1,22 @@
 package com.vs.bcd.versus.activity;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.ButtonBarLayout;
-import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.vs.bcd.versus.R;
-import com.vs.bcd.versus.activity.WhatsYourPassword;
 import com.vs.bcd.versus.model.FormValidator;
 import com.vs.bcd.versus.model.User;
 
@@ -50,7 +43,7 @@ public class WhatsYourUsername extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        rootView = inflater.inflate(R.layout.fragment_yo_username, container, false);
+        rootView = inflater.inflate(R.layout.fragment_signup_username, container, false);
         activity = (SignUp)getActivity();
         usernamecheckPB = (ProgressBar)rootView.findViewById(R.id.usernamecheckpb);
         childViews = new ArrayList<>();
