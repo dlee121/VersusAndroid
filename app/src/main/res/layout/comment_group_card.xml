@@ -129,6 +129,16 @@
             android:textSize="12sp"
             style="?android:attr/borderlessButtonStyle"/>
 
+        <ImageView
+            android:id="@+id/medal_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/profile_image_cs"
+            android:layout_alignRight="@id/profile_image_cs"
+            android:scaleX="0.7"
+            android:scaleY="0.7"
+            android:layout_marginBottom="-13dp"
+            />
 
 
     </RelativeLayout>

@@ -208,52 +208,19 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
                 userViewHolder.author.setText(currentComment.getAuthor());
                 userViewHolder.timestamp.setText(getTimeString(currentComment.getTimestamp()));
-                final int imgOffset = 8;
-                final TextView timeTV = userViewHolder.timestamp;
+                //final int imgOffset = 8;
+                //final TextView timeTV = userViewHolder.timestamp;
                 switch (currentComment.getCurrentMedal()){
                     case 0:
                         break; //no medal, default currentMedal value
                     case 1: //bronze
-                        timeTV.getViewTreeObserver()
-                                .addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                                    @Override
-                                    public void onGlobalLayout() {
-                                        Drawable img = ContextCompat.getDrawable(activity, R.drawable.bronzemedal);
-                                        img.setBounds(0, 0, img.getIntrinsicWidth() * timeTV.getMeasuredHeight() / img.getIntrinsicHeight() + imgOffset, timeTV.getMeasuredHeight()+imgOffset);
-                                        timeTV.setCompoundDrawables(null, null, img, null);
-                                        timeTV.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                                        timeTV.setCompoundDrawablePadding(10);
-                                    }
-                                });
-
+                        userViewHolder.medalImage.setImageResource(R.drawable.bronzemedal);
                         break;
                     case 2: //silver
-                        timeTV.getViewTreeObserver()
-                                .addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                                    @Override
-                                    public void onGlobalLayout() {
-                                        Drawable img = ContextCompat.getDrawable(activity, R.drawable.silvermedal);
-                                        img.setBounds(0, 0, img.getIntrinsicWidth() * timeTV.getMeasuredHeight() / img.getIntrinsicHeight() + imgOffset, timeTV.getMeasuredHeight()+imgOffset);
-                                        timeTV.setCompoundDrawables(null, null, img, null);
-                                        timeTV.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                                        timeTV.setCompoundDrawablePadding(10);
-                                    }
-                                });
-
+                        userViewHolder.medalImage.setImageResource(R.drawable.silvermedal);
                         break;
                     case 3: //gold
-                        timeTV.getViewTreeObserver()
-                                .addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                                    @Override
-                                    public void onGlobalLayout() {
-                                        Drawable img = ContextCompat.getDrawable(activity, R.drawable.goldmedal);
-                                        img.setBounds(0, 0, img.getIntrinsicWidth() * timeTV.getMeasuredHeight() / img.getIntrinsicHeight() + imgOffset, timeTV.getMeasuredHeight()+imgOffset);
-                                        timeTV.setCompoundDrawables(null, null, img, null);
-                                        timeTV.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                                        timeTV.setCompoundDrawablePadding(10);
-                                    }
-                                });
-
+                        userViewHolder.medalImage.setImageResource(R.drawable.goldmedal);
                         break;
                 }
 
@@ -632,6 +599,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         public TextView heartCount; //TODO: perhaps we should show two counts, one for heard and one for broken hearts, instead of summing it up into one heartCount? Or is that not necessary, after all major websites seem to just sum them into one single count.
         public Button replyButton;
         public ImageButton upvoteButton, downvoteButton;
+        public ImageView medalImage;
 
         public UserViewHolder(View view) {
             super(view);
@@ -643,6 +611,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             replyButton = (Button) view.findViewById(R.id.replybuttoncs);
             upvoteButton = (ImageButton) view.findViewById(R.id.heartbutton);
             downvoteButton = (ImageButton) view.findViewById(R.id.broken_heart_button);
+            medalImage = (ImageView) view.findViewById(R.id.medal_image);
         }
 
 
