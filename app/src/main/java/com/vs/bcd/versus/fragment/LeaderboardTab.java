@@ -54,6 +54,7 @@ public class LeaderboardTab extends Fragment {
     private int numTimecodes = 10;
     private int retrievalLimit = 15;
     private long lastRefreshTime = 0;
+    private LeaderboardTab thisTab;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -73,9 +74,10 @@ public class LeaderboardTab extends Fragment {
             LPStore.add(childViews.get(i).getLayoutParams());
         }
 
-        setUpLeaderboard();
+        //setUpLeaderboard();
 
-        //disableChildViews();
+        disableChildViews();
+        Log.d("leaderboard", "lb set up complete and disablechildViews called");
         return rootView;
     }
 
@@ -84,6 +86,7 @@ public class LeaderboardTab extends Fragment {
         super.onAttach(context);
         //save the activity to a member of this fragment
         activity = (MainContainer)context;
+        thisTab = this;
         Log.d("leaderboard", "onAttach() called");
     }
 
@@ -94,6 +97,7 @@ public class LeaderboardTab extends Fragment {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
             if(rootView != null){
+                Log.d("leaderboard", "now visible");
                 enableChildViews();
                 setUpLeaderboard();
             }
@@ -123,82 +127,94 @@ public class LeaderboardTab extends Fragment {
 
 
     private void setUpLeaderboard(){
-        if(System.currentTimeMillis() < lastRefreshTime + 3 * 1000){   //if it's been less than 30 seconds since last leaderboard refresh, return instead of querying
+        if(System.currentTimeMillis() < lastRefreshTime + 30 * 1000){   //if it's been less than 30 seconds since last leaderboard refresh, return instead of querying
             return;
         }
 
-        Log.d("leaderboard", "lb setup called");
-
-        final ArrayList<User> assembledResults = new ArrayList<>();
-        final Condition rangeKeyCondition = new Condition()
-                .withComparisonOperator(ComparisonOperator.GT.toString())
-                .withAttributeValueList(new AttributeValue().withN("-1"));
-
-        final ThreadCounter threadCounter = new ThreadCounter(0, numTimecodes, this);
-        for(int i = 0; i <  numTimecodes; i++){
-            final int index = i;
-
-            Runnable runnable = new Runnable() {
-                public void run() {
-                    User queryTemplate = new User();
-                    queryTemplate.setTimecode(index);
-                    //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
-                    DynamoDBQueryExpression queryExpression =
-                            new DynamoDBQueryExpression()
-                                    .withHashKeyValues(queryTemplate)
-                                    .withRangeKeyCondition("points", rangeKeyCondition)
-                                    .withScanIndexForward(false)
-                                    .withConsistentRead(false)
-                                    .withLimit(retrievalLimit);
-
-                    ArrayList<User> queryResults = new ArrayList<>(activity.getMapper().queryPage(User.class, queryExpression).getResults());
-                    assembledResults.addAll(queryResults);
-
-                    Log.d("Query on Timecode: ", Integer.toString(queryTemplate.getTimecode()));
-
-                    threadCounter.increment();
-                }
-            };
-            Thread mythread = new Thread(runnable);
-            mythread.start();
-        }
-
-        long end = System.currentTimeMillis() + 6*1000; // 6 seconds * 1000 ms/sec
-        //automatic timeout at 10 seconds to prevent infinite loop
-        while(!displayResults && System.currentTimeMillis() < end){
-
-        }
-        if(displayResults){
-            Log.d("Query on Timecode: ", "got through");
-        }
-        else{
-            Log.d("Query on Timecode: ", "loop timeout");
-        }
-
-        displayResults = false;
-
-        //sort the assembledResults where posts are sorted from more recent to less recent
-        Collections.sort(assembledResults, new Comparator<User>() {
-            //TODO: confirm that this sorts dates where most recent is at top. If not then just flip around o1 and o2: change to o2.getDate().compareTo(o1.getDate())
-            @Override
-            public int compare(User o1, User o2) {
-
-                return o1.getPoints() - o2.getPoints();
-            }
-        });
-
-
-        activity.runOnUiThread(new Runnable() {
-            @Override
+        Runnable runnable = new Runnable() {
             public void run() {
-                RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.leaderboard_rv);
-                leaders = new ArrayList<User>(assembledResults);
-                recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-                LeaderboardAdapter mLeaderboardAdapter = new LeaderboardAdapter(leaders, activity);
-                recyclerView.setAdapter(mLeaderboardAdapter);
-                lastRefreshTime = System.currentTimeMillis();
+
+                Log.d("leaderboard", "lb setup called");
+
+                final ArrayList<User> assembledResults = new ArrayList<>();
+                final Condition rangeKeyCondition = new Condition()
+                        .withComparisonOperator(ComparisonOperator.GT.toString())
+                        .withAttributeValueList(new AttributeValue().withN("-1"));
+
+                final ThreadCounter threadCounter = new ThreadCounter(0, numTimecodes, thisTab);
+                for(int i = 0; i <  numTimecodes; i++){
+                    final int index = i;
+
+                    Runnable runnable = new Runnable() {
+                        public void run() {
+                            User queryTemplate = new User();
+                            queryTemplate.setTimecode(index);
+                            //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
+                            DynamoDBQueryExpression queryExpression =
+                                    new DynamoDBQueryExpression()
+                                            .withHashKeyValues(queryTemplate)
+                                            .withRangeKeyCondition("points", rangeKeyCondition)
+                                            .withScanIndexForward(false)
+                                            .withConsistentRead(false)
+                                            .withLimit(retrievalLimit);
+
+                            ArrayList<User> queryResults = new ArrayList<>(activity.getMapper().queryPage(User.class, queryExpression).getResults());
+                            assembledResults.addAll(queryResults);
+
+                            Log.d("Query on Timecode: ", Integer.toString(queryTemplate.getTimecode()));
+
+                            threadCounter.increment();
+                        }
+                    };
+                    Thread mythread = new Thread(runnable);
+                    mythread.start();
+                }
+
+                long end = System.currentTimeMillis() + 6*1000; // 6 seconds * 1000 ms/sec
+                //automatic timeout at 10 seconds to prevent infinite loop
+                while(!displayResults && System.currentTimeMillis() < end){
+
+                }
+                if(displayResults){
+                    Log.d("Query on Timecode: ", "got through");
+                }
+                else{
+                    Log.d("Query on Timecode: ", "loop timeout");
+                }
+
+                displayResults = false;
+
+                //sort the assembledResults where posts are sorted from more recent to less recent
+                Collections.sort(assembledResults, new Comparator<User>() {
+                    //TODO: confirm that this sorts dates where most recent is at top. If not then just flip around o1 and o2: change to o2.getDate().compareTo(o1.getDate())
+                    @Override
+                    public int compare(User o1, User o2) {
+
+                        return o1.getPoints() - o2.getPoints();
+                    }
+                });
+
+
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.leaderboard_rv);
+                        leaders = new ArrayList<User>(assembledResults);
+                        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+                        LeaderboardAdapter mLeaderboardAdapter = new LeaderboardAdapter(leaders, activity);
+                        recyclerView.setAdapter(mLeaderboardAdapter);
+                        lastRefreshTime = System.currentTimeMillis();
+                    }
+                });
+
+
+
+
             }
-        });
+        };
+        Thread mythread = new Thread(runnable);
+        mythread.start();
+
     }
 
     public void yesDisplayResults(){

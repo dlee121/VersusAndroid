@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/maincase"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="18dp"
+        android:layout_centerHorizontal="true"
+        android:orientation="vertical">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/profile_image_pt"
+            android:layout_width="140dp"
+            android:layout_height="140dp"
+            android:clickable="true"
+            android:src="@drawable/vs_shadow_w_tag"
+            app:civ_border_color="#FF000000"
+            app:civ_border_width="2dp" />
+
+        <TextView
+            android:id="@+id/username_pt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center"
+            android:textSize="18sp"
+            android:text="username" />
+
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:id="@+id/follow_case"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toStartOf="@id/maincase"
+        android:layout_marginTop="46dp"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/num_followers"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="12312\nFollowers"
+            android:padding="8dp"
+            android:gravity="center"
+            android:background="@drawable/border"/>
+        <TextView
+            android:id="@+id/num_following"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="1231\nFollowing"
+            android:padding="8dp"
+            android:layout_marginTop="4dp"
+            android:gravity="center"
+            android:background="@drawable/border"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/medal_case"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/maincase"
+        android:layout_marginTop="47dp"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/gmedal_pt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:drawableLeft="@drawable/goldmedal"
+            android:text="412" />
+
+
+        <TextView
+            android:id="@+id/smedal_pt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:drawableLeft="@drawable/silvermedal"
+            android:layout_marginTop="4dp"
+            android:text="131" />
+
+
+        <TextView
+            android:id="@+id/bmedal_pt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:drawableLeft="@drawable/bronzemedal"
+            android:layout_marginTop="4dp"
+            android:text="232" />
+    </LinearLayout>
+
+
+
+
+
+
+
+
+
+
+</RelativeLayout>

@@ -35,7 +35,9 @@ import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
 import com.vs.bcd.versus.fragment.CategoryFragment;
 import com.vs.bcd.versus.fragment.CommentEnterFragment;
 import com.vs.bcd.versus.fragment.LeaderboardTab;
+import com.vs.bcd.versus.fragment.NotificationsTab;
 import com.vs.bcd.versus.fragment.PostPage;
+import com.vs.bcd.versus.fragment.ProfileTab;
 import com.vs.bcd.versus.fragment.SelectCategory;
 import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.model.Post;
@@ -276,7 +278,7 @@ public class MainContainer extends AppCompatActivity {
 
                         break;
 
-                    case 9: //MeTab
+                    case 9: //Me (ProfileTab with user == me)
 
                         break;
                 */
@@ -308,66 +310,6 @@ public class MainContainer extends AppCompatActivity {
         mViewPager.setOffscreenPageLimit(7);
         mViewPager.setPageTransformer(false, new FadePageTransformer());
         //mViewPager.setPageTransformer(false, new NoPageTransformer());
-
-        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            public void onPageScrollStateChanged(int state) {}
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
-
-            public void onPageSelected(int position) {
-                // Check if this is the page you want.
-                switch(position){
-                    //We probably only need to account for when the transition between yes-tab / no-tab happens (tabs 0, 2, 3, 6)
-                    //But if it makes no significant performance difference to include all the other tabs, we might as well, to be on safe side especially in case future developments necessitate doing so.
-                    case 0: //MainActivity
-                        enableBottomTabs();
-                        break;
-
-                    case 1: //SearchPage
-                        enableBottomTabs();
-                        break;
-
-                    case 2: //CreatePost
-                        disableBottomTabs();
-                        break;
-
-                    case 3: //PostPage
-                        disableBottomTabs();
-                        break;
-
-                    case 4: //CommentEnterFragment
-                        disableBottomTabs();
-                        break;
-
-                    case 5: //SelectCategory
-                        disableBottomTabs();
-                        break;
-
-                    case 6: //CategoryFragment
-                        enableBottomTabs();
-                        break;
-
-                    case 7: //LeaderboardTab
-                        enableBottomTabs();
-                        break;
-
-                    case 8: //NotificationsTab
-                        enableBottomTabs();
-                        break;
-
-                    case 9: //MeTab
-                        enableBottomTabs();
-                        break;
-
-                    default:
-
-                        break;
-                }
-
-            }
-        });
-
-        mViewPager.setCurrentItem(0);
-        setToolbarTitleTextForTabs("Newsfeed");
 
         windowSize = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(windowSize);
@@ -408,10 +350,11 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 2: //NotificationsTab
-
+                        mViewPager.setCurrentItem(8);
                         break;
 
-                    case 3: //MeTab
+                    case 3: //Me (ProfileTab with user == me)
+                        mViewPager.setCurrentItem(9);
 
                         break;
 
@@ -424,11 +367,100 @@ public class MainContainer extends AppCompatActivity {
         bottomNavigation.setBehaviorTranslationEnabled(false);
 
         // Set current item programmatically
-        bottomNavigation.setCurrentItem(0);
+        bottomNavigation.setCurrentItem(0, false);
+
+        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            public void onPageScrollStateChanged(int state) {}
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
+
+            public void onPageSelected(int position) {
+                // Check if this is the page you want.
+                switch(position){
+                    //We probably only need to account for when the transition between yes-tab / no-tab happens (tabs 0, 2, 3, 6)
+                    //But if it makes no significant performance difference to include all the other tabs, we might as well, to be on safe side especially in case future developments necessitate doing so.
+                    case 0: //MainActivity
+                        enableBottomTabs();
+                        bottomNavigation.setCurrentItem(0, false);
+                        enableToolbarButtonLeft();
+                        toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                        break;
+
+                    case 1: //SearchPage
+                        //enableBottomTabs();
+                        bottomNavigation.setCurrentItem(0, false);
+                        toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+                        break;
+
+                    case 2: //CreatePost
+                        disableBottomTabs();
+                        toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+                        break;
+
+                    case 3: //PostPage
+                        disableBottomTabs();
+                        toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+                        break;
+
+                    case 4: //CommentEnterFragment
+                        //disableBottomTabs();  //accessed from PostPage which already disables bottom tabs
+                        break;
+
+                    case 5: //SelectCategory
+                        //disableBottomTabs(); //accessed from CreatePost which already disables bottom tabs
+                        break;
+
+                    case 6: //CategoryFragment
+                        enableBottomTabs();
+                        bottomNavigation.setCurrentItem(0, false);
+                        toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+                        break;
+
+                    case 7: //LeaderboardTab
+                        //enableBottomTabs();   //Leaderboard is accessible through bottom tabs only so bottom tabs are already enabled
+                        disableToolbarButtonLeft();
+                        bottomNavigation.setCurrentItem(1, false);
+                        toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+                        break;
+
+                    case 8: //NotificationsTab
+                        //enableBottomTabs();   //Notifications is accessible through bottom tabs only so bottom tabs are already enabled
+                        disableToolbarButtonLeft();
+                        bottomNavigation.setCurrentItem(2, false);
+                        toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+                        break;
+
+                    case 9: //Me (ProfileTab with user == me)
+                        //enableBottomTabs(); //if Profile tab is accessed through bottom tabs, keep it on, if not, keep it off
+                        disableToolbarButtonLeft(); //TODO: only if user came from MainActivity. If user came from anywhere else, it should be an "x" or "<" to go back to the page user was on before accessing the profile.
+                        bottomNavigation.setCurrentItem(3, false);
+                        toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron); //TODO: implement this in navigation sections: back to MainActivity if Me, else back to the page user was on before accessing the profile
+                        break;
+
+                    default:
+
+                        break;
+                }
+
+            }
+        });
+
+        mViewPager.setCurrentItem(0);
+        setToolbarTitleTextForTabs("Newsfeed");
 
         Log.d("USER_INFO", sessionManager.getUserDetails().get(SessionManager.KEY_USERNAME));
 
     }
+
+
+    private void enableToolbarButtonLeft(){
+        toolbarButtonLeft.setEnabled(true);
+        toolbarButtonLeft.setVisibility(View.VISIBLE);
+    }
+    private void disableToolbarButtonLeft(){
+        toolbarButtonLeft.setEnabled(false);
+        toolbarButtonLeft.setVisibility(View.INVISIBLE);
+    }
+
 
     public TextView getToolbarTitleText(){
         return titleTxtView;
@@ -519,13 +551,17 @@ public class MainContainer extends AppCompatActivity {
                     return categoryFragment;
                 case 7:
                     return new LeaderboardTab();
+                case 8:
+                    return new NotificationsTab();
+                case 9:
+                    return new ProfileTab();
                 default:
                     return null;
             }
         }
         @Override
         public int getCount() {
-            return 8;
+            return 10;
         }
 
         @Override
@@ -547,6 +583,10 @@ public class MainContainer extends AppCompatActivity {
                     return "CATEGORY";
                 case 7:
                     return "LEADERBOARD";
+                case 8:
+                    return "NOTIFICATIONS";
+                case 9:
+                    return "ME";
             }
             return null;
         }
