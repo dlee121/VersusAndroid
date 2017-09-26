@@ -34,6 +34,7 @@ import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
 import com.vs.bcd.versus.fragment.CategoryFragment;
 import com.vs.bcd.versus.fragment.CommentEnterFragment;
+import com.vs.bcd.versus.fragment.LeaderboardTab;
 import com.vs.bcd.versus.fragment.PostPage;
 import com.vs.bcd.versus.fragment.SelectCategory;
 import com.vs.bcd.versus.model.CategoryObject;
@@ -403,7 +404,7 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 1: //LeaderboardTab
-
+                        mViewPager.setCurrentItem(7);
                         break;
 
                     case 2: //NotificationsTab
@@ -516,13 +517,15 @@ public class MainContainer extends AppCompatActivity {
                 case 6:
                     categoryFragment = new CategoryFragment();
                     return categoryFragment;
+                case 7:
+                    return new LeaderboardTab();
                 default:
                     return null;
             }
         }
         @Override
         public int getCount() {
-            return 7;
+            return 8;
         }
 
         @Override
@@ -542,6 +545,8 @@ public class MainContainer extends AppCompatActivity {
                     return "SELECT CATEGORY";
                 case 6:
                     return "CATEGORY";
+                case 7:
+                    return "LEADERBOARD";
             }
             return null;
         }
