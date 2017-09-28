@@ -1,10 +1,5 @@
 package com.vs.bcd.versus.model;
 
-import android.util.Log;
-
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Created by dlee on 6/12/17.
  */
@@ -149,7 +144,7 @@ public class VSCNode {
     }
 
     public String getTimestamp(){
-        return nodeContent.getTimestamp();
+        return nodeContent.getTime();
     }
 
 }

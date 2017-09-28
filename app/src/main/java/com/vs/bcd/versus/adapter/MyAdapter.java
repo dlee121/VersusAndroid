@@ -76,6 +76,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             return new UserViewHolder(view);
         } else if (viewType == VIEW_TYPE_LOADING) {
             View view = LayoutInflater.from(activity).inflate(R.layout.item_loading, parent, false);
+            Log.d("hey", "this happens?");
             return new LoadingViewHolder(view);
         }
         return null;

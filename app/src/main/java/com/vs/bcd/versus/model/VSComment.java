@@ -1,10 +1,8 @@
 package com.vs.bcd.versus.model;
 
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
-import com.vs.bcd.versus.adapter.PostPageAdapter;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -20,7 +18,7 @@ public class VSComment {
 
     private String parent_id; //UUID of the parent comment that this comment was in response to (use 0 if root comment)
     private String post_id; //UUID of the post this comment belongs to
-    private String timestamp; //timestamp of when the comment was made
+    private String time; //time of when the comment was made
     private String comment_id; //UUID for this comment
     private String author; //username of the comment's author
     private String content; //the actual content of the comment
@@ -38,7 +36,7 @@ public class VSComment {
 
     public VSComment(){
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
-        timestamp = df.format(new Date());
+        time = df.format(new Date());
         comment_id = UUID.randomUUID().toString();
         upvotes = 0;
         downvotes = 0;
@@ -70,12 +68,12 @@ public class VSComment {
         this.post_id = post_id;
     }
 
-    @DynamoDBIndexRangeKey(localSecondaryIndexName = "parent_id-timestamp-index", attributeName = "timestamp")
-    public String getTimestamp() {
-        return timestamp;
+    @DynamoDBIndexRangeKey(localSecondaryIndexName = "parent_id-time-index", attributeName = "time")
+    public String getTime() {
+        return time;
     }
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
+    public void setTime(String time) {
+        this.time = time;
     }
 
     @DynamoDBAttribute(attributeName = "author")

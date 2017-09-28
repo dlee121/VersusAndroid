@@ -3,8 +3,6 @@ package com.vs.bcd.versus.fragment;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -20,18 +18,15 @@ import android.widget.ImageButton;
 import android.widget.ListAdapter;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 import com.amazonaws.services.dynamodbv2.model.AttributeAction;
-import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
 import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
 import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.amazonaws.services.dynamodbv2.model.Condition;
 
-import com.vs.bcd.versus.OnLoadMoreListener;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
@@ -397,10 +392,10 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         //clearList();
 
         if(atRootLevel){
-            commentTimestampQuery(postID, false);
+            commentTimeQuery(postID, false);
         }
         else {
-            commentTimestampQuery(topCardContent.getComment_id(), false);
+            commentTimeQuery(topCardContent.getComment_id(), false);
         }
 
         nowLoading = false;
@@ -461,10 +456,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             childViews.get(i).setEnabled(false);
             childViews.get(i).setClickable(false);
             childViews.get(i).setLayoutParams(new RelativeLayout.LayoutParams(0,0));
-
-
         }
-
     }
 
     /*
@@ -825,7 +817,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
 
-    private void commentTimestampQuery(final String rootParentID, final boolean downloadImages){
+    private void commentTimeQuery(final String rootParentID, final boolean downloadImages){
 
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
         final String currentTime = df.format(new Date());
@@ -856,7 +848,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 DynamoDBQueryExpression queryExpression =
                         new DynamoDBQueryExpression()
                                 .withHashKeyValues(queryTemplate)
-                                .withRangeKeyCondition("timestamp", rangeKeyCondition)
+                                .withRangeKeyCondition("time", rangeKeyCondition)
                                 .withScanIndexForward(false)
                                 .withLimit(retrievalLimit);
 
@@ -1122,7 +1114,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     if(!nowLoading){
                                         nowLoading = true;
                                         Log.d("Load", "Now Loadin More");
-                                        loadMoreCommentsByTimestamp();
+                                        loadMoreCommentsByTime();
                                     }
                                 }
                             }
@@ -1268,7 +1260,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             }
         });
 
-        timestamp.setText(PPAdapter.getTimeString(clickedComment.getTimestamp()));
+        timestamp.setText(PPAdapter.getTimeString(clickedComment.getTime()));
         author.setText(clickedComment.getAuthor());
         content.setText(clickedComment.getContent());
         heartCount.setText(Integer.toString(clickedComment.heartsTotal()));
@@ -1328,7 +1320,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 break;
 
             case NEW:
-                commentTimestampQuery(subjectComment.getComment_id(), false);
+                commentTimeQuery(subjectComment.getComment_id(), false);
                 break;
         }
         */
@@ -1362,7 +1354,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 break;
 
             case NEW:
-                commentTimestampQuery(tempParentID, false);
+                commentTimeQuery(tempParentID, false);
                 break;
         }
         */
@@ -2187,7 +2179,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         mythread.start();
     }
 
-    private void loadMoreCommentsByTimestamp(){
+    private void loadMoreCommentsByTime(){
 
 
         Runnable runnable = new Runnable() {
@@ -2222,7 +2214,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         DynamoDBQueryExpression queryExpression =
                                 new DynamoDBQueryExpression()
                                         .withHashKeyValues(queryTemplate)
-                                        .withRangeKeyCondition("timestamp", rangeKeyCondition)
+                                        .withRangeKeyCondition("time", rangeKeyCondition)
                                         .withScanIndexForward(false)
                                         .withLimit(retrievalLimit)
                                         .withExclusiveStartKey(lastEvaluatedKey);
@@ -2524,7 +2516,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         HashMap<String, AttributeValue> userKeyMap = new HashMap<>();
                         HashMap<String, AttributeValue> vscommentKeyMap = new HashMap<>();
 
-                        userKeyMap.put("username", new AttributeValue().withS(activity.getUsername()));  //partition key
+                        userKeyMap.put("username", new AttributeValue().withS(entry.getValue().getAuthor()));  //partition key
                         vscommentKeyMap.put("parent_id", new AttributeValue().withS(entry.getValue().getParent_id()));
                         vscommentKeyMap.put("comment_id", new AttributeValue().withS(entry.getValue().getComment_id()));
 

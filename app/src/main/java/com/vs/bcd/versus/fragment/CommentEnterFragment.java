@@ -1,15 +1,12 @@
 package com.vs.bcd.versus.fragment;
 
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.CardView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -20,11 +17,8 @@ import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.PostPageAdapter;
-import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.PostSkeleton;
 import com.vs.bcd.versus.model.VSComment;
-
-import org.w3c.dom.Text;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -33,10 +27,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
-
-import static android.R.attr.left;
-import static android.R.attr.onClick;
-import static android.R.attr.right;
 
 /**
  * Created by dlee on 7/1/17.
@@ -185,7 +175,7 @@ public class CommentEnterFragment extends Fragment{
     public void setContentReplyToComment(VSComment replySubject){
         //TODO: start setting up user profile pic whereever it appears
         ((TextView)commentRef.findViewById(R.id.usernameref)).setText(replySubject.getAuthor());
-        ((TextView)commentRef.findViewById(R.id.timetvref)).setText(getTimeString(replySubject.getTimestamp()));
+        ((TextView)commentRef.findViewById(R.id.timetvref)).setText(getTimeString(replySubject.getTime()));
         ((TextView)commentRef.findViewById(R.id.usercommentref)).setText(replySubject.getContent());
         parentID = replySubject.getComment_id();
         postID = replySubject.getPost_id();

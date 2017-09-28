@@ -8,7 +8,6 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
-import android.media.Image;
 import android.os.AsyncTask;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
@@ -17,7 +16,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -143,6 +141,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             return new UserViewHolder(view);
         } else if (viewType == VIEW_TYPE_LOADING) {
             View view = LayoutInflater.from(activity).inflate(R.layout.item_loading, parent, false);
+            Log.d("hey", "this happens?");
             return new LoadingViewHolder(view);
         } else if (viewType == VIEW_TYPE_POSTCARD) {
             View view = LayoutInflater.from(activity).inflate(R.layout.post_card, parent, false);
@@ -216,7 +215,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     }
                 });
 
-                userViewHolder.timestamp.setText(getTimeString(currentComment.getTimestamp()));
+                userViewHolder.timestamp.setText(getTimeString(currentComment.getTime()));
                 //final int imgOffset = 8;
                 //final TextView timeTV = userViewHolder.timestamp;
                 switch (currentComment.getCurrentMedal()){
