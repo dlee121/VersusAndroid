@@ -45,8 +45,6 @@ public class SessionManager {
     public static final String KEY_PHONE = "pref_phone";
     public static final String KEY_USERNAME = "pref_username";
     public static final String KEY_TIMECODE = "pref_timecode";
-    public static final String KEY_POSTS = "pref_posts";
-    public static final String KEY_COMMENTS = "pref_comments";
 
     //keep password private
     private static final String KEY_PASSWORD = "pref_password";
@@ -75,13 +73,6 @@ public class SessionManager {
         editor.putString(KEY_PHONE, user.getPhone());
         editor.putString(KEY_USERNAME, user.getUsername());
         editor.putInt(KEY_TIMECODE, user.getTimecode());
-
-        Gson gson = new Gson();
-        String postslist = gson.toJson(user.getPosts());
-        String commentsList = gson.toJson(user.getComments());
-
-        editor.putString(KEY_POSTS, postslist);
-        editor.putString(KEY_COMMENTS, commentsList);
 
         // commit changes
         editor.commit();
@@ -115,40 +106,6 @@ public class SessionManager {
 
     public int getUserTimecode(){
         return pref.getInt(KEY_TIMECODE, -1);
-    }
-
-    public ArrayList<String> getUserPostsList(){
-        Gson gson = new Gson();
-        String json = pref.getString(KEY_POSTS, null);
-        Type type = new TypeToken<ArrayList<String>>() {}.getType();
-        ArrayList<String> ret = gson.fromJson(json, type);
-        return ret;
-    }
-
-    public ArrayList<String> getUserCommentsList(){
-        Gson gson = new Gson();
-        String json = pref.getString(KEY_COMMENTS, null);
-        Type type = new TypeToken<ArrayList<String>>() {}.getType();
-        ArrayList<String> ret = gson.fromJson(json, type);
-        return ret;
-    }
-
-    public void updateUserLocalPostsList(String entry){
-        Gson gson = new Gson();
-        ArrayList<String> postsList = getUserPostsList();
-        postsList.add(entry);
-        String updatedList = gson.toJson(postsList);
-        editor.putString(KEY_POSTS, updatedList);
-        editor.apply();
-    }
-
-    public void updateUserLocalCommentsList(String entry){
-        Gson gson = new Gson();
-        ArrayList<String> commentsList = getUserCommentsList();
-        commentsList.add(entry);
-        String updatedList = gson.toJson(commentsList);
-        editor.putString(KEY_COMMENTS, updatedList);
-        editor.apply();
     }
 
     /**

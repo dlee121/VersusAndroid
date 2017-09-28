@@ -784,22 +784,6 @@ public class MainContainer extends AppCompatActivity {
         return sessionManager.getCurrentUsername();
     }
 
-    public ArrayList<String> getUserPostsList(){
-        return sessionManager.getUserPostsList();
-    }
-
-    public ArrayList<String> getUserCommentsList(){
-        return sessionManager.getUserCommentsList();
-    }
-
-    public void updateUserLocalPostsList(String entry){
-        sessionManager.updateUserLocalPostsList(entry);
-    }
-
-    public void updateUserLocalCommentsList(String entry){
-        sessionManager.updateUserLocalCommentsList(entry);
-    }
-
     public void goToProfile(String username){
         meClicked = false;
         if(username.equals(sessionManager.getCurrentUsername())){

@@ -200,6 +200,7 @@ public class CreatePost extends Fragment {
                 activity.getMapper().save(activePost);
 
                 //update DB User.posts list with the new postID String
+                /*  retired the attribute but keeping this code as reference for list_append
                 UpdateItemRequest postslistUpdateRequest = new UpdateItemRequest();
                 postslistUpdateRequest.withTableName("user")
                         .withKey(Collections.singletonMap("username",
@@ -211,11 +212,11 @@ public class CreatePost extends Fragment {
                             )
                         );
                 activity.getDDBClient().updateItem(postslistUpdateRequest);
+                */
 
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        activity.updateUserLocalPostsList(post.getPost_id());   //update local copy of User posts list
                         activity.getPostPage().setContent(post, true);
                         activity.getViewPager().setCurrentItem(3);
                         activity.setToolbarTitleTextForCP();

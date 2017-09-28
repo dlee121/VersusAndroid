@@ -109,6 +109,7 @@ public class CommentEnterFragment extends Fragment{
                         }
 
                         //update DB User.posts list with the new postID String
+                        /*  retired the attribute but keeping this code as reference for list_append
                         UpdateItemRequest commentsListUpdateRequest = new UpdateItemRequest();
                         commentsListUpdateRequest.withTableName("user")
                                 .withKey(Collections.singletonMap("username",
@@ -120,13 +121,12 @@ public class CommentEnterFragment extends Fragment{
                                         )
                                 );
                         activity.getDDBClient().updateItem(commentsListUpdateRequest);
+                        */
 
                         //UI refresh. two options, one for setting up with post card and one for setting up with comment top card
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-
-                                activity.updateUserLocalCommentsList(vsc.getComment_id());   //update local copy of User comments list
 
                                 PostPage postPage = ((MainContainer)getActivity()).getPostPage();
                                 PostPageAdapter m_adapter = postPage.getPPAdapter();

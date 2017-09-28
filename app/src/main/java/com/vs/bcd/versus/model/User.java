@@ -24,8 +24,6 @@ public class User {
     private String phone = "n/a";
     private int timecode;
     private int points;
-    private List<String> posts; //holds post_id UUIDs of posts created by this user
-    private List<String> comments; //holds comment_id UUIDs of comments created by this user
     private int num_g;  //number of gold medals this user has
     private int num_s;  //number of silver medals this user has
     private int num_b;  //number of bronze medals this user has
@@ -103,22 +101,6 @@ public class User {
         this.timecode = timecode;
     }
 
-    @DynamoDBAttribute(attributeName = "posts")
-    public List<String> getPosts(){
-        return posts;
-    }
-    public void setPosts(List<String> posts){
-        this.posts = posts;
-    }
-
-    @DynamoDBAttribute(attributeName = "comments")
-    public List<String> getComments(){
-        return comments;
-    }
-    public void setComments(List<String> comments){
-        this.comments = comments;
-    }
-
     @DynamoDBAttribute(attributeName = "num_g")
     public int getNum_g(){
         return num_g;
@@ -162,8 +144,6 @@ public class User {
         num_g = 0;
         num_s = 0;
         num_b = 0;
-        posts = new ArrayList<>();
-        comments = new ArrayList<>();
 
         //finish this thing, then do the write to db, then write session info to sharedpref and we're done with basic signup!
     }
