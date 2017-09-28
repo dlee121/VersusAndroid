@@ -90,8 +90,6 @@ public class LeaderboardTab extends Fragment {
         Log.d("leaderboard", "onAttach() called");
     }
 
-
-
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);

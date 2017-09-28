@@ -3,7 +3,6 @@ package com.vs.bcd.versus.activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.support.design.widget.TabLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v7.app.AppCompatActivity;
@@ -40,7 +39,6 @@ import com.vs.bcd.versus.fragment.PostPage;
 import com.vs.bcd.versus.fragment.ProfileTab;
 import com.vs.bcd.versus.fragment.SelectCategory;
 import com.vs.bcd.versus.model.CategoryObject;
-import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.PostSkeleton;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.fragment.CreatePost;
@@ -50,10 +48,6 @@ import com.vs.bcd.versus.ViewPagerCustomDuration;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-
-import static android.R.id.edit;
-import static com.amazonaws.regions.ServiceAbbreviations.S3;
 
 public class MainContainer extends AppCompatActivity {
 
@@ -85,10 +79,14 @@ public class MainContainer extends AppCompatActivity {
     private String currentCFTitle = "";
     private AHBottomNavigation bottomNavigation;
     private int userTimecode = -1;
+    private boolean meClicked = false;
+    private ProfileTab profileTab;
+    private int profileTabParent = 0;   //default parent is MainActivity, here parent just refers to previous page before the profile page was opened
 
 
     @Override
     public void onBackPressed(){
+        meClicked = false;
         int mainContainerCurrentItem = mViewPager.getCurrentItem();
         int mainActivityCurrentItem = getMainFrag().getViewPager().getCurrentItem();
         if(mainContainerCurrentItem == 0){  //MainContainer's current fragment is MainActivity fragment
@@ -200,6 +198,7 @@ public class MainContainer extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 int i = mViewPager.getCurrentItem();
+                meClicked = false;
                 switch (i) {
                     case 0: //MainActivity Fragment
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
@@ -307,7 +306,7 @@ public class MainContainer extends AppCompatActivity {
         mViewPager = (ViewPagerCustomDuration) findViewById(R.id.container2);
         mViewPager.setScrollDurationFactor(1);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        mViewPager.setOffscreenPageLimit(7);
+        mViewPager.setOffscreenPageLimit(10);
         mViewPager.setPageTransformer(false, new FadePageTransformer());
         //mViewPager.setPageTransformer(false, new NoPageTransformer());
 
@@ -354,8 +353,9 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 3: //Me (ProfileTab with user == me)
+                        meClicked = true;
+                        profileTab.setUpProfile(sessionManager.getCurrentUsername(), true);
                         mViewPager.setCurrentItem(9);
-
                         break;
 
                     default:
@@ -386,18 +386,21 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 1: //SearchPage
-                        //enableBottomTabs();
+                        //enableBottomTabs();   //only accessible from MainActivity where bottom tabs are already enabled
                         bottomNavigation.setCurrentItem(0, false);
+                        enableToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         break;
 
                     case 2: //CreatePost
                         disableBottomTabs();
+                        enableToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         break;
 
                     case 3: //PostPage
                         disableBottomTabs();
+                        enableToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         break;
 
@@ -412,6 +415,7 @@ public class MainContainer extends AppCompatActivity {
                     case 6: //CategoryFragment
                         enableBottomTabs();
                         bottomNavigation.setCurrentItem(0, false);
+                        enableToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         break;
 
@@ -419,21 +423,27 @@ public class MainContainer extends AppCompatActivity {
                         //enableBottomTabs();   //Leaderboard is accessible through bottom tabs only so bottom tabs are already enabled
                         disableToolbarButtonLeft();
                         bottomNavigation.setCurrentItem(1, false);
-                        toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         break;
 
                     case 8: //NotificationsTab
                         //enableBottomTabs();   //Notifications is accessible through bottom tabs only so bottom tabs are already enabled
+                        enableBottomTabs(); //because we might make notifications not bottom tab, putting this here just in case
                         disableToolbarButtonLeft();
                         bottomNavigation.setCurrentItem(2, false);
-                        toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         break;
 
                     case 9: //Me (ProfileTab with user == me)
-                        //enableBottomTabs(); //if Profile tab is accessed through bottom tabs, keep it on, if not, keep it off
-                        disableToolbarButtonLeft(); //TODO: only if user came from MainActivity. If user came from anywhere else, it should be an "x" or "<" to go back to the page user was on before accessing the profile.
-                        bottomNavigation.setCurrentItem(3, false);
-                        toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron); //TODO: implement this in navigation sections: back to MainActivity if Me, else back to the page user was on before accessing the profile
+                        if(meClicked){
+                            disableToolbarButtonLeft();
+                            //only bottom tabs can access this version of profile page so no need to enable bottom tabs separately for this
+                            bottomNavigation.setCurrentItem(3, false);
+                        }
+                        else{
+                            enableToolbarButtonLeft();
+                            toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+                            disableBottomTabs();
+                        }
+
                         break;
 
                     default:
@@ -554,7 +564,8 @@ public class MainContainer extends AppCompatActivity {
                 case 8:
                     return new NotificationsTab();
                 case 9:
-                    return new ProfileTab();
+                    profileTab = new ProfileTab();
+                    return profileTab;
                 default:
                     return null;
             }
@@ -787,6 +798,18 @@ public class MainContainer extends AppCompatActivity {
 
     public void updateUserLocalCommentsList(String entry){
         sessionManager.updateUserLocalCommentsList(entry);
+    }
+
+    public void goToProfile(String username){
+        meClicked = false;
+        if(username.equals(sessionManager.getCurrentUsername())){
+            profileTab.setUpProfile(username, true);
+            mViewPager.setCurrentItem(9);
+        }
+        else{
+            profileTab.setUpProfile(username, false);
+            mViewPager.setCurrentItem(9);
+        }
     }
 
 }

@@ -38,6 +38,8 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         final User leaderItem = leaders.get(position);
         LeaderViewHolder leaderViewHolder = (LeaderViewHolder) holder;
 
+        //TODO: add onclick listener to profile pic and username that navigates user to clicked user's profile page
+
         leaderViewHolder.username.setText(leaderItem.getUsername());
         leaderViewHolder.points.setText(Integer.toString(leaderItem.getPoints()));
 

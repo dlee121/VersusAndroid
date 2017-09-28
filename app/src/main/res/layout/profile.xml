@@ -30,6 +30,15 @@
             android:textSize="18sp"
             android:text="username" />
 
+        <TextView
+            android:id="@+id/points_pt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center"
+            android:textSize="18sp"
+            android:text="points" />
+
 
     </LinearLayout>
 
@@ -39,7 +48,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toStartOf="@id/maincase"
-        android:layout_marginTop="46dp"
+        android:layout_marginTop="36dp"
         android:orientation="vertical">
         <TextView
             android:id="@+id/num_followers"
@@ -55,7 +64,7 @@
             android:layout_height="wrap_content"
             android:text="1231\nFollowing"
             android:padding="8dp"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="8dp"
             android:gravity="center"
             android:background="@drawable/border"/>
     </LinearLayout>
@@ -65,7 +74,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toEndOf="@id/maincase"
-        android:layout_marginTop="47dp"
+        android:layout_marginTop="38dp"
         android:orientation="vertical">
         <TextView
             android:id="@+id/gmedal_pt"

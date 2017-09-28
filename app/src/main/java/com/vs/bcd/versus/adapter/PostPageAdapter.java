@@ -170,6 +170,8 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
                 final UserViewHolder userViewHolder = (UserViewHolder) holder;
 
+                final String authorName = currentComment.getAuthor();
+
                 if(activity.getSessionManager().getCurrentUsername().equals(currentComment)){
                     //TODO: implement UI for comments that user wrote, like edit and delete options
                 }
@@ -179,7 +181,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 userViewHolder.circView.setOnClickListener(new View.OnClickListener(){
                     @Override
                     public void onClick(View v){
-                        profileClicked(v);
+                        activity.goToProfile(authorName);
                     }
                 });
 
@@ -207,6 +209,13 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 }
 
                 userViewHolder.author.setText(currentComment.getAuthor());
+                userViewHolder.author.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        activity.goToProfile(authorName);
+                    }
+                });
+
                 userViewHolder.timestamp.setText(getTimeString(currentComment.getTimestamp()));
                 //final int imgOffset = 8;
                 //final TextView timeTV = userViewHolder.timestamp;

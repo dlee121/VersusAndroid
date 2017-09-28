@@ -1156,6 +1156,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         */
 
         Log.d("Debug", "setContent called");
+
         nowLoading = false;
 
         this.post = post;

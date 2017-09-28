@@ -34,12 +34,12 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final int VIEW_TYPE_LOADING = 1;
     private OnLoadMoreListener onLoadMoreListener;
     private boolean isLoading;
-    private Activity activity;
+    private MainContainer activity;
     private List<PostSkeleton> posts;
     private int visibleThreshold = 8;
     private int lastVisibleItem, totalItemCount;
 
-    public MyAdapter(RecyclerView recyclerView, List<PostSkeleton> posts, Activity activity) {
+    public MyAdapter(RecyclerView recyclerView, List<PostSkeleton> posts, MainContainer activity) {
         this.posts = posts;
         this.activity = activity;
 
@@ -85,13 +85,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
         if (holder instanceof UserViewHolder) {
 
-            //set onClickListener for profile pic
-            ((UserViewHolder) holder).circView.setOnClickListener(new View.OnClickListener(){
-                @Override
-                public void onClick(View v){
-                    profileClicked(v);
-                }
-            });
+
 
             //TODO:this is where values are put into the layout, from the post object
             PostSkeleton post = posts.get(position);
@@ -99,7 +93,22 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             int timeFormat = 0;
             UserViewHolder userViewHolder = (UserViewHolder) holder;
 
-            userViewHolder.author.setText(post.getAuthor());
+            final String authorName = post.getAuthor();
+            //set onClickListener for profile pic
+            ((UserViewHolder) holder).circView.setOnClickListener(new View.OnClickListener(){
+                @Override
+                public void onClick(View v){
+                    activity.goToProfile(authorName);
+                }
+            });
+
+            userViewHolder.author.setText(authorName);
+            userViewHolder.author.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    activity.goToProfile(authorName);
+                }
+            });
 
             SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
             Date myDate = null;
@@ -264,7 +273,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     //TODO: update function intent to launch profile page once profile page is available. For now, it leads to StartScreen.
-    public void profileClicked(View view){
+    public void profileClicked(String username){
         //TODO: implement this for when profile pic is clicked on PostCard
     }
 
