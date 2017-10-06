@@ -186,6 +186,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                     //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
                     DynamoDBQueryExpression queryExpression =
                             new DynamoDBQueryExpression()
+                                    .withIndexName("category-votecount-index")
                                     .withHashKeyValues(queryTemplate)
                                     .withRangeKeyCondition("votecount", rangeKeyCondition)
                                     .withScanIndexForward(false)
@@ -307,6 +308,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                                     //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
                                     DynamoDBQueryExpression queryExpression =
                                             new DynamoDBQueryExpression()
+                                                    .withIndexName("category-votecount-index")
                                                     .withHashKeyValues(queryTemplate)
                                                     .withRangeKeyCondition("votecount", rangeKeyCondition)
                                                     .withScanIndexForward(false)

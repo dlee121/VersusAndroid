@@ -68,7 +68,7 @@ public class VSComment {
         this.post_id = post_id;
     }
 
-    @DynamoDBIndexRangeKey(localSecondaryIndexName = "parent_id-time-index", attributeName = "time")
+    @DynamoDBIndexRangeKey(localSecondaryIndexName = "parent_id-time-index", globalSecondaryIndexName = "author-time-index", attributeName = "time")
     public String getTime() {
         return time;
     }
@@ -76,7 +76,7 @@ public class VSComment {
         this.time = time;
     }
 
-    @DynamoDBAttribute(attributeName = "author")
+    @DynamoDBIndexHashKey(globalSecondaryIndexNames = {"author-upvotes-index", "author-time-index"}, attributeName = "author")
     public String getAuthor() {
         return author;
     }
@@ -92,7 +92,7 @@ public class VSComment {
         this.content = content;
     }
 
-    @DynamoDBIndexRangeKey(localSecondaryIndexName = "parent_id-upvotes-index", attributeName = "upvotes")
+    @DynamoDBIndexRangeKey(localSecondaryIndexName = "parent_id-upvotes-index", globalSecondaryIndexName = "author-upvotes-index", attributeName = "upvotes")
     public int getUpvotes() {
         return upvotes;
     }

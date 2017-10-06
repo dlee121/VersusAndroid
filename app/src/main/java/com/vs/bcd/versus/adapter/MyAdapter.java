@@ -273,11 +273,15 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
     }
 
+    public void clearList(){
+        posts.clear();
+        notifyDataSetChanged();
+    }
+
     //TODO: update function intent to launch profile page once profile page is available. For now, it leads to StartScreen.
     public void profileClicked(String username){
         //TODO: implement this for when profile pic is clicked on PostCard
     }
-
     /*
     public boolean addToPostsList(ArrayList<PostSkeleton> additionalPosts){
         if(additionalPosts.isEmpty()){

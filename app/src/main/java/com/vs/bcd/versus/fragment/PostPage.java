@@ -302,6 +302,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                     //update post card if atRootLevel, else update top card
                     if(atRootLevel){
+
+                        //TODO: is this ok or do we have to specify that the query is on base table?
                         post = activity.getMapper().load(Post.class, post.getCategory(), postID);
 
                         postID = post.getPost_id();
@@ -498,6 +500,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                 DynamoDBQueryExpression queryExpression =
                         new DynamoDBQueryExpression()
+                                .withIndexName("parent_id-upvotes-index")
                                 .withHashKeyValues(queryTemplate)
                                 .withRangeKeyCondition("upvotes", rangeKeyCondition)
                                 .withScanIndexForward(false)
@@ -572,6 +575,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                 //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
                                 DynamoDBQueryExpression childQueryExpression =
                                         new DynamoDBQueryExpression()
+                                                .withIndexName("parent_id-upvotes-index")
                                                 .withHashKeyValues(queryTemplate)
                                                 .withRangeKeyCondition("upvotes", rangeKeyCondition)
                                                 .withScanIndexForward(false)
@@ -664,6 +668,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                 //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
                                 DynamoDBQueryExpression gChildQueryExpression =
                                         new DynamoDBQueryExpression()
+                                                .withIndexName("parent_id-upvotes-index")
                                                 .withHashKeyValues(queryTemplate)
                                                 .withRangeKeyCondition("upvotes", rangeKeyCondition)
                                                 .withScanIndexForward(false)
@@ -847,6 +852,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                 DynamoDBQueryExpression queryExpression =
                         new DynamoDBQueryExpression()
+                                .withIndexName("parent_id-time-index")
                                 .withHashKeyValues(queryTemplate)
                                 .withRangeKeyCondition("time", rangeKeyCondition)
                                 .withScanIndexForward(false)
@@ -893,6 +899,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                 //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
                                 DynamoDBQueryExpression childQueryExpression =
                                         new DynamoDBQueryExpression()
+                                                .withIndexName("parent_id-upvotes-index")
                                                 .withHashKeyValues(queryTemplate)
                                                 .withRangeKeyCondition("upvotes", childrenRKCondition)
                                                 .withScanIndexForward(false)
@@ -976,6 +983,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                 //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
                                 DynamoDBQueryExpression gChildQueryExpression =
                                         new DynamoDBQueryExpression()
+                                                .withIndexName("parent_id-upvotes-index")
                                                 .withHashKeyValues(queryTemplate)
                                                 .withRangeKeyCondition("upvotes", childrenRKCondition)
                                                 .withScanIndexForward(false)
@@ -1663,7 +1671,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         activity.getDDBClient().updateItem(request);
 
 
-                        if(System.currentTimeMillis()/1000 < post.getStl()){
+                        if(System.currentTimeMillis()/1000 < post.getStl()){    //this condition determines if the post only exists in post table or also exists in active_post table
                             request = new UpdateItemRequest()
                                     .withTableName("active_post")
                                     .withKey(keyMap)
@@ -1905,6 +1913,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                         DynamoDBQueryExpression queryExpression =
                                 new DynamoDBQueryExpression()
+                                        .withIndexName("parent_id-upvotes-index")
                                         .withHashKeyValues(queryTemplate)
                                         .withRangeKeyCondition("upvotes", rangeKeyCondition)
                                         .withScanIndexForward(false)
@@ -1951,6 +1960,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                         //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
                                         DynamoDBQueryExpression childQueryExpression =
                                                 new DynamoDBQueryExpression()
+                                                        .withIndexName("parent_id-upvotes-index")
                                                         .withHashKeyValues(queryTemplate)
                                                         .withRangeKeyCondition("upvotes", rangeKeyCondition)
                                                         .withScanIndexForward(false)
@@ -2038,6 +2048,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                         //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
                                         DynamoDBQueryExpression gChildQueryExpression =
                                                 new DynamoDBQueryExpression()
+                                                        .withIndexName("parent_id-upvotes-index")
                                                         .withHashKeyValues(queryTemplate)
                                                         .withRangeKeyCondition("upvotes", rangeKeyCondition)
                                                         .withScanIndexForward(false)
@@ -2213,6 +2224,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                         DynamoDBQueryExpression queryExpression =
                                 new DynamoDBQueryExpression()
+                                        .withIndexName("parent_id-time-index")
                                         .withHashKeyValues(queryTemplate)
                                         .withRangeKeyCondition("time", rangeKeyCondition)
                                         .withScanIndexForward(false)
@@ -2263,6 +2275,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                         //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
                                         DynamoDBQueryExpression childQueryExpression =
                                                 new DynamoDBQueryExpression()
+                                                        .withIndexName("parent_id-upvotes-index")
                                                         .withHashKeyValues(queryTemplate)
                                                         .withRangeKeyCondition("upvotes", childrenRKCondition)
                                                         .withScanIndexForward(false)
@@ -2350,6 +2363,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                         //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
                                         DynamoDBQueryExpression gChildQueryExpression =
                                                 new DynamoDBQueryExpression()
+                                                        .withIndexName("parent_id-upvotes-index")
                                                         .withHashKeyValues(queryTemplate)
                                                         .withRangeKeyCondition("upvotes", childrenRKCondition)
                                                         .withScanIndexForward(false)

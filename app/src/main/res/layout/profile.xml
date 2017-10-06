@@ -116,6 +116,35 @@
 
 
 
+    <android.support.design.widget.TabLayout
+        android:id="@+id/tabs_profile"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/maincase"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:background="@color/vsOne"
+        app:tabIndicatorColor="@color/vsTwo"/>
+
+    <android.support.v4.widget.SwipeRefreshLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/swipe_container_profile"
+        android:layout_below="@id/tabs_profile"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recycler_view_profile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </android.support.v4.widget.SwipeRefreshLayout>
+
+
+
 
 
 

@@ -196,6 +196,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                     //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
                     DynamoDBQueryExpression queryExpression =
                             new DynamoDBQueryExpression()
+                                    .withIndexName("category-time-index")
                                     .withHashKeyValues(queryTemplate)
                                     .withRangeKeyCondition("time", rangeKeyCondition)
                                     .withScanIndexForward(false)
@@ -291,6 +292,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                                     //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
                                     DynamoDBQueryExpression queryExpression =
                                             new DynamoDBQueryExpression()
+                                                    .withIndexName("category-time-index")
                                                     .withHashKeyValues(queryTemplate)
                                                     .withRangeKeyCondition("time", rangeKeyCondition)
                                                     .withScanIndexForward(false)

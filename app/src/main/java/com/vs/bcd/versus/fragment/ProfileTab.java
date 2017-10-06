@@ -4,6 +4,8 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,22 +15,33 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBQueryExpression;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.QueryResultPage;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
+import com.amazonaws.services.dynamodbv2.model.Condition;
 import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
 import com.amazonaws.services.dynamodbv2.model.GetItemResult;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
+import com.vs.bcd.versus.adapter.MyAdapter;
+import com.vs.bcd.versus.adapter.PostPageAdapter;
+import com.vs.bcd.versus.model.Post;
+import com.vs.bcd.versus.model.PostSkeleton;
 import com.vs.bcd.versus.model.User;
+import com.vs.bcd.versus.model.VSComment;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Created by dlee on 4/29/17.
  */
 
-public class ProfileTab extends Fragment {
+public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     private MainContainer activity;
     private TextView usernameTV, goldTV, silverTV, bronzeTV, pointsTV;
@@ -38,6 +51,13 @@ public class ProfileTab extends Fragment {
     private View rootView;
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
+    private RecyclerView recyclerView;
+    private int postRetrievalLimit = 20;
+    private int commentRetrievalLimit = 20;
+    private int commentsORposts = 0;    //0 = comments, 1 = posts
+    private final int COMMENTS = 0;
+    private final int POSTS = 1;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -61,6 +81,9 @@ public class ProfileTab extends Fragment {
         bronzeTV = (TextView) rootView.findViewById(R.id.bmedal_pt);
         pointsTV = (TextView) rootView.findViewById(R.id.points_pt);
 
+        mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_container_profile);
+        recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler_view_profile);
+
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();
         for (int i = 0; i<((ViewGroup)rootView).getChildCount(); i++){
@@ -80,8 +103,27 @@ public class ProfileTab extends Fragment {
         activity = (MainContainer)context;
     }
 
+    @Override
+    public void onRefresh() {
+        //TODO: do a refresh operation here
+
+    }
+
     //for accessing another user's profile page
     public void setUpProfile(final String username, boolean myProfile){
+
+        /* don't need to delete because we hide layout and show layout when it's ready with updated info
+        if(recyclerView != null && recyclerView.getAdapter() != null){
+            switch (commentsORposts){
+                case COMMENTS:
+                    ((PostPageAdapter)recyclerView.getAdapter()).clearList();
+                    break;
+                case POSTS:
+                    ((MyAdapter)recyclerView.getAdapter()).clearList();
+                    break;
+            }
+        }
+        */
 
         displayLoadingScreen(); //hide all page content and show refresh animation during loading, no other UI element
 
@@ -107,6 +149,8 @@ public class ProfileTab extends Fragment {
                     GetItemResult result = activity.getDDBClient().getItem(request);
 
                     final Map<String, AttributeValue> resultMap = result.getItem();
+
+                    setUpComments(username);
 
                     activity.runOnUiThread(new Runnable() {
                         @Override
@@ -160,10 +204,12 @@ public class ProfileTab extends Fragment {
                     GetItemRequest request = new GetItemRequest()
                             .withTableName("user")
                             .withKey(keyMap)
-                            .withProjectionExpression("comments,posts,num_g,num_s,num_b,points");
+                            .withProjectionExpression("num_g,num_s,num_b,points");
                     GetItemResult result = activity.getDDBClient().getItem(request);
 
                     final Map<String, AttributeValue> resultMap = result.getItem();
+
+                    setUpComments(username);
 
                     activity.runOnUiThread(new Runnable() {
                         @Override
@@ -248,6 +294,77 @@ public class ProfileTab extends Fragment {
             childViews.get(i).setClickable(false);
             childViews.get(i).setLayoutParams(new RelativeLayout.LayoutParams(0,0));
         }
+    }
+
+    private void setUpPosts(String username){
+
+        commentsORposts = POSTS;
+
+        final Condition rangeKeyCondition = new Condition()
+                .withComparisonOperator(ComparisonOperator.GT.toString())
+                .withAttributeValueList(new AttributeValue().withN("-1"));
+
+        Post queryTemplate = new Post();
+        queryTemplate.setAuthor(username);
+
+
+        DynamoDBQueryExpression queryExpression =
+                new DynamoDBQueryExpression()
+                        .withIndexName("author-votecount-index")
+                        .withHashKeyValues(queryTemplate)
+                        .withRangeKeyCondition("votecount", rangeKeyCondition)
+                        .withScanIndexForward(false)
+                        .withConsistentRead(false)
+                        .withLimit(postRetrievalLimit);
+
+        List<PostSkeleton> posts = activity.getMapper().query(Post.class, queryExpression);
+
+        final MyAdapter postsAdapter = new MyAdapter(recyclerView, posts, activity);
+
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                recyclerView.setAdapter(postsAdapter);
+            }
+        });
+
+
+    }
+
+    private void setUpComments(String username){
+        commentsORposts = COMMENTS;
+
+        final Condition rangeKeyCondition = new Condition()
+                .withComparisonOperator(ComparisonOperator.GT.toString())
+                .withAttributeValueList(new AttributeValue().withN("-1"));
+
+        VSComment queryTemplate = new VSComment();
+        queryTemplate.setAuthor(username);
+
+
+        DynamoDBQueryExpression queryExpression =
+                new DynamoDBQueryExpression()
+                        .withIndexName("author-upvotes-index")
+                        .withHashKeyValues(queryTemplate)
+                        .withRangeKeyCondition("upvotes", rangeKeyCondition)
+                        .withScanIndexForward(false)
+                        .withConsistentRead(false)
+                        .withLimit(commentRetrievalLimit);
+
+        List<Object> comments = activity.getMapper().query(VSComment.class, queryExpression);
+
+        final PostPageAdapter commentsAdapter = new PostPageAdapter(recyclerView, comments, new Post(), activity, false, false);   //the Post item here is just a dummy, there to prevent null-related errors just in case
+
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                recyclerView.setAdapter(commentsAdapter);
+            }
+        });
+
+
+
+
     }
 
 

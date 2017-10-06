@@ -87,9 +87,9 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     //to set imageviews, first fill out the drawable[3] with 0=image layer, 1=tint layer, 2=check mark layer, make LayerDrawable out of the array, then use setImageMask which sets the correct mask layers AND ALSO sets imageview drawable as the LayerDrawable
 
-    public PostPageAdapter(RecyclerView recyclerView, List<Object> vsComments, PostSkeleton post, MainContainer activity, boolean downloadImages, boolean includesPost) {
+    public PostPageAdapter(RecyclerView recyclerView, List<Object> masterList, PostSkeleton post, MainContainer activity, boolean downloadImages, boolean includesPost) {
         this.s3 = ((MainContainer)activity).getS3Client();
-        masterList = vsComments;
+        this.masterList = masterList;
         this.post = post;
         this.activity = activity;
         this.downloadImages = downloadImages;
@@ -539,11 +539,8 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     }
 
     public void clearList(){
-        Log.d("Clear", "Before List Size: " + Integer.toString(masterList.size()));
         masterList.clear();
         notifyDataSetChanged();
-        Log.d("Clear", "After List Size: " + Integer.toString(masterList.size()));
-
     }
 
     @Override

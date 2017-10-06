@@ -132,7 +132,7 @@ public class PostSkeleton {
         this.question = topic;
     }
 
-    @DynamoDBAttribute(attributeName = "author")
+    @DynamoDBIndexHashKey(globalSecondaryIndexNames = {"author-votecount-index", "author-time-index"}, attributeName = "author")
     public String getAuthor() {
         return author;
     }
@@ -148,7 +148,7 @@ public class PostSkeleton {
         this.post_id = post_id;
     }
 
-    @DynamoDBIndexRangeKey(localSecondaryIndexName = "category-time-index", attributeName="time")
+    @DynamoDBIndexRangeKey(localSecondaryIndexName = "category-time-index", globalSecondaryIndexNames = "author-time-index", attributeName="time")
     public String getTime() {
         return time;
     }
@@ -220,7 +220,7 @@ public class PostSkeleton {
         this.commentcount = commentcount;
     }
 
-    @DynamoDBIndexRangeKey(localSecondaryIndexName = "category-votecount-index", attributeName = "votecount")
+    @DynamoDBIndexRangeKey(localSecondaryIndexName = "category-votecount-index", globalSecondaryIndexName = "author-votecount-index", attributeName = "votecount")
     public int getVotecount(){
         return votecount;
     }
