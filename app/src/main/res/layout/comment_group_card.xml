@@ -57,7 +57,6 @@
             android:layout_marginTop="2dp"
             android:layout_alignLeft="@id/usernametvcs"
             android:layout_below="@id/usernametvcs"
-            android:layout_centerVertical="true"
             android:layout_marginRight="8dp"
             android:ellipsize="end"
             android:maxLines="2"

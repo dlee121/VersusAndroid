@@ -17,6 +17,7 @@ import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.PostPageAdapter;
+import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.PostSkeleton;
 import com.vs.bcd.versus.model.VSComment;
 
@@ -47,6 +48,9 @@ public class CommentEnterFragment extends Fragment{
     private String categoryInt;
     private long currSTL;
     private MainContainer activity;
+    private String r = "";
+    private String b = "";
+    private String q = "";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -78,6 +82,10 @@ public class CommentEnterFragment extends Fragment{
                         vsc.setPost_id(postID);
                         vsc.setAuthor(((MainContainer)getActivity()).getSessionManager().getCurrentUsername());
                         vsc.setContent(((TextView)(rootView.findViewById(R.id.commentInput))).getText().toString().trim());
+                        vsc.setR(r);
+                        vsc.setB(b);
+                        vsc.setQ(q);
+
                         activity.getMapper().save(vsc);
 
                         //increment commentcount
@@ -170,6 +178,9 @@ public class CommentEnterFragment extends Fragment{
         currSTL = post.getStl();
         subjectComment = null;
         showPostRef();
+        r = x;
+        b = y;
+        q = question;
     }
 
     public void setContentReplyToComment(VSComment replySubject){
@@ -178,11 +189,16 @@ public class CommentEnterFragment extends Fragment{
         ((TextView)commentRef.findViewById(R.id.timetvref)).setText(getTimeString(replySubject.getTime()));
         ((TextView)commentRef.findViewById(R.id.usercommentref)).setText(replySubject.getContent());
         parentID = replySubject.getComment_id();
-        postID = replySubject.getPost_id();
         subjectComment = replySubject;
         post = null;
-        categoryInt = activity.getPostPage().getCatNumString();
-        currSTL = activity.getPostPage().getCurrPostSTL();
+        PostPage postPage = activity.getPostPage();
+        categoryInt = postPage.getCatNumString();
+        currSTL = postPage.getCurrPostSTL();
+        postID = postPage.getPostPagePostID();
+        r = postPage.getR();
+        b = postPage.getB();
+        q = postPage.getQ();
+
         showCommentRef();
     }
 

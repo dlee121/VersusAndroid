@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="0dp"
+    card_view:contentPadding = "4dp"
+    card_view:cardElevation="0dp"
+    app:cardCornerRadius="0dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/item_heading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:text="X vs Y, question"
+            android:textColor="#FF000000"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/timetvhistory"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/item_heading"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="2dp"
+            android:text="two minutes ago"
+            android:textSize="10sp" />
+
+        <TextView
+            android:id="@+id/points_comment_history"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/item_heading"
+            android:layout_marginLeft="12dp"
+            android:layout_marginTop="2dp"
+            android:layout_toRightOf="@id/timetvhistory"
+            android:text="12345"
+            android:textAlignment="center"
+            android:textSize="10sp" />
+
+        <ImageView
+            android:id="@+id/hearticon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/timetvhistory"
+            android:layout_alignTop="@id/timetvhistory"
+            android:layout_below="@id/item_heading"
+            android:layout_toEndOf="@id/points_comment_history"
+            android:layout_marginBottom="1dp"
+            android:layout_marginTop="-1dp"
+            android:layout_marginLeft="-3dp"
+            app:srcCompat="@drawable/ic_heart" />
+
+        <ImageView
+            android:id="@+id/medal_image_history"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/timetvhistory"
+            android:layout_alignTop="@id/timetvhistory"
+            android:layout_below="@id/item_heading"
+            android:layout_toEndOf="@id/hearticon" />
+
+        <TextView
+            android:id="@+id/usercomment_history"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/timetvhistory"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:text="comment content up to two lines two lines two lines like like like this. extra gets ellipsized like this!!!"
+            android:textSize="12sp" />
+
+
+    </RelativeLayout>
+</android.support.v7.widget.CardView>

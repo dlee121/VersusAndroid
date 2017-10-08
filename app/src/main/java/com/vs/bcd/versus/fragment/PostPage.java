@@ -2649,5 +2649,17 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         mythread.start();
     }
 
+    public String getR(){
+        return post.getRedname();
+    }
+
+    public String getB(){
+        return post.getBlackname();
+    }
+
+    public String getQ(){
+        return post.getQuestion();
+    }
+
 
 }

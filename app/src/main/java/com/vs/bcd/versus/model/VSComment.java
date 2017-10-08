@@ -26,6 +26,10 @@ public class VSComment {
     private int upvotes; //number of upvotes for this comment
     private int downvotes; //number of downvotes for this comment
 
+    private String r;   //redname of the post this comment belongs to. only used for comment history query
+    private String b;   //blackname of the post this comment belongs to. only used for comment history query
+    private String q;   //question of the post this comment belongs to. only used for comment history query
+
     private int nestedLevel = 0;    //not used by DB.
     private int uservote = 0; //0 if NOVOTE, 1 if UPVOTE, 2 if DOWNVOTE
     private final int NOVOTE = 0;
@@ -114,6 +118,30 @@ public class VSComment {
     }
     public void setTopmedal(int topmedal){
         this.topmedal = topmedal;
+    }
+
+    @DynamoDBAttribute(attributeName = "r")
+    public String getR(){
+        return r;
+    }
+    public void setR(String r){
+        this.r = r;
+    }
+
+    @DynamoDBAttribute(attributeName = "b")
+    public String getB(){
+        return b;
+    }
+    public void setB(String b){
+        this.b = b;
+    }
+
+    @DynamoDBAttribute(attributeName = "q")
+    public String getQ(){
+        return q;
+    }
+    public void setQ(String q){
+        this.q = q;
     }
 
     @DynamoDBIgnore

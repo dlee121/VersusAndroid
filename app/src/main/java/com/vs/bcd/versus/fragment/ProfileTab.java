@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -24,6 +25,7 @@ import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
 import com.amazonaws.services.dynamodbv2.model.GetItemResult;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
+import com.vs.bcd.versus.adapter.CommentHistoryAdapter;
 import com.vs.bcd.versus.adapter.MyAdapter;
 import com.vs.bcd.versus.adapter.PostPageAdapter;
 import com.vs.bcd.versus.model.Post;
@@ -47,7 +49,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
     private TextView usernameTV, goldTV, silverTV, bronzeTV, pointsTV;
     private ProgressBar progressBar;
     private LinearLayout mainCase, followCase, medalCase;
-    private RelativeLayout.LayoutParams mainCaseLP, followCaseLP, medalCaseLP, progressbarLP;
+    private RelativeLayout.LayoutParams mainCaseLP, followCaseLP, medalCaseLP, progressbarLP, swipeLayoutLP;
     private View rootView;
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
@@ -82,7 +84,9 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
         pointsTV = (TextView) rootView.findViewById(R.id.points_pt);
 
         mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_container_profile);
+        swipeLayoutLP = (RelativeLayout.LayoutParams) mSwipeRefreshLayout.getLayoutParams();
         recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler_view_profile);
+        recyclerView.setLayoutManager(new LinearLayoutManager(activity));
 
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();
@@ -106,7 +110,6 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
     @Override
     public void onRefresh() {
         //TODO: do a refresh operation here
-
     }
 
     //for accessing another user's profile page
@@ -264,6 +267,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
         mainCase.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
         followCase.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
         medalCase.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+        mSwipeRefreshLayout.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
     }
 
     private void displayMyProfile(){
@@ -273,6 +277,9 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
         mainCase.setLayoutParams(mainCaseLP);
         followCase.setLayoutParams(followCaseLP);
         medalCase.setLayoutParams(medalCaseLP);
+        mSwipeRefreshLayout.setLayoutParams(swipeLayoutLP);
+        mSwipeRefreshLayout.setEnabled(true);
+        //TODO: does mSwipeRefreshLayout need setClickable(true) as well?
         //activate ME specific UI
 
     }
@@ -284,6 +291,9 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
         mainCase.setLayoutParams(mainCaseLP);
         followCase.setLayoutParams(followCaseLP);
         medalCase.setLayoutParams(medalCaseLP);
+        mSwipeRefreshLayout.setLayoutParams(swipeLayoutLP);
+        mSwipeRefreshLayout.setEnabled(true);
+        //TODO: does mSwipeRefreshLayout need setClickable(true) as well?
         //activate Other User Profile specific UI
 
     }
@@ -351,10 +361,10 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                         .withConsistentRead(false)
                         .withLimit(commentRetrievalLimit);
 
-        List<Object> comments = activity.getMapper().query(VSComment.class, queryExpression);
+        final List<VSComment> comments = activity.getMapper().query(VSComment.class, queryExpression);
 
-        final PostPageAdapter commentsAdapter = new PostPageAdapter(recyclerView, comments, new Post(), activity, false, false);   //the Post item here is just a dummy, there to prevent null-related errors just in case
-
+        //final PostPageAdapter commentsAdapter = new PostPageAdapter(recyclerView, comments, new Post(), activity, false, false);   //the Post item here is just a dummy, there to prevent null-related errors just in case
+        final CommentHistoryAdapter commentsAdapter = new CommentHistoryAdapter(comments, activity);
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
