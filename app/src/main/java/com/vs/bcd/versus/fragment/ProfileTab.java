@@ -4,7 +4,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.ViewPager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -19,27 +18,25 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBQueryExpression;
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.QueryResultPage;
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.unmarshallers.IntegerSetUnmarshaller;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
 import com.amazonaws.services.dynamodbv2.model.Condition;
 import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
 import com.amazonaws.services.dynamodbv2.model.GetItemResult;
+import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.CommentHistoryAdapter;
 import com.vs.bcd.versus.adapter.MyAdapter;
-import com.vs.bcd.versus.adapter.PostPageAdapter;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.PostSkeleton;
-import com.vs.bcd.versus.model.User;
 import com.vs.bcd.versus.model.VSComment;
 
-import java.lang.reflect.Array;
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -50,7 +47,7 @@ import java.util.Map;
 public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     private MainContainer activity;
-    private TextView usernameTV, goldTV, silverTV, bronzeTV, pointsTV, followingtextTV;
+    private TextView usernameTV, goldTV, silverTV, bronzeTV, pointsTV, followingTextTV, followerCountTV, followingCountTV;
     private Button followButton;
     private ProgressBar progressBar;
     private LinearLayout mainCase, followCase, medalCase;
@@ -67,7 +64,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
     private int commentsORposts = 0;    //0 = comments, 1 = posts
     private final int COMMENTS = 0;
     private final int POSTS = 1;
-    private String currUsername = null;
+    private String currUsername = null; //username of the user for the profile page, not necessarily the current logged-in user
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -91,11 +88,21 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
         bronzeTV = (TextView) rootView.findViewById(R.id.bmedal_pt);
         pointsTV = (TextView) rootView.findViewById(R.id.points_pt);
 
-        followingtextTV = (TextView) rootView.findViewById(R.id.followingtext);
-        followingtextLP = (LinearLayout.LayoutParams) followingtextTV.getLayoutParams();
+        followerCountTV = (TextView) rootView.findViewById(R.id.num_followers);
+        followingCountTV = (TextView) rootView.findViewById(R.id.num_following);
+
+        followingTextTV = (TextView) rootView.findViewById(R.id.followingtext);
+        followingtextLP = (LinearLayout.LayoutParams) followingTextTV.getLayoutParams();
 
         followButton = (Button) rootView.findViewById(R.id.followbutton);
         followbuttonLP = (LinearLayout.LayoutParams) followButton.getLayoutParams();
+        followButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                followThisUser();
+            }
+        });
+
 
         tabLayout = (TabLayout) rootView.findViewById(R.id.tabs_profile);
         tabLayout.addTab(tabLayout.newTab().setText("COMMENTS"), true);
@@ -212,7 +219,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                     GetItemRequest request = new GetItemRequest()
                             .withTableName("user")
                             .withKey(keyMap)
-                            .withProjectionExpression("num_g,num_s,num_b,points");
+                            .withProjectionExpression("num_g,num_s,num_b,points,fnum");
                     GetItemResult result = activity.getDDBClient().getItem(request);
 
                     final Map<String, AttributeValue> resultMap = result.getItem();
@@ -240,7 +247,11 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                                 else if(attrName.equals("points")){
                                     pointsTV.setText(entry.getValue().getN());
                                 }
+                                else if(attrName.equals("fnum")){
+                                    followerCountTV.setText(entry.getValue().getN() + "\nFollowers");
+                                }
                             }
+                            followingCountTV.setText(Integer.toString(activity.getFollowingNum()) + "\nFollowing");
 
                             displayMyProfile();
 
@@ -278,7 +289,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                     GetItemRequest request = new GetItemRequest()
                             .withTableName("user")
                             .withKey(keyMap)
-                            .withProjectionExpression("num_g,num_s,num_b,points");
+                            .withProjectionExpression("num_g,num_s,num_b,points,flist,fnum");
                     GetItemResult result = activity.getDDBClient().getItem(request);
 
                     final Map<String, AttributeValue> resultMap = result.getItem();
@@ -305,6 +316,12 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                                 }
                                 else if(attrName.equals("points")){
                                     pointsTV.setText(entry.getValue().getN());
+                                }
+                                else if(attrName.equals("fnum")){
+                                    followerCountTV.setText(entry.getValue().getN() + "\nFollowers");
+                                }
+                                else if(attrName.equals("flist")){
+                                    followingCountTV.setText(Integer.toString(entry.getValue().getL().size()) + "\nFollowing");
                                 }
                             }
 
@@ -464,9 +481,9 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
 
 
     private void showFollowingText(){
-        followingtextTV.setEnabled(true);
-        followingtextTV.setVisibility(View.VISIBLE);
-        followingtextTV.setLayoutParams(followingtextLP);
+        followingTextTV.setEnabled(true);
+        followingTextTV.setVisibility(View.VISIBLE);
+        followingTextTV.setLayoutParams(followingtextLP);
 
         followButton.setEnabled(false);
         followButton.setClickable(false);
@@ -475,9 +492,9 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
     }
 
     private void showFollowButton(){
-        followingtextTV.setEnabled(false);
-        followingtextTV.setVisibility(View.INVISIBLE);
-        followingtextTV.setLayoutParams(new LinearLayout.LayoutParams(0,0));
+        followingTextTV.setEnabled(false);
+        followingTextTV.setVisibility(View.INVISIBLE);
+        followingTextTV.setLayoutParams(new LinearLayout.LayoutParams(0,0));
 
         followButton.setEnabled(true);
         followButton.setClickable(true);
@@ -486,14 +503,108 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
     }
 
     private void hideFollowUI(){
-        followingtextTV.setEnabled(false);
-        followingtextTV.setVisibility(View.INVISIBLE);
-        followingtextTV.setLayoutParams(new LinearLayout.LayoutParams(0,0));
+        followingTextTV.setEnabled(false);
+        followingTextTV.setVisibility(View.INVISIBLE);
+        followingTextTV.setLayoutParams(new LinearLayout.LayoutParams(0,0));
 
         followButton.setEnabled(false);
         followButton.setClickable(false);
         followButton.setVisibility(View.INVISIBLE);
         followButton.setLayoutParams(new LinearLayout.LayoutParams(0,0));
+    }
+
+    private void followThisUser(){
+        if(currUsername != null){
+            Runnable runnable = new Runnable() {
+                public void run() {
+
+                    //add this user's username to logged-in user's flist List in user table
+                    UpdateItemRequest flistUpdateRequest = new UpdateItemRequest();
+                    flistUpdateRequest.withTableName("user")
+                            .withKey(Collections.singletonMap("username",
+                                    new AttributeValue().withS(activity.getUsername())))
+                            .withUpdateExpression("SET flist = list_append(flist, :val)")
+                            .withExpressionAttributeValues(
+                                    Collections.singletonMap(":val",
+                                            new AttributeValue().withL(new AttributeValue().withS(currUsername))
+                                    )
+                            );
+                    activity.getDDBClient().updateItem(flistUpdateRequest);
+
+                    //also update flist stored in SharedPref and the localFlist HashSet in MainContainer
+                    activity.addToLocalFlist(currUsername);
+
+                    //increment the follower count of the followed user
+                    UpdateItemRequest fnumUpdateRequest = new UpdateItemRequest();
+                    fnumUpdateRequest.withTableName("user")
+                            .withKey(Collections.singletonMap("username",
+                                    new AttributeValue().withS(currUsername)))
+                            .withUpdateExpression("ADD fnum :inc")
+                            .withExpressionAttributeValues(
+                                    Collections.singletonMap(":inc",
+                                            new AttributeValue().withN("1")
+                                    )
+                            );
+                    activity.getDDBClient().updateItem(fnumUpdateRequest);
+
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            showFollowingText();
+                            updateProfileInfo();
+                        }
+                    });
+
+                }
+            };
+            Thread mythread = new Thread(runnable);
+            mythread.start();
+        }
+    }
+
+    private void updateProfileInfo(){
+
+        Runnable runnable = new Runnable() {
+            public void run() {
+
+                if(currUsername == null){
+                    return;
+                }
+                HashMap<String, AttributeValue> keyMap =
+                        new HashMap<>();
+                keyMap.put("username", new AttributeValue().withS(currUsername));  //partition key
+
+                GetItemRequest request = new GetItemRequest()
+                        .withTableName("user")
+                        .withKey(keyMap)
+                        .withProjectionExpression("points,fnum");
+                GetItemResult result = activity.getDDBClient().getItem(request);
+
+                final Map<String, AttributeValue> resultMap = result.getItem();
+
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        usernameTV.setText(currUsername);
+
+                        for (Map.Entry<String, AttributeValue> entry : resultMap.entrySet()) {
+                            Log.d("ptab", "attrName: " + entry.getKey() + "    attrValue: " + entry.getValue().getN());
+                            String attrName = entry.getKey();
+                            if(attrName.equals("points")){
+                                pointsTV.setText(entry.getValue().getN());
+                            }
+                            else if(attrName.equals("fnum")){
+                                followerCountTV.setText(entry.getValue().getN() + "\nFollowers");
+                            }
+                        }
+                    }
+                });
+            }
+        };
+        Thread mythread = new Thread(runnable);
+        mythread.start();
+
     }
 
 

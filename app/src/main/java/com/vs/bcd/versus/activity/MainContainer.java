@@ -84,6 +84,7 @@ public class MainContainer extends AppCompatActivity {
     private ProfileTab profileTab;
     private int profileTabParent = 0;   //default parent is MainActivity, here parent just refers to previous page before the profile page was opened
     private HashSet<String> localFlist;
+    private String currUsername = null;
 
     @Override
     public void onBackPressed(){
@@ -177,6 +178,8 @@ public class MainContainer extends AppCompatActivity {
         userTimecode = sessionManager.getUserTimecode();
 
         localFlist = sessionManager.getFlistHashSet();
+
+        currUsername = sessionManager.getCurrentUsername();
 
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -783,7 +786,12 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public String getUsername(){
-        return sessionManager.getCurrentUsername();
+        if(currUsername != null){
+            return currUsername;
+        }
+        else{
+            return sessionManager.getCurrentUsername();
+        }
     }
 
     public void goToProfile(String username){
@@ -800,6 +808,15 @@ public class MainContainer extends AppCompatActivity {
 
     public boolean isFollowing(String f_username){
         return localFlist.contains(f_username);
+    }
+
+    public void addToLocalFlist(String f_username){
+        localFlist.add(f_username);
+        sessionManager.updateFlist(localFlist);
+    }
+
+    public int getFollowingNum(){
+        return localFlist.size();
     }
 
 }

@@ -72,7 +72,7 @@
             android:id="@+id/num_followers"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="12312\nFollowers"
+            android:text=""
             android:padding="8dp"
             android:gravity="center"
             android:background="@drawable/border"/>
@@ -81,7 +81,7 @@
             android:id="@+id/num_following"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="1231\nFollowing"
+            android:text=""
             android:padding="8dp"
             android:layout_marginTop="8dp"
             android:gravity="center"

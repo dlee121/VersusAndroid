@@ -28,7 +28,7 @@ public class User {
     private int num_s;  //number of silver medals this user has
     private int num_b;  //number of bronze medals this user has
     private List<String> flist; //list of username of users this user is following
-    private int fnum;   //number of users following this user
+    private int fnum;   //number of followers following this user
 
 
     @DynamoDBAttribute(attributeName = "firstname")

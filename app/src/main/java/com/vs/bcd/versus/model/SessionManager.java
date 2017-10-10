@@ -47,7 +47,6 @@ public class SessionManager {
     public static final String KEY_USERNAME = "pref_username";
     public static final String KEY_TIMECODE = "pref_timecode";
     public static final String KEY_FLIST = "pref_flist";
-    public static final String KEY_FNUM = "pref_fnum";
 
     //keep password private
     private static final String KEY_PASSWORD = "pref_password";
@@ -81,8 +80,6 @@ public class SessionManager {
         String flistStr = gson.toJson(user.getFlist());
         editor.putString(KEY_FLIST, flistStr);
 
-        editor.putInt(KEY_FNUM, user.getFnum());
-
         // commit changes
         editor.commit();
     }
@@ -115,18 +112,6 @@ public class SessionManager {
 
     public int getUserTimecode(){
         return pref.getInt(KEY_TIMECODE, -1);
-    }
-
-    public int getUserFnum(){
-        return pref.getInt(KEY_FNUM, -1);
-    }
-
-    public void incrementFnum(){
-        editor.putInt(KEY_FNUM, getUserFnum() + 1);
-    }
-
-    public void decrementFnum(){
-        editor.putInt(KEY_FNUM, getUserFnum() - 1);
     }
 
     public HashSet<String> getFlistHashSet(){
