@@ -2,6 +2,7 @@ package com.vs.bcd.versus.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -11,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -18,6 +20,7 @@ import android.widget.TextView;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBQueryExpression;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.QueryResultPage;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.unmarshallers.IntegerSetUnmarshaller;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
 import com.amazonaws.services.dynamodbv2.model.Condition;
@@ -36,6 +39,7 @@ import com.vs.bcd.versus.model.VSComment;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -46,10 +50,13 @@ import java.util.Map;
 public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     private MainContainer activity;
-    private TextView usernameTV, goldTV, silverTV, bronzeTV, pointsTV;
+    private TextView usernameTV, goldTV, silverTV, bronzeTV, pointsTV, followingtextTV;
+    private Button followButton;
     private ProgressBar progressBar;
     private LinearLayout mainCase, followCase, medalCase;
-    private RelativeLayout.LayoutParams mainCaseLP, followCaseLP, medalCaseLP, progressbarLP, swipeLayoutLP;
+    private TabLayout tabLayout;
+    private RelativeLayout.LayoutParams mainCaseLP, followCaseLP, medalCaseLP, progressbarLP, swipeLayoutLP, tabsLP;
+    private LinearLayout.LayoutParams followingtextLP, followbuttonLP;
     private View rootView;
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
@@ -60,6 +67,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
     private int commentsORposts = 0;    //0 = comments, 1 = posts
     private final int COMMENTS = 0;
     private final int POSTS = 1;
+    private String currUsername = null;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -82,6 +90,58 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
         silverTV = (TextView) rootView.findViewById(R.id.smedal_pt);
         bronzeTV = (TextView) rootView.findViewById(R.id.bmedal_pt);
         pointsTV = (TextView) rootView.findViewById(R.id.points_pt);
+
+        followingtextTV = (TextView) rootView.findViewById(R.id.followingtext);
+        followingtextLP = (LinearLayout.LayoutParams) followingtextTV.getLayoutParams();
+
+        followButton = (Button) rootView.findViewById(R.id.followbutton);
+        followbuttonLP = (LinearLayout.LayoutParams) followButton.getLayoutParams();
+
+        tabLayout = (TabLayout) rootView.findViewById(R.id.tabs_profile);
+        tabLayout.addTab(tabLayout.newTab().setText("COMMENTS"), true);
+        tabLayout.addTab(tabLayout.newTab().setText("POSTS"));
+        tabsLP = (RelativeLayout.LayoutParams) tabLayout.getLayoutParams();
+
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                switch (tab.getPosition()) {
+                    case 0: //comments history
+                        if(commentsORposts == POSTS && currUsername != null){
+                            Runnable runnable = new Runnable() {
+                                public void run() {
+                                    setUpComments(currUsername);
+                                }
+                            };
+                            Thread mythread = new Thread(runnable);
+                            mythread.start();
+                        }
+                        commentsORposts = COMMENTS;
+                        break;
+                    case 1: //posts history
+                        if(commentsORposts == COMMENTS && currUsername != null){
+                            Runnable runnable = new Runnable() {
+                                public void run() {
+                                    setUpPosts(currUsername);
+                                }
+                            };
+                            Thread mythread = new Thread(runnable);
+                            mythread.start();
+                        }
+                        commentsORposts = POSTS;
+                        break;
+                }
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
 
         mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_container_profile);
         swipeLayoutLP = (RelativeLayout.LayoutParams) mSwipeRefreshLayout.getLayoutParams();
@@ -128,6 +188,8 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
         }
         */
 
+        currUsername = username;
+
         displayLoadingScreen(); //hide all page content and show refresh animation during loading, no other UI element
 
         if(myProfile){
@@ -137,6 +199,8 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                 //so only grab: num_g, num_s, num_b, points
 
             Log.d("ptab", "setting up my profile");
+
+            hideFollowUI();
 
             Runnable runnable = new Runnable() {
                 public void run() {
@@ -197,6 +261,13 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
 
             Log.d("ptab", "setting up my profile");
 
+            if(activity.isFollowing(username)){
+                showFollowingText();
+            }
+            else{
+                showFollowButton();
+            }
+
             Runnable runnable = new Runnable() {
                 public void run() {
 
@@ -254,6 +325,8 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
         super.setUserVisibleHint(isVisibleToUser);
         if (!isVisibleToUser) { //we don't care about case of isVisibleToUser==true because that case is handled by setUpProfile()
             if(rootView != null) {
+                commentsORposts = COMMENTS;
+                tabLayout.getTabAt(0).select();
                 disableChildViews();
             }
         }
@@ -277,6 +350,11 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
         mainCase.setLayoutParams(mainCaseLP);
         followCase.setLayoutParams(followCaseLP);
         medalCase.setLayoutParams(medalCaseLP);
+
+        tabLayout.setEnabled(true);
+        tabLayout.setClickable(true);
+        tabLayout.setLayoutParams(tabsLP);
+
         mSwipeRefreshLayout.setLayoutParams(swipeLayoutLP);
         mSwipeRefreshLayout.setEnabled(true);
         //TODO: does mSwipeRefreshLayout need setClickable(true) as well?
@@ -291,6 +369,11 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
         mainCase.setLayoutParams(mainCaseLP);
         followCase.setLayoutParams(followCaseLP);
         medalCase.setLayoutParams(medalCaseLP);
+
+        tabLayout.setEnabled(true);
+        tabLayout.setClickable(true);
+        tabLayout.setLayoutParams(tabsLP);
+
         mSwipeRefreshLayout.setLayoutParams(swipeLayoutLP);
         mSwipeRefreshLayout.setEnabled(true);
         //TODO: does mSwipeRefreshLayout need setClickable(true) as well?
@@ -307,6 +390,8 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
     }
 
     private void setUpPosts(String username){
+
+        Log.d("profilesetup", "setUpPosts called");
 
         commentsORposts = POSTS;
 
@@ -375,6 +460,40 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
 
 
 
+    }
+
+
+    private void showFollowingText(){
+        followingtextTV.setEnabled(true);
+        followingtextTV.setVisibility(View.VISIBLE);
+        followingtextTV.setLayoutParams(followingtextLP);
+
+        followButton.setEnabled(false);
+        followButton.setClickable(false);
+        followButton.setVisibility(View.INVISIBLE);
+        followButton.setLayoutParams(new LinearLayout.LayoutParams(0,0));
+    }
+
+    private void showFollowButton(){
+        followingtextTV.setEnabled(false);
+        followingtextTV.setVisibility(View.INVISIBLE);
+        followingtextTV.setLayoutParams(new LinearLayout.LayoutParams(0,0));
+
+        followButton.setEnabled(true);
+        followButton.setClickable(true);
+        followButton.setVisibility(View.VISIBLE);
+        followButton.setLayoutParams(followbuttonLP);
+    }
+
+    private void hideFollowUI(){
+        followingtextTV.setEnabled(false);
+        followingtextTV.setVisibility(View.INVISIBLE);
+        followingtextTV.setLayoutParams(new LinearLayout.LayoutParams(0,0));
+
+        followButton.setEnabled(false);
+        followButton.setClickable(false);
+        followButton.setVisibility(View.INVISIBLE);
+        followButton.setLayoutParams(new LinearLayout.LayoutParams(0,0));
     }
 
 

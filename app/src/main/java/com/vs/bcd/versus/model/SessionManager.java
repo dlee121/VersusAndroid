@@ -2,6 +2,7 @@ package com.vs.bcd.versus.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.lang.reflect.Type;
 
@@ -45,6 +46,8 @@ public class SessionManager {
     public static final String KEY_PHONE = "pref_phone";
     public static final String KEY_USERNAME = "pref_username";
     public static final String KEY_TIMECODE = "pref_timecode";
+    public static final String KEY_FLIST = "pref_flist";
+    public static final String KEY_FNUM = "pref_fnum";
 
     //keep password private
     private static final String KEY_PASSWORD = "pref_password";
@@ -73,6 +76,12 @@ public class SessionManager {
         editor.putString(KEY_PHONE, user.getPhone());
         editor.putString(KEY_USERNAME, user.getUsername());
         editor.putInt(KEY_TIMECODE, user.getTimecode());
+
+        Gson gson = new Gson();
+        String flistStr = gson.toJson(user.getFlist());
+        editor.putString(KEY_FLIST, flistStr);
+
+        editor.putInt(KEY_FNUM, user.getFnum());
 
         // commit changes
         editor.commit();
@@ -106,6 +115,33 @@ public class SessionManager {
 
     public int getUserTimecode(){
         return pref.getInt(KEY_TIMECODE, -1);
+    }
+
+    public int getUserFnum(){
+        return pref.getInt(KEY_FNUM, -1);
+    }
+
+    public void incrementFnum(){
+        editor.putInt(KEY_FNUM, getUserFnum() + 1);
+    }
+
+    public void decrementFnum(){
+        editor.putInt(KEY_FNUM, getUserFnum() - 1);
+    }
+
+    public HashSet<String> getFlistHashSet(){
+        //TODO:confirm that this works with the TypeToken of HashSet<String>
+        Gson gson = new Gson();
+        String json = pref.getString(KEY_FLIST, null);
+        Type type = new TypeToken<HashSet<String>>() {}.getType();
+        HashSet<String> ret = gson.fromJson(json, type);
+        return ret;
+    }
+
+    public void updateFlist(HashSet<String> updatedList){
+        Gson gson = new Gson();
+        String flistStr = gson.toJson(updatedList);
+        editor.putString(KEY_FLIST, flistStr);
     }
 
     /**

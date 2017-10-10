@@ -27,6 +27,8 @@ public class User {
     private int num_g;  //number of gold medals this user has
     private int num_s;  //number of silver medals this user has
     private int num_b;  //number of bronze medals this user has
+    private List<String> flist; //list of username of users this user is following
+    private int fnum;   //number of users following this user
 
 
     @DynamoDBAttribute(attributeName = "firstname")
@@ -125,7 +127,21 @@ public class User {
         this.num_b = num_b;
     }
 
+    @DynamoDBAttribute(attributeName = "flist")
+    public List<String> getFlist(){
+        return flist;
+    }
+    public void setFlist(List<String> flist){
+        this.flist = flist;
+    }
 
+    @DynamoDBAttribute(attributeName = "fnum")
+    public int getFnum(){
+        return fnum;
+    }
+    public void setFnum(int fnum){
+        this.fnum = fnum;
+    }
 
     public User(){
 
@@ -144,6 +160,8 @@ public class User {
         num_g = 0;
         num_s = 0;
         num_b = 0;
+        fnum = 0;
+        flist = new ArrayList<>();
 
         //finish this thing, then do the write to db, then write session info to sharedpref and we're done with basic signup!
     }

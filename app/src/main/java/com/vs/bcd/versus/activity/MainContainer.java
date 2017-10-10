@@ -48,6 +48,7 @@ import com.vs.bcd.versus.ViewPagerCustomDuration;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class MainContainer extends AppCompatActivity {
 
@@ -82,7 +83,7 @@ public class MainContainer extends AppCompatActivity {
     private boolean meClicked = false;
     private ProfileTab profileTab;
     private int profileTabParent = 0;   //default parent is MainActivity, here parent just refers to previous page before the profile page was opened
-
+    private HashSet<String> localFlist;
 
     @Override
     public void onBackPressed(){
@@ -175,6 +176,7 @@ public class MainContainer extends AppCompatActivity {
 
         userTimecode = sessionManager.getUserTimecode();
 
+        localFlist = sessionManager.getFlistHashSet();
 
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -457,7 +459,7 @@ public class MainContainer extends AppCompatActivity {
         mViewPager.setCurrentItem(0);
         setToolbarTitleTextForTabs("Newsfeed");
 
-        Log.d("USER_INFO", sessionManager.getUserDetails().get(SessionManager.KEY_USERNAME));
+        //Log.d("USER_INFO", sessionManager.getUserDetails().get(SessionManager.KEY_USERNAME));
 
     }
 
@@ -794,6 +796,10 @@ public class MainContainer extends AppCompatActivity {
             profileTab.setUpProfile(username, false);
             mViewPager.setCurrentItem(9);
         }
+    }
+
+    public boolean isFollowing(String f_username){
+        return localFlist.contains(f_username);
     }
 
 }
