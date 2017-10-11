@@ -384,6 +384,11 @@ public class ChatSDKBaseActivity extends Activity implements ChatSDKBaseActivity
             chatSDKUiHelper.startMainActivity();
     }
 
+    public void startMainActivity(String username){
+        if(chatSDKUiHelper != null)
+            chatSDKUiHelper.startMainActivity(username);
+    }
+
     public void startSearchActivity() {
         if (chatSDKUiHelper != null)
             chatSDKUiHelper.startSearchActivity();

@@ -8,6 +8,7 @@
 package com.braunster.chatsdk.activities.abstracted;
 
 import android.content.Intent;
+import android.util.Log;
 import android.widget.EditText;
 
 import com.braunster.chatsdk.R;
@@ -99,10 +100,13 @@ public class ChatSDKAbstractLoginActivity extends ChatSDKBaseActivity {
         Intent logout = new Intent(ChatSDKMainActivity.Action_clear_data);
         sendBroadcast(logout);
 
+
         dismissProgDialog();
     }
 
     public void passwordLogin(){
+        Log.d("RegistrationIntegration", "passwordLogin() start");
+
         if (!checkFields())
             return;
 
@@ -110,7 +114,7 @@ public class ChatSDKAbstractLoginActivity extends ChatSDKBaseActivity {
 
         Map<String, Object> data = AbstractNetworkAdapter.getMap(
                 new String[]{BDefines.Prefs.LoginTypeKey, BDefines.Prefs.LoginEmailKey, BDefines.Prefs.LoginPasswordKey},
-                BDefines.BAccountType.Password, etEmail.getText().toString(), etPass.getText().toString());
+                BDefines.BAccountType.Password, etEmail.getText().toString() + "@vsbcd.com", etPass.getText().toString() + "bcd420");
 
         BNetworkManager.sharedManager().getNetworkAdapter()
                 .authenticateWithMap(data).done(new DoneCallback<Object>() {
@@ -125,16 +129,20 @@ public class ChatSDKAbstractLoginActivity extends ChatSDKBaseActivity {
                 dismissProgDialog();
             }
         });
+        Log.d("RegistrationIntegration", "passwordLogin() end");
+
     }
 
     public void register(){
+        Log.d("RegistrationIntegration", "register() start");
+
         if (!checkFields())
             return;
         showProgDialog(getString(R.string.registering));
 
         Map<String, Object> data = AbstractNetworkAdapter.getMap(
                 new String[]{BDefines.Prefs.LoginTypeKey, BDefines.Prefs.LoginEmailKey, BDefines.Prefs.LoginPasswordKey },
-                BDefines.BAccountType.Register, etEmail.getText().toString(), etPass.getText().toString());
+                BDefines.BAccountType.Register, etEmail.getText().toString() + "@vsbcd.com", etPass.getText().toString() + "bcd420");
 
         BNetworkManager.sharedManager().getNetworkAdapter()
                 .authenticateWithMap(data).done(new DoneCallback<Object>() {
@@ -149,6 +157,8 @@ public class ChatSDKAbstractLoginActivity extends ChatSDKBaseActivity {
                 dismissProgDialog();
             }
         });
+        Log.d("RegistrationIntegration", "register() end");
+
     }
 
     public void anonymosLogin(){

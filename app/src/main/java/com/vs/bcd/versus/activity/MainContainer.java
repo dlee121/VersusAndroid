@@ -1,8 +1,10 @@
 package com.vs.bcd.versus.activity;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v7.app.AppCompatActivity;
@@ -20,8 +22,10 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
@@ -45,6 +49,7 @@ import com.vs.bcd.versus.fragment.CreatePost;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.fragment.SearchPage;
 import com.vs.bcd.versus.ViewPagerCustomDuration;
+import com.vs.bcd.versus.model.User;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -85,6 +90,7 @@ public class MainContainer extends AppCompatActivity {
     private int profileTabParent = 0;   //default parent is MainActivity, here parent just refers to previous page before the profile page was opened
     private HashSet<String> localFlist;
     private String currUsername = null;
+    private View mActionBarView;
 
     @Override
     public void onBackPressed(){
@@ -165,6 +171,7 @@ public class MainContainer extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_container);
         sessionManager = new SessionManager(this);
+
         // Initialize the Amazon Cognito credentials provider
         CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
                 getApplicationContext(),
@@ -175,29 +182,71 @@ public class MainContainer extends AppCompatActivity {
         mapper = new DynamoDBMapper(ddbClient);
         s3 = new AmazonS3Client(credentialsProvider);
 
-        userTimecode = sessionManager.getUserTimecode();
-
-        localFlist = sessionManager.getFlistHashSet();
-
-        currUsername = sessionManager.getCurrentUsername();
-
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0);
 
-    /*
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-    */
         //hiding default app icon
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayShowHomeEnabled(false);
         //displaying custom ActionBar
-        View mActionBarView = getLayoutInflater().inflate(R.layout.custom_action_bar, null);
+        mActionBarView = getLayoutInflater().inflate(R.layout.custom_action_bar, null);
         actionBar.setCustomView(mActionBarView);
         actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
         actionBar.setElevation(0);
         titleTxtView = (TextView) mActionBarView.findViewById(R.id.textView);
+
+        if(!sessionManager.isLoggedIn()){   //this would be true in case of fresh log in
+            Bundle extras = null;
+            if(getIntent() != null){
+                extras = getIntent().getExtras();
+            }
+            if(extras !=null) {
+                final String username = extras.getString("KEY_LOGIN_USER");
+                final MainContainer thisActivity = this;
+                Runnable runnable = new Runnable() {
+                    public void run() {
+                        try{
+                            final User user = mapper.load(User.class, username);
+                            if(user == null){
+                                return; //TODO: It's unlikely, but handle this case just in case
+                            }
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    sessionManager = new SessionManager(thisActivity);
+                                    sessionManager.createLoginSession(user);    //store login session data in Shared Preferences
+
+                                    finishMainContainerSetUp();
+
+                                    userTimecode = user.getTimecode();
+                                    currUsername = username;
+                                }
+                            });
+                        } catch (Throwable t) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(thisActivity, "There was a problem logging in. Please check your network connection and try again.", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    }
+                };
+                Thread mythread = new Thread(runnable);
+                mythread.start();
+            }
+            else{
+                //think if this could happen and how to fix that
+            }
+        }
+
+    }
+
+    private void finishMainContainerSetUp(){
+
+        localFlist = sessionManager.getFlistHashSet();
+
         toolbarButtonLeft = (ImageButton) mActionBarView.findViewById(R.id.btn_slide);
         toolbarButtonLeft.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -298,7 +347,7 @@ public class MainContainer extends AppCompatActivity {
         logoutbuttontemp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            sessionManager.logoutUser();
+                sessionManager.logoutUser();
             }
         });
 
@@ -463,7 +512,6 @@ public class MainContainer extends AppCompatActivity {
         setToolbarTitleTextForTabs("Newsfeed");
 
         //Log.d("USER_INFO", sessionManager.getUserDetails().get(SessionManager.KEY_USERNAME));
-
     }
 
 

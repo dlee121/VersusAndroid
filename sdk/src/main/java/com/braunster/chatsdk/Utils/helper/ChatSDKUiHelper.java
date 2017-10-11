@@ -215,6 +215,15 @@ public class ChatSDKUiHelper {
         startActivity(intent);
     }
 
+    public void startMainActivity(String username){
+        Intent intent = new Intent(context.get(), mainActivity);
+        intent.putExtra("KEY_LOGIN_USER", username);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+        startActivity(intent);
+
+    }
+
     public void startSearchActivity(){
         startActivity(searchActivity);
     }
