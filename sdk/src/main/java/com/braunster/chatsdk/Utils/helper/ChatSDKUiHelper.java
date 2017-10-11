@@ -131,6 +131,11 @@ public class ChatSDKUiHelper {
         return getInstance();
     }
 
+    public static ChatSDKUiHelper initCustom(Class mainActivity){
+        instance = new ChatSDKUiHelper(ChatSDKChatActivity.class, mainActivity, ChatSDKLoginActivity.class);
+        return getInstance();
+    }
+
     public ChatSDKUiHelper(Class chatActivity, Class mainActivity, Class loginActivity) {
         this.chatActivity = chatActivity;
         this.mainActivity = mainActivity;
@@ -203,7 +208,11 @@ public class ChatSDKUiHelper {
     }
 
     public void startMainActivity(){
-        startActivity(mainActivity);
+
+        Intent intent = new Intent(context.get(), mainActivity);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+        startActivity(intent);
     }
 
     public void startSearchActivity(){

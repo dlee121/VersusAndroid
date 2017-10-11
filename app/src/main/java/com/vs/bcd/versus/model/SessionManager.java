@@ -11,6 +11,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 
+import com.braunster.chatsdk.network.BFacebookManager;
+import com.braunster.chatsdk.network.BNetworkManager;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.vs.bcd.versus.activity.StartScreen;
@@ -156,7 +158,11 @@ public class SessionManager {
         editor.clear();
         editor.commit();
 
-        // After logout redirect user to Loing Activity
+        //Firebase ChatSDK logout
+        BFacebookManager.logout(_context);
+        BNetworkManager.sharedManager().getNetworkAdapter().logout();
+
+        // After logout redirect user to StartScreen Activity
         Intent i = new Intent(_context, StartScreen.class);
         // Closing all the Activities
         i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

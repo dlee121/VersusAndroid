@@ -7,6 +7,7 @@
 
 package com.braunster.chatsdk.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
@@ -129,6 +130,8 @@ public class ChatSDKLoginActivity extends ChatSDKAbstractLoginActivity implement
 
             DaoCore.updateEntity(curUser);
         }
+
+        //TODO: open sessionManager and do the login sequence here, grabbing the user object from dynamodb, putting indeterminate progress bar in the UI until that's done, and then displaying Maincontainer/MainActivity
         
         startMainActivity();
     }
