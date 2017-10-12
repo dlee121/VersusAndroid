@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Versus.iml" filepath="$PROJECT_DIR$/Versus.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Versus.iml" filepath="$PROJECT_DIR$/Versus.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/country_picker/country_picker.iml" filepath="$PROJECT_DIR$/country_picker/country_picker.iml" />

@@ -41,7 +41,6 @@ dependencies {
     //bottom navigation bar (bottom tabs)
     compile 'com.aurelhubert:ahbottomnavigation:2.1.0'
 
-
     //dynamodb dependencies
     compile 'com.amazonaws:aws-android-sdk-core:2.2.+'
     compile 'com.amazonaws:aws-android-sdk-s3:2.2.+'
