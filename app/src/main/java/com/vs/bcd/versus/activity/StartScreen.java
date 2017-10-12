@@ -8,13 +8,6 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.braunster.androidchatsdk.firebaseplugin.firebase.BChatcatNetworkAdapter;
-import com.braunster.chatsdk.Utils.helper.ChatSDKUiHelper;
-import com.braunster.chatsdk.network.BDefines;
-import com.braunster.chatsdk.network.BNetworkManager;
-import com.braunster.chatsdk.activities.ChatSDKLoginActivity;
-import android.content.Intent;
-
 import com.vs.bcd.versus.R;
 
 public class StartScreen extends AppCompatActivity {
@@ -37,20 +30,6 @@ public class StartScreen extends AppCompatActivity {
             }
         });
     */
-
-        // This is used for the app custom toast and activity transition
-        ChatSDKUiHelper.initCustom(MainContainer.class);
-
-        // Init the network manager
-        BNetworkManager.init(getApplicationContext());
-
-        // Create a new adapter
-        BChatcatNetworkAdapter adapter = new BChatcatNetworkAdapter(getApplicationContext());
-
-        // Set the adapter
-        BNetworkManager.sharedManager().setNetworkAdapter(adapter);
-
-
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -82,15 +61,9 @@ public class StartScreen extends AppCompatActivity {
     }
 
     public void logInPressed(View view){
-        /*
         Intent intent = new Intent(this, LogIn.class);
         startActivity(intent);
         overridePendingTransition(0, 0);
-        */
-
-        Intent myIntent = new Intent(this, ChatSDKLoginActivity.class);
-        startActivity(myIntent);
-
     }
 
 }

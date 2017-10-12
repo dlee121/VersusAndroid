@@ -26,8 +26,5 @@
     <string name="title_activity_log_in">LogIn</string>
     <string name="title_activity_post_page">PostPage</string>
     <string name="title_activity_sign_up">SignUp</string>
-    <string name="backendless_app_id">052899F4-9ACD-B3E2-FF66-49DB34614200</string>
-    <string name="backendless_secret_key">7661F801-9180-FB85-FF74-77DA6F0AF600</string>
-    <string name="backendless_app_version">v1</string>
 
 </resources>
