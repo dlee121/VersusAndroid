@@ -465,6 +465,7 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 9: //Me (ProfileTab with user == me)
+                        titleTxtView.setText("");
                         if(meClicked){
                             showSettingsButton();
                             hideToolbarButtonLeft();
@@ -481,6 +482,7 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 10: //SettingsFragment
+                        titleTxtView.setText("Settings");
                         hideToolbarButtonRight();
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
@@ -872,6 +874,10 @@ public class MainContainer extends AppCompatActivity {
 
     public void sessionLogOut(){
         sessionManager.logoutUser();
+    }
+
+    public void meClickTrue(){
+        meClicked = true;
     }
 
 }

@@ -357,6 +357,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
         mainCase.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
         followCase.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
         medalCase.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+        tabLayout.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
         mSwipeRefreshLayout.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
     }
 
@@ -406,13 +407,15 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
         }
     }
 
+    //restore my profile
     public void restoreUI(){
+        activity.meClickTrue();
+
         for(int i = 0; i<childViews.size(); i++){
             childViews.get(i).setEnabled(false);
             childViews.get(i).setClickable(false);
             childViews.get(i).setLayoutParams(LPStore.get(i));
         }
-
     }
 
     private void setUpPosts(String username){
