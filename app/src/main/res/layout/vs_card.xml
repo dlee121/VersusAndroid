@@ -73,7 +73,8 @@
             android:gravity="center"
             android:layout_below="@+id/horizdivider1"
             android:layout_centerHorizontal="true"
-            android:text="TextView" />
+            android:text="TextView"
+            android:textSize="18sp" />
 
         <TextView
             android:id="@+id/maintitletxt"

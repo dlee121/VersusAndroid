@@ -20,6 +20,7 @@ import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.fragment.Tab1Newsfeed;
 import com.vs.bcd.versus.fragment.Tab2Trending;
 import com.vs.bcd.versus.fragment.Tab3Categories;
+import com.vs.bcd.versus.fragment.Tab4Messenger;
 
 import java.util.ArrayList;
 
@@ -67,7 +68,7 @@ public class MainActivity extends Fragment {
         tabLayout.getTabAt(0).setIcon(R.drawable.ic_trending_selected);
         tabLayout.getTabAt(1).setIcon(R.drawable.ic_trending_unselected);
         tabLayout.getTabAt(2).setIcon(R.drawable.ic_trending_unselected);
-        //tabLayout.getTabAt(3).setIcon(R.drawable.ic_randomvs_unselected);
+        tabLayout.getTabAt(3).setIcon(R.drawable.ic_messenger_unselected_24dp);
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -76,14 +77,21 @@ public class MainActivity extends Fragment {
                     case 0: //newsfeed
                         tab.setIcon(R.drawable.ic_trending_selected);
                         mainContainer.setToolbarTitleTextForTabs("Newsfeed");
+                        enableCPFab();
                         break;
                     case 1: //trending
                         tab.setIcon(R.drawable.ic_trending_selected);
                         mainContainer.setToolbarTitleTextForTabs("Trending");
+                        enableCPFab();
                         break;
                     case 2: //categories
                         tab.setIcon(R.drawable.ic_trending_selected);
                         mainContainer.setToolbarTitleTextForTabs("Categories");
+                        disableCPFab();
+                        break;
+                    case 3: //messenger
+                        tab.setIcon(R.drawable.ic_messenger_selected_24dp);
+                        mainContainer.setToolbarTitleTextForTabs("Messenger");
                         disableCPFab();
                         break;
                     default:
@@ -103,7 +111,9 @@ public class MainActivity extends Fragment {
                         break;
                     case 2: //categories
                         tab.setIcon(R.drawable.ic_trending_unselected);
-                        enableCPFab();
+                        break;
+                    case 3: //messenger
+                        tab.setIcon(R.drawable.ic_messenger_unselected_24dp);
                         break;
                     default:
                         tab.setIcon(R.drawable.ic_trending_unselected);
@@ -179,6 +189,9 @@ public class MainActivity extends Fragment {
                 case 2:
                     Tab3Categories tab3 = new Tab3Categories();
                     return tab3;
+                case 3:
+                    Tab4Messenger tab4 = new Tab4Messenger();
+                    return tab4;
                 default:
                     return null;
             }
@@ -186,8 +199,8 @@ public class MainActivity extends Fragment {
 
         @Override
         public int getCount() {
-            // Show 3 total pages.
-            return 3;
+            // Show 4 total pages.
+            return 4;
         }
     }
 
@@ -207,7 +220,8 @@ public class MainActivity extends Fragment {
             childrenFragmentsUIActive = true;
             if(rootView != null){
                 enableChildViews();
-                if(mViewPager.getCurrentItem() == 2){
+                int currItem = mViewPager.getCurrentItem();
+                if(currItem == 2 || currItem == 3){
                     disableCPFab();
                 }
             }
