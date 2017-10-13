@@ -19,8 +19,8 @@ import android.view.View;
 
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
@@ -38,6 +38,7 @@ import com.vs.bcd.versus.fragment.NotificationsTab;
 import com.vs.bcd.versus.fragment.PostPage;
 import com.vs.bcd.versus.fragment.ProfileTab;
 import com.vs.bcd.versus.fragment.SelectCategory;
+import com.vs.bcd.versus.fragment.SettingsFragment;
 import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.model.PostSkeleton;
 import com.vs.bcd.versus.model.SessionManager;
@@ -61,7 +62,7 @@ public class MainContainer extends AppCompatActivity {
     private AmazonDynamoDBClient ddbClient;
     private DynamoDBMapper mapper;
     private ImageButton toolbarButtonLeft;
-    private Button logoutbuttontemp;
+    private ImageButton toolbarButtonRight;
     private TextView titleTxtView;
     private String lastSetTitle = "";
     private MainActivity mainActivityFragRef;
@@ -85,6 +86,8 @@ public class MainContainer extends AppCompatActivity {
     private int profileTabParent = 0;   //default parent is MainActivity, here parent just refers to previous page before the profile page was opened
     private HashSet<String> localFlist;
     private String currUsername = null;
+    private String beforeProfileTitle = "";
+    private RelativeLayout.LayoutParams toolbarButtonRightLP;
 
     @Override
     public void onBackPressed(){
@@ -149,6 +152,15 @@ public class MainContainer extends AppCompatActivity {
                     mViewPager.setCurrentItem(0);
                     categoryFragmentOut();
                     titleTxtView.setText(lastSetTitle);
+                    break;
+
+                case 10: //currently in SettingsFragment
+                    //go back to Profile page (with current logged-in user's info), since SettingsFragment is only accessed from Profile page.
+                    //Profile page info should be stored so just go back to it
+                    profileTab.restoreUI();
+                    mViewPager.setCurrentItem(9);
+                    titleTxtView.setText("");
+                    enableBottomTabs();
                     break;
 
                 default:
@@ -288,17 +300,26 @@ public class MainContainer extends AppCompatActivity {
                 */
                     //In cases 7 - 9, we disable the toolbarButtonLeft (Search/Up button), so no need to program them for now.
 
+                    case 10: //currently in SettingsFragment
+                        //go back to Profile page (with current logged-in user's info), since SettingsFragment is only accessed from Profile page.
+                        //Profile page info should be stored so just go back to it
+                        profileTab.restoreUI();
+                        mViewPager.setCurrentItem(9);
+                        titleTxtView.setText("");
+                        enableBottomTabs();
+                        break;
 
                     default:
                         break;
                 }
             }
         });
-        logoutbuttontemp = (Button) mActionBarView.findViewById(R.id.logoutbutton);
-        logoutbuttontemp.setOnClickListener(new View.OnClickListener() {
+        toolbarButtonRight = (ImageButton) mActionBarView.findViewById(R.id.top_right_button);
+        toolbarButtonRightLP = (RelativeLayout.LayoutParams) toolbarButtonRight.getLayoutParams();
+        toolbarButtonRight.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            sessionManager.logoutUser();
+                mViewPager.setCurrentItem(10);
             }
         });
 
@@ -311,7 +332,7 @@ public class MainContainer extends AppCompatActivity {
         mViewPager = (ViewPagerCustomDuration) findViewById(R.id.container2);
         mViewPager.setScrollDurationFactor(1);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        mViewPager.setOffscreenPageLimit(10);
+        mViewPager.setOffscreenPageLimit(11);
         mViewPager.setPageTransformer(false, new FadePageTransformer());
         //mViewPager.setPageTransformer(false, new NoPageTransformer());
 
@@ -379,33 +400,36 @@ public class MainContainer extends AppCompatActivity {
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
 
             public void onPageSelected(int position) {
-                // Check if this is the page you want.
+                //handling fragment-based UI operations
                 switch(position){
                     //We probably only need to account for when the transition between yes-tab / no-tab happens (tabs 0, 2, 3, 6)
                     //But if it makes no significant performance difference to include all the other tabs, we might as well, to be on safe side especially in case future developments necessitate doing so.
                     case 0: //MainActivity
+                        hideToolbarButtonRight();
                         enableBottomTabs();
                         bottomNavigation.setCurrentItem(0, false);
-                        enableToolbarButtonLeft();
+                        showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                         break;
 
                     case 1: //SearchPage
                         //enableBottomTabs();   //only accessible from MainActivity where bottom tabs are already enabled
                         bottomNavigation.setCurrentItem(0, false);
-                        enableToolbarButtonLeft();
+                        showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         break;
 
                     case 2: //CreatePost
+                        hideToolbarButtonRight();
                         disableBottomTabs();
-                        enableToolbarButtonLeft();
+                        showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         break;
 
                     case 3: //PostPage
+                        hideToolbarButtonRight();
                         disableBottomTabs();
-                        enableToolbarButtonLeft();
+                        showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         break;
 
@@ -418,37 +442,49 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 6: //CategoryFragment
+                        hideToolbarButtonRight();
                         enableBottomTabs();
                         bottomNavigation.setCurrentItem(0, false);
-                        enableToolbarButtonLeft();
+                        showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         break;
 
                     case 7: //LeaderboardTab
                         //enableBottomTabs();   //Leaderboard is accessible through bottom tabs only so bottom tabs are already enabled
-                        disableToolbarButtonLeft();
+                        hideToolbarButtonRight();
+                        hideToolbarButtonLeft();
                         bottomNavigation.setCurrentItem(1, false);
                         break;
 
                     case 8: //NotificationsTab
                         //enableBottomTabs();   //Notifications is accessible through bottom tabs only so bottom tabs are already enabled
+                        hideToolbarButtonRight();
                         enableBottomTabs(); //because we might make notifications not bottom tab, putting this here just in case
-                        disableToolbarButtonLeft();
+                        hideToolbarButtonLeft();
                         bottomNavigation.setCurrentItem(2, false);
                         break;
 
                     case 9: //Me (ProfileTab with user == me)
                         if(meClicked){
-                            disableToolbarButtonLeft();
-                            //only bottom tabs can access this version of profile page so no need to enable bottom tabs separately for this
+                            showSettingsButton();
+                            hideToolbarButtonLeft();
+                            enableBottomTabs(); //we need to recover bottom tabs in cases like coming back from SettingsFragment
                             bottomNavigation.setCurrentItem(3, false);
                         }
                         else{
-                            enableToolbarButtonLeft();
+                            hideToolbarButtonRight();
+                            showToolbarButtonLeft();
                             toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                             disableBottomTabs();
                         }
 
+                        break;
+
+                    case 10: //SettingsFragment
+                        hideToolbarButtonRight();
+                        showToolbarButtonLeft();
+                        toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+                        disableBottomTabs();
                         break;
 
                     default:
@@ -467,11 +503,11 @@ public class MainContainer extends AppCompatActivity {
     }
 
 
-    private void enableToolbarButtonLeft(){
+    private void showToolbarButtonLeft(){
         toolbarButtonLeft.setEnabled(true);
         toolbarButtonLeft.setVisibility(View.VISIBLE);
     }
-    private void disableToolbarButtonLeft(){
+    private void hideToolbarButtonLeft(){
         toolbarButtonLeft.setEnabled(false);
         toolbarButtonLeft.setVisibility(View.INVISIBLE);
     }
@@ -503,7 +539,7 @@ public class MainContainer extends AppCompatActivity {
         titleTxtView.setText(titleForCF);
     }
 
-    public ImageButton getToolbarButton(){
+    public ImageButton getToolbarButtonLeft(){
         return toolbarButtonLeft;
     }
 
@@ -571,13 +607,15 @@ public class MainContainer extends AppCompatActivity {
                 case 9:
                     profileTab = new ProfileTab();
                     return profileTab;
+                case 10:
+                    return new SettingsFragment();
                 default:
                     return null;
             }
         }
         @Override
         public int getCount() {
-            return 10;
+            return 11;
         }
 
         @Override
@@ -603,6 +641,8 @@ public class MainContainer extends AppCompatActivity {
                     return "NOTIFICATIONS";
                 case 9:
                     return "ME";
+                case 10:
+                    return "SETTINGS";
             }
             return null;
         }
@@ -817,6 +857,21 @@ public class MainContainer extends AppCompatActivity {
 
     public int getFollowingNum(){
         return localFlist.size();
+    }
+
+    private void showSettingsButton(){
+        toolbarButtonRight.setEnabled(true);
+        toolbarButtonRight.setLayoutParams(toolbarButtonRightLP);
+        toolbarButtonRight.setImageResource(R.drawable.ic_settings_white_24dp);
+
+    }
+    private void hideToolbarButtonRight(){
+        toolbarButtonRight.setEnabled(false);
+        toolbarButtonRight.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+    }
+
+    public void sessionLogOut(){
+        sessionManager.logoutUser();
     }
 
 }

@@ -23,8 +23,6 @@ import com.vs.bcd.versus.fragment.Tab3Categories;
 
 import java.util.ArrayList;
 
-import static com.vs.bcd.versus.R.id.fab;
-
 public class MainActivity extends Fragment {
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -126,7 +124,7 @@ public class MainActivity extends Fragment {
                 mainContainer.getCreatePostFragment().resetCatSelection();
                 mainContainer.getViewPager().setCurrentItem(2);
                 mainContainer.getToolbarTitleText().setText("Create Post");
-                mainContainer.getToolbarButton().setImageResource(R.drawable.ic_left_chevron);
+                mainContainer.getToolbarButtonLeft().setImageResource(R.drawable.ic_left_chevron);
             }
         });
 

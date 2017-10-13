@@ -406,6 +406,15 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
         }
     }
 
+    public void restoreUI(){
+        for(int i = 0; i<childViews.size(); i++){
+            childViews.get(i).setEnabled(false);
+            childViews.get(i).setClickable(false);
+            childViews.get(i).setLayoutParams(LPStore.get(i));
+        }
+
+    }
+
     private void setUpPosts(String username){
 
         Log.d("profilesetup", "setUpPosts called");
