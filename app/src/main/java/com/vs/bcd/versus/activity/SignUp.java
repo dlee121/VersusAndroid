@@ -1,9 +1,6 @@
 package com.vs.bcd.versus.activity;
 
 import android.content.Intent;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -13,25 +10,18 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.google.firebase.auth.FirebaseAuth;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.ViewPagerCustomDuration;
-import com.vs.bcd.versus.fragment.CommentEnterFragment;
-import com.vs.bcd.versus.fragment.CreatePost;
-import com.vs.bcd.versus.fragment.PostPage;
-import com.vs.bcd.versus.fragment.SearchPage;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.User;
 
@@ -60,6 +50,7 @@ public class SignUp extends AppCompatActivity {
     private WhatsYourName wyn;
     private WhatsYourBirthday wyb;
     private WhatsYourUsername wyun;
+    private FirebaseAuth mFirebaseAuth;
 
     @Override
     public void onBackPressed(){
@@ -109,14 +100,6 @@ public class SignUp extends AppCompatActivity {
         mViewPager.setCurrentItem(0);
 
     }
-/*
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_sign_up, menu);
-        return true;
-    }
-*/
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -249,6 +232,8 @@ public class SignUp extends AppCompatActivity {
 
                 try {
                     mapper.save(newUser);
+                    mFirebaseAuth.getInstance().createUserWithEmailAndPassword(newUser.getMkey() + newUser.getUsername().replaceAll("[^A-Za-z0-9]", "v") + "@versusbcd.com", newUser.getMkey() + "vsbcd121");
+
                     //TODO: Ensure that lines below are called only if mapper.save(newUser) is successful (in other words, make sure thread waits until mapper.save(newUser) finishes its job successfully, otherwise throwing exception to exit thread before calling below lines to login the new user).
                     //TODO: So far this seems to be the case, as any exception thrown is caught and lines below don't get executed because we exit the thread when exception is thrown.
                     //TODO: Cuz if there is a case where lines below are executed despite mapper.save failure, that would probably cause some bugs.

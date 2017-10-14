@@ -43,36 +43,6 @@ public class Tab4Messenger extends Fragment {
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.tab4messenger, container, false);
 
-        categories = new ArrayList<>();
-        ((MainContainer)getActivity()).setUpCategoriesList(categories);
-
-        RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.category_selection_rvt3);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        mCategoriesAdapter = new CategoriesAdapter(recyclerView, categories, getActivity(), 1);
-        recyclerView.setAdapter(mCategoriesAdapter);
-
-        categoryFilterET = (EditText)rootView.findViewById(R.id.tab3catselect_filterbox);
-        categoryFilterET.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-                // TODO Auto-generated method stub
-            }
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-                // TODO Auto-generated method stub
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                filter(s.toString());
-                //you can use runnable postDelayed like 500 ms to delay search text
-            }
-        });
-
-
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();
         for (int i = 0; i<((ViewGroup)rootView).getChildCount(); i++){
@@ -112,18 +82,6 @@ public class Tab4Messenger extends Fragment {
             childViews.get(i).setClickable(false);
             childViews.get(i).setLayoutParams(new RelativeLayout.LayoutParams(0,0));
         }
-    }
-
-    void filter(String text){
-        List<CategoryObject> temp = new ArrayList<>();
-        for(CategoryObject co: categories){
-            if(co.getCategoryName().toLowerCase().contains(text.toLowerCase())){
-                temp.add(co);
-            }
-        }
-        //update recyclerview
-        mCategoriesAdapter.updateList(temp);
-        Log.d("Categories", "still has same " + Integer.toString(categories.size()) + "items");
     }
 
 }

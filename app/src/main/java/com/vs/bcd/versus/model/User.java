@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 
 /**
@@ -29,6 +30,7 @@ public class User {
     private int num_b;  //number of bronze medals this user has
     private List<String> flist; //list of username of users this user is following
     private int fnum;   //number of followers following this user
+    private String mkey; //pw for messenger auth
 
 
     @DynamoDBAttribute(attributeName = "firstname")
@@ -143,6 +145,14 @@ public class User {
         this.fnum = fnum;
     }
 
+    @DynamoDBAttribute(attributeName = "mkey")
+    public String getMkey(){
+        return mkey;
+    }
+    public void setMkey(String mkey){
+        this.mkey = mkey;
+    }
+
     public User(){
 
     }
@@ -162,6 +172,7 @@ public class User {
         num_b = 0;
         fnum = 0;
         flist = new ArrayList<>();
+        mkey = UUID.randomUUID().toString().substring(0, 5);
 
         //finish this thing, then do the write to db, then write session info to sharedpref and we're done with basic signup!
     }
