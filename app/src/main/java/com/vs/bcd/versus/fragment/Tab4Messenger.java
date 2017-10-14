@@ -129,6 +129,7 @@ public class Tab4Messenger extends Fragment {
 
         userMKey = ((MainContainer)getActivity()).getUserMKey();
         mUsername = ((MainContainer)getActivity()).getUsername();
+
         if(mFirebaseUser == null){
             mFirebaseAuth.signInWithEmailAndPassword(userMKey + mUsername.replaceAll("[^A-Za-z0-9]", "v") + "@versusbcd.com", userMKey + "vsbcd121")
                 .addOnCompleteListener(getActivity(), new OnCompleteListener<AuthResult>() {
@@ -139,14 +140,16 @@ public class Tab4Messenger extends Fragment {
                             Toast.makeText(getActivity(), "Authentication failed.", Toast.LENGTH_SHORT).show();
 
                         } else {
-                            mPhotoUrl = "gs://bcd-versus.appspot.com/vs_shadow_w_tag.png";
+                            //TODO: photoURL should be a link to the user's profile picture stored in firebase. If no pic then should be blank, and in the UI if photoURL is blank then use default image in-app
+                            mPhotoUrl = "https://firebasestorage.googleapis.com/v0/b/bcd-versus.appspot.com/o/vs_shadow_w_tag.png?alt=media&token=76f50800-a388-4be7-b802-bff78fe0d07d";
+                            mFirebaseUser = mFirebaseAuth.getCurrentUser();
                             setUpMessenger();
                         }
                     }
                 });
         }
         else {
-            mPhotoUrl = "gs://bcd-versus.appspot.com/vs_shadow_w_tag.png";
+            mPhotoUrl = "https://firebasestorage.googleapis.com/v0/b/bcd-versus.appspot.com/o/vs_shadow_w_tag.png?alt=media&token=76f50800-a388-4be7-b802-bff78fe0d07d";
             setUpMessenger();
         }
 
