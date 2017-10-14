@@ -1,6 +1,7 @@
 package com.vs.bcd.versus.activity;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.support.design.widget.CoordinatorLayout;
@@ -34,6 +35,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
+import com.google.android.gms.auth.api.Auth;
 import com.vs.bcd.versus.fragment.CategoryFragment;
 import com.vs.bcd.versus.fragment.CommentEnterFragment;
 import com.vs.bcd.versus.fragment.LeaderboardTab;
@@ -885,11 +887,17 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public void sessionLogOut(){
+        mainActivityFragRef.firebaseSignOut();
+        //Auth.GoogleSignInApi.signOut(mGoogleApiClient);
         sessionManager.logoutUser();
     }
 
     public void meClickTrue(){
         meClicked = true;
+    }
+
+    public String getUserMKey(){
+        return sessionManager.getMKey();
     }
 
 }

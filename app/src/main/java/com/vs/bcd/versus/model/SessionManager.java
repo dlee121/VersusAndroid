@@ -47,6 +47,7 @@ public class SessionManager {
     public static final String KEY_USERNAME = "pref_username";
     public static final String KEY_TIMECODE = "pref_timecode";
     public static final String KEY_FLIST = "pref_flist";
+    public static final String KEY_MKEY = "pref_mkey";
 
     //keep password private
     private static final String KEY_PASSWORD = "pref_password";
@@ -75,6 +76,7 @@ public class SessionManager {
         editor.putString(KEY_PHONE, user.getPhone());
         editor.putString(KEY_USERNAME, user.getUsername());
         editor.putInt(KEY_TIMECODE, user.getTimecode());
+        editor.putString(KEY_MKEY, user.getMkey());
 
         Gson gson = new Gson();
         String flistStr = gson.toJson(user.getFlist());
@@ -108,6 +110,10 @@ public class SessionManager {
 
     public String getCurrentUsername(){
         return pref.getString(KEY_USERNAME, null);  //TODO: null or "" for the default value (second param of getString)?
+    }
+
+    public String getMKey(){
+        return pref.getString(KEY_MKEY, null);
     }
 
     public int getUserTimecode(){

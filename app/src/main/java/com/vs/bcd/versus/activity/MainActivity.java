@@ -44,6 +44,7 @@ public class MainActivity extends Fragment {
     private LinearLayout tabStrip;
     private MainContainer mainContainer;
     private FloatingActionButton fab;
+    private Tab4Messenger tab4;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -190,7 +191,7 @@ public class MainActivity extends Fragment {
                     Tab3Categories tab3 = new Tab3Categories();
                     return tab3;
                 case 3:
-                    Tab4Messenger tab4 = new Tab4Messenger();
+                    tab4 = new Tab4Messenger();
                     return tab4;
                 default:
                     return null;
@@ -265,6 +266,10 @@ public class MainActivity extends Fragment {
         fab.setEnabled(false);
         fab.setClickable(false);
         fab.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+    }
+
+    public void firebaseSignOut(){
+        tab4.firebaseSignOut();
     }
 
 }
