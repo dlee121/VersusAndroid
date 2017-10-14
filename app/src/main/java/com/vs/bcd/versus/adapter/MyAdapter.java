@@ -2,14 +2,17 @@ package com.vs.bcd.versus.adapter;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.vs.bcd.versus.OnLoadMoreListener;
@@ -85,8 +88,6 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
         if (holder instanceof UserViewHolder) {
-
-
 
             //TODO:this is where values are put into the layout, from the post object
             PostSkeleton post = posts.get(position);
@@ -258,7 +259,6 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         public CircleImageView circView;
 
-
         //TODO: thumbnails
 
         public UserViewHolder(View view) {
@@ -270,6 +270,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             mainVSText = (TextView) view.findViewById(R.id.maintitletxt);
             category = (TextView) view.findViewById(R.id.txt_category);
             votecount = (TextView) view.findViewById(R.id.txt_votecount);
+
         }
     }
 

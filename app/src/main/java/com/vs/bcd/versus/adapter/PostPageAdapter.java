@@ -184,12 +184,17 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     }
                 });
 
+                int dpValue = 50; // margin in dips
+                float d = activity.getResources().getDisplayMetrics().density;
+                int margin = (int)(dpValue * d); // margin in pixels
 
-                setLeftMargin(userViewHolder.circView, 150 * currentComment.getNestedLevel());  //left margin (indentation) of 150dp per nested level
 
+                setLeftMargin(userViewHolder.circView, margin * currentComment.getNestedLevel());  //left margin (indentation) of 150dp per nested level
+                /*
                 if(currentComment.getComment_id().equals("2ebf9760-d9bf-4785-af68-c3993be8945d")){
                     Log.d("debug", "this is the 2eb comment");
                 }
+                */
                 switch (currentComment.getUservote()){
                     case NOVOTE:
                         userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);

@@ -8,18 +8,29 @@
     android:fitsSystemWindows="true"
     tools:context="com.vs.bcd.versus.activity.MainContainer">
 
-    <com.vs.bcd.versus.ViewPagerCustomDuration
-        android:id="@+id/container2"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+        android:layout_height="match_parent">
+        <RelativeLayout
+            android:id="@+id/vpcontainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/bottom_navigation">
 
-    <com.aurelhubert.ahbottomnavigation.AHBottomNavigation
-        android:id="@+id/bottom_navigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom" />
+            <com.vs.bcd.versus.ViewPagerCustomDuration
+                android:id="@+id/container2"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
+        </RelativeLayout>
 
+        <com.aurelhubert.ahbottomnavigation.AHBottomNavigation
+            android:id="@id/bottom_navigation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"/>
+
+    </RelativeLayout>
 
 </android.support.design.widget.CoordinatorLayout>

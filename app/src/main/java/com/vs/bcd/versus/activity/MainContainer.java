@@ -3,6 +3,7 @@ package com.vs.bcd.versus.activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v7.app.AppCompatActivity;
@@ -17,9 +18,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -88,6 +91,9 @@ public class MainContainer extends AppCompatActivity {
     private String currUsername = null;
     private String beforeProfileTitle = "";
     private RelativeLayout.LayoutParams toolbarButtonRightLP;
+    private RelativeLayout.LayoutParams bottomNavLP;
+    private RelativeLayout vpContainer;
+    private RelativeLayout.LayoutParams vpContainerLP;
 
     @Override
     public void onBackPressed(){
@@ -196,6 +202,24 @@ public class MainContainer extends AppCompatActivity {
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0);
+
+        // Create the adapter that will return a fragment for each of the three
+        // primary sections of the activity.
+        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+
+        // Set up the ViewPager with the sections adapter.
+        mViewPager = (ViewPagerCustomDuration) findViewById(R.id.container2);
+        mViewPager.setScrollDurationFactor(1);
+        mViewPager.setAdapter(mSectionsPagerAdapter);
+        mViewPager.setOffscreenPageLimit(11);
+        mViewPager.setPageTransformer(false, new FadePageTransformer());
+        //mViewPager.setPageTransformer(false, new NoPageTransformer());
+
+        vpContainer = (RelativeLayout) findViewById(R.id.vpcontainer);
+        vpContainerLP = (RelativeLayout.LayoutParams) vpContainer.getLayoutParams();
+
+        windowSize = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(windowSize);
 
     /*
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -323,25 +347,9 @@ public class MainContainer extends AppCompatActivity {
             }
         });
 
-
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-
-        // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPagerCustomDuration) findViewById(R.id.container2);
-        mViewPager.setScrollDurationFactor(1);
-        mViewPager.setAdapter(mSectionsPagerAdapter);
-        mViewPager.setOffscreenPageLimit(11);
-        mViewPager.setPageTransformer(false, new FadePageTransformer());
-        //mViewPager.setPageTransformer(false, new NoPageTransformer());
-
-        windowSize = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(windowSize);
-
-
-
         bottomNavigation = (AHBottomNavigation) findViewById(R.id.bottom_navigation);
+
+        bottomNavLP = (RelativeLayout.LayoutParams) bottomNavigation.getLayoutParams();
 
         // Create items
         AHBottomNavigationItem item1 = new AHBottomNavigationItem("Main", R.drawable.goldmedal);
@@ -817,10 +825,14 @@ public class MainContainer extends AppCompatActivity {
 
     private void enableBottomTabs(){
         bottomNavigation.restoreBottomNavigation(false);
+        bottomNavigation.setLayoutParams(bottomNavLP);
+        vpContainer.setLayoutParams(vpContainerLP);
     }
 
     private void disableBottomTabs(){
         bottomNavigation.hideBottomNavigation(false);
+        bottomNavigation.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+        vpContainer.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
     }
 
     public int getUserTimecode(){

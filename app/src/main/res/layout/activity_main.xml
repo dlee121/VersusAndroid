@@ -4,13 +4,8 @@
     android:id="@+id/main_frag_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="8dp"
-    android:paddingLeft="0dp"
-    android:paddingRight="0dp"
-    android:paddingTop="0dp"
     android:background="#efefef"
     tools:context="com.vs.bcd.versus.activity.MainContainer">
-
 
     <android.support.design.widget.TabLayout
         android:id="@+id/tabs"
