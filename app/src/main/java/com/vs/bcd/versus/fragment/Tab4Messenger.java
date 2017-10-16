@@ -10,7 +10,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
-import android.text.InputFilter;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -39,18 +38,14 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.vs.bcd.versus.R;
-import com.vs.bcd.versus.activity.MainActivity;
 import com.vs.bcd.versus.activity.MainContainer;
-import com.vs.bcd.versus.adapter.CategoriesAdapter;
-import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.model.MessageObject;
+import com.vs.bcd.versus.model.SessionManager;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-import static android.app.Activity.RESULT_OK;
 import static android.content.ContentValues.TAG;
 
 /**
@@ -64,19 +59,19 @@ public class Tab4Messenger extends Fragment {
     public static class MessageViewHolder extends RecyclerView.ViewHolder {
         TextView messageTextView;
         ImageView messageImageView;
-        TextView messengerTextView;
+        TextView usernameTextView;
         CircleImageView messengerImageView;
 
         public MessageViewHolder(View v) {
             super(v);
             messageTextView = (TextView) itemView.findViewById(R.id.messageTextView);
             messageImageView = (ImageView) itemView.findViewById(R.id.messageImageView);
-            messengerTextView = (TextView) itemView.findViewById(R.id.messengerTextView);
+            usernameTextView = (TextView) itemView.findViewById(R.id.usernameTextView);
             messengerImageView = (CircleImageView) itemView.findViewById(R.id.messengerImageView);
         }
     }
 
-    private final String MESSAGES_CHILD = "messages";
+    private String MESSAGES_CHILD = "";
     private final int REQUEST_IMAGE = 2;
     private final int RESULT_OK = -1;
     private static final String LOADING_IMAGE_URL = "https://www.google.com/images/spin-32.gif";    //TODO: replace with our own
@@ -128,8 +123,7 @@ public class Tab4Messenger extends Fragment {
         mFirebaseUser = mFirebaseAuth.getCurrentUser(); //TODO: handle possible null object reference error
 
         userMKey = ((MainContainer)getActivity()).getUserMKey();
-        mUsername = ((MainContainer)getActivity()).getUsername();
-
+        //mUsername = ((MainContainer)getActivity()).getUsername();
         if(mFirebaseUser == null){
             mFirebaseAuth.signInWithEmailAndPassword(userMKey + mUsername.replaceAll("[^A-Za-z0-9]", "v") + "@versusbcd.com", userMKey + "vsbcd121")
                 .addOnCompleteListener(getActivity(), new OnCompleteListener<AuthResult>() {
@@ -154,6 +148,15 @@ public class Tab4Messenger extends Fragment {
         }
 
         return rootView;
+    }
+
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        SessionManager sessionManager = new SessionManager(context);
+        mUsername = sessionManager.getCurrentUsername();
+        MESSAGES_CHILD = sessionManager.getBday() + "/" + sessionManager.getCurrentUsername() + "/messages";
     }
 
     private void setUpMessenger(){
@@ -204,7 +207,7 @@ public class Tab4Messenger extends Fragment {
                     viewHolder.messageTextView.setVisibility(TextView.GONE);
                 }
 
-                viewHolder.messengerTextView.setText(friendlyMessage.getName());
+                viewHolder.usernameTextView.setText(friendlyMessage.getName());
                 if (friendlyMessage.getPhotoUrl() == null) {
                     viewHolder.messengerImageView.setImageDrawable(ContextCompat.getDrawable(getActivity(),
                             R.drawable.vs_shadow_w_tag));

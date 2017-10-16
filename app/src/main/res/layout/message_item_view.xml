@@ -39,7 +39,7 @@
                 android:scaleType="fitCenter"/>
 
             <TextView
-                android:id="@+id/messengerTextView"
+                android:id="@+id/usernameTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="0"

@@ -116,6 +116,10 @@ public class SessionManager {
         return pref.getString(KEY_MKEY, null);
     }
 
+    public String getBday(){
+        return pref.getString(KEY_BDAY, null);
+    }
+
     public int getUserTimecode(){
         return pref.getInt(KEY_TIMECODE, -1);
     }
