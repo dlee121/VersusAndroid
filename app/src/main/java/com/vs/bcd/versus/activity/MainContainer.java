@@ -921,8 +921,8 @@ public class MainContainer extends AppCompatActivity {
         return sessionManager.getMKey();
     }
 
-    public void setUpAndOpenMessageRoom(String rnum){
-        messageRoom.setUpRoom(rnum);
+    public void setUpAndOpenMessageRoom(String rnum, HashMap<String, String> usersMap){
+        messageRoom.setUpRoom(rnum, usersMap);
         mViewPager.setCurrentItem(11);
     }
 

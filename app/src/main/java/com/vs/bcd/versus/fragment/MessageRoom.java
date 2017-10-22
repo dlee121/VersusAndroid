@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -43,6 +44,8 @@ import com.vs.bcd.versus.model.MessageObject;
 import com.vs.bcd.versus.model.SessionManager;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -160,7 +163,7 @@ public class MessageRoom extends Fragment {
         MESSAGES_CHILD =  MESSAGES_CHILD_BODY;
     }
 
-    public void setUpRoom(String rnum){
+    public void setUpRoom(final String rnum, final HashMap<String, String> usersMap){
 
         MESSAGES_CHILD = MESSAGES_CHILD_BODY + rnum;
 
@@ -269,16 +272,22 @@ public class MessageRoom extends Fragment {
         });
 
         mSendButton = (Button) rootView.findViewById(R.id.sendButton);
+
+
+
         mSendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                MessageObject messageObject = new
-                        MessageObject(mMessageEditText.getText().toString(),
-                        mUsername,
-                        mPhotoUrl,
-                        null /* no image */);
-                mFirebaseDatabaseReference.child(MESSAGES_CHILD)
-                        .push().setValue(messageObject);
+                for(Map.Entry<String, String> entry : usersMap.entrySet()){
+                    String WRITE_PATH = entry.getValue() + "/" + entry.getKey() + "/messages/" + rnum;
+                    MessageObject messageObject = new
+                            MessageObject(mMessageEditText.getText().toString().trim(),
+                            mUsername,
+                            mPhotoUrl,
+                            null /* no image */);
+                    mFirebaseDatabaseReference.child(WRITE_PATH)
+                            .push().setValue(messageObject);
+                }
                 mMessageEditText.setText("");
             }
         });
@@ -369,12 +378,18 @@ public class MessageRoom extends Fragment {
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
-            if(rootView != null)
+            if(rootView != null){
+                //the great piece of code that prevents keyboard from pushing toolbar up
+                getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
                 enableChildViews();
+            }
         }
         else {
-            if (rootView != null)
+
+            if (rootView != null){
+                getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
                 disableChildViews();
+            }
         }
     }
 

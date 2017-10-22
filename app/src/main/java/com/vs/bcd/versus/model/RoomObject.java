@@ -1,5 +1,7 @@
 package com.vs.bcd.versus.model;
 
+import java.util.HashMap;
+
 /**
  * Created by dlee on 10/13/17.
  */
@@ -11,17 +13,19 @@ public class RoomObject {
     private Long time;
     private String preview;
     private String rnum;
+    private HashMap<String, String> users;  //<username : bday>
 
     //TODO: make variables for rest of room info data, for now we just have name, time , preview to get it going
 
     public RoomObject() {
     }
 
-    public RoomObject(String title, Long time, String preview, String rnum) {
+    public RoomObject(String title, Long time, String preview, String rnum, HashMap<String, String> users) {
         this.name = title;
         this.time = time;
         this.preview = preview;
         this.rnum = rnum;
+        this.users = users;
     }
 
     public String getId() {
@@ -62,6 +66,14 @@ public class RoomObject {
 
     public void setRnum(String rnum){
         this.rnum = rnum;
+    }
+
+    public HashMap<String, String> getUsers(){
+        return users;
+    }
+
+    public void setUsers(HashMap<String, String> users){
+        this.users = users;
     }
 
 }

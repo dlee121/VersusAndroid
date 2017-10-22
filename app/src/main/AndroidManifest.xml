@@ -58,7 +58,7 @@
         <activity
             android:name=".activity.MainContainer"
             android:label="@string/title_activity_main_container"
-            android:theme="@style/AppTheme" />
+            android:theme="@style/AppTheme"/>
 
     </application>
 
