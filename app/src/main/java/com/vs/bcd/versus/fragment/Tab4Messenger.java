@@ -3,6 +3,7 @@ package com.vs.bcd.versus.fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -32,6 +33,7 @@ import com.vs.bcd.versus.model.SessionManager;
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
 
 /**
@@ -81,6 +83,7 @@ public class Tab4Messenger extends Fragment {
     private String userMKey = "";
     private SimpleDateFormat df;
     private MainContainer activity;
+    private FloatingActionButton fabNewMsg;
 
 
     @Override
@@ -135,6 +138,14 @@ public class Tab4Messenger extends Fragment {
             setUpMessenger();
         }
 
+        fabNewMsg = (FloatingActionButton) rootView.findViewById(R.id.fab_new_msg);
+        fabNewMsg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //TODO: open Send New Message UI (so also implement that UI in XML) and set up related stuff
+            }
+        });
+
         return rootView;
     }
 
@@ -168,9 +179,12 @@ public class Tab4Messenger extends Fragment {
                     viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
+
                             String roomNum = roomObject.getRnum();
-                            if(roomNum != null){
-                                activity.setUpAndOpenMessageRoom(roomNum);
+                            HashMap<String, String> usersMap = roomObject.getUsers();
+
+                            if(roomNum != null &&  usersMap != null){
+                                activity.setUpAndOpenMessageRoom(roomNum, usersMap);
                             }
                             else{
                                 Log.d("MESSENGER", "roomNum is null");
