@@ -10,16 +10,18 @@ public class RoomObject {
     private String name;
     private Long time;
     private String preview;
+    private String rnum;
 
     //TODO: make variables for rest of room info data, for now we just have name, time , preview to get it going
 
     public RoomObject() {
     }
 
-    public RoomObject(String title, Long time, String preview) {
+    public RoomObject(String title, Long time, String preview, String rnum) {
         this.name = title;
         this.time = time;
         this.preview = preview;
+        this.rnum = rnum;
     }
 
     public String getId() {
@@ -52,6 +54,14 @@ public class RoomObject {
 
     public void setPreview(String preview){
         this.preview = preview;
+    }
+
+    public String getRnum(){
+        return rnum;
+    }
+
+    public void setRnum(String rnum){
+        this.rnum = rnum;
     }
 
 }

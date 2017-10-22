@@ -39,6 +39,7 @@ import com.google.android.gms.auth.api.Auth;
 import com.vs.bcd.versus.fragment.CategoryFragment;
 import com.vs.bcd.versus.fragment.CommentEnterFragment;
 import com.vs.bcd.versus.fragment.LeaderboardTab;
+import com.vs.bcd.versus.fragment.MessageRoom;
 import com.vs.bcd.versus.fragment.NotificationsTab;
 import com.vs.bcd.versus.fragment.PostPage;
 import com.vs.bcd.versus.fragment.ProfileTab;
@@ -96,6 +97,7 @@ public class MainContainer extends AppCompatActivity {
     private RelativeLayout.LayoutParams bottomNavLP;
     private RelativeLayout vpContainer;
     private RelativeLayout.LayoutParams vpContainerLP;
+    private MessageRoom messageRoom;
 
     @Override
     public void onBackPressed(){
@@ -170,7 +172,11 @@ public class MainContainer extends AppCompatActivity {
                     titleTxtView.setText("");
                     enableBottomTabs();
                     break;
+                /*  default might be enough to handle this case
+                case 11: //currently in MessageRoom fragment
 
+                    break;
+                */
                 default:
                     toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                     mViewPager.setCurrentItem(0);
@@ -213,7 +219,7 @@ public class MainContainer extends AppCompatActivity {
         mViewPager = (ViewPagerCustomDuration) findViewById(R.id.container2);
         mViewPager.setScrollDurationFactor(1);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        mViewPager.setOffscreenPageLimit(11);
+        mViewPager.setOffscreenPageLimit(12);
         mViewPager.setPageTransformer(false, new FadePageTransformer());
         //mViewPager.setPageTransformer(false, new NoPageTransformer());
 
@@ -336,6 +342,9 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     default:
+                        toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                        mViewPager.setCurrentItem(0);
+                        titleTxtView.setText(lastSetTitle);
                         break;
                 }
             }
@@ -499,6 +508,13 @@ public class MainContainer extends AppCompatActivity {
                         disableBottomTabs();
                         break;
 
+                    case 11:
+                        hideToolbarButtonRight();
+                        disableBottomTabs();
+                        showToolbarButtonLeft();
+                        toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+                        break;
+
                     default:
 
                         break;
@@ -621,13 +637,16 @@ public class MainContainer extends AppCompatActivity {
                     return profileTab;
                 case 10:
                     return new SettingsFragment();
+                case 11:
+                    messageRoom = new MessageRoom();
+                    return messageRoom;
                 default:
                     return null;
             }
         }
         @Override
         public int getCount() {
-            return 11;
+            return 12;
         }
 
         @Override
@@ -655,6 +674,8 @@ public class MainContainer extends AppCompatActivity {
                     return "ME";
                 case 10:
                     return "SETTINGS";
+                case 11:
+                    return "MESSENGER";
             }
             return null;
         }
@@ -898,6 +919,11 @@ public class MainContainer extends AppCompatActivity {
 
     public String getUserMKey(){
         return sessionManager.getMKey();
+    }
+
+    public void setUpAndOpenMessageRoom(String rnum){
+        messageRoom.setUpRoom(rnum);
+        mViewPager.setCurrentItem(11);
     }
 
 }

@@ -80,6 +80,7 @@ public class Tab4Messenger extends Fragment {
     private String mPhotoUrl = "";
     private String userMKey = "";
     private SimpleDateFormat df;
+    private MainContainer activity;
 
 
     @Override
@@ -90,8 +91,8 @@ public class Tab4Messenger extends Fragment {
         df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
 
         // Initialize ProgressBar and RecyclerView.
-        mProgressBar = (ProgressBar) rootView.findViewById(R.id.progressBar);
-        mRoomRecyclerView = (RecyclerView) rootView.findViewById(R.id.messageRecyclerView);
+        mProgressBar = (ProgressBar) rootView.findViewById(R.id.roomsProgressBar);
+        mRoomRecyclerView = (RecyclerView) rootView.findViewById(R.id.roomsRecyclerView);
         mLinearLayoutManager = new LinearLayoutManager(getActivity());
         mLinearLayoutManager.setStackFromEnd(true);
         mRoomRecyclerView.setLayoutManager(mLinearLayoutManager);
@@ -140,6 +141,7 @@ public class Tab4Messenger extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        activity = (MainContainer) context;
         SessionManager sessionManager = new SessionManager(context);
         mUsername = sessionManager.getCurrentUsername();
         ROOMS_CHILD = sessionManager.getBday() + "/" + sessionManager.getCurrentUsername() + "/rooms";
@@ -157,12 +159,24 @@ public class Tab4Messenger extends Fragment {
 
             @Override
             protected void populateViewHolder(final RoomViewHolder viewHolder,
-                                              RoomObject roomObject, int position) {
+                                              final RoomObject roomObject, int position) {
                 mProgressBar.setVisibility(ProgressBar.INVISIBLE);
                 if (roomObject.getName() != null) {
                     viewHolder.roomTitleTV.setText(roomObject.getName());
                     viewHolder.roomTimeTV.setText(df.format(new Date(roomObject.getTime())));
                     viewHolder.roomPreviewTV.setText(roomObject.getPreview());
+                    viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            String roomNum = roomObject.getRnum();
+                            if(roomNum != null){
+                                activity.setUpAndOpenMessageRoom(roomNum);
+                            }
+                            else{
+                                Log.d("MESSENGER", "roomNum is null");
+                            }
+                        }
+                    });
                 }
                 else {
                     Log.d("roomSetUp", "title null");
