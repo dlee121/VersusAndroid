@@ -32,8 +32,6 @@ import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.PostSkeleton;
 import com.vs.bcd.versus.model.VSComment;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -219,7 +217,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                     GetItemRequest request = new GetItemRequest()
                             .withTableName("user")
                             .withKey(keyMap)
-                            .withProjectionExpression("num_g,num_s,num_b,points,fnum");
+                            .withProjectionExpression("num_g,num_s,num_b,points,frs");
                     GetItemResult result = activity.getDDBClient().getItem(request);
 
                     final Map<String, AttributeValue> resultMap = result.getItem();
@@ -247,8 +245,9 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                                 else if(attrName.equals("points")){
                                     pointsTV.setText(entry.getValue().getN());
                                 }
-                                else if(attrName.equals("fnum")){
-                                    followerCountTV.setText(entry.getValue().getN() + "\nFollowers");
+                                else if(attrName.equals("frs")){
+                                    followerCountTV.setText(Integer.toString(entry.getValue().getL().size()) + "\nFollowers");
+
                                 }
                             }
                             followingCountTV.setText(Integer.toString(activity.getFollowingNum()) + "\nFollowing");
@@ -289,7 +288,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                     GetItemRequest request = new GetItemRequest()
                             .withTableName("user")
                             .withKey(keyMap)
-                            .withProjectionExpression("num_g,num_s,num_b,points,flist,fnum");
+                            .withProjectionExpression("num_g,num_s,num_b,points,fns,frs");
                     GetItemResult result = activity.getDDBClient().getItem(request);
 
                     final Map<String, AttributeValue> resultMap = result.getItem();
@@ -317,10 +316,10 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                                 else if(attrName.equals("points")){
                                     pointsTV.setText(entry.getValue().getN());
                                 }
-                                else if(attrName.equals("fnum")){
-                                    followerCountTV.setText(entry.getValue().getN() + "\nFollowers");
+                                else if(attrName.equals("frs")){
+                                    followerCountTV.setText(Integer.toString(entry.getValue().getL().size()) + "\nFollowers");
                                 }
-                                else if(attrName.equals("flist")){
+                                else if(attrName.equals("fns")){
                                     followingCountTV.setText(Integer.toString(entry.getValue().getL().size()) + "\nFollowing");
                                 }
                             }
@@ -486,9 +485,6 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
             }
         });
 
-
-
-
     }
 
 
@@ -535,26 +531,26 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                     flistUpdateRequest.withTableName("user")
                             .withKey(Collections.singletonMap("username",
                                     new AttributeValue().withS(activity.getUsername())))
-                            .withUpdateExpression("SET flist = list_append(flist, :val)")
+                            .withUpdateExpression("SET fns = list_append(fns, :fnv)")
                             .withExpressionAttributeValues(
-                                    Collections.singletonMap(":val",
+                                    Collections.singletonMap(":fnv",
                                             new AttributeValue().withL(new AttributeValue().withS(currUsername))
                                     )
                             );
                     activity.getDDBClient().updateItem(flistUpdateRequest);
 
                     //also update flist stored in SharedPref and the localFlist HashSet in MainContainer
-                    activity.addToLocalFlist(currUsername);
+                    activity.addToLocalFns(currUsername);
 
-                    //increment the follower count of the followed user
+                    //update the follower list of the followed user
                     UpdateItemRequest fnumUpdateRequest = new UpdateItemRequest();
                     fnumUpdateRequest.withTableName("user")
                             .withKey(Collections.singletonMap("username",
                                     new AttributeValue().withS(currUsername)))
-                            .withUpdateExpression("ADD fnum :inc")
+                            .withUpdateExpression("SET frs = list_append(frs, :frv)")
                             .withExpressionAttributeValues(
-                                    Collections.singletonMap(":inc",
-                                            new AttributeValue().withN("1")
+                                    Collections.singletonMap(":frv",
+                                            new AttributeValue().withL(new AttributeValue().withS(activity.getUsername()))
                                     )
                             );
                     activity.getDDBClient().updateItem(fnumUpdateRequest);
@@ -589,7 +585,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                 GetItemRequest request = new GetItemRequest()
                         .withTableName("user")
                         .withKey(keyMap)
-                        .withProjectionExpression("points,fnum");
+                        .withProjectionExpression("points,frs");
                 GetItemResult result = activity.getDDBClient().getItem(request);
 
                 final Map<String, AttributeValue> resultMap = result.getItem();
@@ -606,8 +602,9 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                             if(attrName.equals("points")){
                                 pointsTV.setText(entry.getValue().getN());
                             }
-                            else if(attrName.equals("fnum")){
-                                followerCountTV.setText(entry.getValue().getN() + "\nFollowers");
+                            else if(attrName.equals("frs")){
+                                String frsCount = Integer.toString(entry.getValue().getL().size()) + "\nFollowers";
+                                followerCountTV.setText(frsCount);
                             }
                         }
                     }

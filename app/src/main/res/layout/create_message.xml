@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/invited_tv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Invited" />
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/invited_users_rv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/invited_tv"/>
+
+    <EditText
+        android:id="@+id/user_search_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/invited_users_rv"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:text="Type a name" />
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/user_search_rv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/user_search_text"/>
+
+</RelativeLayout>

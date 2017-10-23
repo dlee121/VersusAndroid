@@ -1,10 +1,8 @@
 package com.vs.bcd.versus.activity;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v7.app.AppCompatActivity;
@@ -19,11 +17,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -35,9 +31,9 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
-import com.google.android.gms.auth.api.Auth;
 import com.vs.bcd.versus.fragment.CategoryFragment;
 import com.vs.bcd.versus.fragment.CommentEnterFragment;
+import com.vs.bcd.versus.fragment.CreateMessage;
 import com.vs.bcd.versus.fragment.LeaderboardTab;
 import com.vs.bcd.versus.fragment.MessageRoom;
 import com.vs.bcd.versus.fragment.NotificationsTab;
@@ -90,7 +86,7 @@ public class MainContainer extends AppCompatActivity {
     private boolean meClicked = false;
     private ProfileTab profileTab;
     private int profileTabParent = 0;   //default parent is MainActivity, here parent just refers to previous page before the profile page was opened
-    private HashSet<String> localFlist;
+    private HashSet<String> localFns;
     private String currUsername = null;
     private String beforeProfileTitle = "";
     private RelativeLayout.LayoutParams toolbarButtonRightLP;
@@ -172,11 +168,12 @@ public class MainContainer extends AppCompatActivity {
                     titleTxtView.setText("");
                     enableBottomTabs();
                     break;
-                /*  default might be enough to handle this case
+                /*  default might be enough to handle this case, as well as case 12 (CreateMessage)
                 case 11: //currently in MessageRoom fragment
 
                     break;
                 */
+
                 default:
                     toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                     mViewPager.setCurrentItem(0);
@@ -203,7 +200,7 @@ public class MainContainer extends AppCompatActivity {
 
         userTimecode = sessionManager.getUserTimecode();
 
-        localFlist = sessionManager.getFlistHashSet();
+        localFns = sessionManager.getFnsHashSet();
 
         currUsername = sessionManager.getCurrentUsername();
 
@@ -219,7 +216,7 @@ public class MainContainer extends AppCompatActivity {
         mViewPager = (ViewPagerCustomDuration) findViewById(R.id.container2);
         mViewPager.setScrollDurationFactor(1);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        mViewPager.setOffscreenPageLimit(12);
+        mViewPager.setOffscreenPageLimit(13);
         mViewPager.setPageTransformer(false, new FadePageTransformer());
         //mViewPager.setPageTransformer(false, new NoPageTransformer());
 
@@ -515,6 +512,13 @@ public class MainContainer extends AppCompatActivity {
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         break;
 
+                    case 12:
+                        hideToolbarButtonRight();
+                        disableBottomTabs();
+                        showToolbarButtonLeft();
+                        toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+                        break;
+
                     default:
 
                         break;
@@ -640,13 +644,15 @@ public class MainContainer extends AppCompatActivity {
                 case 11:
                     messageRoom = new MessageRoom();
                     return messageRoom;
+                case 12:
+                    return new CreateMessage();
                 default:
                     return null;
             }
         }
         @Override
         public int getCount() {
-            return 12;
+            return 13;
         }
 
         @Override
@@ -676,6 +682,8 @@ public class MainContainer extends AppCompatActivity {
                     return "SETTINGS";
                 case 11:
                     return "MESSENGER";
+                case 12:
+                    return "NEW MESSAGE";
             }
             return null;
         }
@@ -884,16 +892,16 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public boolean isFollowing(String f_username){
-        return localFlist.contains(f_username);
+        return localFns.contains(f_username);
     }
 
-    public void addToLocalFlist(String f_username){
-        localFlist.add(f_username);
-        sessionManager.updateFlist(localFlist);
+    public void addToLocalFns(String f_username){
+        localFns.add(f_username);
+        sessionManager.updateFns(localFns);
     }
 
     public int getFollowingNum(){
-        return localFlist.size();
+        return localFns.size();
     }
 
     private void showSettingsButton(){

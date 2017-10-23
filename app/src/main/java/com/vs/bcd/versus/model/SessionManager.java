@@ -46,7 +46,8 @@ public class SessionManager {
     public static final String KEY_PHONE = "pref_phone";
     public static final String KEY_USERNAME = "pref_username";
     public static final String KEY_TIMECODE = "pref_timecode";
-    public static final String KEY_FLIST = "pref_flist";
+    public static final String KEY_FNS = "pref_fns";
+    public static final String KEY_FRS = "pref_frs";
     public static final String KEY_MKEY = "pref_mkey";
 
     //keep password private
@@ -79,8 +80,12 @@ public class SessionManager {
         editor.putString(KEY_MKEY, user.getMkey());
 
         Gson gson = new Gson();
-        String flistStr = gson.toJson(user.getFlist());
-        editor.putString(KEY_FLIST, flistStr);
+
+        String fnsStr = gson.toJson(user.getFns());
+        editor.putString(KEY_FNS, fnsStr);
+
+        String frsStr = gson.toJson(user.getFrs());
+        editor.putString(KEY_FRS, frsStr);
 
         // commit changes
         editor.commit();
@@ -124,19 +129,34 @@ public class SessionManager {
         return pref.getInt(KEY_TIMECODE, -1);
     }
 
-    public HashSet<String> getFlistHashSet(){
-        //TODO:confirm that this works with the TypeToken of HashSet<String>
+    public HashSet<String> getFnsHashSet(){
         Gson gson = new Gson();
-        String json = pref.getString(KEY_FLIST, null);
+        String json = pref.getString(KEY_FNS, null);
         Type type = new TypeToken<HashSet<String>>() {}.getType();
         HashSet<String> ret = gson.fromJson(json, type);
         return ret;
     }
 
-    public void updateFlist(HashSet<String> updatedList){
+    public void updateFns(HashSet<String> updatedList){
         Gson gson = new Gson();
-        String flistStr = gson.toJson(updatedList);
-        editor.putString(KEY_FLIST, flistStr);
+        String fnsStr = gson.toJson(updatedList);
+        editor.putString(KEY_FNS, fnsStr);
+        editor.apply();
+    }
+
+    public HashSet<String> getFrsHashSet(){
+        Gson gson = new Gson();
+        String json = pref.getString(KEY_FRS, null);
+        Type type = new TypeToken<HashSet<String>>() {}.getType();
+        HashSet<String> ret = gson.fromJson(json, type);
+        return ret;
+    }
+
+    public void updateFrs(HashSet<String> updatedList){
+        Gson gson = new Gson();
+        String frsStr = gson.toJson(updatedList);
+        editor.putString(KEY_FRS, frsStr);
+        editor.apply();
     }
 
     /**

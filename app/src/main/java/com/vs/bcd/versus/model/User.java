@@ -28,8 +28,8 @@ public class User {
     private int num_g;  //number of gold medals this user has
     private int num_s;  //number of silver medals this user has
     private int num_b;  //number of bronze medals this user has
-    private List<String> flist; //list of username of users this user is following
-    private int fnum;   //number of followers following this user
+    private List<String> fns; //list of username of users this user is following (following list)
+    private List<String > frs;  //list of username of users following this user (follower list)
     private String mkey; //pw for messenger auth
 
 
@@ -129,20 +129,20 @@ public class User {
         this.num_b = num_b;
     }
 
-    @DynamoDBAttribute(attributeName = "flist")
-    public List<String> getFlist(){
-        return flist;
+    @DynamoDBAttribute(attributeName = "fns")
+    public List<String> getFns(){
+        return fns;
     }
-    public void setFlist(List<String> flist){
-        this.flist = flist;
+    public void setFns(List<String> fns){
+        this.fns = fns;
     }
 
-    @DynamoDBAttribute(attributeName = "fnum")
-    public int getFnum(){
-        return fnum;
+    @DynamoDBAttribute(attributeName = "frs")
+    public List<String> getFrs(){
+        return frs;
     }
-    public void setFnum(int fnum){
-        this.fnum = fnum;
+    public void setFrs(List<String> frs){
+        this.frs = frs;
     }
 
     @DynamoDBAttribute(attributeName = "mkey")
@@ -170,8 +170,8 @@ public class User {
         num_g = 0;
         num_s = 0;
         num_b = 0;
-        fnum = 0;
-        flist = new ArrayList<>();
+        fns = new ArrayList<>();
+        frs = new ArrayList<>();
         mkey = UUID.randomUUID().toString().substring(0, 5);
 
         //finish this thing, then do the write to db, then write session info to sharedpref and we're done with basic signup!

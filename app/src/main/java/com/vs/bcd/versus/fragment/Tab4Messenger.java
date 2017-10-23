@@ -143,6 +143,7 @@ public class Tab4Messenger extends Fragment {
             @Override
             public void onClick(View view) {
                 //TODO: open Send New Message UI (so also implement that UI in XML) and set up related stuff
+                activity.getViewPager().setCurrentItem(13);
             }
         });
 
