@@ -7,16 +7,16 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
+import android.widget.EditText;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.analytics.FirebaseAnalytics;
@@ -27,16 +27,15 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
-import com.vs.bcd.versus.model.RoomObject;
+import com.vs.bcd.versus.adapter.InvitedUserAdapter;
+import com.vs.bcd.versus.adapter.UserSearchAdapter;
 import com.vs.bcd.versus.model.SessionManager;
+import com.vs.bcd.versus.model.UserSearchItem;
 
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
-
-import de.hdodenhof.circleimageview.CircleImageView;
 
 /**
  * Created by dlee on 8/6/17.
@@ -45,28 +44,6 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 
 public class CreateMessage extends Fragment {
-
-    public static class InvitedUserViewHolder extends RecyclerView.ViewHolder {
-        CircleImageView invitedUserPhoto;
-        TextView invitedUsername;
-
-        public InvitedUserViewHolder(View v) {
-            super(v);
-            invitedUserPhoto = (CircleImageView) itemView.findViewById(R.id.invited_user_photo);
-            invitedUsername = (TextView) itemView.findViewById(R.id.invited_username);
-        }
-    }
-
-    public static class UserSearchViewHolder extends RecyclerView.ViewHolder {
-        CircleImageView searchUserPhoto;
-        TextView searchUsername;
-
-        public UserSearchViewHolder(View v) {
-            super(v);
-            searchUserPhoto = (CircleImageView) itemView.findViewById(R.id.search_user_photo);
-            searchUsername = (TextView) itemView.findViewById(R.id.search_username);
-        }
-    }
 
     private String ROOMS_CHILD = "";
     private final int REQUEST_IMAGE = 2;
@@ -91,6 +68,11 @@ public class CreateMessage extends Fragment {
     private FloatingActionButton fabNewMsg;
 
     private RecyclerView invitedUsersRV, userSearchRV;
+    private EditText userSearchET;
+    private ArrayList<String> following, followers, invitedUsers;
+    private ArrayList<UserSearchItem> messageContacts;
+    private InvitedUserAdapter invitedUserAdapter;
+    private UserSearchAdapter userSearchAdapter;
 
 
     @Override
@@ -99,6 +81,27 @@ public class CreateMessage extends Fragment {
         rootView = inflater.inflate(R.layout.create_message, container, false);
 
         df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
+
+        userSearchET = (EditText) rootView.findViewById(R.id.user_search_edittext);
+        userSearchET.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                // TODO Auto-generated method stub
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                // TODO Auto-generated method stub
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                filter(s.toString());
+                //you can use runnable postDelayed like 500 ms to delay search text
+            }
+        });
 
         invitedUsersRV = (RecyclerView) rootView.findViewById(R.id.invited_users_rv);
         invitedUsersLLM = new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false);
@@ -163,6 +166,29 @@ public class CreateMessage extends Fragment {
     private void setUpMessenger(){
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(getActivity());
+
+        following = new ArrayList<>(activity.getLocalFns());
+        Log.d("MESSENGER", "following list size: "+Integer.toString(following.size()));
+        //TODO: get fresh followers list from firebase
+        followers = new ArrayList<>();  //temp empty list
+        //followers = new ArrayList<>(***get realtime instance of followers list in firebase***);
+
+        messageContacts = new ArrayList<>();
+        for(String fws : following){
+            messageContacts.add(new UserSearchItem(fws));
+        }
+        for(String frs : followers){
+            messageContacts.add(new UserSearchItem(frs));
+        }
+
+        invitedUsers = new ArrayList<>();
+
+        invitedUserAdapter = new InvitedUserAdapter(invitedUsers, getActivity());
+        invitedUsersRV.setAdapter(invitedUserAdapter);
+
+        userSearchAdapter = new UserSearchAdapter(messageContacts, getActivity(), this);
+        userSearchRV.setAdapter(userSearchAdapter);
+
     }
 
     @Override
@@ -192,6 +218,39 @@ public class CreateMessage extends Fragment {
             childViews.get(i).setClickable(false);
             childViews.get(i).setLayoutParams(new RelativeLayout.LayoutParams(0,0));
         }
+    }
+
+    void filter(String text){
+
+        List<String> tempFollowing = new ArrayList<>();
+        for(String entry: following){
+            if(entry.toLowerCase().contains(text.toLowerCase())){
+                tempFollowing.add(entry);
+            }
+        }
+
+        List<String> tempFollowers = new ArrayList<>();
+        for(String entry: followers){
+            if(entry.toLowerCase().contains(text.toLowerCase())){
+                tempFollowers.add(entry);
+            }
+        }
+
+        messageContacts = new ArrayList<>();
+        for(String fws : tempFollowing){
+            messageContacts.add(new UserSearchItem(fws));
+        }
+        for(String frs : tempFollowers){
+            messageContacts.add(new UserSearchItem(frs));
+        }
+
+        //update recyclerview
+        userSearchAdapter.updateList(messageContacts);
+    }
+
+    public void updateInvitedList(String username){
+        invitedUsers.add(username);
+
     }
 
 }

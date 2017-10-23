@@ -19,7 +19,7 @@
         android:id="@+id/category_selection_rvcp"
         android:layout_below="@id/cat_selection_filterbox"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_margin="8dp"/>
 
 

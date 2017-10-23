@@ -900,6 +900,10 @@ public class MainContainer extends AppCompatActivity {
         sessionManager.updateFns(localFns);
     }
 
+    public HashSet<String> getLocalFns(){
+        return localFns;
+    }
+
     public int getFollowingNum(){
         return localFns.size();
     }

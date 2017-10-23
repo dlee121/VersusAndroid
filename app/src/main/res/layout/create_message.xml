@@ -16,18 +16,18 @@
         android:layout_below="@id/invited_tv"/>
 
     <EditText
-        android:id="@+id/user_search_text"
+        android:id="@+id/user_search_edittext"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/invited_users_rv"
         android:ems="10"
         android:inputType="textPersonName"
-        android:text="Type a name" />
+        android:hint="Type a name" />
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/user_search_rv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/user_search_text"/>
+        android:layout_below="@id/user_search_edittext"/>
 
 </RelativeLayout>
