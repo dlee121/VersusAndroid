@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -73,6 +74,7 @@ public class CreateMessage extends Fragment {
     private ArrayList<UserSearchItem> messageContacts, invitedUsers;
     private InvitedUserAdapter invitedUserAdapter;
     private UserSearchAdapter userSearchAdapter;
+    private TextView invitedTV;
 
 
     @Override
@@ -102,6 +104,8 @@ public class CreateMessage extends Fragment {
                 //you can use runnable postDelayed like 500 ms to delay search text
             }
         });
+
+        invitedTV = (TextView) rootView.findViewById(R.id.invited_tv);
 
         invitedUsersRV = (RecyclerView) rootView.findViewById(R.id.invited_users_rv);
         invitedUsersLLM = new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false);
@@ -205,10 +209,16 @@ public class CreateMessage extends Fragment {
     }
 
     public void enableChildViews(){
-        for(int i = 0; i<childViews.size(); i++){
+        for(int i = 1; i<childViews.size(); i++){ //start at i = 1, works because invitedTV is the first child of this layout and we skip it in this for-loop
             childViews.get(i).setEnabled(true);
             childViews.get(i).setClickable(true);
             childViews.get(i).setLayoutParams(LPStore.get(i));
+        }
+        if(invitedUsers != null && !invitedUsers.isEmpty()){
+            showInvitedTV();
+        }
+        else{
+            hideInvitedTV();
         }
     }
 
@@ -251,16 +261,30 @@ public class CreateMessage extends Fragment {
     public void addToInvitedList(UserSearchItem usi){
         invitedUsers.add(usi);
         invitedUserAdapter.notifyDataSetChanged();
+        if(!invitedUsers.isEmpty()){
+            showInvitedTV();
+        }
     }
 
     public void removeFromInvitedList(UserSearchItem usi){
         invitedUsers.remove(usi);
         invitedUserAdapter.notifyDataSetChanged();
+        if(invitedUsers.isEmpty()){
+            hideInvitedTV();
+        }
     }
 
     public void removeFromCheckedItems(String username){
         userSearchAdapter.removeFromCheckedItems(username);
         userSearchAdapter.notifyDataSetChanged();
+    }
+
+    private void hideInvitedTV(){
+        invitedTV.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+    }
+
+    private void showInvitedTV(){
+        invitedTV.setLayoutParams(LPStore.get(0));  //works because invitedTV is the first child of this layout
     }
 
 
