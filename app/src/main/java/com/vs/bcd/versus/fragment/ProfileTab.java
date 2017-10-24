@@ -525,6 +525,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
         if(currUsername != null){
             Runnable runnable = new Runnable() {
                 public void run() {
+                    //TODO: update follower list in firebase
 
                     //add this user's username to logged-in user's flist List in user table
                     UpdateItemRequest flistUpdateRequest = new UpdateItemRequest();

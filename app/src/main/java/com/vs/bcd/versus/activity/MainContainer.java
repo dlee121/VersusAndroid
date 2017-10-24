@@ -31,6 +31,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
+import com.google.firebase.auth.FirebaseAuth;
 import com.vs.bcd.versus.fragment.CategoryFragment;
 import com.vs.bcd.versus.fragment.CommentEnterFragment;
 import com.vs.bcd.versus.fragment.CreateMessage;
@@ -94,6 +95,8 @@ public class MainContainer extends AppCompatActivity {
     private RelativeLayout vpContainer;
     private RelativeLayout.LayoutParams vpContainerLP;
     private MessageRoom messageRoom;
+    private String userMKey = "";
+    private String profileImageURL = "";
 
     @Override
     public void onBackPressed(){
@@ -199,11 +202,12 @@ public class MainContainer extends AppCompatActivity {
         s3 = new AmazonS3Client(credentialsProvider);
 
         userTimecode = sessionManager.getUserTimecode();
-
         localFns = sessionManager.getFnsHashSet();
-
         currUsername = sessionManager.getCurrentUsername();
+        userMKey = sessionManager.getMKey();
+        profileImageURL = sessionManager.getProfileImageURL();
 
+        //soft input (keyboard) settings
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0);
@@ -920,9 +924,10 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public void sessionLogOut(){
-        mainActivityFragRef.firebaseSignOut();
+        //mainActivityFragRef.firebaseSignOut();
         //Auth.GoogleSignInApi.signOut(mGoogleApiClient);
         sessionManager.logoutUser();
+        FirebaseAuth.getInstance().signOut();
     }
 
     public void meClickTrue(){
@@ -930,12 +935,16 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public String getUserMKey(){
-        return sessionManager.getMKey();
+        return userMKey;
     }
 
     public void setUpAndOpenMessageRoom(String rnum, HashMap<String, String> usersMap){
         messageRoom.setUpRoom(rnum, usersMap);
         mViewPager.setCurrentItem(11);
+    }
+
+    public String getProfileImageURL(){
+        return profileImageURL;
     }
 
 }

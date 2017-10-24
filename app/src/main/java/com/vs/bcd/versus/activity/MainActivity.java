@@ -268,8 +268,4 @@ public class MainActivity extends Fragment {
         fab.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
     }
 
-    public void firebaseSignOut(){
-        tab4.firebaseSignOut();
-    }
-
 }

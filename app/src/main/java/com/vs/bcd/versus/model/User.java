@@ -31,6 +31,7 @@ public class User {
     private List<String> fns; //list of username of users this user is following (following list)
     private List<String > frs;  //list of username of users following this user (follower list)
     private String mkey; //pw for messenger auth
+    private String purl; //profile image storage url
 
 
     @DynamoDBAttribute(attributeName = "firstname")
@@ -153,6 +154,14 @@ public class User {
         this.mkey = mkey;
     }
 
+    @DynamoDBAttribute(attributeName = "purl")
+    public String getPurl() {
+        return purl;
+    }
+    public void setPurl(String purl){
+        this.purl = purl;
+    }
+
     public User(){
 
     }
@@ -173,6 +182,7 @@ public class User {
         fns = new ArrayList<>();
         frs = new ArrayList<>();
         mkey = UUID.randomUUID().toString().substring(0, 5);
+        purl = "0"; //default value meaning use a default in-app profile image
 
         //finish this thing, then do the write to db, then write session info to sharedpref and we're done with basic signup!
     }

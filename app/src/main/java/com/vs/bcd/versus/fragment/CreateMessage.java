@@ -173,6 +173,7 @@ public class CreateMessage extends Fragment {
 
         following = new ArrayList<>(activity.getLocalFns());
         Log.d("MESSENGER", "following list size: "+Integer.toString(following.size()));
+
         //TODO: get fresh followers list from firebase
         followers = new ArrayList<>();  //temp empty list
         //followers = new ArrayList<>(***get realtime instance of followers list in firebase***);

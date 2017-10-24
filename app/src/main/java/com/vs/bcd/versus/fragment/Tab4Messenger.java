@@ -71,7 +71,6 @@ public class Tab4Messenger extends Fragment {
 
     // Firebase instance variables
     private FirebaseAuth mFirebaseAuth;
-    private FirebaseUser mFirebaseUser;
     private DatabaseReference mFirebaseDatabaseReference;
     private FirebaseRecyclerAdapter<RoomObject, RoomViewHolder> mFirebaseAdapter;
     private FirebaseAnalytics mFirebaseAnalytics;
@@ -111,55 +110,10 @@ public class Tab4Messenger extends Fragment {
 
         // Initialize Firebase Auth
         mFirebaseAuth = FirebaseAuth.getInstance();
-        mFirebaseUser = mFirebaseAuth.getCurrentUser(); //TODO: handle possible null object reference error
 
         userMKey = ((MainContainer)getActivity()).getUserMKey();
-        //mUsername = ((MainContainer)getActivity()).getUsername();
-        if(mFirebaseUser == null){
-            mFirebaseAuth.signInWithEmailAndPassword(userMKey + mUsername.replaceAll("[^A-Za-z0-9]", "v") + "@versusbcd.com", userMKey + "vsbcd121")
-                .addOnCompleteListener(getActivity(), new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (!task.isSuccessful()) {
-                            Log.w("firebasechat", "sign in failed");
-                            Toast.makeText(getActivity(), "Authentication failed.", Toast.LENGTH_SHORT).show();
+        mPhotoUrl = activity.getProfileImageURL();
 
-                        } else {
-                            //TODO: photoURL should be a link to the user's profile picture stored in firebase. If no pic then should be blank, and in the UI if photoURL is blank then use default image in-app
-                            mPhotoUrl = "https://firebasestorage.googleapis.com/v0/b/bcd-versus.appspot.com/o/vs_shadow_w_tag.png?alt=media&token=76f50800-a388-4be7-b802-bff78fe0d07d";
-                            mFirebaseUser = mFirebaseAuth.getCurrentUser();
-                            setUpMessenger();
-                        }
-                    }
-                });
-        }
-        else {
-            mPhotoUrl = "https://firebasestorage.googleapis.com/v0/b/bcd-versus.appspot.com/o/vs_shadow_w_tag.png?alt=media&token=76f50800-a388-4be7-b802-bff78fe0d07d";
-            setUpMessenger();
-        }
-
-        fabNewMsg = (FloatingActionButton) rootView.findViewById(R.id.fab_new_msg);
-        fabNewMsg.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //TODO: open Send New Message UI (so also implement that UI in XML) and set up related stuff
-                activity.getViewPager().setCurrentItem(13);
-            }
-        });
-
-        return rootView;
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        activity = (MainContainer) context;
-        SessionManager sessionManager = new SessionManager(context);
-        mUsername = sessionManager.getCurrentUsername();
-        ROOMS_CHILD = sessionManager.getBday() + "/" + sessionManager.getCurrentUsername() + "/rooms";
-    }
-
-    private void setUpMessenger(){
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
         mFirebaseAdapter = new FirebaseRecyclerAdapter<RoomObject,
@@ -221,6 +175,26 @@ public class Tab4Messenger extends Fragment {
         mRoomRecyclerView.setAdapter(mFirebaseAdapter);
 
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(getActivity());
+
+        fabNewMsg = (FloatingActionButton) rootView.findViewById(R.id.fab_new_msg);
+        fabNewMsg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //TODO: open Send New Message UI (so also implement that UI in XML) and set up related stuff
+                activity.getViewPager().setCurrentItem(13);
+            }
+        });
+
+        return rootView;
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        activity = (MainContainer) context;
+        SessionManager sessionManager = new SessionManager(context);
+        mUsername = sessionManager.getCurrentUsername();
+        ROOMS_CHILD = sessionManager.getBday() + "/" + sessionManager.getCurrentUsername() + "/rooms";
     }
 
     @Override
@@ -250,10 +224,6 @@ public class Tab4Messenger extends Fragment {
             childViews.get(i).setClickable(false);
             childViews.get(i).setLayoutParams(new RelativeLayout.LayoutParams(0,0));
         }
-    }
-
-    public void firebaseSignOut(){
-        mFirebaseAuth.signOut();
     }
 
 }

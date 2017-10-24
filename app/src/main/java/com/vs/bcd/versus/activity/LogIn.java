@@ -28,6 +28,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.User;
@@ -44,6 +45,10 @@ public class LogIn extends AppCompatActivity {
     private Button loginButton;
     private ProgressBar loginPB;
     private EditText usernameET;
+
+    // Firebase instance variables
+    private FirebaseAuth mFirebaseAuth;
+    private FirebaseUser mFirebaseUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,13 +115,30 @@ public class LogIn extends AppCompatActivity {
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        sessionManager = new SessionManager(thisActivity);
-                                        sessionManager.createLoginSession(user);    //store login session data in Shared Preferences
-                                        Intent intent = new Intent(thisActivity, MainContainer.class);
-                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                        loginThreadRunning = false;
-                                        startActivity(intent);  //go on to the next activity, MainContainer
-                                        overridePendingTransition(0, 0);
+                                        // Initialize Firebase Auth
+                                        mFirebaseAuth = FirebaseAuth.getInstance();
+                                        String userMKey = user.getMkey();
+                                        mFirebaseAuth.signInWithEmailAndPassword(userMKey + usernameIn.replaceAll("[^A-Za-z0-9]", "v") + "@versusbcd.com", userMKey + "vsbcd121")
+                                            .addOnCompleteListener(LogIn.this, new OnCompleteListener<AuthResult>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<AuthResult> task) {
+                                                    if (!task.isSuccessful()) {
+                                                        Log.w("firebasechat", "sign in failed");
+                                                        displayProgressBar(false);
+                                                        loginThreadRunning = false;
+                                                        Toast.makeText(LogIn.this, "Authentication failed.", Toast.LENGTH_SHORT).show();
+                                                    }
+                                                    else {
+                                                        sessionManager = new SessionManager(thisActivity);
+                                                        sessionManager.createLoginSession(user);    //store login session data in Shared Preferences
+                                                        Intent intent = new Intent(thisActivity, MainContainer.class);
+                                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                                        loginThreadRunning = false;
+                                                        startActivity(intent);  //go on to the next activity, MainContainer
+                                                        overridePendingTransition(0, 0);
+                                                    }
+                                                }
+                                            });
                                     }
                                 });
                             }

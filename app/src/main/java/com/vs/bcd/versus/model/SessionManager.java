@@ -49,6 +49,7 @@ public class SessionManager {
     public static final String KEY_FNS = "pref_fns";
     public static final String KEY_FRS = "pref_frs";
     public static final String KEY_MKEY = "pref_mkey";
+    public static final String KEY_PURL = "pref_purl";
 
     //keep password private
     private static final String KEY_PASSWORD = "pref_password";
@@ -78,6 +79,7 @@ public class SessionManager {
         editor.putString(KEY_USERNAME, user.getUsername());
         editor.putInt(KEY_TIMECODE, user.getTimecode());
         editor.putString(KEY_MKEY, user.getMkey());
+        editor.putString(KEY_PURL, user.getPurl());
 
         Gson gson = new Gson();
 
@@ -119,6 +121,10 @@ public class SessionManager {
 
     public String getMKey(){
         return pref.getString(KEY_MKEY, null);
+    }
+
+    public String getProfileImageURL(){
+        return pref.getString(KEY_PURL, "0");
     }
 
     public String getBday(){
