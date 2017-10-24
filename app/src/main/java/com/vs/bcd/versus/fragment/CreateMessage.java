@@ -69,8 +69,8 @@ public class CreateMessage extends Fragment {
 
     private RecyclerView invitedUsersRV, userSearchRV;
     private EditText userSearchET;
-    private ArrayList<String> following, followers, invitedUsers;
-    private ArrayList<UserSearchItem> messageContacts;
+    private ArrayList<String> following, followers;
+    private ArrayList<UserSearchItem> messageContacts, invitedUsers;
     private InvitedUserAdapter invitedUserAdapter;
     private UserSearchAdapter userSearchAdapter;
 
@@ -105,7 +105,7 @@ public class CreateMessage extends Fragment {
 
         invitedUsersRV = (RecyclerView) rootView.findViewById(R.id.invited_users_rv);
         invitedUsersLLM = new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false);
-        invitedUsersLLM.setStackFromEnd(true);
+        invitedUsersLLM.setStackFromEnd(false);
         invitedUsersRV.setLayoutManager(invitedUsersLLM);
 
         userSearchRV = (RecyclerView) rootView.findViewById(R.id.user_search_rv);
@@ -183,7 +183,7 @@ public class CreateMessage extends Fragment {
 
         invitedUsers = new ArrayList<>();
 
-        invitedUserAdapter = new InvitedUserAdapter(invitedUsers, getActivity());
+        invitedUserAdapter = new InvitedUserAdapter(invitedUsers, getActivity(), this);
         invitedUsersRV.setAdapter(invitedUserAdapter);
 
         userSearchAdapter = new UserSearchAdapter(messageContacts, getActivity(), this);
@@ -248,9 +248,20 @@ public class CreateMessage extends Fragment {
         userSearchAdapter.updateList(messageContacts);
     }
 
-    public void updateInvitedList(String username){
-        invitedUsers.add(username);
-
+    public void addToInvitedList(UserSearchItem usi){
+        invitedUsers.add(usi);
+        invitedUserAdapter.notifyDataSetChanged();
     }
+
+    public void removeFromInvitedList(UserSearchItem usi){
+        invitedUsers.remove(usi);
+        invitedUserAdapter.notifyDataSetChanged();
+    }
+
+    public void removeFromCheckedItems(String username){
+        userSearchAdapter.removeFromCheckedItems(username);
+        userSearchAdapter.notifyDataSetChanged();
+    }
+
 
 }

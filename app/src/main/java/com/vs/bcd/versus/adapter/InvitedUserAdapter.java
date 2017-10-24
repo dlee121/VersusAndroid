@@ -9,21 +9,27 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.vs.bcd.versus.activity.MainContainer;
+import com.vs.bcd.versus.fragment.CreateMessage;
 import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.model.UserSearchItem;
 
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+import static com.vs.bcd.versus.R.string.username;
+
 
 public class InvitedUserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private Activity activity;
-    private List<String> usernameList;
+    private List<UserSearchItem> usernameList;
+    private CreateMessage thisFragment;
 
-    public InvitedUserAdapter(List<String> usernameList, Activity activity) {
+    public InvitedUserAdapter(List<UserSearchItem> usernameList, Activity activity, CreateMessage thisFragment) {
         this.usernameList = usernameList;
         this.activity = activity;
+        this.thisFragment = thisFragment;
     }
 
     @Override
@@ -35,11 +41,19 @@ public class InvitedUserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
-        final String username = usernameList.get(position);
+        final UserSearchItem userSearchItem = usernameList.get(position);
         InvitedUserViewHolder invitedUserViewHolder = (InvitedUserViewHolder) holder;
 
         //invitedUserViewHolder.invitedUserPhoto.setImageResource( ***image goes here*** ); //TODO: set user profile image downloaded from S3
-        invitedUserViewHolder.invitedUsername.setText(username);
+        invitedUserViewHolder.invitedUsername.setText(userSearchItem.getUsername());
+
+        invitedUserViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                thisFragment.removeFromInvitedList(userSearchItem);
+                thisFragment.removeFromCheckedItems(userSearchItem.getUsername());
+            }
+        });
     }
 
     @Override
@@ -58,7 +72,7 @@ public class InvitedUserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         }
     }
 
-    public void updateList(List<String> list){
+    public void updateList(List<UserSearchItem> list){
         usernameList = list;
         notifyDataSetChanged();
     }

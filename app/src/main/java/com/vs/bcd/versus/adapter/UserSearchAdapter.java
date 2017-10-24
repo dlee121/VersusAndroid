@@ -65,10 +65,12 @@ public class UserSearchAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 if(!checkedItems.contains(userSearchItem.getUsername())){
                     userSearchViewHolder.checkMark.setVisibility(View.VISIBLE);
                     checkedItems.add(userSearchItem.getUsername());
+                    thisFragment.addToInvitedList(userSearchItem);
                 }
                 else {
                     userSearchViewHolder.checkMark.setVisibility(View.INVISIBLE);
                     checkedItems.remove(userSearchItem.getUsername());
+                    thisFragment.removeFromInvitedList(userSearchItem);
                 }
             }
         });
@@ -94,6 +96,11 @@ public class UserSearchAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     public void updateList(List<UserSearchItem> list){
         usernameList = list;
+        notifyDataSetChanged();
+    }
+
+    public void removeFromCheckedItems(String username){
+        checkedItems.remove(username);
         notifyDataSetChanged();
     }
 }
