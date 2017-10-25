@@ -548,7 +548,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                     */
 
                     //update the following user's following list in Firebase
-                    String followingsPath = activity.getUserPath() + "/g";
+                    String followingsPath = activity.getUserPath() + "g";
                     FirebaseDatabase.getInstance().getReference().child(followingsPath).child(profileUsername)
                         .setValue(profileBday, new DatabaseReference.CompletionListener() {
                             @Override

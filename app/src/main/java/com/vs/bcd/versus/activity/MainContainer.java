@@ -999,7 +999,7 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public String getUserPath(){
-        return sessionManager.getBday() + "/" + currUsername;
+        return sessionManager.getBday() + "/" + currUsername + "/";
     }
 
     public String getBday(){

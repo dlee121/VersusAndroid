@@ -138,6 +138,9 @@ public class Tab4Messenger extends Fragment {
                             String roomNum = roomObject.getRnum();
                             HashMap<String, String> usersMap = roomObject.getUsers();
 
+                            usersMap.remove(mUsername); //remove logged-in user from the room users map to prevent duplicate sends,
+                                                        // since we handle logged-in user's message transfer separate from message transfer of other room users
+
                             if(roomNum != null && usersMap != null){
                                 activity.setUpAndOpenMessageRoom(roomNum, usersMap);
                             }
@@ -194,7 +197,7 @@ public class Tab4Messenger extends Fragment {
         activity = (MainContainer) context;
         SessionManager sessionManager = new SessionManager(context);
         mUsername = sessionManager.getCurrentUsername();
-        ROOMS_CHILD = sessionManager.getBday() + "/" + sessionManager.getCurrentUsername() + "/rooms";
+        ROOMS_CHILD = sessionManager.getBday() + "/" + sessionManager.getCurrentUsername() + "/r";
     }
 
     @Override

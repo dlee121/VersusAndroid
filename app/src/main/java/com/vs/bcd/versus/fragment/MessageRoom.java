@@ -43,6 +43,7 @@ import com.google.firebase.storage.UploadTask;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.model.MessageObject;
+import com.vs.bcd.versus.model.RoomObject;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.UserSearchItem;
 
@@ -53,6 +54,7 @@ import java.util.UUID;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+import static android.R.attr.key;
 import static android.content.ContentValues.TAG;
 
 /**
@@ -108,6 +110,7 @@ public class MessageRoom extends Fragment {
     private String roomNum = "";
     private ArrayList<UserSearchItem> roomUsersList;
     private HashMap<String, String> roomUsersMap;
+    private String mBday ="";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -171,6 +174,7 @@ public class MessageRoom extends Fragment {
         activity = (MainContainer) context;
         SessionManager sessionManager = new SessionManager(context);
         mUsername = sessionManager.getCurrentUsername();
+        mBday = sessionManager.getBday();
         MESSAGES_CHILD_BODY = sessionManager.getBday() + "/" + sessionManager.getCurrentUsername() + "/messages/";
         MESSAGES_CHILD =  MESSAGES_CHILD_BODY;
     }
@@ -212,7 +216,7 @@ public class MessageRoom extends Fragment {
         mSendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String content = mMessageEditText.getText().toString().trim();
+                final String content = mMessageEditText.getText().toString().trim();
                 MessageObject messageObject = new MessageObject(content, mUsername, mPhotoUrl, null);
                 String USER_PATH = activity.getBday() + "/" + mUsername + "/messages/" + rnum;
 
@@ -222,7 +226,7 @@ public class MessageRoom extends Fragment {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
                                 setUpRecyclerView(rnum);
-                                setUpRoomInDB();
+                                setUpRoomInDB(content);
                             }
                         });
                     firstMessage = false;
@@ -366,22 +370,21 @@ public class MessageRoom extends Fragment {
 
         mSendButton = (Button) rootView.findViewById(R.id.sendButton);
 
-
-
         mSendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                final String content = mMessageEditText.getText().toString().trim();
+                MessageObject messageObject = new MessageObject(content, mUsername, mPhotoUrl, null);
+                String USER_PATH = mBday + "/" + mUsername + "/messages/" + rnum;
+
+                mFirebaseDatabaseReference.child(USER_PATH).push().setValue(messageObject);
+
+                mMessageEditText.setText("");
+
                 for(Map.Entry<String, String> entry : usersMap.entrySet()){
                     String WRITE_PATH = entry.getValue() + "/" + entry.getKey() + "/messages/" + rnum;
-                    MessageObject messageObject = new
-                            MessageObject(mMessageEditText.getText().toString().trim(),
-                            mUsername,
-                            mPhotoUrl,
-                            null /* no image */);
-                    mFirebaseDatabaseReference.child(WRITE_PATH)
-                            .push().setValue(messageObject);
+                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
                 }
-                mMessageEditText.setText("");
             }
         });
 
@@ -415,7 +418,7 @@ public class MessageRoom extends Fragment {
 
 
                     mFirebaseDatabaseReference.child(MESSAGES_CHILD).push()
-                        .setValue(tempMessage, new DatabaseReference.CompletionListener() {
+                        .setValue(tempMessage, new DatabaseReference.CompletionListener() { //sends message with temp image holder to self. Currently, not broadcasting temp message to the room and sending just to self.
                             @Override
                             public void onComplete(DatabaseError databaseError,
                                                    DatabaseReference databaseReference) {
@@ -610,8 +613,30 @@ public class MessageRoom extends Fragment {
         mMessageRecyclerView.setAdapter(mFirebaseAdapter);
     }
 
-    private void setUpRoomInDB(){
+    private void setUpRoomInDB(String preview){
+        final HashMap<String, String> roomUsersHolderMap;
+        if(roomUsersList != null){
+            roomUsersHolderMap = new HashMap<>();
+            for(UserSearchItem usi : roomUsersList){
+                roomUsersHolderMap.put(usi.getUsername(), usi.getBday());
+            }
+        }
+        else {
+            roomUsersHolderMap = roomUsersMap;
+        }
+        roomUsersHolderMap.put(mUsername, mBday);
 
+        final RoomObject roomObject = new RoomObject("Default Room Name", System.currentTimeMillis(), preview, roomNum, roomUsersHolderMap);
+        String userRoomPath = activity.getUserPath() + "r/" + roomNum;
+        mFirebaseDatabaseReference.child(userRoomPath).setValue(roomObject).addOnCompleteListener(activity, new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                for(Map.Entry<String, String> entry : roomUsersHolderMap.entrySet()){
+                    String roomPath = entry.getValue() + "/" + entry.getKey() + "/" + "r/" + roomNum;
+                    mFirebaseDatabaseReference.child(roomPath).setValue(roomObject);
+                }
+            }
+        });
 
     }
 
