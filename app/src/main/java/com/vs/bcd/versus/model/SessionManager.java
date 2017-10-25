@@ -65,7 +65,7 @@ public class SessionManager {
         editor.putBoolean(IS_LOGIN, true);
 
         //store these in shared pref
-        editor.putString(KEY_BDAY, user.getBirthday());
+        editor.putString(KEY_BDAY, user.getBday());
         editor.putString(KEY_EMAIL, user.getEmail());
         editor.putString(KEY_FIRSTNAME, user.getFirstName());
         editor.putString(KEY_LASTNAME, user.getLastName());
@@ -128,7 +128,7 @@ public class SessionManager {
         return pref.getInt(KEY_TIMECODE, -1);
     }
 
-    public HashSet<String> getFnsHashSet(){
+    public HashSet<String> getFollowingHashSet(){
         Gson gson = new Gson();
         String json = pref.getString(KEY_FW, null);
         Type type = new TypeToken<HashSet<String>>() {}.getType();

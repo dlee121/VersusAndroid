@@ -11,14 +11,13 @@ import com.google.firebase.database.Exclude;
 public class UserSearchItem {
 
     private String username;
+    private String bday;
     private Bitmap profileImage;
 
-    public UserSearchItem(){
-        profileImage = null;
-    }
 
-    public UserSearchItem(String username){
+    public UserSearchItem(String username, String bday){
         this.username = username;
+        this.bday = bday;
     }
 
     public String getUsername(){
@@ -26,6 +25,13 @@ public class UserSearchItem {
     }
     public void setUsername(String username){
         this.username = username;
+    }
+
+    public String getBday(){
+        return bday;
+    }
+    public void setBday(String bday){
+        this.bday = bday;
     }
 
     public Bitmap getProfileImage(){

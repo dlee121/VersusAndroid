@@ -32,9 +32,11 @@ import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -42,10 +44,12 @@ import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.model.MessageObject;
 import com.vs.bcd.versus.model.SessionManager;
+import com.vs.bcd.versus.model.UserSearchItem;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -83,6 +87,7 @@ public class MessageRoom extends Fragment {
     private View rootView;
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
+    private MainContainer activity;
 
     // Firebase instance variables
     private FirebaseAuth mFirebaseAuth;
@@ -99,6 +104,10 @@ public class MessageRoom extends Fragment {
     private String mUsername = "";
     private String mPhotoUrl = "";
     private String userMKey = "";
+    private boolean firstMessage = false;
+    private String roomNum = "";
+    private ArrayList<UserSearchItem> roomUsersList;
+    private HashMap<String, String> roomUsersMap;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -111,6 +120,8 @@ public class MessageRoom extends Fragment {
         mLinearLayoutManager = new LinearLayoutManager(getActivity());
         mLinearLayoutManager.setStackFromEnd(true);
         mMessageRecyclerView.setLayoutManager(mLinearLayoutManager);
+
+        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();
@@ -138,7 +149,7 @@ public class MessageRoom extends Fragment {
 
                             } else {
                                 //TODO: photoURL should be a link to the user's profile picture stored in firebase. If no pic then should be blank, and in the UI if photoURL is blank then use default image in-app
-                                mPhotoUrl = "https://firebasestorage.googleapis.com/v0/b/bcd-versus.appspot.com/o/vs_shadow_w_tag.png?alt=media&token=76f50800-a388-4be7-b802-bff78fe0d07d";
+                                mPhotoUrl = "https://firebasestorage.googleapis.com/v0/b/bcd-versus.appspot.com/o/vs_shadow_w_tag.png?alt=media&token=d9bda511-cd3c-4fed-8b1b-ea2dd72ca479";
                                 mFirebaseUser = mFirebaseAuth.getCurrentUser();
                                 //setUpMessenger();
                             }
@@ -146,7 +157,7 @@ public class MessageRoom extends Fragment {
                     });
         }
         else {
-            mPhotoUrl = "https://firebasestorage.googleapis.com/v0/b/bcd-versus.appspot.com/o/vs_shadow_w_tag.png?alt=media&token=76f50800-a388-4be7-b802-bff78fe0d07d";
+            mPhotoUrl = "https://firebasestorage.googleapis.com/v0/b/bcd-versus.appspot.com/o/vs_shadow_w_tag.png?alt=media&token=d9bda511-cd3c-4fed-8b1b-ea2dd72ca479";
             //setUpMessenger();
         }
 
@@ -157,15 +168,97 @@ public class MessageRoom extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        activity = (MainContainer) context;
         SessionManager sessionManager = new SessionManager(context);
         mUsername = sessionManager.getCurrentUsername();
         MESSAGES_CHILD_BODY = sessionManager.getBday() + "/" + sessionManager.getCurrentUsername() + "/messages/";
         MESSAGES_CHILD =  MESSAGES_CHILD_BODY;
     }
 
-    public void setUpRoom(final String rnum, final HashMap<String, String> usersMap){
+    public void setUpNewRoom(final ArrayList<UserSearchItem> invitedUsers){
 
+        firstMessage = true;
+        final String rnum = UUID.randomUUID().toString();
+        roomNum = rnum;
         MESSAGES_CHILD = MESSAGES_CHILD_BODY + rnum;
+        roomUsersList = invitedUsers;
+        roomUsersMap = null;
+
+
+
+        mMessageEditText = (EditText) rootView.findViewById(R.id.messageEditText);
+
+        mMessageEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if (charSequence.toString().trim().length() > 0) {
+                    mSendButton.setEnabled(true);
+                } else {
+                    mSendButton.setEnabled(false);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+            }
+        });
+
+        mSendButton = (Button) rootView.findViewById(R.id.sendButton);
+
+        mSendButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String content = mMessageEditText.getText().toString().trim();
+                MessageObject messageObject = new MessageObject(content, mUsername, mPhotoUrl, null);
+                String USER_PATH = activity.getBday() + "/" + mUsername + "/messages/" + rnum;
+
+                if(firstMessage){
+                    mFirebaseDatabaseReference.child(USER_PATH).push().setValue(messageObject)
+                        .addOnCompleteListener(activity, new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                setUpRecyclerView(rnum);
+                                setUpRoomInDB();
+                            }
+                        });
+                    firstMessage = false;
+                }
+                else{
+                    mFirebaseDatabaseReference.child(USER_PATH).push().setValue(messageObject);
+                }
+
+                mMessageEditText.setText("");
+
+                for(UserSearchItem usi : invitedUsers){
+                    String WRITE_PATH = usi.getBday() + "/" + usi.getUsername() + "/messages/" + rnum;
+                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                }
+            }
+        });
+
+        mAddMessageImageView = (ImageView) rootView.findViewById(R.id.addMessageImageView);
+        mAddMessageImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("image/*");
+                startActivityForResult(intent, REQUEST_IMAGE);
+            }
+        });
+
+        mFirebaseAnalytics = FirebaseAnalytics.getInstance(getActivity());
+    }
+
+    public void setUpRoom(final String rnum, final HashMap<String, String> usersMap){
+        roomNum = rnum;
+        MESSAGES_CHILD = MESSAGES_CHILD_BODY + rnum;
+        roomUsersMap = usersMap;
+        roomUsersList = null;
 
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
@@ -304,8 +397,6 @@ public class MessageRoom extends Fragment {
         });
 
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(getActivity());
-
-        Log.d("firebasechat", mFirebaseAuth.getCurrentUser().getUid());
     }
 
     @Override
@@ -321,26 +412,37 @@ public class MessageRoom extends Fragment {
 
                     MessageObject tempMessage = new MessageObject(null, mUsername, mPhotoUrl,
                             LOADING_IMAGE_URL);
-                    mFirebaseDatabaseReference.child(MESSAGES_CHILD).push()
-                            .setValue(tempMessage, new DatabaseReference.CompletionListener() {
-                                @Override
-                                public void onComplete(DatabaseError databaseError,
-                                                       DatabaseReference databaseReference) {
-                                    if (databaseError == null) {
-                                        String key = databaseReference.getKey();
-                                        StorageReference storageReference =
-                                                FirebaseStorage.getInstance()
-                                                        .getReference(mFirebaseUser.getUid())
-                                                        .child(key)
-                                                        .child(uri.getLastPathSegment());
 
-                                        putImageInStorage(storageReference, uri, key);
-                                    } else {
-                                        Log.w(TAG, "Unable to write message to database.",
-                                                databaseError.toException());
+
+                    mFirebaseDatabaseReference.child(MESSAGES_CHILD).push()
+                        .setValue(tempMessage, new DatabaseReference.CompletionListener() {
+                            @Override
+                            public void onComplete(DatabaseError databaseError,
+                                                   DatabaseReference databaseReference) {
+                                if (databaseError == null) {
+                                    if(firstMessage){
+                                        setUpRecyclerView(roomNum);
+                                        firstMessage = false;
                                     }
+
+                                    String key = databaseReference.getKey();
+                                    StorageReference storageReference =
+                                            FirebaseStorage.getInstance()
+                                                    .getReference(mFirebaseUser.getUid())
+                                                    .child(key)
+                                                    .child(uri.getLastPathSegment());
+
+                                    putImageInStorage(storageReference, uri, key);
+                                } else {
+                                    Log.w(TAG, "Unable to write message to database.",
+                                            databaseError.toException());
                                 }
-                            });
+                            }
+                        });
+
+                    //TODO: for now, not broadcasting placeholder message. We'll broadcast the real message with the actual image in putImageInStorage once image upload is done.
+                    //TODO: see if that's sufficient, if it feels slow or less optimal by any means we'll switch to broadcasting placeholder message
+
                 }
             }
         }
@@ -359,12 +461,27 @@ public class MessageRoom extends Fragment {
                     @Override
                     public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
                         if (task.isSuccessful()) {
-                            MessageObject friendlyMessage =
+                            MessageObject messageObject =
                                     new MessageObject(null, mUsername, mPhotoUrl,
                                             task.getResult().getMetadata().getDownloadUrl()
                                                     .toString());
                             mFirebaseDatabaseReference.child(MESSAGES_CHILD).child(key)
-                                    .setValue(friendlyMessage);
+                                    .setValue(messageObject);
+
+                            if(roomUsersList != null){
+                                for(UserSearchItem usi : roomUsersList){
+                                    String WRITE_PATH = usi.getBday() + "/" + usi.getUsername() + "/messages/" + roomNum;
+                                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                                }
+
+                            }
+                            else if(roomUsersMap != null){
+                                for(Map.Entry<String, String> usi : roomUsersMap.entrySet()){
+                                    String WRITE_PATH = usi.getValue() + "/" + usi.getKey() + "/messages/" + roomNum;
+                                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                                }
+                            }
+
                         } else {
                             Log.w(TAG, "Image upload task was not successful.",
                                     task.getException());
@@ -409,8 +526,93 @@ public class MessageRoom extends Fragment {
         }
     }
 
-    public void firebaseSignOut(){
-        mFirebaseAuth.signOut();
+    private void setUpRecyclerView(String rnum){
+        MESSAGES_CHILD = MESSAGES_CHILD_BODY + rnum;
+
+        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
+
+        mFirebaseAdapter = new FirebaseRecyclerAdapter<MessageObject,
+                MessageViewHolder>(
+                MessageObject.class,
+                R.layout.message_item_view,
+                MessageViewHolder.class,
+                mFirebaseDatabaseReference.child(MESSAGES_CHILD)) {
+
+            @Override
+            protected void populateViewHolder(final MessageViewHolder viewHolder,
+                                              MessageObject friendlyMessage, int position) {
+                mProgressBar.setVisibility(ProgressBar.INVISIBLE);
+                if (friendlyMessage.getText() != null) {
+                    viewHolder.messageTextView.setText(friendlyMessage.getText());
+                    viewHolder.messageTextView.setVisibility(TextView.VISIBLE);
+                    viewHolder.messageImageView.setVisibility(ImageView.GONE);
+
+                } else {
+                    String imageUrl = friendlyMessage.getImageUrl();
+                    if (imageUrl.startsWith("gs://")) {
+                        StorageReference storageReference = FirebaseStorage.getInstance()
+                                .getReferenceFromUrl(imageUrl);
+                        storageReference.getDownloadUrl().addOnCompleteListener(
+                                new OnCompleteListener<Uri>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Uri> task) {
+                                        if (task.isSuccessful()) {
+                                            String downloadUrl = task.getResult().toString();
+                                            Glide.with(viewHolder.messageImageView.getContext())
+                                                    .load(downloadUrl)
+                                                    .into(viewHolder.messageImageView);
+                                        } else {
+                                            Log.w(TAG, "Getting download url was not successful.",
+                                                    task.getException());
+                                        }
+                                    }
+                                });
+                    } else {
+                        Glide.with(viewHolder.messageImageView.getContext())
+                                .load(friendlyMessage.getImageUrl())
+                                .into(viewHolder.messageImageView);
+                    }
+                    viewHolder.messageImageView.setVisibility(ImageView.VISIBLE);
+                    viewHolder.messageTextView.setVisibility(TextView.GONE);
+                }
+
+                viewHolder.usernameTextView.setText(friendlyMessage.getName());
+                if (friendlyMessage.getPhotoUrl() == null) {
+                    viewHolder.messengerImageView.setImageDrawable(ContextCompat.getDrawable(getActivity(),
+                            R.drawable.vs_shadow_w_tag));
+                } else {
+                    Glide.with(getActivity())
+                            .load(friendlyMessage.getPhotoUrl())
+                            .into(viewHolder.messengerImageView);
+                }
+
+            }
+        };
+
+        mFirebaseAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onItemRangeInserted(int positionStart, int itemCount) {
+                super.onItemRangeInserted(positionStart, itemCount);
+                int friendlyMessageCount = mFirebaseAdapter.getItemCount();
+                int lastVisiblePosition =
+                        mLinearLayoutManager.findLastCompletelyVisibleItemPosition();
+                // If the recycler view is initially being loaded or the
+                // user is at the bottom of the list, scroll to the bottom
+                // of the list to show the newly added message.
+                if (lastVisiblePosition == -1 ||
+                        (positionStart >= (friendlyMessageCount - 1) &&
+                                lastVisiblePosition == (positionStart - 1))) {
+                    mMessageRecyclerView.scrollToPosition(positionStart);
+                }
+            }
+        });
+
+        mMessageRecyclerView.setAdapter(mFirebaseAdapter);
+    }
+
+    private void setUpRoomInDB(){
+
+
     }
 
 }

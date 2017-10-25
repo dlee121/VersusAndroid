@@ -66,7 +66,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
     private final int COMMENTS = 0;
     private final int POSTS = 1;
     private String profileUsername = null; //username of the user for the profile page, not necessarily the current logged-in user
-    private String FOLLOWERS_CHILD = "";
+    private String profileBday = ""; //used for Firebase path partitioning
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -173,7 +173,6 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
     public void onAttach(Context context) {
         super.onAttach(context);
         activity = (MainContainer)context;
-        FOLLOWERS_CHILD = activity.getFollowersChildPath();
     }
 
     @Override
@@ -221,7 +220,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                     GetItemRequest request = new GetItemRequest()
                             .withTableName("user")
                             .withKey(keyMap)
-                            .withProjectionExpression("num_g,num_s,num_b,points,frs");
+                            .withProjectionExpression("num_g,num_s,num_b,points,fc");
                     GetItemResult result = activity.getDDBClient().getItem(request);
 
                     final Map<String, AttributeValue> resultMap = result.getItem();
@@ -249,8 +248,8 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                                 else if(attrName.equals("points")){
                                     pointsTV.setText(entry.getValue().getN());
                                 }
-                                else if(attrName.equals("frs")){
-                                    followerCountTV.setText(Integer.toString(entry.getValue().getL().size()) + "\nFollowers");
+                                else if(attrName.equals("fc")){
+                                    followerCountTV.setText(entry.getValue().getN() + "\nFollowers");
 
                                 }
                             }
@@ -292,7 +291,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                     GetItemRequest request = new GetItemRequest()
                             .withTableName("user")
                             .withKey(keyMap)
-                            .withProjectionExpression("num_g,num_s,num_b,points,fns,frs");
+                            .withProjectionExpression("bday,num_g,num_s,num_b,points,fc,fw");
                     GetItemResult result = activity.getDDBClient().getItem(request);
 
                     final Map<String, AttributeValue> resultMap = result.getItem();
@@ -308,7 +307,10 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                             for (Map.Entry<String, AttributeValue> entry : resultMap.entrySet()) {
                                 Log.d("ptab", "attrName: " + entry.getKey() + "    attrValue: " + entry.getValue().getN());
                                 String attrName = entry.getKey();
-                                if(attrName.equals("num_g")){
+                                if(attrName.equals("bday")){
+                                    profileBday = entry.getValue().getS();
+                                }
+                                else if(attrName.equals("num_g")){
                                     goldTV.setText(entry.getValue().getN());
                                 }
                                 else if(attrName.equals("num_s")){
@@ -320,10 +322,10 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                                 else if(attrName.equals("points")){
                                     pointsTV.setText(entry.getValue().getN());
                                 }
-                                else if(attrName.equals("frs")){
-                                    followerCountTV.setText(Integer.toString(entry.getValue().getL().size()) + "\nFollowers");
+                                else if(attrName.equals("fc")){
+                                    followerCountTV.setText(entry.getValue().getN() + "\nFollowers");
                                 }
-                                else if(attrName.equals("fns")){
+                                else if(attrName.equals("fw")){
                                     followingCountTV.setText(Integer.toString(entry.getValue().getL().size()) + "\nFollowing");
                                 }
                             }
@@ -530,39 +532,54 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
             Runnable runnable = new Runnable() {
                 public void run() {
                     //TODO: update follower list in firebase
-
+                    /*
                     //add this user's username to logged-in user's flist List in user table
                     UpdateItemRequest flistUpdateRequest = new UpdateItemRequest();
                     flistUpdateRequest.withTableName("user")
                             .withKey(Collections.singletonMap("username",
                                     new AttributeValue().withS(activity.getUsername())))
-                            .withUpdateExpression("SET fns = list_append(fns, :fnv)")
+                            .withUpdateExpression("SET fw = list_append(fw, :fnv)")
                             .withExpressionAttributeValues(
                                     Collections.singletonMap(":fnv",
                                             new AttributeValue().withL(new AttributeValue().withS(profileUsername))
                                     )
                             );
                     activity.getDDBClient().updateItem(flistUpdateRequest);
+                    */
+
+                    //update the following user's following list in Firebase
+                    String followingsPath = activity.getUserPath() + "/g";
+                    FirebaseDatabase.getInstance().getReference().child(followingsPath).child(profileUsername)
+                        .setValue(profileBday, new DatabaseReference.CompletionListener() {
+                            @Override
+                            public void onComplete(DatabaseError databaseError,
+                                                   DatabaseReference databaseReference) {
+                                if (databaseError != null) {
+                                    Log.w("MESSENGER", "Unable to update followings list in Firebase.");
+                                }
+                            }
+                        });
 
                     //also update flist stored in SharedPref and the localFlist HashSet in MainContainer
-                    activity.addToLocalFns(profileUsername);
+                    activity.addToFollowingLocal(profileUsername);
 
-                    //update the follower count (fnum) of the followed user
-                    UpdateItemRequest fnumUpdateRequest = new UpdateItemRequest();
-                    fnumUpdateRequest.withTableName("user")
-                            .withKey(Collections.singletonMap("username",
-                                    new AttributeValue().withS(profileUsername)))
-                            .withUpdateExpression("ADD fnum :inc")
-                            .withExpressionAttributeValues(
-                                    Collections.singletonMap(":inc",
-                                            new AttributeValue().withN("1")
-                                    )
-                            );
-                    activity.getDDBClient().updateItem(fnumUpdateRequest);
+                    //update the follower count (fc) of the followed user
+                    UpdateItemRequest fcUpdateRequest = new UpdateItemRequest();
+                    fcUpdateRequest.withTableName("user")
+                        .withKey(Collections.singletonMap("username",
+                                new AttributeValue().withS(profileUsername)))
+                        .withUpdateExpression("ADD fc :inc")
+                        .withExpressionAttributeValues(
+                                Collections.singletonMap(":inc",
+                                        new AttributeValue().withN("1")
+                                )
+                        );
+                    activity.getDDBClient().updateItem(fcUpdateRequest);
 
                     //update the followed user's follower list in Firebase
-                    FirebaseDatabase.getInstance().getReference().child(FOLLOWERS_CHILD).push()
-                            .setValue(true, new DatabaseReference.CompletionListener() {
+                    String followersPath = profileBday + "/" + profileUsername + "/f";
+                    FirebaseDatabase.getInstance().getReference().child(followersPath).child(activity.getUsername())
+                            .setValue(activity.getBday(), new DatabaseReference.CompletionListener() {
                                 @Override
                                 public void onComplete(DatabaseError databaseError,
                                                        DatabaseReference databaseReference) {
@@ -602,7 +619,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                 GetItemRequest request = new GetItemRequest()
                         .withTableName("user")
                         .withKey(keyMap)
-                        .withProjectionExpression("points,frs");
+                        .withProjectionExpression("points,fc");
                 GetItemResult result = activity.getDDBClient().getItem(request);
 
                 final Map<String, AttributeValue> resultMap = result.getItem();
@@ -619,9 +636,9 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                             if(attrName.equals("points")){
                                 pointsTV.setText(entry.getValue().getN());
                             }
-                            else if(attrName.equals("frs")){
-                                String frsCount = Integer.toString(entry.getValue().getL().size()) + "\nFollowers";
-                                followerCountTV.setText(frsCount);
+                            else if(attrName.equals("fc")){
+                                String fC = entry.getValue().getN() + "\nFollowers";
+                                followerCountTV.setText(fC);
                             }
                         }
                     }

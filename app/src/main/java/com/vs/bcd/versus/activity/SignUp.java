@@ -1,6 +1,7 @@
 package com.vs.bcd.versus.activity;
 
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -19,7 +20,11 @@ import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.FirebaseDatabase;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.ViewPagerCustomDuration;
 import com.vs.bcd.versus.model.SessionManager;
@@ -232,22 +237,34 @@ public class SignUp extends AppCompatActivity {
 
                 try {
                     mapper.save(newUser);
-                    mFirebaseAuth.getInstance().createUserWithEmailAndPassword(newUser.getMkey() + newUser.getUsername().replaceAll("[^A-Za-z0-9]", "v") + "@versusbcd.com", newUser.getMkey() + "vsbcd121");
+                    mFirebaseAuth.getInstance().createUserWithEmailAndPassword(newUser.getMkey() + newUser.getUsername().replaceAll("[^A-Za-z0-9]", "v") + "@versusbcd.com", newUser.getMkey() + "vsbcd121")
+                        .addOnCompleteListener(SignUp.this, new OnCompleteListener<AuthResult>() {
+                            @Override
+                            public void onComplete(@NonNull Task<AuthResult> task) {
+                                String userPath = newUser.getBday() + "/" + newUser.getUsername() + "/b";
+                                FirebaseDatabase.getInstance().getReference().child(userPath).setValue(newUser.getBday()).addOnCompleteListener(SignUp.this, new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        //TODO: Ensure that lines below are called only if mapper.save(newUser) is successful (in other words, make sure thread waits until mapper.save(newUser) finishes its job successfully, otherwise throwing exception to exit thread before calling below lines to login the new user).
+                                        //TODO: So far this seems to be the case, as any exception thrown is caught and lines below don't get executed because we exit the thread when exception is thrown.
+                                        //TODO: Cuz if there is a case where lines below are executed despite mapper.save failure, that would probably cause some bugs.
+                                        //TODO: maybe do some synchronization/thread magic just to be on the safe side. We're good for now though.
+                                        runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                sessionManager.createLoginSession(newUser);
+                                                Intent intent = new Intent(thisActivity, MainContainer.class);
+                                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);   //clears back stack for navigation
+                                                startActivity(intent);
+                                                overridePendingTransition(0, 0);
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
 
-                    //TODO: Ensure that lines below are called only if mapper.save(newUser) is successful (in other words, make sure thread waits until mapper.save(newUser) finishes its job successfully, otherwise throwing exception to exit thread before calling below lines to login the new user).
-                    //TODO: So far this seems to be the case, as any exception thrown is caught and lines below don't get executed because we exit the thread when exception is thrown.
-                    //TODO: Cuz if there is a case where lines below are executed despite mapper.save failure, that would probably cause some bugs.
-                    //TODO: maybe do some synchronization/thread magic just to be on the safe side. We're good for now though.
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            sessionManager.createLoginSession(newUser);
-                            Intent intent = new Intent(thisActivity, MainContainer.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);   //clears back stack for navigation
-                            startActivity(intent);
-                            overridePendingTransition(0, 0);
-                        }
-                    });
+
                 }
                 catch (Throwable t){
                     runOnUiThread(new Runnable() {

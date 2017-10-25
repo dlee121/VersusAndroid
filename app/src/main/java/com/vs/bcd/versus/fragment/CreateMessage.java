@@ -15,7 +15,6 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
@@ -25,21 +24,21 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.ValueEventListener;
 import com.vs.bcd.versus.R;
-import com.vs.bcd.versus.activity.MainActivity;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.InvitedUserAdapter;
 import com.vs.bcd.versus.adapter.UserSearchAdapter;
-import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.UserSearchItem;
 
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Created by dlee on 8/6/17.
@@ -50,6 +49,7 @@ import java.util.Locale;
 public class CreateMessage extends Fragment {
 
     private String FOLLOWERS_CHILD = "";
+    private String FOLLOWING_CHILD = "";
     private final int REQUEST_IMAGE = 2;
     private final int RESULT_OK = -1;
     private static final String LOADING_IMAGE_URL = "https://www.google.com/images/spin-32.gif";    //TODO: replace with our own
@@ -73,13 +73,16 @@ public class CreateMessage extends Fragment {
 
     private RecyclerView invitedUsersRV, userSearchRV;
     private EditText userSearchET;
-    private ArrayList<String> following, followers;
+    private HashMap<String, String> following, followers;
     private ArrayList<UserSearchItem> messageContacts, invitedUsers;
     private InvitedUserAdapter invitedUserAdapter;
     private UserSearchAdapter userSearchAdapter;
     private TextView invitedTV;
-    private boolean initialFListLoaded = false;
+    private boolean initialFollowersLoaded = false;
+    private boolean initialFollowingLoaded = false;
     private String currentFilterText = "";
+    private HashSet<String> localFW;
+    private CreateMessage thisFragment;
 
 
     @Override
@@ -88,6 +91,8 @@ public class CreateMessage extends Fragment {
         rootView = inflater.inflate(R.layout.create_message, container, false);
 
         df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
+
+        localFW = activity.getLocalFns();
 
         userSearchET = (EditText) rootView.findViewById(R.id.user_search_edittext);
         userSearchET.addTextChangedListener(new TextWatcher() {
@@ -138,19 +143,24 @@ public class CreateMessage extends Fragment {
         userMKey = activity.getUserMKey();
         mPhotoUrl = activity.getProfileImageURL();
 
+        thisFragment = this;
+
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
         //TODO: get fresh followers list from firebase
-        followers = new ArrayList<>();  //temp empty list
+        followers = new HashMap<>();  //temp empty list
         //followers = new ArrayList<>(***get realtime instance of followers list in firebase***);
 
         mFirebaseDatabaseReference.child(FOLLOWERS_CHILD).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot child : dataSnapshot.getChildren()) {
-                    followers.add(child.getKey()); //the key is the username
+                    if(!localFW.contains(child.getKey())){  //don't add if it's already in Following list
+                        followers.put(child.getKey(), child.getValue(String.class));
+                    }
                 }
-                initialFListLoaded = true;
+                initialFollowersLoaded = true;
+                finishSetUp();
             }
 
             @Override
@@ -162,13 +172,14 @@ public class CreateMessage extends Fragment {
         mFirebaseDatabaseReference.child(FOLLOWERS_CHILD).addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String prevChildKey) {
-                if(initialFListLoaded){ //so this is only for new updates to followers list
-                    String newFollower = dataSnapshot.getKey();
-                    followers.add(newFollower); //the key is the username
-                    if(dataSnapshot.getKey().contains(currentFilterText)){
-                        messageContacts.add(new UserSearchItem(newFollower));
-                        userSearchAdapter.updateList(messageContacts);
-                        //TODO: test that this case works (when new follower is added and their username passes current text filter, then display them in the recycler view)
+                if(initialFollowersLoaded){ //so this is only for new updates to followers list
+                    if(!following.containsKey(dataSnapshot.getKey())){  //don't add if it's already in Following list
+                        followers.put(dataSnapshot.getKey(), dataSnapshot.getValue(String.class));
+                        if(userSearchET.getText().toString().isEmpty() || dataSnapshot.getKey().contains(currentFilterText)){
+                            messageContacts.add(new UserSearchItem(dataSnapshot.getKey(), dataSnapshot.getValue(String.class)));
+                            userSearchAdapter.updateList(messageContacts);
+                            //TODO: test that this case works (when new follower is added and their username passes current text filter, then display them in the recycler view)
+                        }
                     }
                 }
             }
@@ -190,25 +201,80 @@ public class CreateMessage extends Fragment {
             }
         });
 
-        following = new ArrayList<>(activity.getLocalFns());
+        return rootView;
+    }
+
+    private void finishSetUp(){
 
         messageContacts = new ArrayList<>();
-        for(String frs : followers){
-            messageContacts.add(new UserSearchItem(frs));
-        }
-        for(String fws : following){
-            messageContacts.add(new UserSearchItem(fws));
-        }
 
-        invitedUsers = new ArrayList<>();
+        following = new HashMap<>();
 
-        invitedUserAdapter = new InvitedUserAdapter(invitedUsers, getActivity(), this);
-        invitedUsersRV.setAdapter(invitedUserAdapter);
+        mFirebaseDatabaseReference.child(FOLLOWING_CHILD).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.hasChildren()){
+                    for (DataSnapshot child : dataSnapshot.getChildren()) {
+                        following.put(child.getKey(), child.getValue(String.class));
+                    }
+                    for(Map.Entry<String, String> entry : following.entrySet()){
+                        messageContacts.add(new UserSearchItem(entry.getKey(), entry.getValue()));
+                    }
+                }
 
-        userSearchAdapter = new UserSearchAdapter(messageContacts, getActivity(), this);
-        userSearchRV.setAdapter(userSearchAdapter);
+                initialFollowingLoaded = true;
 
-        return rootView;
+                for(Map.Entry<String, String> entry : followers.entrySet()){
+                    messageContacts.add(new UserSearchItem(entry.getKey(), entry.getValue()));
+                }
+
+                invitedUsers = new ArrayList<>();
+
+                invitedUserAdapter = new InvitedUserAdapter(invitedUsers, getActivity(), thisFragment);
+                invitedUsersRV.setAdapter(invitedUserAdapter);
+
+                userSearchAdapter = new UserSearchAdapter(messageContacts, getActivity(), thisFragment);
+                userSearchRV.setAdapter(userSearchAdapter);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+        mFirebaseDatabaseReference.child(FOLLOWING_CHILD).addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String prevChildKey) {
+                if(initialFollowingLoaded){ //so this is only for new updates to following list
+                    if(!followers.containsKey(dataSnapshot.getKey())){  //don't add if it's already in Following list
+                        following.put(dataSnapshot.getKey(), dataSnapshot.getValue(String.class));
+                        if(userSearchET.getText().toString().isEmpty() || dataSnapshot.getKey().contains(currentFilterText)){
+                            Log.d("MESSENGER", "Following New User");
+                            messageContacts.add(new UserSearchItem(dataSnapshot.getKey(), dataSnapshot.getValue(String.class)));
+                            userSearchAdapter.updateList(messageContacts);
+                            //TODO: test that this case works (when new follower is added and their username passes current text filter, then display them in the recycler view)
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String prevChildKey) {}
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                followers.remove(dataSnapshot.getKey());
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String prevChildKey) {}
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.d("MESSENGER", "follower query cancelled");
+            }
+        });
+
     }
 
     @Override
@@ -217,7 +283,9 @@ public class CreateMessage extends Fragment {
         activity = (MainContainer) context;
         SessionManager sessionManager = new SessionManager(context);
         mUsername = sessionManager.getCurrentUsername();
-        FOLLOWERS_CHILD = sessionManager.getBday() + "/" + sessionManager.getCurrentUsername() + "/f";
+        String userPath = sessionManager.getBday() + "/" + sessionManager.getCurrentUsername();
+        FOLLOWERS_CHILD = userPath + "/f";
+        FOLLOWING_CHILD = userPath + "/g";
     }
 
     @Override
@@ -226,9 +294,6 @@ public class CreateMessage extends Fragment {
         if (isVisibleToUser) {
             if(rootView != null){
                 enableChildViews();
-                if(activity != null){
-                    following = new ArrayList<>(activity.getLocalFns()); //refresh "following" whenever this fragment opens, to keep code simple instead of syncing with other pages whenever "following" changes
-                }
             }
         }
         else {
@@ -262,26 +327,26 @@ public class CreateMessage extends Fragment {
 
     void filter(String text){
         currentFilterText = text;
-        List<String> tempFollowing = new ArrayList<>();
-        for(String entry: following){
-            if(entry.toLowerCase().contains(text.toLowerCase())){
-                tempFollowing.add(entry);
+        List<UserSearchItem> tempFollowing = new ArrayList<>();
+        for(Map.Entry<String, String> entry: following.entrySet()){
+            if(entry.getKey().toLowerCase().contains(text.toLowerCase())){
+                tempFollowing.add(new UserSearchItem(entry.getKey(), entry.getValue()));
             }
         }
 
-        List<String> tempFollowers = new ArrayList<>();
-        for(String entry: followers){
-            if(entry.toLowerCase().contains(text.toLowerCase())){
-                tempFollowers.add(entry);
+        List<UserSearchItem> tempFollowers = new ArrayList<>();
+        for(Map.Entry<String, String> entry: followers.entrySet()){
+            if(entry.getKey().toLowerCase().contains(text.toLowerCase())){
+                tempFollowers.add(new UserSearchItem(entry.getKey(), entry.getValue()));
             }
         }
 
         messageContacts = new ArrayList<>();
-        for(String fws : tempFollowing){
-            messageContacts.add(new UserSearchItem(fws));
+        for(UserSearchItem g : tempFollowing){
+            messageContacts.add(g);
         }
-        for(String frs : tempFollowers){
-            messageContacts.add(new UserSearchItem(frs));
+        for(UserSearchItem f : tempFollowers){
+            messageContacts.add(f);
         }
 
         //update recyclerview
@@ -315,6 +380,12 @@ public class CreateMessage extends Fragment {
 
     private void showInvitedTV(){
         invitedTV.setLayoutParams(LPStore.get(0));  //works because invitedTV is the first child of this layout
+    }
+
+    public void createMessageRoom(){
+        //set up a new message room and go into it. actual message room in DB is created with the sending of its first message.
+        activity.getMessageRoom().setUpNewRoom(invitedUsers);
+        activity.getViewPager().setCurrentItem(11);
     }
 
 }

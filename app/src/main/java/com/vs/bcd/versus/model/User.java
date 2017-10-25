@@ -16,7 +16,7 @@ public class User {
 
     private String firstName;
     private String lastName;
-    private String birthday;
+    private String bday;
     private String username; //partition key
     private String password;
     private String email = "n/a"; //default value, since dynamodb doesn't want empty strings either email or phone may be unspecified by user
@@ -48,12 +48,12 @@ public class User {
         this.lastName = lastName;
     }
 
-    @DynamoDBAttribute(attributeName = "birthday")
-    public String getBirthday() {
-        return birthday;
+    @DynamoDBAttribute(attributeName = "bday")
+    public String getBday() {
+        return bday;
     }
-    public void setBirthday(String birthday) {
-        this.birthday = birthday;
+    public void setBday(String bday) {
+        this.bday = bday;
     }
 
     @DynamoDBHashKey(attributeName = "username")
@@ -169,7 +169,7 @@ public class User {
         String[] userData = input.split("%");
         firstName = userData[0];
         lastName = userData[1];
-        birthday = userData[2];
+        bday = userData[2];
         username = userData[3];
         password = userData[4];
         timecode = (int)(System.currentTimeMillis()%10); //possible outputs: 0,1,2,3,4,5,6,7,8,9 based on current millisecond from epoch

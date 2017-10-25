@@ -19,7 +19,7 @@
         android:layout_centerVertical="true"/>
 
     <ImageButton
-        android:id="@+id/top_right_button"
+        android:id="@+id/top_right_img_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@null"
@@ -27,6 +27,18 @@
         android:layout_centerVertical="true"
         android:layout_alignParentRight="true"
         android:layout_marginRight="8dp"/>
+
+
+    <Button
+        android:id="@+id/top_right_text_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="8dp"
+        android:visibility="invisible"
+        android:clickable="false"
+        android:text="OK" />
 
     <TextView
         android:id="@+id/textView"

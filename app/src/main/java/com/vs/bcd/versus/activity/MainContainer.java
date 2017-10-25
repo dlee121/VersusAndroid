@@ -19,6 +19,7 @@ import android.view.View;
 
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -90,13 +91,14 @@ public class MainContainer extends AppCompatActivity {
     private HashSet<String> localFns;
     private String currUsername = null;
     private String beforeProfileTitle = "";
-    private RelativeLayout.LayoutParams toolbarButtonRightLP;
-    private RelativeLayout.LayoutParams bottomNavLP;
+    private RelativeLayout.LayoutParams toolbarButtonRightLP, bottomNavLP, toolbarTextButtonLP;
     private RelativeLayout vpContainer;
     private RelativeLayout.LayoutParams vpContainerLP;
     private MessageRoom messageRoom;
     private String userMKey = "";
     private String profileImageURL = "";
+    private Button toolbarTextButton;
+    private CreateMessage createMessageFragment;
 
     @Override
     public void onBackPressed(){
@@ -202,7 +204,7 @@ public class MainContainer extends AppCompatActivity {
         s3 = new AmazonS3Client(credentialsProvider);
 
         userTimecode = sessionManager.getUserTimecode();
-        localFns = sessionManager.getFnsHashSet();
+        localFns = sessionManager.getFollowingHashSet();
         currUsername = sessionManager.getCurrentUsername();
         userMKey = sessionManager.getMKey();
         profileImageURL = sessionManager.getProfileImageURL();
@@ -350,12 +352,26 @@ public class MainContainer extends AppCompatActivity {
                 }
             }
         });
-        toolbarButtonRight = (ImageButton) mActionBarView.findViewById(R.id.top_right_button);
+        toolbarButtonRight = (ImageButton) mActionBarView.findViewById(R.id.top_right_img_button);
         toolbarButtonRightLP = (RelativeLayout.LayoutParams) toolbarButtonRight.getLayoutParams();
         toolbarButtonRight.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mViewPager.setCurrentItem(10);
+            }
+        });
+
+        toolbarTextButton = (Button) mActionBarView.findViewById(R.id.top_right_text_button);
+        toolbarTextButtonLP = (RelativeLayout.LayoutParams) toolbarTextButton.getLayoutParams();
+        toolbarTextButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int currPage = mViewPager.getCurrentItem();
+                switch (currPage){
+                    case 12:    //CreateMessage fragment
+                        createMessageFragment.createMessageRoom();
+                        break;
+                }
             }
         });
 
@@ -426,6 +442,7 @@ public class MainContainer extends AppCompatActivity {
                     //But if it makes no significant performance difference to include all the other tabs, we might as well, to be on safe side especially in case future developments necessitate doing so.
                     case 0: //MainActivity
                         hideToolbarButtonRight();
+                        hideToolbarTextButton();
                         enableBottomTabs();
                         bottomNavigation.setCurrentItem(0, false);
                         showToolbarButtonLeft();
@@ -441,6 +458,7 @@ public class MainContainer extends AppCompatActivity {
 
                     case 2: //CreatePost
                         hideToolbarButtonRight();
+                        hideToolbarTextButton();
                         disableBottomTabs();
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
@@ -448,6 +466,7 @@ public class MainContainer extends AppCompatActivity {
 
                     case 3: //PostPage
                         hideToolbarButtonRight();
+                        hideToolbarTextButton();
                         disableBottomTabs();
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
@@ -463,6 +482,7 @@ public class MainContainer extends AppCompatActivity {
 
                     case 6: //CategoryFragment
                         hideToolbarButtonRight();
+                        hideToolbarTextButton();
                         enableBottomTabs();
                         bottomNavigation.setCurrentItem(0, false);
                         showToolbarButtonLeft();
@@ -472,6 +492,7 @@ public class MainContainer extends AppCompatActivity {
                     case 7: //LeaderboardTab
                         //enableBottomTabs();   //Leaderboard is accessible through bottom tabs only so bottom tabs are already enabled
                         hideToolbarButtonRight();
+                        hideToolbarTextButton();
                         hideToolbarButtonLeft();
                         bottomNavigation.setCurrentItem(1, false);
                         break;
@@ -479,6 +500,7 @@ public class MainContainer extends AppCompatActivity {
                     case 8: //NotificationsTab
                         //enableBottomTabs();   //Notifications is accessible through bottom tabs only so bottom tabs are already enabled
                         hideToolbarButtonRight();
+                        hideToolbarTextButton();
                         enableBottomTabs(); //because we might make notifications not bottom tab, putting this here just in case
                         hideToolbarButtonLeft();
                         bottomNavigation.setCurrentItem(2, false);
@@ -486,6 +508,7 @@ public class MainContainer extends AppCompatActivity {
 
                     case 9: //Me (ProfileTab with user == me)
                         titleTxtView.setText("");
+                        hideToolbarTextButton();
                         if(meClicked){
                             showSettingsButton();
                             hideToolbarButtonLeft();
@@ -504,6 +527,7 @@ public class MainContainer extends AppCompatActivity {
                     case 10: //SettingsFragment
                         titleTxtView.setText("Settings");
                         hideToolbarButtonRight();
+                        hideToolbarTextButton();
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         disableBottomTabs();
@@ -511,6 +535,7 @@ public class MainContainer extends AppCompatActivity {
 
                     case 11:
                         hideToolbarButtonRight();
+                        hideToolbarTextButton();
                         disableBottomTabs();
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
@@ -518,6 +543,7 @@ public class MainContainer extends AppCompatActivity {
 
                     case 12:
                         hideToolbarButtonRight();
+                        showToolbarTextButton("OK");
                         disableBottomTabs();
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
@@ -649,7 +675,8 @@ public class MainContainer extends AppCompatActivity {
                     messageRoom = new MessageRoom();
                     return messageRoom;
                 case 12:
-                    return new CreateMessage();
+                    createMessageFragment = new CreateMessage();
+                    return createMessageFragment;
                 default:
                     return null;
             }
@@ -899,7 +926,7 @@ public class MainContainer extends AppCompatActivity {
         return localFns.contains(f_username);
     }
 
-    public void addToLocalFns(String f_username){
+    public void addToFollowingLocal(String f_username){
         localFns.add(f_username);
         sessionManager.updateFollowingLocal(localFns);
     }
@@ -949,6 +976,34 @@ public class MainContainer extends AppCompatActivity {
 
     public String getFollowersChildPath(){
         return sessionManager.getBday() + "/" + sessionManager.getCurrentUsername() + "/f";
+    }
+
+    private void hideToolbarTextButton(){
+        toolbarTextButton.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+        toolbarTextButton.setText("");
+        toolbarTextButton.setVisibility(View.INVISIBLE);
+        toolbarTextButton.setClickable(false);
+        toolbarTextButton.setEnabled(false);
+    }
+
+    private void showToolbarTextButton(String buttonText){
+        toolbarTextButton.setEnabled(true);
+        toolbarTextButton.setClickable(true);
+        toolbarTextButton.setVisibility(View.VISIBLE);
+        toolbarTextButton.setText(buttonText);
+        toolbarTextButton.setLayoutParams(toolbarTextButtonLP);
+    }
+
+    public MessageRoom getMessageRoom(){
+        return messageRoom;
+    }
+
+    public String getUserPath(){
+        return sessionManager.getBday() + "/" + currUsername;
+    }
+
+    public String getBday(){
+        return sessionManager.getBday();
     }
 
 }
