@@ -24,6 +24,9 @@ import com.amazonaws.services.dynamodbv2.model.Condition;
 import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
 import com.amazonaws.services.dynamodbv2.model.GetItemResult;
 import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.CommentHistoryAdapter;
@@ -62,7 +65,8 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
     private int commentsORposts = 0;    //0 = comments, 1 = posts
     private final int COMMENTS = 0;
     private final int POSTS = 1;
-    private String currUsername = null; //username of the user for the profile page, not necessarily the current logged-in user
+    private String profileUsername = null; //username of the user for the profile page, not necessarily the current logged-in user
+    private String FOLLOWERS_CHILD = "";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -112,10 +116,10 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
             public void onTabSelected(TabLayout.Tab tab) {
                 switch (tab.getPosition()) {
                     case 0: //comments history
-                        if(commentsORposts == POSTS && currUsername != null){
+                        if(commentsORposts == POSTS && profileUsername != null){
                             Runnable runnable = new Runnable() {
                                 public void run() {
-                                    setUpComments(currUsername);
+                                    setUpComments(profileUsername);
                                 }
                             };
                             Thread mythread = new Thread(runnable);
@@ -124,10 +128,10 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                         commentsORposts = COMMENTS;
                         break;
                     case 1: //posts history
-                        if(commentsORposts == COMMENTS && currUsername != null){
+                        if(commentsORposts == COMMENTS && profileUsername != null){
                             Runnable runnable = new Runnable() {
                                 public void run() {
-                                    setUpPosts(currUsername);
+                                    setUpPosts(profileUsername);
                                 }
                             };
                             Thread mythread = new Thread(runnable);
@@ -168,8 +172,8 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        //save the activity to a member of this fragment
         activity = (MainContainer)context;
+        FOLLOWERS_CHILD = activity.getFollowersChildPath();
     }
 
     @Override
@@ -193,7 +197,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
         }
         */
 
-        currUsername = username;
+        profileUsername = username;
 
         displayLoadingScreen(); //hide all page content and show refresh animation during loading, no other UI element
 
@@ -522,7 +526,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
     }
 
     private void followThisUser(){
-        if(currUsername != null){
+        if(profileUsername != null){
             Runnable runnable = new Runnable() {
                 public void run() {
                     //TODO: update follower list in firebase
@@ -535,34 +539,46 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                             .withUpdateExpression("SET fns = list_append(fns, :fnv)")
                             .withExpressionAttributeValues(
                                     Collections.singletonMap(":fnv",
-                                            new AttributeValue().withL(new AttributeValue().withS(currUsername))
+                                            new AttributeValue().withL(new AttributeValue().withS(profileUsername))
                                     )
                             );
                     activity.getDDBClient().updateItem(flistUpdateRequest);
 
                     //also update flist stored in SharedPref and the localFlist HashSet in MainContainer
-                    activity.addToLocalFns(currUsername);
+                    activity.addToLocalFns(profileUsername);
 
-                    //update the follower list of the followed user
+                    //update the follower count (fnum) of the followed user
                     UpdateItemRequest fnumUpdateRequest = new UpdateItemRequest();
                     fnumUpdateRequest.withTableName("user")
                             .withKey(Collections.singletonMap("username",
-                                    new AttributeValue().withS(currUsername)))
-                            .withUpdateExpression("SET frs = list_append(frs, :frv)")
+                                    new AttributeValue().withS(profileUsername)))
+                            .withUpdateExpression("ADD fnum :inc")
                             .withExpressionAttributeValues(
-                                    Collections.singletonMap(":frv",
-                                            new AttributeValue().withL(new AttributeValue().withS(activity.getUsername()))
+                                    Collections.singletonMap(":inc",
+                                            new AttributeValue().withN("1")
                                     )
                             );
                     activity.getDDBClient().updateItem(fnumUpdateRequest);
 
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            showFollowingText();
-                            updateProfileInfo();
-                        }
-                    });
+                    //update the followed user's follower list in Firebase
+                    FirebaseDatabase.getInstance().getReference().child(FOLLOWERS_CHILD).push()
+                            .setValue(true, new DatabaseReference.CompletionListener() {
+                                @Override
+                                public void onComplete(DatabaseError databaseError,
+                                                       DatabaseReference databaseReference) {
+                                    if (databaseError == null) {
+                                        activity.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                showFollowingText();
+                                                updateProfileInfo();
+                                            }
+                                        });
+                                    } else {
+                                        Log.w("MESSENGER", "Unable to update followers list in Firebase.");
+                                    }
+                                }
+                            });
 
                 }
             };
@@ -576,12 +592,12 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
         Runnable runnable = new Runnable() {
             public void run() {
 
-                if(currUsername == null){
+                if(profileUsername == null){
                     return;
                 }
                 HashMap<String, AttributeValue> keyMap =
                         new HashMap<>();
-                keyMap.put("username", new AttributeValue().withS(currUsername));  //partition key
+                keyMap.put("username", new AttributeValue().withS(profileUsername));  //partition key
 
                 GetItemRequest request = new GetItemRequest()
                         .withTableName("user")
@@ -595,7 +611,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                     @Override
                     public void run() {
 
-                        usernameTV.setText(currUsername);
+                        usernameTV.setText(profileUsername);
 
                         for (Map.Entry<String, AttributeValue> entry : resultMap.entrySet()) {
                             Log.d("ptab", "attrName: " + entry.getKey() + "    attrValue: " + entry.getValue().getN());

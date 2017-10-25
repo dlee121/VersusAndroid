@@ -3,9 +3,7 @@ package com.vs.bcd.versus.model;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 
@@ -28,8 +26,8 @@ public class User {
     private int num_g;  //number of gold medals this user has
     private int num_s;  //number of silver medals this user has
     private int num_b;  //number of bronze medals this user has
-    private List<String> fns; //list of username of users this user is following (following list)
-    private List<String > frs;  //list of username of users following this user (follower list)
+    private List<String> fw; //list of username of users this user is following (following list)
+    private int fc;   //number of followers this user has (follower count)
     private String mkey; //pw for messenger auth
     private String purl; //profile image storage url
 
@@ -130,20 +128,20 @@ public class User {
         this.num_b = num_b;
     }
 
-    @DynamoDBAttribute(attributeName = "fns")
-    public List<String> getFns(){
-        return fns;
+    @DynamoDBAttribute(attributeName = "fw")
+    public List<String> getFw(){
+        return fw;
     }
-    public void setFns(List<String> fns){
-        this.fns = fns;
+    public void setFw(List<String> fw){
+        this.fw = fw;
     }
 
-    @DynamoDBAttribute(attributeName = "frs")
-    public List<String> getFrs(){
-        return frs;
+    @DynamoDBAttribute(attributeName = "fc")
+    public int getFc(){
+        return fc;
     }
-    public void setFrs(List<String> frs){
-        this.frs = frs;
+    public void setFc(int fc){
+        this.fc = fc;
     }
 
     @DynamoDBAttribute(attributeName = "mkey")
@@ -179,8 +177,8 @@ public class User {
         num_g = 0;
         num_s = 0;
         num_b = 0;
-        fns = new ArrayList<>();
-        frs = new ArrayList<>();
+        fw = new ArrayList<>();
+        fc = 0;
         mkey = UUID.randomUUID().toString().substring(0, 5);
         purl = "0"; //default value meaning use a default in-app profile image
 

@@ -138,7 +138,7 @@ public class Tab4Messenger extends Fragment {
                             String roomNum = roomObject.getRnum();
                             HashMap<String, String> usersMap = roomObject.getUsers();
 
-                            if(roomNum != null &&  usersMap != null){
+                            if(roomNum != null && usersMap != null){
                                 activity.setUpAndOpenMessageRoom(roomNum, usersMap);
                             }
                             else{

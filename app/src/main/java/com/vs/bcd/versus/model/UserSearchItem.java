@@ -2,6 +2,8 @@ package com.vs.bcd.versus.model;
 
 import android.graphics.Bitmap;
 
+import com.google.firebase.database.Exclude;
+
 /**
  * Created by dlee on 10/22/17.
  */
@@ -9,19 +11,36 @@ import android.graphics.Bitmap;
 public class UserSearchItem {
 
     private String username;
-    private Bitmap profilePhoto;
+    private Bitmap profileImage;
+
+    public UserSearchItem(){
+        profileImage = null;
+    }
 
     public UserSearchItem(String username){
         this.username = username;
-        //profilePhoto = TODO: get photo from S3, if none then use default photo
     }
 
     public String getUsername(){
         return username;
     }
+    public void setUsername(String username){
+        this.username = username;
+    }
 
-    //TODO: getter and setter for photo
+    public Bitmap getProfileImage(){
+        return profileImage;
+    }
+    public void setProfileImage(Bitmap profileImage){
+        this.profileImage = profileImage;
+    }
 
+    public boolean equals(UserSearchItem usi){
+        return this.username.equals(usi.getUsername());
+    }
 
+    public int hashCode(){
+        return username.hashCode();
+    }
 
 }

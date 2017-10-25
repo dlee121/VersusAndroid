@@ -1,9 +1,7 @@
 package com.vs.bcd.versus.model;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.lang.reflect.Type;
 
 import android.content.Context;
@@ -14,9 +12,6 @@ import android.content.SharedPreferences.Editor;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.vs.bcd.versus.activity.StartScreen;
-import com.vs.bcd.versus.model.User;
-
-import static android.content.ContentValues.TAG;
 
 public class SessionManager {
     // Shared Preferences
@@ -46,8 +41,8 @@ public class SessionManager {
     public static final String KEY_PHONE = "pref_phone";
     public static final String KEY_USERNAME = "pref_username";
     public static final String KEY_TIMECODE = "pref_timecode";
-    public static final String KEY_FNS = "pref_fns";
-    public static final String KEY_FRS = "pref_frs";
+    public static final String KEY_FW = "pref_fw";  //following
+    public static final String KEY_FC = "pref_fc";  //follower count
     public static final String KEY_MKEY = "pref_mkey";
     public static final String KEY_PURL = "pref_purl";
 
@@ -78,16 +73,14 @@ public class SessionManager {
         editor.putString(KEY_PHONE, user.getPhone());
         editor.putString(KEY_USERNAME, user.getUsername());
         editor.putInt(KEY_TIMECODE, user.getTimecode());
+        editor.putInt(KEY_FC, user.getFc());
         editor.putString(KEY_MKEY, user.getMkey());
         editor.putString(KEY_PURL, user.getPurl());
 
         Gson gson = new Gson();
 
-        String fnsStr = gson.toJson(user.getFns());
-        editor.putString(KEY_FNS, fnsStr);
-
-        String frsStr = gson.toJson(user.getFrs());
-        editor.putString(KEY_FRS, frsStr);
+        String fnsStr = gson.toJson(user.getFw());
+        editor.putString(KEY_FW, fnsStr);
 
         // commit changes
         editor.commit();
@@ -137,31 +130,16 @@ public class SessionManager {
 
     public HashSet<String> getFnsHashSet(){
         Gson gson = new Gson();
-        String json = pref.getString(KEY_FNS, null);
+        String json = pref.getString(KEY_FW, null);
         Type type = new TypeToken<HashSet<String>>() {}.getType();
         HashSet<String> ret = gson.fromJson(json, type);
         return ret;
     }
 
-    public void updateFns(HashSet<String> updatedList){
+    public void updateFollowingLocal(HashSet<String> updatedList){
         Gson gson = new Gson();
-        String fnsStr = gson.toJson(updatedList);
-        editor.putString(KEY_FNS, fnsStr);
-        editor.apply();
-    }
-
-    public HashSet<String> getFrsHashSet(){
-        Gson gson = new Gson();
-        String json = pref.getString(KEY_FRS, null);
-        Type type = new TypeToken<HashSet<String>>() {}.getType();
-        HashSet<String> ret = gson.fromJson(json, type);
-        return ret;
-    }
-
-    public void updateFrs(HashSet<String> updatedList){
-        Gson gson = new Gson();
-        String frsStr = gson.toJson(updatedList);
-        editor.putString(KEY_FRS, frsStr);
+        String fwStr = gson.toJson(updatedList);
+        editor.putString(KEY_FW, fwStr);
         editor.apply();
     }
 

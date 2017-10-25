@@ -901,7 +901,7 @@ public class MainContainer extends AppCompatActivity {
 
     public void addToLocalFns(String f_username){
         localFns.add(f_username);
-        sessionManager.updateFns(localFns);
+        sessionManager.updateFollowingLocal(localFns);
     }
 
     public HashSet<String> getLocalFns(){
@@ -945,6 +945,10 @@ public class MainContainer extends AppCompatActivity {
 
     public String getProfileImageURL(){
         return profileImageURL;
+    }
+
+    public String getFollowersChildPath(){
+        return sessionManager.getBday() + "/" + sessionManager.getCurrentUsername() + "/f";
     }
 
 }

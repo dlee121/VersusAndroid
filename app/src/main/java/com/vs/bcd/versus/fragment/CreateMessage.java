@@ -2,7 +2,6 @@ package com.vs.bcd.versus.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -18,18 +17,22 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.analytics.FirebaseAnalytics;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.GenericTypeIndicator;
+import com.google.firebase.database.ValueEventListener;
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.activity.MainActivity;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.InvitedUserAdapter;
 import com.vs.bcd.versus.adapter.UserSearchAdapter;
+import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.UserSearchItem;
 
@@ -46,7 +49,7 @@ import java.util.Locale;
 
 public class CreateMessage extends Fragment {
 
-    private String ROOMS_CHILD = "";
+    private String FOLLOWERS_CHILD = "";
     private final int REQUEST_IMAGE = 2;
     private final int RESULT_OK = -1;
     private static final String LOADING_IMAGE_URL = "https://www.google.com/images/spin-32.gif";    //TODO: replace with our own
@@ -75,6 +78,8 @@ public class CreateMessage extends Fragment {
     private InvitedUserAdapter invitedUserAdapter;
     private UserSearchAdapter userSearchAdapter;
     private TextView invitedTV;
+    private boolean initialFListLoaded = false;
+    private String currentFilterText = "";
 
 
     @Override
@@ -130,60 +135,69 @@ public class CreateMessage extends Fragment {
         mFirebaseAuth = FirebaseAuth.getInstance();
         mFirebaseUser = mFirebaseAuth.getCurrentUser(); //TODO: handle possible null object reference error
 
-        userMKey = ((MainContainer)getActivity()).getUserMKey();
-        //mUsername = ((MainContainer)getActivity()).getUsername();
-        if(mFirebaseUser == null){
-            mFirebaseAuth.signInWithEmailAndPassword(userMKey + mUsername.replaceAll("[^A-Za-z0-9]", "v") + "@versusbcd.com", userMKey + "vsbcd121")
-                    .addOnCompleteListener(getActivity(), new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            if (!task.isSuccessful()) {
-                                Log.w("firebasechat", "sign in failed");
-                                Toast.makeText(getActivity(), "Authentication failed.", Toast.LENGTH_SHORT).show();
+        userMKey = activity.getUserMKey();
+        mPhotoUrl = activity.getProfileImageURL();
 
-                            } else {
-                                //TODO: photoURL should be a link to the user's profile picture stored in firebase. If no pic then should be blank, and in the UI if photoURL is blank then use default image in-app
-                                mPhotoUrl = "https://firebasestorage.googleapis.com/v0/b/bcd-versus.appspot.com/o/vs_shadow_w_tag.png?alt=media&token=76f50800-a388-4be7-b802-bff78fe0d07d";
-                                mFirebaseUser = mFirebaseAuth.getCurrentUser();
-                                setUpMessenger();
-                            }
-                        }
-                    });
-        }
-        else {
-            mPhotoUrl = "https://firebasestorage.googleapis.com/v0/b/bcd-versus.appspot.com/o/vs_shadow_w_tag.png?alt=media&token=76f50800-a388-4be7-b802-bff78fe0d07d";
-            setUpMessenger();
-        }
-
-        return rootView;
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        activity = (MainContainer) context;
-        SessionManager sessionManager = new SessionManager(context);
-        mUsername = sessionManager.getCurrentUsername();
-        ROOMS_CHILD = sessionManager.getBday() + "/" + sessionManager.getCurrentUsername() + "/rooms";
-    }
-
-    private void setUpMessenger(){
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
-        mFirebaseAnalytics = FirebaseAnalytics.getInstance(getActivity());
-
-        following = new ArrayList<>(activity.getLocalFns());
-        Log.d("MESSENGER", "following list size: "+Integer.toString(following.size()));
 
         //TODO: get fresh followers list from firebase
         followers = new ArrayList<>();  //temp empty list
         //followers = new ArrayList<>(***get realtime instance of followers list in firebase***);
 
+        mFirebaseDatabaseReference.child(FOLLOWERS_CHILD).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot child : dataSnapshot.getChildren()) {
+                    followers.add(child.getKey()); //the key is the username
+                }
+                initialFListLoaded = true;
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        mFirebaseDatabaseReference.child(FOLLOWERS_CHILD).addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String prevChildKey) {
+                if(initialFListLoaded){ //so this is only for new updates to followers list
+                    String newFollower = dataSnapshot.getKey();
+                    followers.add(newFollower); //the key is the username
+                    if(dataSnapshot.getKey().contains(currentFilterText)){
+                        messageContacts.add(new UserSearchItem(newFollower));
+                        userSearchAdapter.updateList(messageContacts);
+                        //TODO: test that this case works (when new follower is added and their username passes current text filter, then display them in the recycler view)
+                    }
+                }
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String prevChildKey) {}
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                followers.remove(dataSnapshot.getKey());
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String prevChildKey) {}
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.d("MESSENGER", "follower query cancelled");
+            }
+        });
+
+        following = new ArrayList<>(activity.getLocalFns());
+
         messageContacts = new ArrayList<>();
-        for(String fws : following){
-            messageContacts.add(new UserSearchItem(fws));
-        }
         for(String frs : followers){
             messageContacts.add(new UserSearchItem(frs));
+        }
+        for(String fws : following){
+            messageContacts.add(new UserSearchItem(fws));
         }
 
         invitedUsers = new ArrayList<>();
@@ -194,18 +208,33 @@ public class CreateMessage extends Fragment {
         userSearchAdapter = new UserSearchAdapter(messageContacts, getActivity(), this);
         userSearchRV.setAdapter(userSearchAdapter);
 
+        return rootView;
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        activity = (MainContainer) context;
+        SessionManager sessionManager = new SessionManager(context);
+        mUsername = sessionManager.getCurrentUsername();
+        FOLLOWERS_CHILD = sessionManager.getBday() + "/" + sessionManager.getCurrentUsername() + "/f";
     }
 
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
-            if(rootView != null)
+            if(rootView != null){
                 enableChildViews();
+                if(activity != null){
+                    following = new ArrayList<>(activity.getLocalFns()); //refresh "following" whenever this fragment opens, to keep code simple instead of syncing with other pages whenever "following" changes
+                }
+            }
         }
         else {
-            if (rootView != null)
+            if (rootView != null){
                 disableChildViews();
+            }
         }
     }
 
@@ -232,7 +261,7 @@ public class CreateMessage extends Fragment {
     }
 
     void filter(String text){
-
+        currentFilterText = text;
         List<String> tempFollowing = new ArrayList<>();
         for(String entry: following){
             if(entry.toLowerCase().contains(text.toLowerCase())){
@@ -287,6 +316,5 @@ public class CreateMessage extends Fragment {
     private void showInvitedTV(){
         invitedTV.setLayoutParams(LPStore.get(0));  //works because invitedTV is the first child of this layout
     }
-
 
 }
