@@ -23,6 +23,7 @@ import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.vs.bcd.versus.R;
@@ -83,6 +84,7 @@ public class Tab4Messenger extends Fragment {
     private SimpleDateFormat df;
     private MainContainer activity;
     private FloatingActionButton fabNewMsg;
+    private ChildEventListener roomsListener;
 
 
     @Override
@@ -99,6 +101,9 @@ public class Tab4Messenger extends Fragment {
         mLinearLayoutManager.setStackFromEnd(true);
         mRoomRecyclerView.setLayoutManager(mLinearLayoutManager);
 
+        userMKey = ((MainContainer)getActivity()).getUserMKey();
+        mPhotoUrl = activity.getProfileImageURL();
+
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();
         for (int i = 0; i<((ViewGroup)rootView).getChildCount(); i++){
@@ -108,11 +113,35 @@ public class Tab4Messenger extends Fragment {
 
         disableChildViews();
 
-        // Initialize Firebase Auth
-        mFirebaseAuth = FirebaseAuth.getInstance();
+        mFirebaseAnalytics = FirebaseAnalytics.getInstance(getActivity());
 
-        userMKey = ((MainContainer)getActivity()).getUserMKey();
-        mPhotoUrl = activity.getProfileImageURL();
+        fabNewMsg = (FloatingActionButton) rootView.findViewById(R.id.fab_new_msg);
+        fabNewMsg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //TODO: open Send New Message UI (so also implement that UI in XML) and set up related stuff
+                activity.getViewPager().setCurrentItem(13);
+            }
+        });
+
+        return rootView;
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        activity = (MainContainer) context;
+        SessionManager sessionManager = new SessionManager(context);
+        mUsername = sessionManager.getCurrentUsername();
+        ROOMS_CHILD = sessionManager.getBday() + "/" + sessionManager.getCurrentUsername() + "/r";
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+
+        // Initialize Firebase Auth
+        //mFirebaseAuth = FirebaseAuth.getInstance();
 
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
@@ -139,7 +168,7 @@ public class Tab4Messenger extends Fragment {
                             HashMap<String, String> usersMap = roomObject.getUsers();
 
                             usersMap.remove(mUsername); //remove logged-in user from the room users map to prevent duplicate sends,
-                                                        // since we handle logged-in user's message transfer separate from message transfer of other room users
+                            // since we handle logged-in user's message transfer separate from message transfer of other room users
 
                             if(roomNum != null && usersMap != null){
                                 activity.setUpAndOpenMessageRoom(roomNum, usersMap);
@@ -177,27 +206,16 @@ public class Tab4Messenger extends Fragment {
 
         mRoomRecyclerView.setAdapter(mFirebaseAdapter);
 
-        mFirebaseAnalytics = FirebaseAnalytics.getInstance(getActivity());
 
-        fabNewMsg = (FloatingActionButton) rootView.findViewById(R.id.fab_new_msg);
-        fabNewMsg.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //TODO: open Send New Message UI (so also implement that UI in XML) and set up related stuff
-                activity.getViewPager().setCurrentItem(13);
-            }
-        });
-
-        return rootView;
     }
 
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        activity = (MainContainer) context;
-        SessionManager sessionManager = new SessionManager(context);
-        mUsername = sessionManager.getCurrentUsername();
-        ROOMS_CHILD = sessionManager.getBday() + "/" + sessionManager.getCurrentUsername() + "/r";
+    public void onPause(){
+        super.onPause();
+        if(mFirebaseAdapter != null){
+            mFirebaseAdapter.cleanup();
+            Log.d("ORDER", "Tab4Messenger FirebaseRecyclerAdapter cleanup done");
+        }
     }
 
     @Override

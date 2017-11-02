@@ -50,6 +50,7 @@ public class CreateMessage extends Fragment {
 
     private String FOLLOWERS_CHILD = "";
     private String FOLLOWING_CHILD = "";
+    private String H_CHILD = "";
     private final int REQUEST_IMAGE = 2;
     private final int RESULT_OK = -1;
     private static final String LOADING_IMAGE_URL = "https://www.google.com/images/spin-32.gif";    //TODO: replace with our own
@@ -70,16 +71,18 @@ public class CreateMessage extends Fragment {
     private SimpleDateFormat df;
     private MainContainer activity;
     private FloatingActionButton fabNewMsg;
+    private ChildEventListener followingListener, followerListener, hListener;
 
     private RecyclerView invitedUsersRV, userSearchRV;
     private EditText userSearchET;
-    private HashMap<String, String> following, followers;
+    private HashMap<String, String> following, followers, hList;
     private ArrayList<UserSearchItem> messageContacts, invitedUsers;
     private InvitedUserAdapter invitedUserAdapter;
     private UserSearchAdapter userSearchAdapter;
     private TextView invitedTV;
     private boolean initialFollowersLoaded = false;
     private boolean initialFollowingLoaded = false;
+    private boolean initialHLoaded = false;
     private String currentFilterText = "";
     private HashSet<String> localFW;
     private CreateMessage thisFragment;
@@ -145,135 +148,33 @@ public class CreateMessage extends Fragment {
 
         thisFragment = this;
 
-        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
-
-        //TODO: get fresh followers list from firebase
-        followers = new HashMap<>();  //temp empty list
-        //followers = new ArrayList<>(***get realtime instance of followers list in firebase***);
-
-        mFirebaseDatabaseReference.child(FOLLOWERS_CHILD).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot child : dataSnapshot.getChildren()) {
-                    if(!localFW.contains(child.getKey())){  //don't add if it's already in Following list
-                        followers.put(child.getKey(), child.getValue(String.class));
-                    }
-                }
-                initialFollowersLoaded = true;
-                finishSetUp();
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-        mFirebaseDatabaseReference.child(FOLLOWERS_CHILD).addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String prevChildKey) {
-                if(initialFollowersLoaded){ //so this is only for new updates to followers list
-                    if(!following.containsKey(dataSnapshot.getKey())){  //don't add if it's already in Following list
-                        followers.put(dataSnapshot.getKey(), dataSnapshot.getValue(String.class));
-                        if(userSearchET.getText().toString().isEmpty() || dataSnapshot.getKey().contains(currentFilterText)){
-                            messageContacts.add(new UserSearchItem(dataSnapshot.getKey(), dataSnapshot.getValue(String.class)));
-                            userSearchAdapter.updateList(messageContacts);
-                            //TODO: test that this case works (when new follower is added and their username passes current text filter, then display them in the recycler view)
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String prevChildKey) {}
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-                followers.remove(dataSnapshot.getKey());
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String prevChildKey) {}
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.d("MESSENGER", "follower query cancelled");
-            }
-        });
+        Log.d("ORDER", "CreateMessage OnCreate finished");
 
         return rootView;
     }
 
-    private void finishSetUp(){
-
+    @Override
+    public void onResume(){
+        super.onResume();
+        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
         messageContacts = new ArrayList<>();
+        addHListener();
+        //addHListener() finishes and calls addFollowerListener, which finishes and calls addFollowingListener
 
-        following = new HashMap<>();
+        Log.d("ORDER", "CreateMessage OnResume called");
+    }
 
-        mFirebaseDatabaseReference.child(FOLLOWING_CHILD).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if(dataSnapshot.hasChildren()){
-                    for (DataSnapshot child : dataSnapshot.getChildren()) {
-                        following.put(child.getKey(), child.getValue(String.class));
-                    }
-                    for(Map.Entry<String, String> entry : following.entrySet()){
-                        messageContacts.add(new UserSearchItem(entry.getKey(), entry.getValue()));
-                    }
-                }
+    @Override
+    public void onPause(){
+        super.onPause();
+        initialFollowingLoaded = false;
+        initialFollowersLoaded = false;
+        initialHLoaded = false;
 
-                initialFollowingLoaded = true;
+        mFirebaseDatabaseReference.child(FOLLOWERS_CHILD).removeEventListener(followerListener);
+        mFirebaseDatabaseReference.child(FOLLOWING_CHILD).removeEventListener(followingListener);
 
-                for(Map.Entry<String, String> entry : followers.entrySet()){
-                    messageContacts.add(new UserSearchItem(entry.getKey(), entry.getValue()));
-                }
-
-                invitedUsers = new ArrayList<>();
-
-                invitedUserAdapter = new InvitedUserAdapter(invitedUsers, getActivity(), thisFragment);
-                invitedUsersRV.setAdapter(invitedUserAdapter);
-
-                userSearchAdapter = new UserSearchAdapter(messageContacts, getActivity(), thisFragment);
-                userSearchRV.setAdapter(userSearchAdapter);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-        mFirebaseDatabaseReference.child(FOLLOWING_CHILD).addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String prevChildKey) {
-                if(initialFollowingLoaded){ //so this is only for new updates to following list
-                    if(!followers.containsKey(dataSnapshot.getKey())){  //don't add if it's already in Following list
-                        following.put(dataSnapshot.getKey(), dataSnapshot.getValue(String.class));
-                        if(userSearchET.getText().toString().isEmpty() || dataSnapshot.getKey().contains(currentFilterText)){
-                            Log.d("MESSENGER", "Following New User");
-                            messageContacts.add(new UserSearchItem(dataSnapshot.getKey(), dataSnapshot.getValue(String.class)));
-                            userSearchAdapter.updateList(messageContacts);
-                            //TODO: test that this case works (when new follower is added and their username passes current text filter, then display them in the recycler view)
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String prevChildKey) {}
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-                followers.remove(dataSnapshot.getKey());
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String prevChildKey) {}
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.d("MESSENGER", "follower query cancelled");
-            }
-        });
+        Log.d("ORDER", "CreateMessage Firebase Listeners removed");
 
     }
 
@@ -286,6 +187,7 @@ public class CreateMessage extends Fragment {
         String userPath = sessionManager.getBday() + "/" + sessionManager.getCurrentUsername();
         FOLLOWERS_CHILD = userPath + "/f";
         FOLLOWING_CHILD = userPath + "/g";
+        H_CHILD = userPath + "/h";
     }
 
     @Override
@@ -386,6 +288,214 @@ public class CreateMessage extends Fragment {
         //set up a new message room and go into it. actual message room in DB is created with the sending of its first message.
         activity.getMessageRoom().setUpNewRoom(invitedUsers);
         activity.getViewPager().setCurrentItem(11);
+    }
+
+    private void addFollowingListener(){
+
+        following = new HashMap<>();
+
+        followingListener = mFirebaseDatabaseReference.child(FOLLOWING_CHILD).addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String prevChildKey) {
+                if(initialFollowingLoaded){ //so this is only for new updates to following list
+                    Log.d("ORDER", "initialFollowingLoaded == true");
+                    if(!followers.containsKey(dataSnapshot.getKey())){  //don't add if it's already in Following list
+                        following.put(dataSnapshot.getKey(), dataSnapshot.getValue(String.class));
+                        if(userSearchET.getText().toString().isEmpty() || dataSnapshot.getKey().contains(currentFilterText)){
+                            Log.d("MESSENGER", "Following New User");
+                            messageContacts.add(new UserSearchItem(dataSnapshot.getKey(), dataSnapshot.getValue(String.class)));
+                            userSearchAdapter.updateList(messageContacts);
+                            //TODO: test that this case works (when new follower is added and their username passes current text filter, then display them in the recycler view)
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String prevChildKey) {}
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                followers.remove(dataSnapshot.getKey());
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String prevChildKey) {}
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.d("MESSENGER", "follower query cancelled");
+            }
+        });
+
+        mFirebaseDatabaseReference.child(FOLLOWING_CHILD).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.hasChildren()){
+                    for (DataSnapshot child : dataSnapshot.getChildren()) {
+                        if(hList.containsKey(child.getKey())){
+                            child.getRef().removeValue();
+                        }
+                        else if(followers.containsKey(child.getKey())){
+                            mFirebaseDatabaseReference.child(H_CHILD).child(child.getKey()).setValue(child.getValue());
+                            child.getRef().removeValue();
+                            mFirebaseDatabaseReference.child(FOLLOWERS_CHILD).child(child.getKey()).removeValue();
+                        }
+                        else {
+                            following.put(child.getKey(), child.getValue(String.class));
+                            messageContacts.add(new UserSearchItem(child.getKey(), child.getValue(String.class)));
+                        }
+                    }
+                }
+
+                initialFollowingLoaded = true;
+
+                invitedUsers = new ArrayList<>();
+
+                invitedUserAdapter = new InvitedUserAdapter(invitedUsers, getActivity(), thisFragment);
+                invitedUsersRV.setAdapter(invitedUserAdapter);
+
+                userSearchAdapter = new UserSearchAdapter(messageContacts, getActivity(), thisFragment);
+                userSearchRV.setAdapter(userSearchAdapter);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+    }
+
+    private void addFollowerListener(){
+
+        followers = new HashMap<>();  //temp empty list
+        //followers = new ArrayList<>(***get realtime instance of followers list in firebase***);
+
+        followerListener = mFirebaseDatabaseReference.child(FOLLOWERS_CHILD).addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String prevChildKey) {
+                if(initialFollowersLoaded){ //so this is only for new updates to followers list
+                    if(!following.containsKey(dataSnapshot.getKey())){  //don't add if it's already in Following list
+                        followers.put(dataSnapshot.getKey(), dataSnapshot.getValue(String.class));
+                        if(userSearchET.getText().toString().isEmpty() || dataSnapshot.getKey().contains(currentFilterText)){
+                            messageContacts.add(new UserSearchItem(dataSnapshot.getKey(), dataSnapshot.getValue(String.class)));
+                            userSearchAdapter.updateList(messageContacts);
+                            //TODO: test that this case works (when new follower is added and their username passes current text filter, then display them in the recycler view)
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String prevChildKey) {}
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                followers.remove(dataSnapshot.getKey());
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String prevChildKey) {}
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.d("MESSENGER", "follower query cancelled");
+            }
+        });
+
+        mFirebaseDatabaseReference.child(FOLLOWERS_CHILD).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                if(dataSnapshot.hasChildren()){
+                    for (DataSnapshot child : dataSnapshot.getChildren()) {
+                        if(hList.containsKey(child.getKey())){
+                            child.getRef().removeValue();
+                        }
+                        else{
+                            followers.put(child.getKey(), child.getValue(String.class));
+                            messageContacts.add(new UserSearchItem(child.getKey(), child.getValue(String.class)));
+                        }
+                    }
+                }
+
+                initialFollowersLoaded = true;
+                addFollowingListener();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    //HListener listenes to list "h" in firebase, which is a list of users with whom the user has a two-way relationship (following and follower)
+    private void addHListener(){
+        hList = new HashMap<>();  //temp empty list
+
+        hListener = mFirebaseDatabaseReference.child(H_CHILD).addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String prevChildKey) {
+                if(initialHLoaded){ //so this is only for new updates to followers list
+                    hList.put(dataSnapshot.getKey(), dataSnapshot.getValue(String.class));
+
+                    if(followers.containsKey(dataSnapshot.getKey())){
+                        followers.remove(dataSnapshot.getKey());
+                    }
+
+                    if(following.containsKey(dataSnapshot.getKey())){
+                        following.remove(dataSnapshot.getKey());
+                    }
+
+                    if(!(messageContacts.contains(dataSnapshot.getKey())) && (userSearchET.getText().toString().isEmpty() || dataSnapshot.getKey().contains(currentFilterText))){
+                        messageContacts.add(new UserSearchItem(dataSnapshot.getKey(), dataSnapshot.getValue(String.class)));
+                        userSearchAdapter.updateList(messageContacts);
+                        //TODO: test that this case works (when new follower is added and their username passes current text filter, then display them in the recycler view)
+                    }
+                }
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String prevChildKey) {}
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                followers.remove(dataSnapshot.getKey());
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String prevChildKey) {}
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.d("MESSENGER", "h query cancelled");
+            }
+        });
+
+        mFirebaseDatabaseReference.child(H_CHILD).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                if(dataSnapshot.hasChildren()){
+                    for (DataSnapshot child : dataSnapshot.getChildren()) {
+                        hList.put(child.getKey(), child.getValue(String.class));
+                        messageContacts.add(new UserSearchItem(child.getKey(), child.getValue(String.class)));
+                    }
+                }
+
+                initialHLoaded = true;
+                addFollowerListener();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+
     }
 
 }

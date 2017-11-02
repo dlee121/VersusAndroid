@@ -179,6 +179,23 @@ public class MessageRoom extends Fragment {
         MESSAGES_CHILD =  MESSAGES_CHILD_BODY;
     }
 
+    @Override
+    public void onResume(){
+        super.onResume();
+        if(roomNum.length() > 1){
+            setUpRecyclerView(roomNum);
+        }
+    }
+
+    @Override
+    public void onPause(){
+        super.onPause();
+        if(mFirebaseAdapter != null){
+            mFirebaseAdapter.cleanup();
+            Log.d("ORDER", "MessageRoom FirebaseRecyclerAdapter cleanup done");
+        }
+    }
+
     public void setUpNewRoom(final ArrayList<UserSearchItem> invitedUsers){
 
         firstMessage = true;
@@ -264,85 +281,7 @@ public class MessageRoom extends Fragment {
         roomUsersMap = usersMap;
         roomUsersList = null;
 
-        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
-
-        mFirebaseAdapter = new FirebaseRecyclerAdapter<MessageObject,
-                MessageViewHolder>(
-                MessageObject.class,
-                R.layout.message_item_view,
-                MessageViewHolder.class,
-                mFirebaseDatabaseReference.child(MESSAGES_CHILD)) {
-
-            @Override
-            protected void populateViewHolder(final MessageViewHolder viewHolder,
-                                              MessageObject friendlyMessage, int position) {
-                mProgressBar.setVisibility(ProgressBar.INVISIBLE);
-                if (friendlyMessage.getText() != null) {
-                    viewHolder.messageTextView.setText(friendlyMessage.getText());
-                    viewHolder.messageTextView.setVisibility(TextView.VISIBLE);
-                    viewHolder.messageImageView.setVisibility(ImageView.GONE);
-
-                } else {
-                    String imageUrl = friendlyMessage.getImageUrl();
-                    if (imageUrl.startsWith("gs://")) {
-                        StorageReference storageReference = FirebaseStorage.getInstance()
-                                .getReferenceFromUrl(imageUrl);
-                        storageReference.getDownloadUrl().addOnCompleteListener(
-                                new OnCompleteListener<Uri>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Uri> task) {
-                                        if (task.isSuccessful()) {
-                                            String downloadUrl = task.getResult().toString();
-                                            Glide.with(viewHolder.messageImageView.getContext())
-                                                    .load(downloadUrl)
-                                                    .into(viewHolder.messageImageView);
-                                        } else {
-                                            Log.w(TAG, "Getting download url was not successful.",
-                                                    task.getException());
-                                        }
-                                    }
-                                });
-                    } else {
-                        Glide.with(viewHolder.messageImageView.getContext())
-                                .load(friendlyMessage.getImageUrl())
-                                .into(viewHolder.messageImageView);
-                    }
-                    viewHolder.messageImageView.setVisibility(ImageView.VISIBLE);
-                    viewHolder.messageTextView.setVisibility(TextView.GONE);
-                }
-
-                viewHolder.usernameTextView.setText(friendlyMessage.getName());
-                if (friendlyMessage.getPhotoUrl() == null) {
-                    viewHolder.messengerImageView.setImageDrawable(ContextCompat.getDrawable(getActivity(),
-                            R.drawable.vs_shadow_w_tag));
-                } else {
-                    Glide.with(getActivity())
-                            .load(friendlyMessage.getPhotoUrl())
-                            .into(viewHolder.messengerImageView);
-                }
-
-            }
-        };
-
-        mFirebaseAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
-            @Override
-            public void onItemRangeInserted(int positionStart, int itemCount) {
-                super.onItemRangeInserted(positionStart, itemCount);
-                int friendlyMessageCount = mFirebaseAdapter.getItemCount();
-                int lastVisiblePosition =
-                        mLinearLayoutManager.findLastCompletelyVisibleItemPosition();
-                // If the recycler view is initially being loaded or the
-                // user is at the bottom of the list, scroll to the bottom
-                // of the list to show the newly added message.
-                if (lastVisiblePosition == -1 ||
-                        (positionStart >= (friendlyMessageCount - 1) &&
-                                lastVisiblePosition == (positionStart - 1))) {
-                    mMessageRecyclerView.scrollToPosition(positionStart);
-                }
-            }
-        });
-
-        mMessageRecyclerView.setAdapter(mFirebaseAdapter);
+        setUpRecyclerView(rnum);
 
         mMessageEditText = (EditText) rootView.findViewById(R.id.messageEditText);
         /*

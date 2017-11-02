@@ -33,6 +33,14 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.vs.bcd.versus.adapter.InvitedUserAdapter;
+import com.vs.bcd.versus.adapter.UserSearchAdapter;
 import com.vs.bcd.versus.fragment.CategoryFragment;
 import com.vs.bcd.versus.fragment.CommentEnterFragment;
 import com.vs.bcd.versus.fragment.CreateMessage;
@@ -50,10 +58,12 @@ import com.vs.bcd.versus.fragment.CreatePost;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.fragment.SearchPage;
 import com.vs.bcd.versus.ViewPagerCustomDuration;
+import com.vs.bcd.versus.model.UserSearchItem;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 public class MainContainer extends AppCompatActivity {
 
@@ -99,6 +109,12 @@ public class MainContainer extends AppCompatActivity {
     private String profileImageURL = "";
     private Button toolbarTextButton;
     private CreateMessage createMessageFragment;
+    private HashMap<String, String> following, followers;
+    private String userPath = "";
+    private String FOLLOWERS_CHILD, FOLLOWING_CHILD;
+    private boolean initialFollowingLoaded = false;
+
+    private DatabaseReference mFirebaseDatabaseReference;
 
     @Override
     public void onBackPressed(){
@@ -208,6 +224,11 @@ public class MainContainer extends AppCompatActivity {
         currUsername = sessionManager.getCurrentUsername();
         userMKey = sessionManager.getMKey();
         profileImageURL = sessionManager.getProfileImageURL();
+
+        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
+        String userPath = sessionManager.getBday() + "/" + sessionManager.getCurrentUsername();
+        FOLLOWERS_CHILD = userPath + "/f";
+        FOLLOWING_CHILD = userPath + "/g";
 
         //soft input (keyboard) settings
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
@@ -561,9 +582,9 @@ public class MainContainer extends AppCompatActivity {
         setToolbarTitleTextForTabs("Newsfeed");
 
         //Log.d("USER_INFO", sessionManager.getUserDetails().get(SessionManager.KEY_USERNAME));
+        Log.d("ORDER", "MainContainer OnCreate finished");
 
     }
-
 
     private void showToolbarButtonLeft(){
         toolbarButtonLeft.setEnabled(true);
