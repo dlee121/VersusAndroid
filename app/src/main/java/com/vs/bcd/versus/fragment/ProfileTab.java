@@ -24,15 +24,18 @@ import com.amazonaws.services.dynamodbv2.model.Condition;
 import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
 import com.amazonaws.services.dynamodbv2.model.GetItemResult;
 import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.CommentHistoryAdapter;
 import com.vs.bcd.versus.adapter.MyAdapter;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.PostSkeleton;
+import com.vs.bcd.versus.model.UserSearchItem;
 import com.vs.bcd.versus.model.VSComment;
 
 import java.util.ArrayList;
@@ -67,6 +70,10 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
     private final int POSTS = 1;
     private String profileUsername = null; //username of the user for the profile page, not necessarily the current logged-in user
     private String profileBday = ""; //used for Firebase path partitioning
+    private DatabaseReference mFirebaseDatabaseReference;
+    private long followingCount = 0;
+    private long followerCount = 0;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -166,6 +173,8 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
 
         disableChildViews();
 
+        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
+
         return rootView;
     }
 
@@ -220,7 +229,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                     GetItemRequest request = new GetItemRequest()
                             .withTableName("user")
                             .withKey(keyMap)
-                            .withProjectionExpression("num_g,num_s,num_b,points,fc");
+                            .withProjectionExpression("num_g,num_s,num_b,points");
                     GetItemResult result = activity.getDDBClient().getItem(request);
 
                     final Map<String, AttributeValue> resultMap = result.getItem();
@@ -248,12 +257,10 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                                 else if(attrName.equals("points")){
                                     pointsTV.setText(entry.getValue().getN());
                                 }
-                                else if(attrName.equals("fc")){
-                                    followerCountTV.setText(entry.getValue().getN() + "\nFollowers");
-
-                                }
                             }
+
                             followingCountTV.setText(Integer.toString(activity.getFollowingNum()) + "\nFollowing");
+                            followerCountTV.setText(Integer.toString(activity.getFollowerNum()) + "\nFollowers");
 
                             displayMyProfile();
 
@@ -291,7 +298,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                     GetItemRequest request = new GetItemRequest()
                             .withTableName("user")
                             .withKey(keyMap)
-                            .withProjectionExpression("bday,num_g,num_s,num_b,points,fc,fw");
+                            .withProjectionExpression("bday,num_g,num_s,num_b,points");
                     GetItemResult result = activity.getDDBClient().getItem(request);
 
                     final Map<String, AttributeValue> resultMap = result.getItem();
@@ -307,30 +314,22 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                             for (Map.Entry<String, AttributeValue> entry : resultMap.entrySet()) {
                                 Log.d("ptab", "attrName: " + entry.getKey() + "    attrValue: " + entry.getValue().getN());
                                 String attrName = entry.getKey();
-                                if(attrName.equals("bday")){
+                                if (attrName.equals("bday")) {
                                     profileBday = entry.getValue().getS();
-                                }
-                                else if(attrName.equals("num_g")){
+                                } else if (attrName.equals("num_g")) {
                                     goldTV.setText(entry.getValue().getN());
-                                }
-                                else if(attrName.equals("num_s")){
+                                } else if (attrName.equals("num_s")) {
                                     silverTV.setText(entry.getValue().getN());
-                                }
-                                else if(attrName.equals("num_b")){
+                                } else if (attrName.equals("num_b")) {
                                     bronzeTV.setText(entry.getValue().getN());
-                                }
-                                else if(attrName.equals("points")){
+                                } else if (attrName.equals("points")) {
                                     pointsTV.setText(entry.getValue().getN());
-                                }
-                                else if(attrName.equals("fc")){
-                                    followerCountTV.setText(entry.getValue().getN() + "\nFollowers");
-                                }
-                                else if(attrName.equals("fw")){
-                                    followingCountTV.setText(Integer.toString(entry.getValue().getL().size()) + "\nFollowing");
                                 }
                             }
 
-                            displayOtherProfile();
+                            if(profileBday.length() > 2){
+                                getFGHCounts();
+                            }
 
                         }
                     });
@@ -529,27 +528,11 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
 
     private void followThisUser(){
         if(profileUsername != null){
-            Runnable runnable = new Runnable() {
-                public void run() {
-                    //TODO: update follower list in firebase
-                    /*
-                    //add this user's username to logged-in user's flist List in user table
-                    UpdateItemRequest flistUpdateRequest = new UpdateItemRequest();
-                    flistUpdateRequest.withTableName("user")
-                            .withKey(Collections.singletonMap("username",
-                                    new AttributeValue().withS(activity.getUsername())))
-                            .withUpdateExpression("SET fw = list_append(fw, :fnv)")
-                            .withExpressionAttributeValues(
-                                    Collections.singletonMap(":fnv",
-                                            new AttributeValue().withL(new AttributeValue().withS(profileUsername))
-                                    )
-                            );
-                    activity.getDDBClient().updateItem(flistUpdateRequest);
-                    */
+            if(activity.followedBy(profileUsername)) {   //add to h
 
-                    //update the following user's following list in Firebase
-                    String followingsPath = activity.getUserPath() + "g";
-                    FirebaseDatabase.getInstance().getReference().child(followingsPath).child(profileUsername)
+                //add to current user's h list
+                String userHPath = activity.getUserPath() + "h";
+                mFirebaseDatabaseReference.child(userHPath).child(profileUsername)
                         .setValue(profileBday, new DatabaseReference.CompletionListener() {
                             @Override
                             public void onComplete(DatabaseError databaseError,
@@ -560,47 +543,74 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                             }
                         });
 
-                    //also update flist stored in SharedPref and the localFlist HashSet in MainContainer
-                    activity.addToFollowingLocal(profileUsername);
+                //remove old entry in f list now that we have it in h list
+                String fPath = activity.getUserPath() + "f";
+                mFirebaseDatabaseReference.child(fPath).child(profileUsername).removeValue();
 
-                    //update the follower count (fc) of the followed user
-                    UpdateItemRequest fcUpdateRequest = new UpdateItemRequest();
-                    fcUpdateRequest.withTableName("user")
-                        .withKey(Collections.singletonMap("username",
-                                new AttributeValue().withS(profileUsername)))
-                        .withUpdateExpression("ADD fc :inc")
-                        .withExpressionAttributeValues(
-                                Collections.singletonMap(":inc",
-                                        new AttributeValue().withN("1")
-                                )
-                        );
-                    activity.getDDBClient().updateItem(fcUpdateRequest);
-
-                    //update the followed user's follower list in Firebase
-                    String followersPath = profileBday + "/" + profileUsername + "/f";
-                    FirebaseDatabase.getInstance().getReference().child(followersPath).child(activity.getUsername())
-                            .setValue(activity.getBday(), new DatabaseReference.CompletionListener() {
-                                @Override
-                                public void onComplete(DatabaseError databaseError,
-                                                       DatabaseReference databaseReference) {
-                                    if (databaseError == null) {
-                                        activity.runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                showFollowingText();
-                                                updateProfileInfo();
-                                            }
-                                        });
-                                    } else {
-                                        Log.w("MESSENGER", "Unable to update followers list in Firebase.");
-                                    }
+                //update the followed user's h list
+                String hPath = profileBday + "/" + profileUsername + "/h";
+                mFirebaseDatabaseReference.child(hPath).child(activity.getUsername())
+                        .setValue(activity.getBday(), new DatabaseReference.CompletionListener() {
+                            @Override
+                            public void onComplete(DatabaseError databaseError,
+                                                   DatabaseReference databaseReference) {
+                                if (databaseError == null) {
+                                    activity.runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            showFollowingText();
+                                            updateProfileInfo();
+                                        }
+                                    });
+                                } else {
+                                    Log.w("MESSENGER", "Unable to update followers list in Firebase.");
                                 }
-                            });
+                            }
+                        });
 
-                }
-            };
-            Thread mythread = new Thread(runnable);
-            mythread.start();
+                //remove old entry in g list now that we have it in h list
+                String gPath = profileBday + "/" + profileUsername + "/g";
+                mFirebaseDatabaseReference.child(gPath).child(activity.getUsername()).removeValue();
+
+            }
+            else{   //add to f and g
+
+                //update the current user's following list in Firebase
+                String followingsPath = activity.getUserPath() + "g";
+                mFirebaseDatabaseReference.child(followingsPath).child(profileUsername)
+                        .setValue(profileBday, new DatabaseReference.CompletionListener() {
+                            @Override
+                            public void onComplete(DatabaseError databaseError,
+                                                   DatabaseReference databaseReference) {
+                                if (databaseError != null) {
+                                    Log.w("MESSENGER", "Unable to update followings list in Firebase.");
+                                }
+                            }
+                        });
+
+
+                //update the followed user's follower list in Firebase
+                String followersPath = profileBday + "/" + profileUsername + "/f";
+                mFirebaseDatabaseReference.child(followersPath).child(activity.getUsername())
+                        .setValue(activity.getBday(), new DatabaseReference.CompletionListener() {
+                            @Override
+                            public void onComplete(DatabaseError databaseError,
+                                                   DatabaseReference databaseReference) {
+                                if (databaseError == null) {
+                                    activity.runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            showFollowingText();
+                                            updateProfileInfo();
+                                        }
+                                    });
+                                } else {
+                                    Log.w("MESSENGER", "Unable to update followers list in Firebase.");
+                                }
+                            }
+                        });
+
+            }
         }
     }
 
@@ -647,6 +657,63 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
         };
         Thread mythread = new Thread(runnable);
         mythread.start();
+
+    }
+
+    private void getFGHCounts(){
+
+        followingCount = 0;
+        followerCount = 0;
+
+        final String fPath = profileBday + "/" + profileUsername + "/f";
+        final String gPath = profileBday + "/" + profileUsername + "/g";
+        final String hPath = profileBday + "/" + profileUsername + "/h";
+
+        mFirebaseDatabaseReference.child(fPath).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                followerCount += dataSnapshot.getChildrenCount();
+
+                mFirebaseDatabaseReference.child(gPath).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+
+                        followingCount += dataSnapshot.getChildrenCount();
+
+                        mFirebaseDatabaseReference.child(hPath).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                followerCount += dataSnapshot.getChildrenCount();
+                                followingCount += dataSnapshot.getChildrenCount();
+
+                                followerCountTV.setText(Long.toString(followerCount) + "\nFollowers");
+                                followingCountTV.setText(Long.toString(followingCount) + "\nFollowing");
+
+                                displayOtherProfile();
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
 
     }
 

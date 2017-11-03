@@ -471,8 +471,6 @@ public class MessageRoom extends Fragment {
     private void setUpRecyclerView(String rnum){
         MESSAGES_CHILD = MESSAGES_CHILD_BODY + rnum;
 
-        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
-
         mFirebaseAdapter = new FirebaseRecyclerAdapter<MessageObject,
                 MessageViewHolder>(
                 MessageObject.class,

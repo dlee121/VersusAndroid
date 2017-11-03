@@ -148,6 +148,8 @@ public class CreateMessage extends Fragment {
 
         thisFragment = this;
 
+        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
+
         Log.d("ORDER", "CreateMessage OnCreate finished");
 
         return rootView;
@@ -156,7 +158,6 @@ public class CreateMessage extends Fragment {
     @Override
     public void onResume(){
         super.onResume();
-        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
         messageContacts = new ArrayList<>();
         addHListener();
         //addHListener() finishes and calls addFollowerListener, which finishes and calls addFollowingListener
@@ -496,6 +497,38 @@ public class CreateMessage extends Fragment {
         });
 
 
+    }
+
+    public int getFollowingCount(){
+        int count = 0;
+        if(following != null){
+            count += following.size();
+        }
+        if(hList != null){
+            count += hList.size();
+        }
+
+        return count;
+    }
+
+    public int getFollowerCount(){
+        int count = 0;
+        if(followers != null){
+            count += followers.size();
+        }
+        if(hList != null){
+            count += hList.size();
+        }
+
+        return  count;
+    }
+
+    public boolean followedBy(String username){
+        if(followers != null && hList != null){
+            return followers.containsKey(username) || hList.containsKey(username);
+        }
+        Log.d("FOLLOW", "followedBy detected uninitialized followers and/or hList");
+        return false;
     }
 
 }

@@ -957,7 +957,11 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public int getFollowingNum(){
-        return localFns.size();
+        return createMessageFragment.getFollowingCount();
+    }
+
+    public int getFollowerNum(){
+        return createMessageFragment.getFollowerCount();
     }
 
     private void showSettingsButton(){
@@ -1025,6 +1029,10 @@ public class MainContainer extends AppCompatActivity {
 
     public String getBday(){
         return sessionManager.getBday();
+    }
+
+    public boolean followedBy(String username){
+        return createMessageFragment.followedBy(username);
     }
 
 }

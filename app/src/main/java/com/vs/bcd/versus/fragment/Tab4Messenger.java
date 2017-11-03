@@ -113,6 +113,8 @@ public class Tab4Messenger extends Fragment {
 
         disableChildViews();
 
+        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
+
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(getActivity());
 
         fabNewMsg = (FloatingActionButton) rootView.findViewById(R.id.fab_new_msg);
@@ -142,8 +144,6 @@ public class Tab4Messenger extends Fragment {
 
         // Initialize Firebase Auth
         //mFirebaseAuth = FirebaseAuth.getInstance();
-
-        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
         mFirebaseAdapter = new FirebaseRecyclerAdapter<RoomObject,
                 RoomViewHolder>(
