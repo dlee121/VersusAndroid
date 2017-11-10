@@ -47,6 +47,14 @@ import com.vs.bcd.versus.model.RoomObject;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.UserSearchItem;
 
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -54,7 +62,6 @@ import java.util.UUID;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-import static android.R.attr.key;
 import static android.content.ContentValues.TAG;
 
 /**
@@ -109,8 +116,7 @@ public class MessageRoom extends Fragment {
     private boolean firstMessage = false;
     private String roomNum = "";
     private ArrayList<UserSearchItem> roomUsersList;
-    private HashMap<String, String> roomUsersMap;
-    private String mBday ="";
+    private ArrayList<String> roomUsersStringList;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -174,8 +180,17 @@ public class MessageRoom extends Fragment {
         activity = (MainContainer) context;
         SessionManager sessionManager = new SessionManager(context);
         mUsername = sessionManager.getCurrentUsername();
-        mBday = sessionManager.getBday();
-        MESSAGES_CHILD_BODY = sessionManager.getBday() + "/" + sessionManager.getCurrentUsername() + "/messages/";
+
+        int usernameHash;
+        if(mUsername.length() < 5){
+            usernameHash = mUsername.hashCode();
+        }
+        else{
+            String hashIn = "" + mUsername.charAt(0) + mUsername.charAt(mUsername.length() - 2) + mUsername.charAt(1) + mUsername.charAt(mUsername.length() - 1);
+            usernameHash = hashIn.hashCode();
+        }
+
+        MESSAGES_CHILD_BODY = Integer.toString(usernameHash) + "/" + sessionManager.getCurrentUsername() + "/messages/";
         MESSAGES_CHILD =  MESSAGES_CHILD_BODY;
     }
 
@@ -203,7 +218,7 @@ public class MessageRoom extends Fragment {
         roomNum = rnum;
         MESSAGES_CHILD = MESSAGES_CHILD_BODY + rnum;
         roomUsersList = invitedUsers;
-        roomUsersMap = null;
+        roomUsersStringList = null;
 
 
 
@@ -235,7 +250,17 @@ public class MessageRoom extends Fragment {
             public void onClick(View view) {
                 final String content = mMessageEditText.getText().toString().trim();
                 MessageObject messageObject = new MessageObject(content, mUsername, mPhotoUrl, null);
-                String USER_PATH = activity.getBday() + "/" + mUsername + "/messages/" + rnum;
+
+                int usernameHash;
+                if(mUsername.length() < 5){
+                    usernameHash = mUsername.hashCode();
+                }
+                else{
+                    String hashIn = "" + mUsername.charAt(0) + mUsername.charAt(mUsername.length() - 2) + mUsername.charAt(1) + mUsername.charAt(mUsername.length() - 1);
+                    usernameHash = hashIn.hashCode();
+                }
+
+                String USER_PATH = Integer.toString(usernameHash) + "/" + mUsername + "/messages/" + rnum;
 
                 if(firstMessage){
                     mFirebaseDatabaseReference.child(USER_PATH).push().setValue(messageObject)
@@ -255,7 +280,7 @@ public class MessageRoom extends Fragment {
                 mMessageEditText.setText("");
 
                 for(UserSearchItem usi : invitedUsers){
-                    String WRITE_PATH = usi.getBday() + "/" + usi.getUsername() + "/messages/" + rnum;
+                    String WRITE_PATH = usi.getHash() + "/" + usi.getUsername() + "/messages/" + rnum;
                     mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
                 }
             }
@@ -275,10 +300,10 @@ public class MessageRoom extends Fragment {
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(getActivity());
     }
 
-    public void setUpRoom(final String rnum, final HashMap<String, String> usersMap){
+    public void setUpRoom(final String rnum, final ArrayList<String> usersList){
         roomNum = rnum;
         MESSAGES_CHILD = MESSAGES_CHILD_BODY + rnum;
-        roomUsersMap = usersMap;
+        roomUsersStringList = usersList;
         roomUsersList = null;
 
         setUpRecyclerView(rnum);
@@ -314,14 +339,33 @@ public class MessageRoom extends Fragment {
             public void onClick(View view) {
                 final String content = mMessageEditText.getText().toString().trim();
                 MessageObject messageObject = new MessageObject(content, mUsername, mPhotoUrl, null);
-                String USER_PATH = mBday + "/" + mUsername + "/messages/" + rnum;
+
+                int usernameHash;
+                if(mUsername.length() < 5){
+                    usernameHash = mUsername.hashCode();
+                }
+                else{
+                    String hashIn = "" + mUsername.charAt(0) + mUsername.charAt(mUsername.length() - 2) + mUsername.charAt(1) + mUsername.charAt(mUsername.length() - 1);
+                    usernameHash = hashIn.hashCode();
+                }
+
+                String USER_PATH = Integer.toString(usernameHash) + "/" + mUsername + "/messages/" + rnum;
 
                 mFirebaseDatabaseReference.child(USER_PATH).push().setValue(messageObject);
 
                 mMessageEditText.setText("");
 
-                for(Map.Entry<String, String> entry : usersMap.entrySet()){
-                    String WRITE_PATH = entry.getValue() + "/" + entry.getKey() + "/messages/" + rnum;
+                for(String mName : usersList){
+                    int nameHash;
+                    if(mName.length() < 5){
+                        usernameHash = mName.hashCode();
+                    }
+                    else{
+                        String hashIn = "" + mName.charAt(0) + mName.charAt(mName.length() - 2) + mName.charAt(1) + mName.charAt(mName.length() - 1);
+                        usernameHash = hashIn.hashCode();
+                    }
+
+                    String WRITE_PATH = Integer.toString(usernameHash) + "/" + mName + "/messages/" + rnum;
                     mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
                 }
             }
@@ -412,14 +456,24 @@ public class MessageRoom extends Fragment {
 
                             if(roomUsersList != null){
                                 for(UserSearchItem usi : roomUsersList){
-                                    String WRITE_PATH = usi.getBday() + "/" + usi.getUsername() + "/messages/" + roomNum;
+                                    String WRITE_PATH = usi.getHash() + "/" + usi.getUsername() + "/messages/" + roomNum;
                                     mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
                                 }
 
                             }
-                            else if(roomUsersMap != null){
-                                for(Map.Entry<String, String> usi : roomUsersMap.entrySet()){
-                                    String WRITE_PATH = usi.getValue() + "/" + usi.getKey() + "/messages/" + roomNum;
+                            else if(roomUsersStringList != null){
+                                for(String mName : roomUsersStringList){
+
+                                    int usernameHash;
+                                    if(mName.length() < 5){
+                                        usernameHash = mName.hashCode();
+                                    }
+                                    else{
+                                        String hashIn = "" + mName.charAt(0) + mName.charAt(mName.length() - 2) + mName.charAt(1) + mName.charAt(mName.length() - 1);
+                                        usernameHash = hashIn.hashCode();
+                                    }
+
+                                    String WRITE_PATH = usernameHash + "/" + mName + "/messages/" + roomNum;
                                     mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
                                 }
                             }
@@ -551,29 +605,131 @@ public class MessageRoom extends Fragment {
     }
 
     private void setUpRoomInDB(String preview){
-        final HashMap<String, String> roomUsersHolderMap;
+        final ArrayList<String> roomUsersHolderList;
         if(roomUsersList != null){
-            roomUsersHolderMap = new HashMap<>();
+            roomUsersHolderList = new ArrayList<>();
             for(UserSearchItem usi : roomUsersList){
-                roomUsersHolderMap.put(usi.getUsername(), usi.getBday());
+                roomUsersHolderList.add(usi.getUsername());
             }
         }
         else {
-            roomUsersHolderMap = roomUsersMap;
+            roomUsersHolderList = roomUsersStringList;
         }
-        roomUsersHolderMap.put(mUsername, mBday);
+        roomUsersHolderList.add(mUsername);
 
-        final RoomObject roomObject = new RoomObject("Default Room Name", System.currentTimeMillis(), preview, roomNum, roomUsersHolderMap);
+        final RoomObject roomObject = new RoomObject("Default Room Name", System.currentTimeMillis(), preview, roomNum, roomUsersHolderList);
         String userRoomPath = activity.getUserPath() + "r/" + roomNum;
         mFirebaseDatabaseReference.child(userRoomPath).setValue(roomObject).addOnCompleteListener(activity, new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-                for(Map.Entry<String, String> entry : roomUsersHolderMap.entrySet()){
-                    String roomPath = entry.getValue() + "/" + entry.getKey() + "/" + "r/" + roomNum;
+                for(String mName : roomUsersHolderList){
+                    int usernameHash;
+                    if(mName.length() < 5){
+                        usernameHash = mName.hashCode();
+                    }
+                    else{
+                        String hashIn = "" + mName.charAt(0) + mName.charAt(mName.length() - 2) + mName.charAt(1) + mName.charAt(mName.length() - 1);
+                        usernameHash = hashIn.hashCode();
+                    }
+
+                    String roomPath = usernameHash + "/" + mName + "/" + "r/" + roomNum;
                     mFirebaseDatabaseReference.child(roomPath).setValue(roomObject);
                 }
             }
         });
+
+    }
+
+    private void setFCMNotification(String mUsername, final String titleText, final String preview, final String imgURL) {
+
+        //get device tokens for mUsername
+        //get username hash for path
+        int usernameHash;
+        if(mUsername.length() < 5){
+            usernameHash = mUsername.hashCode();
+        }
+        else{
+            String hashIn = "" + mUsername.charAt(0) + mUsername.charAt(mUsername.length() - 2) + mUsername.charAt(1) + mUsername.charAt(mUsername.length() - 1);
+            usernameHash = hashIn.hashCode();
+        }
+        String userTPath = Integer.toString(usernameHash) + "/" + mUsername + "/t";
+
+        final ArrayList<String> tokenList = new ArrayList<>();
+
+        mFirebaseDatabaseReference.child(userTPath).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.hasChildren()){
+                    for(DataSnapshot child : dataSnapshot.getChildren()){
+                        tokenList.add(child.getKey());
+                    }
+                    try{
+                        sendFCMNotification(tokenList, titleText, preview, imgURL);
+
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void sendFCMNotification(ArrayList<String> tokenList, String titleText, String preview, String imgURL) throws IOException {
+
+        String AUTH_KEY_FCM = "AAAAoFUu5eA:APA91bGQKRRBnkJloxKVD4ZDfu75b12w6wL5cXg30VYp4OkMDlgaGCauEA4Zct6sdgJGvWLsbCykH5UCFJiPWQJ1G2SLRUtEiFe9Try4m5osiiW0VfB9lJOG-sBuX63L5twsLDeXBPQX";
+        String API_URL_FCM = "https://fcm.googleapis.com/fcm/send";
+
+        URL url = new URL(API_URL_FCM);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+        conn.setUseCaches(false);
+        conn.setDoInput(true);
+        conn.setDoOutput(true);
+
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Authorization", "key=" + AUTH_KEY_FCM);
+        conn.setRequestProperty("Content-Type", "application/json");
+
+        try {
+            for(String deviceToken : tokenList){
+                JSONObject json = new JSONObject();
+
+                json.put("token", deviceToken.trim());
+                JSONObject info = new JSONObject();
+                info.put("title", titleText); // Notification title
+                info.put("body", preview); // text preview of the message
+
+                json.put("notification", info);
+
+                JSONObject info2 = new JSONObject();
+                info2.put("img", imgURL);
+
+                json.put("data", info2);
+
+                OutputStreamWriter wr = new OutputStreamWriter(
+                        conn.getOutputStream());
+                wr.write(json.toString());
+                wr.flush();
+
+                BufferedReader br = new BufferedReader(new InputStreamReader(
+                        (conn.getInputStream())));
+
+                String output;
+                System.out.println("Output from Server .... \n");
+                while ((output = br.readLine()) != null) {
+                    System.out.println(output);
+                }
+                System.out.println("FCM Notification is sent successfully");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
 
     }
 

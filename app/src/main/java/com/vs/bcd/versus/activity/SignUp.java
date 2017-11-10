@@ -241,24 +241,18 @@ public class SignUp extends AppCompatActivity {
                         .addOnCompleteListener(SignUp.this, new OnCompleteListener<AuthResult>() {
                             @Override
                             public void onComplete(@NonNull Task<AuthResult> task) {
-                                String userPath = newUser.getBday() + "/" + newUser.getUsername() + "/b";
-                                FirebaseDatabase.getInstance().getReference().child(userPath).setValue(newUser.getBday()).addOnCompleteListener(SignUp.this, new OnCompleteListener<Void>() {
+                                //TODO: Ensure that lines below are called only if mapper.save(newUser) is successful (in other words, make sure thread waits until mapper.save(newUser) finishes its job successfully, otherwise throwing exception to exit thread before calling below lines to login the new user).
+                                //TODO: So far this seems to be the case, as any exception thrown is caught and lines below don't get executed because we exit the thread when exception is thrown.
+                                //TODO: Cuz if there is a case where lines below are executed despite mapper.save failure, that would probably cause some bugs.
+                                //TODO: maybe do some synchronization/thread magic just to be on the safe side. We're good for now though.
+                                runOnUiThread(new Runnable() {
                                     @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
-                                        //TODO: Ensure that lines below are called only if mapper.save(newUser) is successful (in other words, make sure thread waits until mapper.save(newUser) finishes its job successfully, otherwise throwing exception to exit thread before calling below lines to login the new user).
-                                        //TODO: So far this seems to be the case, as any exception thrown is caught and lines below don't get executed because we exit the thread when exception is thrown.
-                                        //TODO: Cuz if there is a case where lines below are executed despite mapper.save failure, that would probably cause some bugs.
-                                        //TODO: maybe do some synchronization/thread magic just to be on the safe side. We're good for now though.
-                                        runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                sessionManager.createLoginSession(newUser);
-                                                Intent intent = new Intent(thisActivity, MainContainer.class);
-                                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);   //clears back stack for navigation
-                                                startActivity(intent);
-                                                overridePendingTransition(0, 0);
-                                            }
-                                        });
+                                    public void run() {
+                                        sessionManager.createLoginSession(newUser);
+                                        Intent intent = new Intent(thisActivity, MainContainer.class);
+                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);   //clears back stack for navigation
+                                        startActivity(intent);
+                                        overridePendingTransition(0, 0);
                                     }
                                 });
                             }

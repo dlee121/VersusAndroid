@@ -1,8 +1,10 @@
 package com.vs.bcd.versus.activity;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v7.app.AppCompatActivity;
@@ -32,6 +34,8 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -39,6 +43,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.vs.bcd.versus.adapter.InvitedUserAdapter;
 import com.vs.bcd.versus.adapter.UserSearchAdapter;
 import com.vs.bcd.versus.fragment.CategoryFragment;
@@ -60,10 +65,21 @@ import com.vs.bcd.versus.fragment.SearchPage;
 import com.vs.bcd.versus.ViewPagerCustomDuration;
 import com.vs.bcd.versus.model.UserSearchItem;
 
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+
+import static com.vs.bcd.versus.model.PushNotifictionHelper.API_URL_FCM;
+import static com.vs.bcd.versus.model.PushNotifictionHelper.AUTH_KEY_FCM;
 
 public class MainContainer extends AppCompatActivity {
 
@@ -113,6 +129,7 @@ public class MainContainer extends AppCompatActivity {
     private String userPath = "";
     private String FOLLOWERS_CHILD, FOLLOWING_CHILD;
     private boolean initialFollowingLoaded = false;
+    private String fcmToken = "";
 
     private DatabaseReference mFirebaseDatabaseReference;
 
@@ -226,7 +243,17 @@ public class MainContainer extends AppCompatActivity {
         profileImageURL = sessionManager.getProfileImageURL();
 
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
-        String userPath = sessionManager.getBday() + "/" + sessionManager.getCurrentUsername();
+
+        int usernameHash;
+        if(currUsername.length() < 5){
+            usernameHash = currUsername.hashCode();
+        }
+        else{
+            String hashIn = "" + currUsername.charAt(0) + currUsername.charAt(currUsername.length() - 2) + currUsername.charAt(1) + currUsername.charAt(currUsername.length() - 1);
+            usernameHash = hashIn.hashCode();
+        }
+
+        userPath = Integer.toString(usernameHash) + "/" + sessionManager.getCurrentUsername();
         FOLLOWERS_CHILD = userPath + "/f";
         FOLLOWING_CHILD = userPath + "/g";
 
@@ -583,8 +610,23 @@ public class MainContainer extends AppCompatActivity {
 
         //Log.d("USER_INFO", sessionManager.getUserDetails().get(SessionManager.KEY_USERNAME));
         Log.d("ORDER", "MainContainer OnCreate finished");
-
     }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        String currentToken = FirebaseInstanceId.getInstance().getToken();
+        Log.d("TOKENUPDATE", "TOKENUPDATEY");
+
+        if(!(fcmToken.equals(currentToken))){
+            String tPath = userPath + "/t/";
+            Log.d("TOKENUPDATE", "tPath: " + tPath);
+
+            mFirebaseDatabaseReference.child(tPath).child(currentToken).setValue(true);
+            fcmToken = currentToken;
+        }
+    }
+
 
     private void showToolbarButtonLeft(){
         toolbarButtonLeft.setEnabled(true);
@@ -943,17 +985,12 @@ public class MainContainer extends AppCompatActivity {
         }
     }
 
-    public boolean isFollowing(String f_username){
-        return localFns.contains(f_username);
+    public boolean isFollowing(String username){
+        return createMessageFragment.isFollowing(username);
     }
 
-    public void addToFollowingLocal(String f_username){
-        localFns.add(f_username);
-        sessionManager.updateFollowingLocal(localFns);
-    }
-
-    public HashSet<String> getLocalFns(){
-        return localFns;
+    public boolean followedBy(String username){
+        return createMessageFragment.followedBy(username);
     }
 
     public int getFollowingNum(){
@@ -978,8 +1015,14 @@ public class MainContainer extends AppCompatActivity {
     public void sessionLogOut(){
         //mainActivityFragRef.firebaseSignOut();
         //Auth.GoogleSignInApi.signOut(mGoogleApiClient);
-        sessionManager.logoutUser();
-        FirebaseAuth.getInstance().signOut();
+        String tPath = userPath + "/t/" + fcmToken;
+        mFirebaseDatabaseReference.child(tPath).removeValue().addOnCompleteListener(MainContainer.this, new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                FirebaseAuth.getInstance().signOut();
+                sessionManager.logoutUser();
+            }
+        });
     }
 
     public void meClickTrue(){
@@ -990,17 +1033,13 @@ public class MainContainer extends AppCompatActivity {
         return userMKey;
     }
 
-    public void setUpAndOpenMessageRoom(String rnum, HashMap<String, String> usersMap){
+    public void setUpAndOpenMessageRoom(String rnum, ArrayList<String> usersMap){
         messageRoom.setUpRoom(rnum, usersMap);
         mViewPager.setCurrentItem(11);
     }
 
     public String getProfileImageURL(){
         return profileImageURL;
-    }
-
-    public String getFollowersChildPath(){
-        return sessionManager.getBday() + "/" + sessionManager.getCurrentUsername() + "/f";
     }
 
     private void hideToolbarTextButton(){
@@ -1024,15 +1063,12 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public String getUserPath(){
-        return sessionManager.getBday() + "/" + currUsername + "/";
+        return userPath + "/";
     }
 
     public String getBday(){
         return sessionManager.getBday();
     }
 
-    public boolean followedBy(String username){
-        return createMessageFragment.followedBy(username);
-    }
 
 }

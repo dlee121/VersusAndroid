@@ -1,5 +1,6 @@
 package com.vs.bcd.versus.model;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -13,14 +14,14 @@ public class RoomObject {
     private Long time;
     private String preview;
     private String rnum;
-    private HashMap<String, String> users;  //<username : bday>
+    private ArrayList<String> users;
 
     //TODO: make variables for rest of room info data, for now we just have name, time , preview to get it going
 
     public RoomObject() {
     }
 
-    public RoomObject(String title, Long time, String preview, String rnum, HashMap<String, String> users) {
+    public RoomObject(String title, Long time, String preview, String rnum, ArrayList<String> users) {
         this.name = title;
         this.time = time;
         this.preview = preview;
@@ -68,11 +69,11 @@ public class RoomObject {
         this.rnum = rnum;
     }
 
-    public HashMap<String, String> getUsers(){
+    public ArrayList<String> getUsers(){
         return users;
     }
 
-    public void setUsers(HashMap<String, String> users){
+    public void setUsers(ArrayList<String> users){
         this.users = users;
     }
 

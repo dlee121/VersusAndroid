@@ -533,7 +533,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                 //add to current user's h list
                 String userHPath = activity.getUserPath() + "h";
                 mFirebaseDatabaseReference.child(userHPath).child(profileUsername)
-                        .setValue(profileBday, new DatabaseReference.CompletionListener() {
+                        .setValue(true, new DatabaseReference.CompletionListener() {
                             @Override
                             public void onComplete(DatabaseError databaseError,
                                                    DatabaseReference databaseReference) {
@@ -548,9 +548,17 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                 mFirebaseDatabaseReference.child(fPath).child(profileUsername).removeValue();
 
                 //update the followed user's h list
-                String hPath = profileBday + "/" + profileUsername + "/h";
+                int usernameHash;
+                if(profileUsername.length() < 5){
+                    usernameHash = profileUsername.hashCode();
+                }
+                else{
+                    String hashIn = "" + profileUsername.charAt(0) + profileUsername.charAt(profileUsername.length() - 2) + profileUsername.charAt(1) + profileUsername.charAt(profileUsername.length() - 1);
+                    usernameHash = hashIn.hashCode();
+                }
+                String hPath = Integer.toString(usernameHash) + "/" + profileUsername + "/h";
                 mFirebaseDatabaseReference.child(hPath).child(activity.getUsername())
-                        .setValue(activity.getBday(), new DatabaseReference.CompletionListener() {
+                        .setValue(true, new DatabaseReference.CompletionListener() {
                             @Override
                             public void onComplete(DatabaseError databaseError,
                                                    DatabaseReference databaseReference) {
@@ -569,7 +577,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                         });
 
                 //remove old entry in g list now that we have it in h list
-                String gPath = profileBday + "/" + profileUsername + "/g";
+                String gPath = Integer.toString(usernameHash) + "/" + profileUsername + "/g";
                 mFirebaseDatabaseReference.child(gPath).child(activity.getUsername()).removeValue();
 
             }
@@ -578,7 +586,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                 //update the current user's following list in Firebase
                 String followingsPath = activity.getUserPath() + "g";
                 mFirebaseDatabaseReference.child(followingsPath).child(profileUsername)
-                        .setValue(profileBday, new DatabaseReference.CompletionListener() {
+                        .setValue(true, new DatabaseReference.CompletionListener() {
                             @Override
                             public void onComplete(DatabaseError databaseError,
                                                    DatabaseReference databaseReference) {
@@ -590,9 +598,17 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
 
 
                 //update the followed user's follower list in Firebase
-                String followersPath = profileBday + "/" + profileUsername + "/f";
+                int usernameHash;
+                if(profileUsername.length() < 5){
+                    usernameHash = profileUsername.hashCode();
+                }
+                else{
+                    String hashIn = "" + profileUsername.charAt(0) + profileUsername.charAt(profileUsername.length() - 2) + profileUsername.charAt(1) + profileUsername.charAt(profileUsername.length() - 1);
+                    usernameHash = hashIn.hashCode();
+                }
+                String followersPath = Integer.toString(usernameHash) + "/" + profileUsername + "/f";
                 mFirebaseDatabaseReference.child(followersPath).child(activity.getUsername())
-                        .setValue(activity.getBday(), new DatabaseReference.CompletionListener() {
+                        .setValue(true, new DatabaseReference.CompletionListener() {
                             @Override
                             public void onComplete(DatabaseError databaseError,
                                                    DatabaseReference databaseReference) {
@@ -614,8 +630,10 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
         }
     }
 
+    //only use for updating points, following count, and follower count for other users' profile. not for use with myProfile
     private void updateProfileInfo(){
-
+        //only called when we follow another user, meaning the profile page is displaying another user when this function is called
+        //that means we can use getFGHCounts(), which uses displayOtherProfile() and not displayMyProfile(), to update the follower count and following count
         Runnable runnable = new Runnable() {
             public void run() {
 
@@ -629,7 +647,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                 GetItemRequest request = new GetItemRequest()
                         .withTableName("user")
                         .withKey(keyMap)
-                        .withProjectionExpression("points,fc");
+                        .withProjectionExpression("points");
                 GetItemResult result = activity.getDDBClient().getItem(request);
 
                 final Map<String, AttributeValue> resultMap = result.getItem();
@@ -641,16 +659,14 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                         usernameTV.setText(profileUsername);
 
                         for (Map.Entry<String, AttributeValue> entry : resultMap.entrySet()) {
-                            Log.d("ptab", "attrName: " + entry.getKey() + "    attrValue: " + entry.getValue().getN());
                             String attrName = entry.getKey();
                             if(attrName.equals("points")){
                                 pointsTV.setText(entry.getValue().getN());
                             }
-                            else if(attrName.equals("fc")){
-                                String fC = entry.getValue().getN() + "\nFollowers";
-                                followerCountTV.setText(fC);
-                            }
                         }
+
+                        getFGHCounts();
+
                     }
                 });
             }
@@ -665,9 +681,18 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
         followingCount = 0;
         followerCount = 0;
 
-        final String fPath = profileBday + "/" + profileUsername + "/f";
-        final String gPath = profileBday + "/" + profileUsername + "/g";
-        final String hPath = profileBday + "/" + profileUsername + "/h";
+        int usernameHash;
+        if(profileUsername.length() < 5){
+            usernameHash = profileUsername.hashCode();
+        }
+        else{
+            String hashIn = "" + profileUsername.charAt(0) + profileUsername.charAt(profileUsername.length() - 2) + profileUsername.charAt(1) + profileUsername.charAt(profileUsername.length() - 1);
+            usernameHash = hashIn.hashCode();
+        }
+
+        final String fPath = usernameHash + "/" + profileUsername + "/f";
+        final String gPath = usernameHash + "/" + profileUsername + "/g";
+        final String hPath = usernameHash + "/" + profileUsername + "/h";
 
         mFirebaseDatabaseReference.child(fPath).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override

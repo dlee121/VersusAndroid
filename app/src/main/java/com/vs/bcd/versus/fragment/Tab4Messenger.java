@@ -135,7 +135,17 @@ public class Tab4Messenger extends Fragment {
         activity = (MainContainer) context;
         SessionManager sessionManager = new SessionManager(context);
         mUsername = sessionManager.getCurrentUsername();
-        ROOMS_CHILD = sessionManager.getBday() + "/" + sessionManager.getCurrentUsername() + "/r";
+
+        int usernameHash;
+        if(mUsername.length() < 5){
+            usernameHash = mUsername.hashCode();
+        }
+        else{
+            String hashIn = "" + mUsername.charAt(0) + mUsername.charAt(mUsername.length() - 2) + mUsername.charAt(1) + mUsername.charAt(mUsername.length() - 1);
+            usernameHash = hashIn.hashCode();
+        }
+
+        ROOMS_CHILD = Integer.toString(usernameHash) + "/" + mUsername + "/r";
     }
 
     @Override
@@ -165,7 +175,7 @@ public class Tab4Messenger extends Fragment {
                         public void onClick(View view) {
 
                             String roomNum = roomObject.getRnum();
-                            HashMap<String, String> usersMap = roomObject.getUsers();
+                            ArrayList<String> usersMap = roomObject.getUsers();
 
                             usersMap.remove(mUsername); //remove logged-in user from the room users map to prevent duplicate sends,
                             // since we handle logged-in user's message transfer separate from message transfer of other room users
