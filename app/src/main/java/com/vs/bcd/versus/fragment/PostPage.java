@@ -2526,7 +2526,10 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                         HashMap<String, AttributeValueUpdate> userUpdates = new HashMap<>();
                         HashMap<String, AttributeValueUpdate> vscUpdates = new HashMap<>();
+
+                        //avi = medal count increment, avd = medal count decrement, avp = points increment (adjusted for possible previous medal in same comment), avc = comment topmedal update
                         AttributeValueUpdate avi, avd, avp, avc;
+
                         HashMap<String, AttributeValue> userKeyMap = new HashMap<>();
                         HashMap<String, AttributeValue> vscommentKeyMap = new HashMap<>();
 

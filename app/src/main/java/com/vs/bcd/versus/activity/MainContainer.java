@@ -656,6 +656,10 @@ public class MainContainer extends AppCompatActivity {
         }
     }
 
+    public void setMessageRoomTitle(String title){
+        titleTxtView.setText(title);
+    }
+
     public void setLeftChevron(){
         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
     }
@@ -1033,8 +1037,8 @@ public class MainContainer extends AppCompatActivity {
         return userMKey;
     }
 
-    public void setUpAndOpenMessageRoom(String rnum, ArrayList<String> usersMap){
-        messageRoom.setUpRoom(rnum, usersMap);
+    public void setUpAndOpenMessageRoom(String rnum, ArrayList<String> usersMap, String roomTitle){
+        messageRoom.setUpRoom(rnum, usersMap, roomTitle);
         mViewPager.setCurrentItem(11);
     }
 
@@ -1068,6 +1072,10 @@ public class MainContainer extends AppCompatActivity {
 
     public String getBday(){
         return sessionManager.getBday();
+    }
+
+    public boolean isInMessageRoom(){
+        return mViewPager.getCurrentItem() == 11;
     }
 
 

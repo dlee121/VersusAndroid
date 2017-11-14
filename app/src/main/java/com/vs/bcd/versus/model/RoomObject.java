@@ -9,11 +9,9 @@ import java.util.HashMap;
 
 public class RoomObject {
 
-    private String id;
     private String name;
     private Long time;
     private String preview;
-    private String rnum;
     private ArrayList<String> users;
 
     //TODO: make variables for rest of room info data, for now we just have name, time , preview to get it going
@@ -25,16 +23,13 @@ public class RoomObject {
         this.name = title;
         this.time = time;
         this.preview = preview;
-        this.rnum = rnum;
         this.users = users;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
+    public RoomObject(Long time, String preview, String rnum, ArrayList<String> users) {
+        this.time = time;
+        this.preview = preview;
+        this.users = users;
     }
 
     public String getName(){
@@ -43,6 +38,10 @@ public class RoomObject {
 
     public void setName(String name){
         this.name = name;
+    }
+
+    public boolean hasName(){
+        return name != null;
     }
 
     public Long getTime(){
@@ -59,14 +58,6 @@ public class RoomObject {
 
     public void setPreview(String preview){
         this.preview = preview;
-    }
-
-    public String getRnum(){
-        return rnum;
-    }
-
-    public void setRnum(String rnum){
-        this.rnum = rnum;
     }
 
     public ArrayList<String> getUsers(){

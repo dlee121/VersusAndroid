@@ -164,24 +164,49 @@ public class Tab4Messenger extends Fragment {
 
             @Override
             protected void populateViewHolder(final RoomViewHolder viewHolder,
-                                              final RoomObject roomObject, int position) {
+                                              final RoomObject roomObject, final int position) {
+
                 mProgressBar.setVisibility(ProgressBar.INVISIBLE);
-                if (roomObject.getName() != null) {
-                    viewHolder.roomTitleTV.setText(roomObject.getName());
+                if (roomObject != null) {
+
+                    final ArrayList<String> usersList = roomObject.getUsers();
+                    final String roomTitle;
+
+                    if(roomObject.hasName()){
+                        viewHolder.roomTitleTV.setText(roomObject.getName());
+                        roomTitle = roomObject.getName();
+                    }
+                    else{
+                        if(usersList.size() > 2) {   //Group Chat
+                            String groupChatTitle = usersList.get(0) + ", " + usersList.get(1) + ", and " + Integer.toString(usersList.size() - 2) + " more";
+                            viewHolder.roomTitleTV.setText(groupChatTitle);
+                            roomTitle = groupChatTitle;
+                        }
+                        else{   //DM
+                            if(usersList.get(0).equals(mUsername)){
+                                viewHolder.roomTitleTV.setText(usersList.get(1));
+                                roomTitle = usersList.get(1);
+                            }
+                            else{
+                                viewHolder.roomTitleTV.setText(usersList.get(0));
+                                roomTitle = usersList.get(0);
+                            }
+                        }
+                    }
                     viewHolder.roomTimeTV.setText(df.format(new Date(roomObject.getTime())));
                     viewHolder.roomPreviewTV.setText(roomObject.getPreview());
                     viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
 
-                            String roomNum = roomObject.getRnum();
-                            ArrayList<String> usersMap = roomObject.getUsers();
+                            //String roomNum = roomObject.getRnum();
+                            String roomNum = getRef(position).getKey();
 
-                            usersMap.remove(mUsername); //remove logged-in user from the room users map to prevent duplicate sends,
+                            usersList.remove(mUsername); //remove logged-in user from the room users map to prevent duplicate sends,
                             // since we handle logged-in user's message transfer separate from message transfer of other room users
 
-                            if(roomNum != null && usersMap != null){
-                                activity.setUpAndOpenMessageRoom(roomNum, usersMap);
+                            if(roomNum != null && usersList != null){
+                                activity.setUpAndOpenMessageRoom(roomNum, usersList, roomTitle);
                             }
                             else{
                                 Log.d("MESSENGER", "roomNum is null");

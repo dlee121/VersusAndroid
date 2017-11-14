@@ -32,6 +32,7 @@ import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -117,6 +118,9 @@ public class MessageRoom extends Fragment {
     private String roomNum = "";
     private ArrayList<UserSearchItem> roomUsersList;
     private ArrayList<String> roomUsersStringList;
+    private ChildEventListener roomObjListener;
+    private boolean initialRoomInfoLoaded = false;
+    private String currentRoomTitle = "";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -197,7 +201,8 @@ public class MessageRoom extends Fragment {
     @Override
     public void onResume(){
         super.onResume();
-        if(roomNum.length() > 1){
+        if(roomNum.length() > 1 && activity != null && activity.isInMessageRoom()){
+            setRoomObjListener(roomNum);
             setUpRecyclerView(roomNum);
         }
     }
@@ -207,6 +212,7 @@ public class MessageRoom extends Fragment {
         super.onPause();
         if(mFirebaseAdapter != null){
             mFirebaseAdapter.cleanup();
+            closeRoomObjListener(roomNum);
             Log.d("ORDER", "MessageRoom FirebaseRecyclerAdapter cleanup done");
         }
     }
@@ -220,7 +226,24 @@ public class MessageRoom extends Fragment {
         roomUsersList = invitedUsers;
         roomUsersStringList = null;
 
+        String roomTitle;
 
+        switch(invitedUsers.size()){
+            case 1:
+                roomTitle = invitedUsers.get(0).getUsername();
+                break;
+
+            case 2:
+                roomTitle = invitedUsers.get(0).getUsername() + " and " + invitedUsers.get(1).getUsername();
+                break;
+
+            default:
+                roomTitle = invitedUsers.get(0).getUsername() + ", " + invitedUsers.get(1).getUsername() + ", and " + Integer.toString(invitedUsers.size() - 2) + " more";
+                break;
+        }
+
+        currentRoomTitle = roomTitle;
+        activity.setMessageRoomTitle(currentRoomTitle);
 
         mMessageEditText = (EditText) rootView.findViewById(R.id.messageEditText);
 
@@ -279,9 +302,29 @@ public class MessageRoom extends Fragment {
 
                 mMessageEditText.setText("");
 
+                final boolean isDM;
+                if(invitedUsers.size() == 1){
+                    isDM = true;
+                }
+                else{
+                    isDM = false;
+                }
+
                 for(UserSearchItem usi : invitedUsers){
                     String WRITE_PATH = usi.getHash() + "/" + usi.getUsername() + "/messages/" + rnum;
-                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                    final String username = usi.getUsername();
+                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject).addOnCompleteListener(activity, new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if(isDM){
+                                //setFCMNotification(username, mUsername +title preview image);
+                            }
+                            else{
+
+                            }
+                        }
+                    });
+
                 }
             }
         });
@@ -300,12 +343,15 @@ public class MessageRoom extends Fragment {
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(getActivity());
     }
 
-    public void setUpRoom(final String rnum, final ArrayList<String> usersList){
+    public void setUpRoom(final String rnum, final ArrayList<String> usersList, String roomTitle){
         roomNum = rnum;
         MESSAGES_CHILD = MESSAGES_CHILD_BODY + rnum;
         roomUsersStringList = usersList;
         roomUsersList = null;
+        currentRoomTitle = roomTitle;
+        activity.setMessageRoomTitle(currentRoomTitle);
 
+        setRoomObjListener(roomNum);
         setUpRecyclerView(rnum);
 
         mMessageEditText = (EditText) rootView.findViewById(R.id.messageEditText);
@@ -408,6 +454,7 @@ public class MessageRoom extends Fragment {
                                 if (databaseError == null) {
                                     if(firstMessage){
                                         setUpRecyclerView(roomNum);
+                                        setUpRoomInDB("");
                                         firstMessage = false;
                                     }
 
@@ -498,10 +545,12 @@ public class MessageRoom extends Fragment {
             }
         }
         else {
-
             if (rootView != null){
                 getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
                 disableChildViews();
+                if(roomObjListener != null && roomNum != null && roomNum.length() > 1){
+                    closeRoomObjListener(roomNum);
+                }
             }
         }
     }
@@ -617,11 +666,14 @@ public class MessageRoom extends Fragment {
         }
         roomUsersHolderList.add(mUsername);
 
-        final RoomObject roomObject = new RoomObject("Default Room Name", System.currentTimeMillis(), preview, roomNum, roomUsersHolderList);
+        final RoomObject roomObject = new RoomObject(System.currentTimeMillis(), preview, roomNum, roomUsersHolderList);
         String userRoomPath = activity.getUserPath() + "r/" + roomNum;
         mFirebaseDatabaseReference.child(userRoomPath).setValue(roomObject).addOnCompleteListener(activity, new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
+
+                setRoomObjListener(roomNum);
+
                 for(String mName : roomUsersHolderList){
                     int usernameHash;
                     if(mName.length() < 5){
@@ -633,6 +685,7 @@ public class MessageRoom extends Fragment {
                     }
 
                     String roomPath = usernameHash + "/" + mName + "/" + "r/" + roomNum;
+                    Log.d("ROOMCREATE", roomPath);
                     mFirebaseDatabaseReference.child(roomPath).setValue(roomObject);
                 }
             }
@@ -640,7 +693,8 @@ public class MessageRoom extends Fragment {
 
     }
 
-    private void setFCMNotification(String mUsername, final String titleText, final String preview, final String imgURL) {
+    //private void setFCMNotification(String mUsername, final String titleText, final String preview, final String imgURL);
+    private void setFCMNotification(String mUsername, final String titleText, final String preview) {
 
         //get device tokens for mUsername
         //get username hash for path
@@ -664,7 +718,7 @@ public class MessageRoom extends Fragment {
                         tokenList.add(child.getKey());
                     }
                     try{
-                        sendFCMNotification(tokenList, titleText, preview, imgURL);
+                        sendFCMNotification(tokenList, titleText, preview);
 
                     }catch (Exception e){
                         e.printStackTrace();
@@ -679,7 +733,7 @@ public class MessageRoom extends Fragment {
         });
     }
 
-    private void sendFCMNotification(ArrayList<String> tokenList, String titleText, String preview, String imgURL) throws IOException {
+    private void sendFCMNotification(ArrayList<String> tokenList, String titleText, String preview) throws IOException {
 
         String AUTH_KEY_FCM = "AAAAoFUu5eA:APA91bGQKRRBnkJloxKVD4ZDfu75b12w6wL5cXg30VYp4OkMDlgaGCauEA4Zct6sdgJGvWLsbCykH5UCFJiPWQJ1G2SLRUtEiFe9Try4m5osiiW0VfB9lJOG-sBuX63L5twsLDeXBPQX";
         String API_URL_FCM = "https://fcm.googleapis.com/fcm/send";
@@ -706,10 +760,12 @@ public class MessageRoom extends Fragment {
 
                 json.put("notification", info);
 
+                /*
                 JSONObject info2 = new JSONObject();
                 info2.put("img", imgURL);
 
                 json.put("data", info2);
+                */
 
                 OutputStreamWriter wr = new OutputStreamWriter(
                         conn.getOutputStream());
@@ -731,6 +787,81 @@ public class MessageRoom extends Fragment {
         }
 
 
+    }
+
+    private void setRoomObjListener(String roomNum){
+        String rPath = activity.getUserPath()+"r/" + roomNum;
+        Log.d("ROLT", "rolt added to roomNum: " + roomNum);
+        initialRoomInfoLoaded = false;
+
+        roomObjListener = mFirebaseDatabaseReference.child(rPath).addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String prevChildKey) {
+                //this would be if we go from default room name to custom room name
+                if(initialRoomInfoLoaded){
+                    if(dataSnapshot.getKey().equals("name")){
+                        currentRoomTitle = dataSnapshot.getValue(String.class);
+                        if(activity!=null){
+                            activity.setMessageRoomTitle(currentRoomTitle);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String prevChildKey) {
+                //this would be if custom room name changed, or is users list was modified
+                if(dataSnapshot.getKey().equals("name")){
+                    currentRoomTitle = dataSnapshot.getValue(String.class);
+                    if(activity!=null){
+                        activity.setMessageRoomTitle(currentRoomTitle);
+                    }
+                }
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {}
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String prevChildKey) {}
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        });
+
+        //This just serves to filter out initial onChildAdded actions (data we already have) for the ChildEventListener above.
+        mFirebaseDatabaseReference.child(rPath).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.hasChildren()){
+                    for(DataSnapshot child : dataSnapshot.getChildren()){
+                        if(child.getKey().equals("name")){
+                            currentRoomTitle = child.getValue(String.class);
+                            if(activity!=null){
+                                activity.setMessageRoomTitle(currentRoomTitle);
+                            }
+                        }
+                    }
+                }
+
+                initialRoomInfoLoaded = true;
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void closeRoomObjListener(String roomNum){
+        if(roomObjListener != null){
+            Log.d("ROL", "ROL removed for roomNum: " + roomNum);
+            String rPath = activity.getUserPath()+"r/" + roomNum;
+            mFirebaseDatabaseReference.child(rPath).removeEventListener(roomObjListener);
+            roomObjListener = null;
+            currentRoomTitle = "";
+        }
     }
 
 }
