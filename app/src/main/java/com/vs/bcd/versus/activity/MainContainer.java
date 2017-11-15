@@ -44,6 +44,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.vs.bcd.versus.adapter.InvitedUserAdapter;
 import com.vs.bcd.versus.adapter.UserSearchAdapter;
 import com.vs.bcd.versus.fragment.CategoryFragment;
@@ -615,6 +616,8 @@ public class MainContainer extends AppCompatActivity {
     @Override
     protected void onResume(){
         super.onResume();
+        FirebaseMessaging.getInstance().subscribeToTopic(currUsername); //subscribe to user topic for messenger push notification
+        /*
         String currentToken = FirebaseInstanceId.getInstance().getToken();
         Log.d("TOKENUPDATE", "TOKENUPDATEY");
 
@@ -625,6 +628,7 @@ public class MainContainer extends AppCompatActivity {
             mFirebaseDatabaseReference.child(tPath).child(currentToken).setValue(true);
             fcmToken = currentToken;
         }
+        */
     }
 
 
@@ -1017,16 +1021,9 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public void sessionLogOut(){
-        //mainActivityFragRef.firebaseSignOut();
-        //Auth.GoogleSignInApi.signOut(mGoogleApiClient);
-        String tPath = userPath + "/t/" + fcmToken;
-        mFirebaseDatabaseReference.child(tPath).removeValue().addOnCompleteListener(MainContainer.this, new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                FirebaseAuth.getInstance().signOut();
-                sessionManager.logoutUser();
-            }
-        });
+        FirebaseMessaging.getInstance().unsubscribeFromTopic(currUsername); //unsubscribe from user topic for messenger push notification
+        FirebaseAuth.getInstance().signOut();
+        sessionManager.logoutUser();
     }
 
     public void meClickTrue(){

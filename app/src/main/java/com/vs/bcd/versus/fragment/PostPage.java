@@ -2537,6 +2537,20 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         vscommentKeyMap.put("parent_id", new AttributeValue().withS(entry.getValue().getParent_id()));
                         vscommentKeyMap.put("comment_id", new AttributeValue().withS(entry.getValue().getComment_id()));
 
+                        int usernameHash;
+                        String mUsername = entry.getValue().getAuthor();
+                        if(mUsername.length() < 5){
+                            usernameHash = mUsername.hashCode();
+                        }
+                        else{
+                            String hashIn = "" + mUsername.charAt(0) + mUsername.charAt(mUsername.length() - 2) + mUsername.charAt(1) + mUsername.charAt(mUsername.length() - 1);
+                            usernameHash = hashIn.hashCode();
+                        }
+
+                        String MEDALIST_PATH = Integer.toString(usernameHash) + "/" + mUsername + "/hai/";
+
+                        String incrementKey = null;
+
                         switch(currentMedal){   //set updates for user num_g/num_s/num_b increment and comment topmedal
                             case 3: //gold medal won
                                 pointsIncrement = goldPoints;
@@ -2546,6 +2560,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                         .withAction(AttributeAction.ADD);
 
                                 userUpdates.put("num_g", avi);
+                                incrementKey = "num_g";
 
                                 break;
 
@@ -2571,6 +2586,13 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                                 break;
                         }
+
+                        if(incrementKey != null){
+                            //update firebase userpath with the medal count increment
+
+                        }
+
+                        String decrementKey = null;
 
                         switch(entry.getValue().getTopmedal()){ //set updates for user num_s/num_b decrement and points
                             case 0: //went from no medal to currentMedal
@@ -2601,6 +2623,11 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                 break;
 
                             //no case 3 if it was already gold then it's not a upgrade event
+
+                        }
+
+                        if(decrementKey != null){
+                            //update firebase userpath with the medal count decrement
 
                         }
 

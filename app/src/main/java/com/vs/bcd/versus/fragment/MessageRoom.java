@@ -63,6 +63,7 @@ import java.util.UUID;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+import static android.R.attr.data;
 import static android.content.ContentValues.TAG;
 
 /**
@@ -121,6 +122,9 @@ public class MessageRoom extends Fragment {
     private ChildEventListener roomObjListener;
     private boolean initialRoomInfoLoaded = false;
     private String currentRoomTitle = "";
+    private OutputStreamWriter wr;
+    private HttpURLConnection conn;
+    private boolean fcmConnected = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -202,6 +206,7 @@ public class MessageRoom extends Fragment {
     public void onResume(){
         super.onResume();
         if(roomNum.length() > 1 && activity != null && activity.isInMessageRoom()){
+            setUpFCMConnection();
             setRoomObjListener(roomNum);
             setUpRecyclerView(roomNum);
         }
@@ -210,6 +215,7 @@ public class MessageRoom extends Fragment {
     @Override
     public void onPause(){
         super.onPause();
+        closeFCMConnection();
         if(mFirebaseAdapter != null){
             mFirebaseAdapter.cleanup();
             closeRoomObjListener(roomNum);
@@ -226,7 +232,7 @@ public class MessageRoom extends Fragment {
         roomUsersList = invitedUsers;
         roomUsersStringList = null;
 
-        String roomTitle;
+        final String roomTitle;
 
         switch(invitedUsers.size()){
             case 1:
@@ -310,17 +316,33 @@ public class MessageRoom extends Fragment {
                     isDM = false;
                 }
 
-                for(UserSearchItem usi : invitedUsers){
+                final String preview;
+                if(content.trim().length() > 15){
+                    preview = content.trim().substring(0,12) + "...";
+                }
+                else{
+                    preview = content.trim();
+                }
+
+                for(final UserSearchItem usi : invitedUsers){
                     String WRITE_PATH = usi.getHash() + "/" + usi.getUsername() + "/messages/" + rnum;
                     final String username = usi.getUsername();
                     mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject).addOnCompleteListener(activity, new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             if(isDM){
-                                //setFCMNotification(username, mUsername +title preview image);
+                                try{
+                                    sendFCMNotification(usi.getUsername(), currentRoomTitle, preview);
+                                }catch (Exception e){
+                                    e.printStackTrace();
+                                }
                             }
                             else{
-
+                                try{
+                                    sendFCMNotification(usi.getUsername(), currentRoomTitle, mUsername + ": " + preview);
+                                }catch (Exception e){
+                                    e.printStackTrace();
+                                }
                             }
                         }
                     });
@@ -387,10 +409,9 @@ public class MessageRoom extends Fragment {
                 MessageObject messageObject = new MessageObject(content, mUsername, mPhotoUrl, null);
 
                 int usernameHash;
-                if(mUsername.length() < 5){
+                if (mUsername.length() < 5) {
                     usernameHash = mUsername.hashCode();
-                }
-                else{
+                } else {
                     String hashIn = "" + mUsername.charAt(0) + mUsername.charAt(mUsername.length() - 2) + mUsername.charAt(1) + mUsername.charAt(mUsername.length() - 1);
                     usernameHash = hashIn.hashCode();
                 }
@@ -401,18 +422,49 @@ public class MessageRoom extends Fragment {
 
                 mMessageEditText.setText("");
 
-                for(String mName : usersList){
+                final boolean isDM;
+                if (usersList.size() == 1) {
+                    isDM = true;
+                } else {
+                    isDM = false;
+                }
+
+                final String preview;
+                if (content.trim().length() > 15) {
+                    preview = content.trim().substring(0, 12) + "...";
+                } else {
+                    preview = content.trim();
+                }
+
+                for (final String mName : usersList) {
                     int nameHash;
-                    if(mName.length() < 5){
+                    if (mName.length() < 5) {
                         usernameHash = mName.hashCode();
-                    }
-                    else{
+                    } else {
                         String hashIn = "" + mName.charAt(0) + mName.charAt(mName.length() - 2) + mName.charAt(1) + mName.charAt(mName.length() - 1);
                         usernameHash = hashIn.hashCode();
                     }
 
                     String WRITE_PATH = Integer.toString(usernameHash) + "/" + mName + "/messages/" + rnum;
-                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject).addOnCompleteListener(activity, new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (isDM) {
+                                try {
+                                    sendFCMNotification(mName, currentRoomTitle, preview);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            } else {
+                                try {
+                                    sendFCMNotification(mName, currentRoomTitle, mUsername + ": " + preview);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    });
+
                 }
             }
         });
@@ -502,14 +554,52 @@ public class MessageRoom extends Fragment {
                                     .setValue(messageObject);
 
                             if(roomUsersList != null){
-                                for(UserSearchItem usi : roomUsersList){
+                                for(final UserSearchItem usi : roomUsersList){
+
+                                    final boolean isDM;
+                                    if (roomUsersList.size() == 1) {
+                                        isDM = true;
+                                    } else {
+                                        isDM = false;
+                                    }
+
+                                    final String preview = mUsername + " sent an image.";
+
+
                                     String WRITE_PATH = usi.getHash() + "/" + usi.getUsername() + "/messages/" + roomNum;
-                                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject).addOnCompleteListener(activity, new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if (isDM) {
+                                                try {
+                                                    sendFCMNotification(usi.getUsername(), currentRoomTitle, preview);
+                                                } catch (Exception e) {
+                                                    e.printStackTrace();
+                                                }
+                                            } else {
+                                                try {
+                                                    sendFCMNotification(usi.getUsername(), currentRoomTitle, mUsername + ": " + preview);
+                                                } catch (Exception e) {
+                                                    e.printStackTrace();
+                                                }
+                                            }
+                                        }
+                                    });
                                 }
 
                             }
                             else if(roomUsersStringList != null){
-                                for(String mName : roomUsersStringList){
+
+                                final boolean isDM;
+                                if (roomUsersStringList.size() == 1) {
+                                    isDM = true;
+                                } else {
+                                    isDM = false;
+                                }
+
+                                final String preview = mUsername + " sent an image.";
+
+                                for(final String mName : roomUsersStringList){
 
                                     int usernameHash;
                                     if(mName.length() < 5){
@@ -521,7 +611,24 @@ public class MessageRoom extends Fragment {
                                     }
 
                                     String WRITE_PATH = usernameHash + "/" + mName + "/messages/" + roomNum;
-                                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject).addOnCompleteListener(activity, new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if (isDM) {
+                                                try {
+                                                    sendFCMNotification(mName, currentRoomTitle, preview);
+                                                } catch (Exception e) {
+                                                    e.printStackTrace();
+                                                }
+                                            } else {
+                                                try {
+                                                    sendFCMNotification(mName, currentRoomTitle, mUsername + ": " + preview);
+                                                } catch (Exception e) {
+                                                    e.printStackTrace();
+                                                }
+                                            }
+                                        }
+                                    });
                                 }
                             }
 
@@ -542,6 +649,7 @@ public class MessageRoom extends Fragment {
                 //the great piece of code that prevents keyboard from pushing toolbar up
                 getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
                 enableChildViews();
+                setUpFCMConnection();
             }
         }
         else {
@@ -551,6 +659,7 @@ public class MessageRoom extends Fragment {
                 if(roomObjListener != null && roomNum != null && roomNum.length() > 1){
                     closeRoomObjListener(roomNum);
                 }
+                closeFCMConnection();
             }
         }
     }
@@ -693,47 +802,65 @@ public class MessageRoom extends Fragment {
 
     }
 
-    //private void setFCMNotification(String mUsername, final String titleText, final String preview, final String imgURL);
-    private void setFCMNotification(String mUsername, final String titleText, final String preview) {
+    private void setUpFCMConnection() {
 
-        //get device tokens for mUsername
-        //get username hash for path
-        int usernameHash;
-        if(mUsername.length() < 5){
-            usernameHash = mUsername.hashCode();
-        }
-        else{
-            String hashIn = "" + mUsername.charAt(0) + mUsername.charAt(mUsername.length() - 2) + mUsername.charAt(1) + mUsername.charAt(mUsername.length() - 1);
-            usernameHash = hashIn.hashCode();
-        }
-        String userTPath = Integer.toString(usernameHash) + "/" + mUsername + "/t";
+        final String AUTH_KEY_FCM = "AAAAoFUu5eA:APA91bGQKRRBnkJloxKVD4ZDfu75b12w6wL5cXg30VYp4OkMDlgaGCauEA4Zct6sdgJGvWLsbCykH5UCFJiPWQJ1G2SLRUtEiFe9Try4m5osiiW0VfB9lJOG-sBuX63L5twsLDeXBPQX";
+        final String API_URL_FCM = "https://fcm.googleapis.com/fcm/send";
 
-        final ArrayList<String> tokenList = new ArrayList<>();
-
-        mFirebaseDatabaseReference.child(userTPath).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if(dataSnapshot.hasChildren()){
-                    for(DataSnapshot child : dataSnapshot.getChildren()){
-                        tokenList.add(child.getKey());
-                    }
+        if(!fcmConnected){
+            Runnable runnable = new Runnable() {
+                public void run() {
                     try{
-                        sendFCMNotification(tokenList, titleText, preview);
+                        URL url = new URL(API_URL_FCM);
+                        conn = (HttpURLConnection) url.openConnection();
 
-                    }catch (Exception e){
-                        e.printStackTrace();
+                        conn.setUseCaches(false);
+                        conn.setDoInput(true);
+                        conn.setDoOutput(true);
+
+                        conn.setRequestMethod("POST");
+                        conn.setRequestProperty("Authorization", "key=" + AUTH_KEY_FCM);
+                        conn.setRequestProperty("Content-Type", "application/json");
+
+                        wr = new OutputStreamWriter(conn.getOutputStream());
+                        fcmConnected = true;
+                        Log.d("FCMCONNECTION", "FCM connection set up");
+
+                    } catch(Exception e){
+                        //handle exceptions
+                        Log.e("FCMCONNECTION", "FCM Connection error", e);
+
                     }
                 }
-            }
+            };
+            Thread mythread = new Thread(runnable);
+            mythread.start();
+        }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
     }
 
-    private void sendFCMNotification(ArrayList<String> tokenList, String titleText, String preview) throws IOException {
+    private void closeFCMConnection() {
+        if(fcmConnected){
+            Runnable runnable = new Runnable() {
+                public void run() {
+                    try{
+                        wr.close();
+                        conn.disconnect();
+                        fcmConnected = false;
+                        Log.d("FCMCONNECTION", "FCM connection closed");
+
+                    } catch (Exception e){
+                        //handle exceptions
+                        Log.e("FCMCONNECTION", "FCM closing error", e);
+                    }
+                }
+            };
+            Thread mythread = new Thread(runnable);
+            mythread.start();
+        }
+    }
+
+    private void sendFCMNotification(String fcmTopic, String titleText, String preview) throws IOException {
 
         String AUTH_KEY_FCM = "AAAAoFUu5eA:APA91bGQKRRBnkJloxKVD4ZDfu75b12w6wL5cXg30VYp4OkMDlgaGCauEA4Zct6sdgJGvWLsbCykH5UCFJiPWQJ1G2SLRUtEiFe9Try4m5osiiW0VfB9lJOG-sBuX63L5twsLDeXBPQX";
         String API_URL_FCM = "https://fcm.googleapis.com/fcm/send";
@@ -750,15 +877,14 @@ public class MessageRoom extends Fragment {
         conn.setRequestProperty("Content-Type", "application/json");
 
         try {
-            for(String deviceToken : tokenList){
-                JSONObject json = new JSONObject();
+            JSONObject json = new JSONObject();
 
-                json.put("token", deviceToken.trim());
-                JSONObject info = new JSONObject();
-                info.put("title", titleText); // Notification title
-                info.put("body", preview); // text preview of the message
+            json.put("topic", fcmTopic);
+            JSONObject info = new JSONObject();
+            info.put("title", titleText); // Notification title
+            info.put("body", preview); // text preview of the message
 
-                json.put("notification", info);
+            json.put("notification", info);
 
                 /*
                 JSONObject info2 = new JSONObject();
@@ -767,11 +893,10 @@ public class MessageRoom extends Fragment {
                 json.put("data", info2);
                 */
 
-                OutputStreamWriter wr = new OutputStreamWriter(
-                        conn.getOutputStream());
-                wr.write(json.toString());
-                wr.flush();
+            wr.write(json.toString());
+            wr.flush();
 
+                /*
                 BufferedReader br = new BufferedReader(new InputStreamReader(
                         (conn.getInputStream())));
 
@@ -781,7 +906,7 @@ public class MessageRoom extends Fragment {
                     System.out.println(output);
                 }
                 System.out.println("FCM Notification is sent successfully");
-            }
+                */
         } catch (Exception e) {
             e.printStackTrace();
         }
