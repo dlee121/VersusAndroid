@@ -19,14 +19,8 @@ public class RoomObject {
     public RoomObject() {
     }
 
-    public RoomObject(String title, Long time, String preview, String rnum, ArrayList<String> users) {
-        this.name = title;
-        this.time = time;
-        this.preview = preview;
-        this.users = users;
-    }
-
-    public RoomObject(Long time, String preview, String rnum, ArrayList<String> users) {
+    public RoomObject(String name, Long time, String preview, ArrayList<String> users) {
+        this.name = name;
         this.time = time;
         this.preview = preview;
         this.users = users;
@@ -38,10 +32,6 @@ public class RoomObject {
 
     public void setName(String name){
         this.name = name;
-    }
-
-    public boolean hasName(){
-        return name != null;
     }
 
     public Long getTime(){

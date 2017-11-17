@@ -699,7 +699,7 @@ public class MessageRoom extends Fragment {
         }
         roomUsersHolderList.add(mUsername);
 
-        final RoomObject roomObject = new RoomObject(System.currentTimeMillis(), preview, roomNum, roomUsersHolderList);
+        final RoomObject roomObject = new RoomObject(currentRoomTitle, System.currentTimeMillis(), preview, roomUsersHolderList);
         String userRoomPath = activity.getUserPath() + "r/" + roomNum;
         mFirebaseDatabaseReference.child(userRoomPath).setValue(roomObject).addOnCompleteListener(activity, new OnCompleteListener<Void>() {
             @Override

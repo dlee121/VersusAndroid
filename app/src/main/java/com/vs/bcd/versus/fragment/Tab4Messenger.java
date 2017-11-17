@@ -170,29 +170,10 @@ public class Tab4Messenger extends Fragment {
                 if (roomObject != null) {
 
                     final ArrayList<String> usersList = roomObject.getUsers();
-                    final String roomTitle;
+                    final String roomTitle = roomObject.getName();
 
-                    if(roomObject.hasName()){
-                        viewHolder.roomTitleTV.setText(roomObject.getName());
-                        roomTitle = roomObject.getName();
-                    }
-                    else{
-                        if(usersList.size() > 2) {   //Group Chat
-                            String groupChatTitle = usersList.get(0) + ", " + usersList.get(1) + ", and " + Integer.toString(usersList.size() - 2) + " more";
-                            viewHolder.roomTitleTV.setText(groupChatTitle);
-                            roomTitle = groupChatTitle;
-                        }
-                        else{   //DM
-                            if(usersList.get(0).equals(mUsername)){
-                                viewHolder.roomTitleTV.setText(usersList.get(1));
-                                roomTitle = usersList.get(1);
-                            }
-                            else{
-                                viewHolder.roomTitleTV.setText(usersList.get(0));
-                                roomTitle = usersList.get(0);
-                            }
-                        }
-                    }
+                    viewHolder.roomTitleTV.setText(roomTitle);
+
                     viewHolder.roomTimeTV.setText(df.format(new Date(roomObject.getTime())));
                     viewHolder.roomPreviewTV.setText(roomObject.getPreview());
                     viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
