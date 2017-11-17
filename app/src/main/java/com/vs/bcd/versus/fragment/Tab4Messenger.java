@@ -28,6 +28,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
+import com.vs.bcd.versus.model.RNumAndUList;
 import com.vs.bcd.versus.model.RoomObject;
 import com.vs.bcd.versus.model.SessionManager;
 
@@ -85,6 +86,7 @@ public class Tab4Messenger extends Fragment {
     private MainContainer activity;
     private FloatingActionButton fabNewMsg;
     private ChildEventListener roomsListener;
+    private HashMap<String, RNumAndUList> rNameToRNum;
 
 
     @Override
@@ -152,8 +154,7 @@ public class Tab4Messenger extends Fragment {
     public void onResume(){
         super.onResume();
 
-        // Initialize Firebase Auth
-        //mFirebaseAuth = FirebaseAuth.getInstance();
+        rNameToRNum = new HashMap<>();
 
         mFirebaseAdapter = new FirebaseRecyclerAdapter<RoomObject,
                 RoomViewHolder>(
@@ -171,6 +172,9 @@ public class Tab4Messenger extends Fragment {
 
                     final ArrayList<String> usersList = roomObject.getUsers();
                     final String roomTitle = roomObject.getName();
+                    final String roomNum = getRef(position).getKey();
+
+                    rNameToRNum.put(roomTitle, new RNumAndUList(roomNum, usersList)); //TODO: will this get updated if room is updated with modified usersList?
 
                     viewHolder.roomTitleTV.setText(roomTitle);
 
@@ -179,9 +183,6 @@ public class Tab4Messenger extends Fragment {
                     viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-
-                            //String roomNum = roomObject.getRnum();
-                            String roomNum = getRef(position).getKey();
 
                             usersList.remove(mUsername); //remove logged-in user from the room users map to prevent duplicate sends,
                             // since we handle logged-in user's message transfer separate from message transfer of other room users
@@ -230,6 +231,7 @@ public class Tab4Messenger extends Fragment {
         super.onPause();
         if(mFirebaseAdapter != null){
             mFirebaseAdapter.cleanup();
+            mRoomRecyclerView.setAdapter(null);
             Log.d("ORDER", "Tab4Messenger FirebaseRecyclerAdapter cleanup done");
         }
     }
@@ -261,6 +263,11 @@ public class Tab4Messenger extends Fragment {
             childViews.get(i).setClickable(false);
             childViews.get(i).setLayoutParams(new RelativeLayout.LayoutParams(0,0));
         }
+    }
+
+    //returns null if entry not found, else returns the corresponding RNumAndUList object
+    public RNumAndUList getRNumAndUList(String rName){
+        return rNameToRNum.get(rName);
     }
 
 }

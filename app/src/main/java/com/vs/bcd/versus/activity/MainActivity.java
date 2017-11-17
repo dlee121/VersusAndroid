@@ -268,4 +268,8 @@ public class MainActivity extends Fragment {
         fab.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
     }
 
+    public Tab4Messenger getTab4Messenger(){
+        return tab4;
+    }
+
 }

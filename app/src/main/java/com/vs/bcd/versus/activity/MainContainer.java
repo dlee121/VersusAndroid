@@ -57,8 +57,10 @@ import com.vs.bcd.versus.fragment.PostPage;
 import com.vs.bcd.versus.fragment.ProfileTab;
 import com.vs.bcd.versus.fragment.SelectCategory;
 import com.vs.bcd.versus.fragment.SettingsFragment;
+import com.vs.bcd.versus.fragment.Tab4Messenger;
 import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.model.PostSkeleton;
+import com.vs.bcd.versus.model.RNumAndUList;
 import com.vs.bcd.versus.model.RoomObject;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.fragment.CreatePost;
@@ -132,6 +134,7 @@ public class MainContainer extends AppCompatActivity {
     private String FOLLOWERS_CHILD, FOLLOWING_CHILD;
     private boolean initialFollowingLoaded = false;
     private String fcmToken = "";
+    private boolean goToMainActivityOnResume = false;
 
     private DatabaseReference mFirebaseDatabaseReference;
 
@@ -208,12 +211,15 @@ public class MainContainer extends AppCompatActivity {
                     titleTxtView.setText("");
                     enableBottomTabs();
                     break;
-                /*  default might be enough to handle this case, as well as case 12 (CreateMessage)
+
                 case 11: //currently in MessageRoom fragment
-
+                    toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                    mViewPager.setCurrentItem(0);
+                    titleTxtView.setText(lastSetTitle);
+                    messageRoom.cleanUp();
                     break;
-                */
 
+                //default might be enough to handle case 12 (CreateMessage)
                 default:
                     toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                     mViewPager.setCurrentItem(0);
@@ -394,6 +400,13 @@ public class MainContainer extends AppCompatActivity {
                         enableBottomTabs();
                         break;
 
+                    case 11:
+                        toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                        mViewPager.setCurrentItem(0);
+                        titleTxtView.setText(lastSetTitle);
+                        messageRoom.cleanUp();
+                        break;
+
                     default:
                         toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                         mViewPager.setCurrentItem(0);
@@ -419,7 +432,19 @@ public class MainContainer extends AppCompatActivity {
                 int currPage = mViewPager.getCurrentItem();
                 switch (currPage){
                     case 12:    //CreateMessage fragment
-                        createMessageFragment.createMessageRoom();
+                        String dmTarget = createMessageFragment.getDMTarget();
+                        if(!(dmTarget.equals(""))){
+                            RNumAndUList rNumAndUList = mainActivityFragRef.getTab4Messenger().getRNumAndUList(dmTarget);
+                            if(rNumAndUList != null){
+                                setUpAndOpenMessageRoom(rNumAndUList.getRNum(), rNumAndUList.getUsersList(), dmTarget);
+                            }
+                            else{
+                                createMessageFragment.createMessageRoom();
+                            }
+                        }
+                        else{
+                            createMessageFragment.createMessageRoom();
+                        }
                         break;
                 }
             }
@@ -608,6 +633,7 @@ public class MainContainer extends AppCompatActivity {
         });
 
         setToolbarTitleTextForTabs("Newsfeed");
+        goToMainActivityOnResume = true;
 
         //Log.d("USER_INFO", sessionManager.getUserDetails().get(SessionManager.KEY_USERNAME));
         Log.d("ORDER", "MainContainer OnCreate finished");
@@ -615,6 +641,7 @@ public class MainContainer extends AppCompatActivity {
 
     @Override
     protected void onResume(){
+        Log.d("ORDER", "MainContainer onResume called");
         super.onResume();
         FirebaseMessaging.getInstance().subscribeToTopic(currUsername); //subscribe to user topic for messenger push notification
 
@@ -623,8 +650,9 @@ public class MainContainer extends AppCompatActivity {
             getIntent().removeExtra("rnum");
             goToMsgRoom(intentRNum);
         }
-        else{
-            mViewPager.setCurrentItem(0);   //open with newsfeed
+        else if(goToMainActivityOnResume){
+            mViewPager.setCurrentItem(0);
+            goToMainActivityOnResume = false;
         }
     }
 
@@ -747,9 +775,8 @@ public class MainContainer extends AppCompatActivity {
             //Return current tabs
             switch (position) {
                 case 0:
-                    MainActivity mainActivityFragment = new MainActivity();
-                    mainActivityFragRef = mainActivityFragment;
-                    return mainActivityFragment;
+                    mainActivityFragRef = new MainActivity();
+                    return mainActivityFragRef;
                 case 1:
                     SearchPage searchPage = new SearchPage();
                     return searchPage;

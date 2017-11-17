@@ -16,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -278,6 +279,9 @@ public class MessageRoom extends Fragment {
         mSendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
+
                 final String content = mMessageEditText.getText().toString().trim();
                 MessageObject messageObject = new MessageObject(content, mUsername, mPhotoUrl, null);
 
@@ -388,6 +392,9 @@ public class MessageRoom extends Fragment {
         mSendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
+
                 final String content = mMessageEditText.getText().toString().trim();
                 MessageObject messageObject = new MessageObject(content, mUsername, mPhotoUrl, null);
 
@@ -420,17 +427,18 @@ public class MessageRoom extends Fragment {
                 }
 
                 for (final String mName : usersList) {
-                    int nameHash;
-                    if (mName.length() < 5) {
-                        usernameHash = mName.hashCode();
-                    } else {
-                        String hashIn = "" + mName.charAt(0) + mName.charAt(mName.length() - 2) + mName.charAt(1) + mName.charAt(mName.length() - 1);
-                        usernameHash = hashIn.hashCode();
+                    if(!(mName.equals(mUsername))){ //this condition check is necessary for when going from CreateMessage to existing room
+                        int nameHash;
+                        if (mName.length() < 5) {
+                            usernameHash = mName.hashCode();
+                        } else {
+                            String hashIn = "" + mName.charAt(0) + mName.charAt(mName.length() - 2) + mName.charAt(1) + mName.charAt(mName.length() - 1);
+                            usernameHash = hashIn.hashCode();
+                        }
+
+                        String WRITE_PATH = Integer.toString(usernameHash) + "/" + mName + "/messages/" + rnum;
+                        mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
                     }
-
-                    String WRITE_PATH = Integer.toString(usernameHash) + "/" + mName + "/messages/" + rnum;
-                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
-
                 }
             }
         });
@@ -809,4 +817,8 @@ public class MessageRoom extends Fragment {
         }
     }
 
+    public void cleanUp(){
+        mMessageRecyclerView.setAdapter(null);
+        mFirebaseAdapter.cleanup();
+    }
 }

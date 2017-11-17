@@ -572,4 +572,12 @@ public class CreateMessage extends Fragment {
         return false;
     }
 
+    //returns empty string if not DM
+    public String getDMTarget(){
+        if(invitedUsers != null && invitedUsers.size() == 1){
+            return invitedUsers.get(0).getUsername();
+        }
+        return "";
+    }
+
 }
