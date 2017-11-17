@@ -59,6 +59,7 @@ import com.vs.bcd.versus.fragment.SelectCategory;
 import com.vs.bcd.versus.fragment.SettingsFragment;
 import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.model.PostSkeleton;
+import com.vs.bcd.versus.model.RoomObject;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.fragment.CreatePost;
 import com.vs.bcd.versus.R;
@@ -627,11 +628,32 @@ public class MainContainer extends AppCompatActivity {
         }
     }
 
-    private void goToMsgRoom(String rnum){
+    private void goToMsgRoom(final String rnum){
         Log.d("OPENROOM", "going to room# " + rnum);
+        mViewPager.setCurrentItem(11);
 
+        //TODO: show a indeterminate progress bar while message room is getting set up
 
-        //mViewPager.setCurrentItem(11);  //TODO: set up the correct message room, and then mViewPager.setCurrentItem(11) to MessageRoom.
+        if(messageRoom == null){
+            Log.d("OPENROOM", "message room null");
+        }
+        else {
+            String rPath = userPath + "/r/" + rnum;
+            mFirebaseDatabaseReference.child(rPath).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if(dataSnapshot.getValue() != null){
+                        RoomObject clickedRoom = dataSnapshot.getValue(RoomObject.class);
+                        messageRoom.setUpRoom(rnum, clickedRoom.getUsers(), clickedRoom.getName());
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+        }
     }
 
 
@@ -717,6 +739,7 @@ public class MainContainer extends AppCompatActivity {
 
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
+            messageRoom = new MessageRoom(); //we create it here because we might need it initiated right away (instead of waiting for getItem to be called) for messenger push notification click
         }
 
         @Override
@@ -754,7 +777,7 @@ public class MainContainer extends AppCompatActivity {
                 case 10:
                     return new SettingsFragment();
                 case 11:
-                    messageRoom = new MessageRoom();
+                    //messageRoom = new MessageRoom(); //now messageRoom is initiated in the SectionPagerAdapter constructor.
                     return messageRoom;
                 case 12:
                     createMessageFragment = new CreateMessage();

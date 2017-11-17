@@ -122,6 +122,7 @@ public class MessageRoom extends Fragment {
     private ChildEventListener roomObjListener;
     private boolean initialRoomInfoLoaded = false;
     private String currentRoomTitle = "";
+    private boolean roomVisible = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -144,7 +145,12 @@ public class MessageRoom extends Fragment {
             LPStore.add(childViews.get(i).getLayoutParams());
         }
 
-        disableChildViews();
+        if(roomVisible){
+            enableChildViews();
+        }
+        else{
+            disableChildViews();
+        }
 
         // Initialize Firebase Auth
         mFirebaseAuth = FirebaseAuth.getInstance();
@@ -441,6 +447,7 @@ public class MessageRoom extends Fragment {
         });
 
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(getActivity());
+
     }
 
     @Override
@@ -570,6 +577,7 @@ public class MessageRoom extends Fragment {
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
+        roomVisible = isVisibleToUser;
         if (isVisibleToUser) {
             if(rootView != null){
                 //the great piece of code that prevents keyboard from pushing toolbar up
