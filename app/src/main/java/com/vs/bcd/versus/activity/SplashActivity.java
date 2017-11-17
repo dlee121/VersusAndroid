@@ -3,6 +3,7 @@ package com.vs.bcd.versus.activity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import  android.content.Intent;
+import android.util.Log;
 
 import com.vs.bcd.versus.model.SessionManager;
 
@@ -11,16 +12,27 @@ public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        //for messenger notification click, get rnum from intent extra
+        String rnum = null;
+        if(getIntent() != null && getIntent().getExtras() != null && getIntent().getExtras().get("room_id") != null){
+            rnum = getIntent().getExtras().get("room_id").toString();
+        }
+
         SessionManager sessionManager = new SessionManager(getApplicationContext());
         Intent intent;
+
         if(sessionManager.isLoggedIn()) {
             intent = new Intent(this, MainContainer.class);
-
+            if(rnum != null){
+                intent.putExtra("rnum", rnum);
+            }
         }
         else {
             intent = new Intent(this, StartScreen.class);
 
         }
+
         startActivity(intent);
         finish();
     }

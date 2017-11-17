@@ -606,7 +606,6 @@ public class MainContainer extends AppCompatActivity {
             }
         });
 
-        mViewPager.setCurrentItem(0);
         setToolbarTitleTextForTabs("Newsfeed");
 
         //Log.d("USER_INFO", sessionManager.getUserDetails().get(SessionManager.KEY_USERNAME));
@@ -617,18 +616,30 @@ public class MainContainer extends AppCompatActivity {
     protected void onResume(){
         super.onResume();
         FirebaseMessaging.getInstance().subscribeToTopic(currUsername); //subscribe to user topic for messenger push notification
-        /*
-        String currentToken = FirebaseInstanceId.getInstance().getToken();
-        Log.d("TOKENUPDATE", "TOKENUPDATEY");
 
-        if(!(fcmToken.equals(currentToken))){
-            String tPath = userPath + "/t/";
-            Log.d("TOKENUPDATE", "tPath: " + tPath);
-
-            mFirebaseDatabaseReference.child(tPath).child(currentToken).setValue(true);
-            fcmToken = currentToken;
+        if(getIntent() != null && getIntent().getExtras() != null && getIntent().getExtras().get("rnum") != null){
+            String intentRNum = getIntent().getExtras().get("rnum").toString();
+            getIntent().removeExtra("rnum");
+            goToMsgRoom(intentRNum);
         }
-        */
+        else{
+            mViewPager.setCurrentItem(0);   //open with newsfeed
+        }
+    }
+
+    private void goToMsgRoom(String rnum){
+        Log.d("OPENROOM", "going to room# " + rnum);
+
+
+        //mViewPager.setCurrentItem(11);  //TODO: set up the correct message room, and then mViewPager.setCurrentItem(11) to MessageRoom.
+    }
+
+
+    @Override
+    protected void onNewIntent(Intent intent){
+        if(intent != null){
+            setIntent(intent); //this intent will subsequently be handled by onResume()
+        }
     }
 
 
