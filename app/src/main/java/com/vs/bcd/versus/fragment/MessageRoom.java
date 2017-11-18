@@ -821,7 +821,11 @@ public class MessageRoom extends Fragment {
     }
 
     public void cleanUp(){
-        mMessageRecyclerView.setAdapter(null);
-        mFirebaseAdapter.cleanup();
+        if(mFirebaseAdapter != null){
+            mFirebaseAdapter.cleanup();
+        }
+        if(mMessageRecyclerView != null){
+            mMessageRecyclerView.setAdapter(null);
+        }
     }
 }
