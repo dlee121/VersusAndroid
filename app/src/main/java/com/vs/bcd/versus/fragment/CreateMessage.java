@@ -321,7 +321,7 @@ public class CreateMessage extends Fragment {
 
     public void createMessageRoom(){
         //set up a new message room and go into it. actual message room in DB is created with the sending of its first message.
-        activity.getMessageRoom().setUpNewRoom(invitedUsers);
+        activity.getMessageRoom().setUpNewRoom(new ArrayList<UserSearchItem>(invitedUsers));
         activity.getViewPager().setCurrentItem(11);
     }
 

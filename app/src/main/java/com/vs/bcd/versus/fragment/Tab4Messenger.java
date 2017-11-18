@@ -24,13 +24,19 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.model.RNumAndUList;
 import com.vs.bcd.versus.model.RoomObject;
 import com.vs.bcd.versus.model.SessionManager;
+import com.vs.bcd.versus.model.UserSearchItem;
+
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
@@ -87,6 +93,7 @@ public class Tab4Messenger extends Fragment {
     private FloatingActionButton fabNewMsg;
     private ChildEventListener roomsListener;
     private HashMap<String, RNumAndUList> rNameToRNum;
+    private TextView emptyListTV;
 
 
     @Override
@@ -98,6 +105,7 @@ public class Tab4Messenger extends Fragment {
 
         // Initialize ProgressBar and RecyclerView.
         mProgressBar = (ProgressBar) rootView.findViewById(R.id.roomsProgressBar);
+        emptyListTV = (TextView) rootView.findViewById(R.id.emptyListText);
         mRoomRecyclerView = (RecyclerView) rootView.findViewById(R.id.roomsRecyclerView);
         mLinearLayoutManager = new LinearLayoutManager(getActivity());
         mLinearLayoutManager.setStackFromEnd(true);
@@ -168,6 +176,7 @@ public class Tab4Messenger extends Fragment {
                                               final RoomObject roomObject, final int position) {
 
                 mProgressBar.setVisibility(ProgressBar.INVISIBLE);
+                emptyListTV.setVisibility(TextView.INVISIBLE);
                 if (roomObject != null) {
 
                     final ArrayList<String> usersList = roomObject.getUsers();
@@ -203,6 +212,28 @@ public class Tab4Messenger extends Fragment {
             }
         };
 
+        mRoomRecyclerView.setAdapter(mFirebaseAdapter);
+
+        mFirebaseDatabaseReference.child(ROOMS_CHILD).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                mProgressBar.setVisibility(ProgressBar.INVISIBLE);
+                if(!(dataSnapshot.hasChildren())){
+                    emptyListTV.setVisibility(TextView.VISIBLE);
+                }
+                setFirebaseObserver();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+
+    }
+
+    private void setFirebaseObserver(){
         mFirebaseAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
             @Override
             public void onItemRangeInserted(int positionStart, int itemCount) {
@@ -219,11 +250,14 @@ public class Tab4Messenger extends Fragment {
                     mRoomRecyclerView.scrollToPosition(positionStart);
                 }
             }
+            @Override
+            public void onItemRangeRemoved(int positionStart, int itemCount){
+                super.onItemRangeRemoved(positionStart, itemCount);
+                if(mFirebaseAdapter.getItemCount() == 0){
+                    emptyListTV.setVisibility(TextView.VISIBLE);
+                }
+            }
         });
-
-        mRoomRecyclerView.setAdapter(mFirebaseAdapter);
-
-
     }
 
     @Override
