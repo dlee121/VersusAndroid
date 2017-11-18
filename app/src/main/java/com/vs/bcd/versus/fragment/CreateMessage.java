@@ -217,6 +217,10 @@ public class CreateMessage extends Fragment {
         else {
             if (rootView != null){
                 disableChildViews();
+                if(invitedUsers != null){
+                    invitedUsers.clear();
+                    userSearchAdapter.clearCheckedItems();
+                }
             }
         }
     }

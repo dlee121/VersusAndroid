@@ -103,4 +103,9 @@ public class UserSearchAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         checkedItems.remove(username);
         notifyDataSetChanged();
     }
+
+    public void clearCheckedItems(){
+        checkedItems.clear();
+        notifyDataSetChanged();
+    }
 }
