@@ -226,6 +226,7 @@ public class MessageRoom extends Fragment {
     }
 
     public void setUpNewRoom(final ArrayList<UserSearchItem> invitedUsers){
+        mProgressBar.setVisibility(ProgressBar.INVISIBLE);
 
         firstMessage = true;
         final String rnum = UUID.randomUUID().toString();
@@ -353,6 +354,8 @@ public class MessageRoom extends Fragment {
     }
 
     public void setUpRoom(final String rnum, final ArrayList<String> usersList, String roomTitle){
+        mProgressBar.setVisibility(ProgressBar.VISIBLE);
+
         roomNum = rnum;
         MESSAGES_CHILD = MESSAGES_CHILD_BODY + rnum;
         roomUsersStringList = usersList;
