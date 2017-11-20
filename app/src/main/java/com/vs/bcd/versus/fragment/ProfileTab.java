@@ -220,49 +220,16 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
 
             Runnable runnable = new Runnable() {
                 public void run() {
-
-                    HashMap<String, AttributeValue> keyMap =
-                            new HashMap<>();
-                    keyMap.put("username", new AttributeValue().withS(username));  //partition key
-
-                    GetItemRequest request = new GetItemRequest()
-                            .withTableName("user")
-                            .withKey(keyMap)
-                            .withProjectionExpression("num_g,num_s,num_b,points");
-                    GetItemResult result = activity.getDDBClient().getItem(request);
-
-                    final Map<String, AttributeValue> resultMap = result.getItem();
-
                     setUpComments(username);
 
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-
+                            getGSBP(activity.getUserPath());
                             usernameTV.setText(username);
-
-                            for (Map.Entry<String, AttributeValue> entry : resultMap.entrySet()) {
-                                Log.d("ptab", "attrName: " + entry.getKey() + "    attrValue: " + entry.getValue().getN());
-                                String attrName = entry.getKey();
-                                if(attrName.equals("num_g")){
-                                    goldTV.setText(entry.getValue().getN());
-                                }
-                                else if(attrName.equals("num_s")){
-                                    silverTV.setText(entry.getValue().getN());
-                                }
-                                else if(attrName.equals("num_b")){
-                                    bronzeTV.setText(entry.getValue().getN());
-                                }
-                                else if(attrName.equals("points")){
-                                    pointsTV.setText(entry.getValue().getN());
-                                }
-                            }
-
                             followingCountTV.setText(Integer.toString(activity.getFollowingNum()) + "\nFollowing");
                             followerCountTV.setText(Integer.toString(activity.getFollowerNum()) + "\nFollowers");
-
                             displayMyProfile();
-
                         }
                     });
                 }
@@ -290,42 +257,23 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
             Runnable runnable = new Runnable() {
                 public void run() {
 
-                    HashMap<String, AttributeValue> keyMap =
-                            new HashMap<>();
-                    keyMap.put("username", new AttributeValue().withS(username));  //partition key
-
-                    GetItemRequest request = new GetItemRequest()
-                            .withTableName("user")
-                            .withKey(keyMap)
-                            .withProjectionExpression("num_g,num_s,num_b,points");
-                    GetItemResult result = activity.getDDBClient().getItem(request);
-
-                    final Map<String, AttributeValue> resultMap = result.getItem();
-
                     setUpComments(username);
 
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-
-                            usernameTV.setText(username);
-
-                            for (Map.Entry<String, AttributeValue> entry : resultMap.entrySet()) {
-                                Log.d("ptab", "attrName: " + entry.getKey() + "    attrValue: " + entry.getValue().getN());
-                                String attrName = entry.getKey();
-                                if (attrName.equals("num_g")) {
-                                    goldTV.setText(entry.getValue().getN());
-                                } else if (attrName.equals("num_s")) {
-                                    silverTV.setText(entry.getValue().getN());
-                                } else if (attrName.equals("num_b")) {
-                                    bronzeTV.setText(entry.getValue().getN());
-                                } else if (attrName.equals("points")) {
-                                    pointsTV.setText(entry.getValue().getN());
-                                }
+                            int usernameHash;
+                            if(username.length() < 5){
+                                usernameHash = username.hashCode();
                             }
-
+                            else{
+                                String hashIn = "" + username.charAt(0) + username.charAt(username.length() - 2) + username.charAt(1) + username.charAt(username.length() - 1);
+                                usernameHash = hashIn.hashCode();
+                            }
+                            String userPath = Integer.toString(usernameHash) + "/" + username + "/";
+                            getGSBP(userPath);
+                            usernameTV.setText(username);
                             getFGHCounts();
-
                         }
                     });
                 }
@@ -671,6 +619,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
 
     }
 
+    //get counts for following and follower
     private void getFGHCounts(){
 
         followingCount = 0;
@@ -719,6 +668,63 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                             }
                         });
 
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+    }
+
+    //get medal counts and points
+    private void getGSBP(String userPath){
+
+        final String medalsPath = userPath + "w";
+        final String pointsPath = userPath + "p";
+
+        mFirebaseDatabaseReference.child(medalsPath).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.hasChild("g")){
+                    goldTV.setText(dataSnapshot.child("g").getValue(Integer.class).toString());
+                }
+                else{
+                    goldTV.setText(Integer.toString(0));
+                }
+
+                if(dataSnapshot.hasChild("s")){
+                    silverTV.setText(dataSnapshot.child("s").getValue(Integer.class).toString());
+                }
+                else{
+                    silverTV.setText(Integer.toString(0));
+                }
+
+                if(dataSnapshot.hasChild("b")){
+                    bronzeTV.setText(dataSnapshot.child("b").getValue(Integer.class).toString());
+                }
+                else{
+                    bronzeTV.setText(Integer.toString(0));
+                }
+
+                mFirebaseDatabaseReference.child(pointsPath).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if(dataSnapshot.getValue() != null){
+                            pointsTV.setText(dataSnapshot.getValue(Integer.class).toString());
+                        }
+                        else{
+                            pointsTV.setText(Integer.toString(0));
+                        }
                     }
 
                     @Override
