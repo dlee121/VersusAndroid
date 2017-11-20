@@ -719,11 +719,14 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                 mFirebaseDatabaseReference.child(pointsPath).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
+                        String strIn;
                         if(dataSnapshot.getValue() != null){
-                            pointsTV.setText(dataSnapshot.getValue(Integer.class).toString());
+                            strIn = dataSnapshot.getValue(Integer.class).toString() + " points";
+                            pointsTV.setText(strIn);
                         }
                         else{
-                            pointsTV.setText(Integer.toString(0));
+                            strIn = Integer.toString(0) + " points";
+                            pointsTV.setText(strIn);
                         }
                     }
 
@@ -743,6 +746,12 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
 
     }
 
+    public void clearProfilePage(){
+        goldTV.setText("");
+        silverTV.setText("");
+        bronzeTV.setText("");
+        pointsTV.setText("");
+    }
 
 
 }

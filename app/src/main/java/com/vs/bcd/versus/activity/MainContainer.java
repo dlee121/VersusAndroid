@@ -203,6 +203,13 @@ public class MainContainer extends AppCompatActivity {
                     titleTxtView.setText(lastSetTitle);
                     break;
 
+                case 9: //Me (ProfileTab with user == me)
+                    toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                    mViewPager.setCurrentItem(0);
+                    titleTxtView.setText(lastSetTitle);
+                    profileTab.clearProfilePage();
+                    break;
+
                 case 10: //currently in SettingsFragment
                     //go back to Profile page (with current logged-in user's info), since SettingsFragment is only accessed from Profile page.
                     //Profile page info should be stored so just go back to it
@@ -376,7 +383,8 @@ public class MainContainer extends AppCompatActivity {
                         titleTxtView.setText(lastSetTitle);
                         categoryFragment.clearPosts();
                         break;
-                /*
+                    //In cases 7 and 8, we disable the toolbarButtonLeft (Search/Up button), so no need to program them for now.
+                    /*
                     case 7: //LeaderboardTab
 
                         break;
@@ -384,12 +392,15 @@ public class MainContainer extends AppCompatActivity {
                     case 8: //NotificationsTab
 
                         break;
+                    */
+
 
                     case 9: //Me (ProfileTab with user == me)
-
+                        toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                        mViewPager.setCurrentItem(0);
+                        titleTxtView.setText(lastSetTitle);
+                        profileTab.clearProfilePage();
                         break;
-                */
-                    //In cases 7 - 9, we disable the toolbarButtonLeft (Search/Up button), so no need to program them for now.
 
                     case 10: //currently in SettingsFragment
                         //go back to Profile page (with current logged-in user's info), since SettingsFragment is only accessed from Profile page.
