@@ -69,7 +69,6 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
     private final int COMMENTS = 0;
     private final int POSTS = 1;
     private String profileUsername = null; //username of the user for the profile page, not necessarily the current logged-in user
-    private String profileBday = ""; //used for Firebase path partitioning
     private DatabaseReference mFirebaseDatabaseReference;
     private long followingCount = 0;
     private long followerCount = 0;
@@ -298,7 +297,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                     GetItemRequest request = new GetItemRequest()
                             .withTableName("user")
                             .withKey(keyMap)
-                            .withProjectionExpression("bday,num_g,num_s,num_b,points");
+                            .withProjectionExpression("num_g,num_s,num_b,points");
                     GetItemResult result = activity.getDDBClient().getItem(request);
 
                     final Map<String, AttributeValue> resultMap = result.getItem();
@@ -314,9 +313,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                             for (Map.Entry<String, AttributeValue> entry : resultMap.entrySet()) {
                                 Log.d("ptab", "attrName: " + entry.getKey() + "    attrValue: " + entry.getValue().getN());
                                 String attrName = entry.getKey();
-                                if (attrName.equals("bday")) {
-                                    profileBday = entry.getValue().getS();
-                                } else if (attrName.equals("num_g")) {
+                                if (attrName.equals("num_g")) {
                                     goldTV.setText(entry.getValue().getN());
                                 } else if (attrName.equals("num_s")) {
                                     silverTV.setText(entry.getValue().getN());
@@ -327,9 +324,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                                 }
                             }
 
-                            if(profileBday.length() > 2){
-                                getFGHCounts();
-                            }
+                            getFGHCounts();
 
                         }
                     });

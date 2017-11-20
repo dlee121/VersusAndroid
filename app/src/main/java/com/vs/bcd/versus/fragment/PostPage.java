@@ -27,6 +27,8 @@ import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
 import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.amazonaws.services.dynamodbv2.model.Condition;
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
@@ -50,6 +52,8 @@ import java.text.SimpleDateFormat;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+import static android.R.attr.data;
+import static com.vs.bcd.versus.R.string.username;
 import static com.vs.bcd.versus.adapter.PostPageAdapter.DOWNVOTE;
 import static com.vs.bcd.versus.adapter.PostPageAdapter.NOVOTE;
 import static com.vs.bcd.versus.adapter.PostPageAdapter.UPVOTE;
@@ -117,7 +121,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private int silverPoints = 15;
     private int bronzePoints = 5;
 
-
+    private DatabaseReference mFirebaseDatabaseReference;
 
 
     @Override
@@ -133,6 +137,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         topCard = (RelativeLayout)rootView.findViewById(R.id.topCard);
         RV = (RecyclerView)rootView.findViewById(R.id.recycler_view_cs);
         RVLayoutParams = RV.getLayoutParams();
+
+        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
         hideTopCard();
 
@@ -2524,21 +2530,18 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         //update user points, incrementing by appropriate increment amount, not overlapping with points from previous medals, determined by difference between comment.topMedal and the medal that was won
                         int currentMedal = entry.getKey();
 
-                        HashMap<String, AttributeValueUpdate> userUpdates = new HashMap<>();
                         HashMap<String, AttributeValueUpdate> vscUpdates = new HashMap<>();
 
-                        //avi = medal count increment, avd = medal count decrement, avp = points increment (adjusted for possible previous medal in same comment), avc = comment topmedal update
-                        AttributeValueUpdate avi, avd, avp, avc;
+                        //avc = comment topmedal update
+                        AttributeValueUpdate avc;
 
-                        HashMap<String, AttributeValue> userKeyMap = new HashMap<>();
                         HashMap<String, AttributeValue> vscommentKeyMap = new HashMap<>();
 
-                        userKeyMap.put("username", new AttributeValue().withS(entry.getValue().getAuthor()));  //partition key
                         vscommentKeyMap.put("parent_id", new AttributeValue().withS(entry.getValue().getParent_id()));
                         vscommentKeyMap.put("comment_id", new AttributeValue().withS(entry.getValue().getComment_id()));
 
-                        int usernameHash;
                         String mUsername = entry.getValue().getAuthor();
+                        int usernameHash;
                         if(mUsername.length() < 5){
                             usernameHash = mUsername.hashCode();
                         }
@@ -2547,127 +2550,73 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             usernameHash = hashIn.hashCode();
                         }
 
-                        String MEDALIST_PATH = Integer.toString(usernameHash) + "/" + mUsername + "/hai/";
-
                         String incrementKey = null;
 
                         switch(currentMedal){   //set updates for user num_g/num_s/num_b increment and comment topmedal
                             case 3: //gold medal won
+                                incrementKey = "g";
                                 pointsIncrement = goldPoints;
-
-                                avi = new AttributeValueUpdate()
-                                        .withValue(new AttributeValue().withN("1"))
-                                        .withAction(AttributeAction.ADD);
-
-                                userUpdates.put("num_g", avi);
-                                incrementKey = "num_g";
-
                                 break;
 
                             case 2: //silver medal won
+                                incrementKey = "s";
                                 pointsIncrement = silverPoints;
-
-                                avi = new AttributeValueUpdate()
-                                        .withValue(new AttributeValue().withN("1"))
-                                        .withAction(AttributeAction.ADD);
-
-                                userUpdates.put("num_s", avi);
-
                                 break;
 
                             case 1: //bronze medal won
+                                incrementKey = "b";
                                 pointsIncrement = bronzePoints;
-
-                                avi = new AttributeValueUpdate()
-                                        .withValue(new AttributeValue().withN("1"))
-                                        .withAction(AttributeAction.ADD);
-
-                                userUpdates.put("num_b", avi);
-
                                 break;
                         }
 
                         if(incrementKey != null){
-                            //update firebase userpath with the medal count increment
+                            String decrementKey = "";
 
+                            switch(entry.getValue().getTopmedal()){ //set updates for user num_s/num_b decrement and points
+                                case 0: //went from no medal to currentMedal
+                                    break;
+
+                                case 1: //went from bronze to currentMedal
+                                    decrementKey = "b";
+                                    pointsIncrement -= bronzePoints;
+                                    break;
+
+                                case 2: //went from silver to currentMedal
+                                    decrementKey = "s";
+                                    pointsIncrement -= silverPoints;
+                                    break;
+
+                                //no case 3 if it was already gold then it's not a upgrade event
+
+                            }
+                            String medalType = incrementKey + decrementKey;
+                            int timeValue = (int) (System.currentTimeMillis() / 1000); //epoch in seconds as integer
+                            timeValue = ((timeValue / 60 )/ 60 )/ 24; //epoch in days
+                            //submit update request to firebase updates path, the first submission will trigger Cloud Functions operation to update user medals and points
+                            String updateRequest = "updates/" + Integer.toString(timeValue) + "/" + Integer.toString(usernameHash)  + "/" + mUsername + "/" + entry.getValue().getComment_id() + "/" + medalType;
+                            mFirebaseDatabaseReference.child(updateRequest).setValue(pointsIncrement);
+
+                            //update topmedal on local comment object in nodeMap
+                            //nodeMap.get(entry.getValue()).setTopMedal(currentMedal); I think the below version would work fine, I believe it maps to same object that is also linked to VSCNode objects in nodeMap
+                            entry.getValue().setTopmedal(currentMedal);
+                            //the below debug statement is to confirm the statement above, delete it eventually
+                            // Log.d("topmedal", "currentMedal = " + Integer.toString(currentMedal) + "\nnodeMap updated topmedal: " + Integer.toString(nodeMap.get(entry.getValue().getComment_id()).getNodeContent().getTopmedal()));
+
+                            //update vscomment topmedal
+                            avc = new AttributeValueUpdate()
+                                    .withValue(new AttributeValue().withN(Integer.toString(currentMedal)))
+                                    .withAction(AttributeAction.PUT);
+
+                            vscUpdates.put("topmedal", avc);
+
+                            UpdateItemRequest vscUpdateRequest = new UpdateItemRequest()
+                                    .withTableName("vscomment")
+                                    .withKey(vscommentKeyMap)
+                                    .withAttributeUpdates(vscUpdates);
+
+                            activity.getDDBClient().updateItem(vscUpdateRequest);
                         }
-
-                        String decrementKey = null;
-
-                        switch(entry.getValue().getTopmedal()){ //set updates for user num_s/num_b decrement and points
-                            case 0: //went from no medal to currentMedal
-
-
-                                break;
-
-                            case 1: //went from bronze to currentMedal
-                                pointsIncrement -= bronzePoints;
-
-                                avd = new AttributeValueUpdate()
-                                        .withValue(new AttributeValue().withN("-1"))
-                                        .withAction(AttributeAction.ADD);
-
-                                userUpdates.put("num_b", avd);
-
-                                break;
-
-                            case 2: //went from silver to currentMedal
-                                pointsIncrement -= silverPoints;
-
-                                avd = new AttributeValueUpdate()
-                                        .withValue(new AttributeValue().withN("-1"))
-                                        .withAction(AttributeAction.ADD);
-
-                                userUpdates.put("num_s", avd);
-
-                                break;
-
-                            //no case 3 if it was already gold then it's not a upgrade event
-
-                        }
-
-                        if(decrementKey != null){
-                            //update firebase userpath with the medal count decrement
-
-                        }
-
-                        //update topmedal on local comment object in nodeMap
-                        //nodeMap.get(entry.getValue()).setTopMedal(currentMedal); I think the below version would work fine, I believe it maps to same object that is also linked to VSCNode objects in nodeMap
-                        entry.getValue().setTopmedal(currentMedal);
-                        //the below debug statement is to confirm the statement above, delete it eventually
-                        Log.d("topmedal", "currentMedal = " + Integer.toString(currentMedal) + "\nnodeMap updated topmedal: " + Integer.toString(nodeMap.get(entry.getValue().getComment_id()).getNodeContent().getTopmedal()));
-
-                        //set up points update
-                        avp = new AttributeValueUpdate()
-                                .withValue(new AttributeValue().withN(Integer.toString(pointsIncrement)))
-                                .withAction(AttributeAction.ADD);
-
-                        userUpdates.put("points", avp);
-
-                        //update user attributes (medal counters and points)
-                        UpdateItemRequest userUpdateRequest = new UpdateItemRequest()
-                                .withTableName("user")
-                                .withKey(userKeyMap)
-                                .withAttributeUpdates(userUpdates);
-
-                        activity.getDDBClient().updateItem(userUpdateRequest);
-
-
-                        //update vscomment topmedal
-                        avc = new AttributeValueUpdate()
-                                .withValue(new AttributeValue().withN(Integer.toString(currentMedal)))
-                                .withAction(AttributeAction.PUT);
-
-                        vscUpdates.put("topmedal", avc);
-
-                        UpdateItemRequest vscUpdateRequest = new UpdateItemRequest()
-                                .withTableName("vscomment")
-                                .withKey(vscommentKeyMap)
-                                .withAttributeUpdates(vscUpdates);
-
-                        activity.getDDBClient().updateItem(vscUpdateRequest);
                     }
-
                 }
                 catch (Throwable t){
 
