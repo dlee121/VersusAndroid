@@ -33,6 +33,7 @@ import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
 import com.vs.bcd.versus.adapter.PostPageAdapter;
+import com.vs.bcd.versus.model.MedalUpdateRequest;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.PostSkeleton;
 import com.vs.bcd.versus.model.SessionManager;
@@ -52,8 +53,6 @@ import java.text.SimpleDateFormat;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-import static android.R.attr.data;
-import static com.vs.bcd.versus.R.string.username;
 import static com.vs.bcd.versus.adapter.PostPageAdapter.DOWNVOTE;
 import static com.vs.bcd.versus.adapter.PostPageAdapter.NOVOTE;
 import static com.vs.bcd.versus.adapter.PostPageAdapter.UPVOTE;
@@ -2594,14 +2593,15 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             timeValue = ((timeValue / 60 )/ 60 )/ 24; //epoch in days
                             //submit update request to firebase updates path, the first submission will trigger Cloud Functions operation to update user medals and points
                             String updateRequest = "updates/" + Integer.toString(timeValue) + "/" + Integer.toString(usernameHash)  + "/" + mUsername + "/" + entry.getValue().getComment_id() + "/" + medalType;
-                            mFirebaseDatabaseReference.child(updateRequest).setValue(pointsIncrement);
+                            MedalUpdateRequest medalUpdateRequest = new MedalUpdateRequest(pointsIncrement, entry.getValue().getParent_id());
+                            mFirebaseDatabaseReference.child(updateRequest).setValue(medalUpdateRequest);
 
                             //update topmedal on local comment object in nodeMap
                             //nodeMap.get(entry.getValue()).setTopMedal(currentMedal); I think the below version would work fine, I believe it maps to same object that is also linked to VSCNode objects in nodeMap
                             entry.getValue().setTopmedal(currentMedal);
                             //the below debug statement is to confirm the statement above, delete it eventually
                             // Log.d("topmedal", "currentMedal = " + Integer.toString(currentMedal) + "\nnodeMap updated topmedal: " + Integer.toString(nodeMap.get(entry.getValue().getComment_id()).getNodeContent().getTopmedal()));
-
+                        /*
                             //update vscomment topmedal
                             avc = new AttributeValueUpdate()
                                     .withValue(new AttributeValue().withN(Integer.toString(currentMedal)))
@@ -2615,6 +2615,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     .withAttributeUpdates(vscUpdates);
 
                             activity.getDDBClient().updateItem(vscUpdateRequest);
+                        */
                         }
                     }
                 }

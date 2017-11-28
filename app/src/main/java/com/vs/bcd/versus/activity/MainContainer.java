@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v7.app.AppCompatActivity;
@@ -34,19 +33,13 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
-import com.vs.bcd.versus.adapter.InvitedUserAdapter;
-import com.vs.bcd.versus.adapter.UserSearchAdapter;
 import com.vs.bcd.versus.fragment.CategoryFragment;
 import com.vs.bcd.versus.fragment.CommentEnterFragment;
 import com.vs.bcd.versus.fragment.CreateMessage;
@@ -57,7 +50,6 @@ import com.vs.bcd.versus.fragment.PostPage;
 import com.vs.bcd.versus.fragment.ProfileTab;
 import com.vs.bcd.versus.fragment.SelectCategory;
 import com.vs.bcd.versus.fragment.SettingsFragment;
-import com.vs.bcd.versus.fragment.Tab4Messenger;
 import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.model.PostSkeleton;
 import com.vs.bcd.versus.model.RNumAndUList;
@@ -67,23 +59,10 @@ import com.vs.bcd.versus.fragment.CreatePost;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.fragment.SearchPage;
 import com.vs.bcd.versus.ViewPagerCustomDuration;
-import com.vs.bcd.versus.model.UserSearchItem;
-
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 
-import static com.vs.bcd.versus.model.PushNotifictionHelper.API_URL_FCM;
-import static com.vs.bcd.versus.model.PushNotifictionHelper.AUTH_KEY_FCM;
 
 public class MainContainer extends AppCompatActivity {
 
