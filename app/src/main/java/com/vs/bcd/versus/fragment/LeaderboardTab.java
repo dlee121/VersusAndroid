@@ -20,6 +20,12 @@ import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBQueryExp
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
 import com.amazonaws.services.dynamodbv2.model.Condition;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.CategoriesAdapter;
@@ -27,6 +33,7 @@ import com.vs.bcd.versus.adapter.LeaderboardAdapter;
 import com.vs.bcd.versus.adapter.PostPageAdapter;
 import com.vs.bcd.versus.model.ActivePost;
 import com.vs.bcd.versus.model.CategoryObject;
+import com.vs.bcd.versus.model.LeaderboardEntry;
 import com.vs.bcd.versus.model.PostSkeleton;
 import com.vs.bcd.versus.model.ThreadCounter;
 import com.vs.bcd.versus.model.User;
@@ -46,26 +53,34 @@ import static android.content.ContentValues.TAG;
 
 public class LeaderboardTab extends Fragment {
     private View rootView;
-    private ArrayList<User> leaders;
+    private ArrayList<LeaderboardEntry> leaders;
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
     private MainContainer activity;
-    private boolean displayResults = false;
-    private int numTimecodes = 10;
-    private int retrievalLimit = 15;
     private long lastRefreshTime = 0;
     private LeaderboardTab thisTab;
+    RecyclerView recyclerView;
+    LeaderboardAdapter mLeaderboardAdapter;
+
+    private DatabaseReference mFirebaseDatabaseReference;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.leaderboard, container, false);
 
+        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
-        //RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.leaderboard_rv);
-        //recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        //mLeaderboardAdapter = new LeaderboardAdapter(leaders, getActivity());
-        //recyclerView.setAdapter(mLeaderboardAdapter);
+        leaders = new ArrayList<LeaderboardEntry>();
+
+        recyclerView = (RecyclerView) rootView.findViewById(R.id.leaderboard_rv);
+        LinearLayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
+        mLayoutManager.setReverseLayout(true);
+        mLayoutManager.setStackFromEnd(true);
+        recyclerView.setLayoutManager(mLayoutManager);
+
+        mLeaderboardAdapter = new LeaderboardAdapter(leaders, activity);
+        recyclerView.setAdapter(mLeaderboardAdapter);
 
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();
@@ -129,94 +144,26 @@ public class LeaderboardTab extends Fragment {
             return;
         }
 
-        Runnable runnable = new Runnable() {
-            public void run() {
-
-                Log.d("leaderboard", "lb setup called");
-
-                final ArrayList<User> assembledResults = new ArrayList<>();
-                final Condition rangeKeyCondition = new Condition()
-                        .withComparisonOperator(ComparisonOperator.GT.toString())
-                        .withAttributeValueList(new AttributeValue().withN("-1"));
-
-                final ThreadCounter threadCounter = new ThreadCounter(0, numTimecodes, thisTab);
-                for(int i = 0; i <  numTimecodes; i++){
-                    final int index = i;
-
-                    Runnable runnable = new Runnable() {
-                        public void run() {
-                            User queryTemplate = new User();
-                            queryTemplate.setTimecode(index);
-                            //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
-                            DynamoDBQueryExpression queryExpression =
-                                    new DynamoDBQueryExpression()
-                                            .withHashKeyValues(queryTemplate)
-                                            .withRangeKeyCondition("points", rangeKeyCondition)
-                                            .withScanIndexForward(false)
-                                            .withConsistentRead(false)
-                                            .withLimit(retrievalLimit);
-
-                            ArrayList<User> queryResults = new ArrayList<>(activity.getMapper().queryPage(User.class, queryExpression).getResults());
-                            assembledResults.addAll(queryResults);
-
-                            Log.d("Query on Timecode: ", Integer.toString(queryTemplate.getTimecode()));
-
-                            threadCounter.increment();
-                        }
-                    };
-                    Thread mythread = new Thread(runnable);
-                    mythread.start();
-                }
-
-                long end = System.currentTimeMillis() + 6*1000; // 6 seconds * 1000 ms/sec
-                //automatic timeout at 10 seconds to prevent infinite loop
-                while(!displayResults && System.currentTimeMillis() < end){
-
-                }
-                if(displayResults){
-                    Log.d("Query on Timecode: ", "got through");
-                }
-                else{
-                    Log.d("Query on Timecode: ", "loop timeout");
-                }
-
-                displayResults = false;
-
-                //sort the assembledResults where posts are sorted from more recent to less recent
-                Collections.sort(assembledResults, new Comparator<User>() {
-                    //TODO: confirm that this sorts dates where most recent is at top. If not then just flip around o1 and o2: change to o2.getDate().compareTo(o1.getDate())
-                    @Override
-                    public int compare(User o1, User o2) {
-
-                        return  o2.getPoints() - o1.getPoints();
+        Query query = mFirebaseDatabaseReference.child("leaderboard").orderByValue().limitToLast(100);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.hasChildren()) {
+                    leaders.clear();
+                    for(DataSnapshot item : dataSnapshot.getChildren()){
+                        leaders.add(new LeaderboardEntry(item.getKey(), item.getValue(Integer.class)));
+                        //Log.d("leaderboard", Integer.toString(i) + "\t"+item.getKey()+"\t"+Integer.toString(item.getValue(Integer.class)));
                     }
-                });
+                    mLeaderboardAdapter.notifyDataSetChanged();
+                }
+                lastRefreshTime = System.currentTimeMillis();
+            }
 
-
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.leaderboard_rv);
-                        leaders = new ArrayList<User>(assembledResults);
-                        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-                        LeaderboardAdapter mLeaderboardAdapter = new LeaderboardAdapter(leaders, activity);
-                        recyclerView.setAdapter(mLeaderboardAdapter);
-                        lastRefreshTime = System.currentTimeMillis();
-                    }
-                });
-
-
-
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
 
             }
-        };
-        Thread mythread = new Thread(runnable);
-        mythread.start();
-
-    }
-
-    public void yesDisplayResults(){
-        displayResults = true;
+        });
     }
 
 }

@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.model.LeaderboardEntry;
 import com.vs.bcd.versus.model.User;
 
 import java.util.List;
@@ -18,9 +19,9 @@ import java.util.List;
 
 public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private Activity activity;
-    private List<User> leaders;
+    private List<LeaderboardEntry> leaders;
 
-    public LeaderboardAdapter(List<User> leaders, Activity activity) {
+    public LeaderboardAdapter(List<LeaderboardEntry> leaders, Activity activity) {
         this.leaders = leaders;
         this.activity = activity;
     }
@@ -35,13 +36,13 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
         //TODO:this is where values are put into the layout, from the post object
-        final User leaderItem = leaders.get(position);
+        final LeaderboardEntry leaderboardEntry = leaders.get(position);
         LeaderViewHolder leaderViewHolder = (LeaderViewHolder) holder;
 
         //TODO: add onclick listener to profile pic and username that navigates user to clicked user's profile page
 
-        leaderViewHolder.username.setText(leaderItem.getUsername());
-        leaderViewHolder.points.setText(Integer.toString(leaderItem.getPoints()));
+        leaderViewHolder.username.setText(leaderboardEntry.getUsername());
+        leaderViewHolder.points.setText(Integer.toString(leaderboardEntry.getPoints()));
 
 
     }
