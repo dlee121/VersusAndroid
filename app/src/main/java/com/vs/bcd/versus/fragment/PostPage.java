@@ -1497,6 +1497,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                                     //update activityHistoryMap
                                     actionHistoryMap.put(entry.getKey(), entry.getValue());
+
+                                    sendCommentUpvoteNotification(tempNode.getNodeContent().getAuthor(), entry.getKey());
                                     break;
 
                                 case "D":
@@ -1565,6 +1567,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     activity.getDDBClient().updateItem(request);
                                     //update activityHistoryMap
                                     actionHistoryMap.put(entry.getKey(), entry.getValue());
+
+                                    sendCommentUpvoteNotification(tempNode.getNodeContent().getAuthor(), entry.getKey());
                                     break;
 
                                 case "D":
@@ -1666,6 +1670,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     .withValue(new AttributeValue().withN("1"))
                                     .withAction(AttributeAction.ADD);
                             updates.put("votecount", vcu);
+
+                            sendPostVoteNotification();
                         }
 
                         UpdateItemRequest request = new UpdateItemRequest()
@@ -2627,6 +2633,29 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         };
         Thread mythread = new Thread(runnable);
         mythread.start();
+    }
+
+    private void sendCommentUpvoteNotification(String cUsername, String commentID){
+        String commentAuthorPath = getUsernameHash(cUsername) + "/" + cUsername + "/n/u/" + commentID;
+        mFirebaseDatabaseReference.child(commentAuthorPath).push().setValue(System.currentTimeMillis()/1000);
+    }
+
+    private void sendPostVoteNotification(){
+        String postAuthorPath = getUsernameHash(post.getAuthor()) + "/" + post.getAuthor() + "/n/v/" + postID;
+        mFirebaseDatabaseReference.child(postAuthorPath).push().setValue(System.currentTimeMillis()/1000);
+    }
+
+    private String getUsernameHash(String usernameIn){
+        int usernameHash;
+        if(usernameIn.length() < 5){
+            usernameHash = usernameIn.hashCode();
+        }
+        else{
+            String hashIn = "" + usernameIn.charAt(0) + usernameIn.charAt(usernameIn.length() - 2) + usernameIn.charAt(1) + usernameIn.charAt(usernameIn.length() - 1);
+            usernameHash = hashIn.hashCode();
+        }
+
+        return Integer.toString(usernameHash);
     }
 
     public String getR(){
