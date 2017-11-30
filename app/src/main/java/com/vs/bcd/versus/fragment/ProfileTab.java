@@ -509,6 +509,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                                     activity.runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
+                                            sendFollowNotification(profileUsername);
                                             showFollowingText();
                                             updateProfileInfo();
                                         }
@@ -559,6 +560,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                                     activity.runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
+                                            sendFollowNotification(profileUsername);
                                             showFollowingText();
                                             updateProfileInfo();
                                         }
@@ -751,6 +753,21 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
         silverTV.setText("");
         bronzeTV.setText("");
         pointsTV.setText("");
+    }
+
+    private void sendFollowNotification(String fUsername){
+        int usernameHash;
+        if(fUsername.length() < 5){
+            usernameHash = fUsername.hashCode();
+        }
+        else{
+            String hashIn = "" + fUsername.charAt(0) + fUsername.charAt(fUsername.length() - 2) + fUsername.charAt(1) + fUsername.charAt(fUsername.length() - 1);
+            usernameHash = hashIn.hashCode();
+        }
+
+        String fUserNFPath = Integer.toString(usernameHash) + "/" + fUsername + "/n/f/" + activity.getUsername();
+        mFirebaseDatabaseReference.child(fUserNFPath).setValue(System.currentTimeMillis()/1000);    //set value as timestamp as seconds from epoch
+
     }
 
 

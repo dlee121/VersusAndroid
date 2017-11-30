@@ -6,7 +6,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -15,17 +14,17 @@ import com.amazonaws.services.dynamodbv2.model.AttributeAction;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
 import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.PostPageAdapter;
-import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.PostSkeleton;
 import com.vs.bcd.versus.model.VSComment;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -53,6 +52,8 @@ public class CommentEnterFragment extends Fragment{
     private String b = "";
     private String q = "";
 
+    private DatabaseReference mFirebaseDatabaseReference;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -72,6 +73,8 @@ public class CommentEnterFragment extends Fragment{
             LPStore.add(childViews.get(i).getLayoutParams());
         }
 
+        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
+
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -88,6 +91,20 @@ public class CommentEnterFragment extends Fragment{
                         vsc.setQ(q);
 
                         activity.getMapper().save(vsc);
+
+                        //send appropriate notification
+                        if(post != null){    //if root comment
+                            //send post comment notification to post author
+                            String postAuthorPath = getUsernameHash(post.getAuthor()) + "/" + post.getAuthor() + "/n/r/" + post.getPost_id();
+                            //since we're pushing, simply grab the top element in this path for the most recent, get its timestamp for most recent update time.
+                            //then get the children count in this path to get the new root comment count
+                            mFirebaseDatabaseReference.child(postAuthorPath).push().setValue(System.currentTimeMillis()/1000);  //set value = timestamp as seconds from epoch
+                        }
+                        else if(subjectComment != null){   //else this is a reply to a comment
+                            String subjectAuthorPath = getUsernameHash(subjectComment.getAuthor()) + "/" + subjectComment.getAuthor() + "/n/c/" + subjectComment.getComment_id();
+                            mFirebaseDatabaseReference.child(subjectAuthorPath).push().setValue(System.currentTimeMillis()/1000);
+
+                        }
 
                         //increment commentcount
                         HashMap<String, AttributeValue> keyMap = new HashMap<>();
@@ -336,6 +353,19 @@ public class CommentEnterFragment extends Fragment{
             default:
                 return "";
         }
+    }
+
+    private String getUsernameHash(String usernameIn){
+        int usernameHash;
+        if(usernameIn.length() < 5){
+            usernameHash = usernameIn.hashCode();
+        }
+        else{
+            String hashIn = "" + usernameIn.charAt(0) + usernameIn.charAt(usernameIn.length() - 2) + usernameIn.charAt(1) + usernameIn.charAt(usernameIn.length() - 1);
+            usernameHash = hashIn.hashCode();
+        }
+
+        return Integer.toString(usernameHash);
     }
 }
 
