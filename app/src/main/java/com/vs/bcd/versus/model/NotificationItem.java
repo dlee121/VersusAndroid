@@ -33,8 +33,9 @@ public class NotificationItem {
         return body;
     }
 
-    public void setBody(String body){
+    public NotificationItem setBody(String body){
         this.body = body;
+        return this;
     }
 
     public int getType(){
@@ -51,6 +52,10 @@ public class NotificationItem {
 
     public String getPayload(){
         return payload;
+    }
+
+    public void setTimestamp(long timestamp){
+        this.timestamp = timestamp;
     }
 
     public String getTimeString(){
