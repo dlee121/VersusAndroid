@@ -28,6 +28,8 @@ import com.vs.bcd.versus.model.UserSearchItem;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import static android.R.string.no;
+
 /**
  * Created by dlee on 8/6/17.
  */
@@ -661,11 +663,17 @@ public class NotificationsTab extends Fragment {
                     case "g":
                         gnew++;
                         if(initialMLoaded){
-                            String body = "You won " + Integer.toString(gnew) + " new gold medals";
-                            gNotification.setBody(body);
+                            String body = "You won a new gold medal!";
+                            if(gnew > 1){
+                                body = "You won " + Integer.toString(gnew) + " new gold medals!";
+                            }
                             if(!gAdded){
+                                gNotification = new NotificationItem(body, TYPE_M, 0);
                                 notificationItems.add(gNotification);
                                 gAdded = true;
+                            }
+                            else{
+                                gNotification.setBody(body);
                             }
                             mNotificationsAdapter.notifyDataSetChanged();
                         }
@@ -674,11 +682,17 @@ public class NotificationsTab extends Fragment {
                     case "s":
                         snew++;
                         if(initialMLoaded){
-                            String body = "You won " + Integer.toString(snew) + " new silver medals";
-                            sNotification.setBody(body);
+                            String body = "You won a new silver medal!";
+                            if(snew > 1){
+                                body = "You won " + Integer.toString(snew) + " new silver medals!";
+                            }
                             if(!sAdded){
+                                sNotification = new NotificationItem(body, TYPE_M, 0);
                                 notificationItems.add(sNotification);
                                 sAdded = true;
+                            }
+                            else{
+                                sNotification.setBody(body);
                             }
                             mNotificationsAdapter.notifyDataSetChanged();
                         }
@@ -687,11 +701,17 @@ public class NotificationsTab extends Fragment {
                     case "b":
                         bnew++;
                         if(initialMLoaded){
-                            String body = "You won " + Integer.toString(bnew) + " new bronze medals";
-                            bNotification.setBody(body);
+                            String body = "You won a new bronze medal!";
+                            if(bnew > 1){
+                                body = "You won " + Integer.toString(bnew) + " new bronze medals!";
+                            }
                             if(!bAdded){
+                                bNotification = new NotificationItem(body, TYPE_M, 0);
                                 notificationItems.add(bNotification);
                                 bAdded = true;
+                            }
+                            else{
+                                bNotification.setBody(body);
                             }
                             mNotificationsAdapter.notifyDataSetChanged();
                         }
@@ -706,25 +726,79 @@ public class NotificationsTab extends Fragment {
                     switch (medalComments.get(dataSnapshot.getKey())){
                         case "g":
                             gnew--;
-                            gNotification.setBody("You won " + Integer.toString(gnew) + " new gold medals");
-                            if(gnew == 0 && gNotification != null){ //just in case
-                                notificationItems.remove(gNotification);
+                            if(gNotification != null){
+                                switch (gnew){
+                                    case 0:
+                                        notificationItems.remove(gNotification);
+                                        gAdded = false;
+                                        break;
+                                    case 1:
+                                        gNotification.setBody("You won a new gold medal!");
+                                        if(!gAdded){
+                                            notificationItems.add(gNotification);
+                                            gAdded = true;
+                                        }
+                                        break;
+                                    default:
+                                        gNotification.setBody("You won " + Integer.toString(gnew) + " new gold medals!");
+                                        if(!gAdded){
+                                            notificationItems.add(gNotification);
+                                            gAdded = true;
+                                        }
+                                        break;
+                                }
                             }
                             break;
 
                         case "s":
                             snew--;
-                            sNotification.setBody("You won " + Integer.toString(snew) + " new silver medals");
-                            if(snew == 0 && sNotification != null){
-                                notificationItems.remove(sNotification);
+                            if(sNotification != null){
+                                switch (snew){
+                                    case 0:
+                                        notificationItems.remove(sNotification);
+                                        sAdded = false;
+                                        break;
+                                    case 1:
+                                        sNotification.setBody("You won a new silver medal!");
+                                        if(!sAdded){
+                                            notificationItems.add(sNotification);
+                                            sAdded = true;
+                                        }
+                                        break;
+                                    default:
+                                        sNotification.setBody("You won " + Integer.toString(snew) + " new silver medals!");
+                                        if(!sAdded){
+                                            notificationItems.add(sNotification);
+                                            sAdded = true;
+                                        }
+                                        break;
+                                }
                             }
                             break;
 
                         case "b":
                             bnew--;
-                            bNotification.setBody("You won " + Integer.toString(bnew) + " new bronze medals");
-                            if(bnew == 0 && bNotification != null){
-                                notificationItems.remove(bNotification);
+                            if(bNotification != null){
+                                switch (bnew){
+                                    case 0:
+                                        notificationItems.remove(bNotification);
+                                        bAdded = false;
+                                        break;
+                                    case 1:
+                                        bNotification.setBody("You won a new bronze medal!");
+                                        if(!bAdded){
+                                            notificationItems.add(bNotification);
+                                            bAdded = true;
+                                        }
+                                        break;
+                                    default:
+                                        bNotification.setBody("You won " + Integer.toString(bnew) + " new bronze medals!");
+                                        if(!bAdded){
+                                            notificationItems.add(bNotification);
+                                            bAdded = true;
+                                        }
+                                        break;
+                                }
                             }
                             break;
                     }
@@ -734,17 +808,68 @@ public class NotificationsTab extends Fragment {
                     switch (dataSnapshot.getValue(String.class)){
                         case "g":
                             gnew++;
-                            gNotification.setBody("You won " + Integer.toString(gnew) + " new gold medals");
+                            if(gNotification != null){
+                                switch (gnew){
+                                    case 1:
+                                        gNotification.setBody("You won a new gold medal!");
+                                        if(!gAdded){
+                                            notificationItems.add(gNotification);
+                                            gAdded = true;
+                                        }
+                                        break;
+                                    default:
+                                        gNotification.setBody("You won " + Integer.toString(gnew) + " new gold medals!");
+                                        if(!gAdded){
+                                            notificationItems.add(gNotification);
+                                            gAdded = true;
+                                        }
+                                        break;
+                                }
+                            }
                             break;
 
                         case "s":
                             snew++;
-                            sNotification.setBody("You won " + Integer.toString(snew) + " new silver medals");
+                            if(sNotification != null){
+                                switch (snew){
+                                    case 1:
+                                        sNotification.setBody("You won a new silver medal!");
+                                        if(!sAdded){
+                                            notificationItems.add(sNotification);
+                                            sAdded = true;
+                                        }
+                                        break;
+                                    default:
+                                        sNotification.setBody("You won " + Integer.toString(snew) + " new silver medals!");
+                                        if(!sAdded){
+                                            notificationItems.add(sNotification);
+                                            sAdded = true;
+                                        }
+                                        break;
+                                }
+                            }
                             break;
 
                         case "b":
                             bnew++;
-                            bNotification.setBody("You won " + Integer.toString(bnew) + " new bronze medals");
+                            if(bNotification != null){
+                                switch (bnew){
+                                    case 1:
+                                        bNotification.setBody("You won a new bronze medal!");
+                                        if(!bAdded){
+                                            notificationItems.add(bNotification);
+                                            bAdded = true;
+                                        }
+                                        break;
+                                    default:
+                                        bNotification.setBody("You won " + Integer.toString(bnew) + " new bronze medals!");
+                                        if(!bAdded){
+                                            notificationItems.add(bNotification);
+                                            bAdded = true;
+                                        }
+                                        break;
+                                }
+                            }
                             break;
                     }
 
