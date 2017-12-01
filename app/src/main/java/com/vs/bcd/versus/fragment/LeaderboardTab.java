@@ -58,7 +58,6 @@ public class LeaderboardTab extends Fragment {
     private ArrayList<ViewGroup.LayoutParams> LPStore;
     private MainContainer activity;
     private long lastRefreshTime = 0;
-    private LeaderboardTab thisTab;
     RecyclerView recyclerView;
     LeaderboardAdapter mLeaderboardAdapter;
 
@@ -101,7 +100,6 @@ public class LeaderboardTab extends Fragment {
         super.onAttach(context);
         //save the activity to a member of this fragment
         activity = (MainContainer)context;
-        thisTab = this;
         Log.d("leaderboard", "onAttach() called");
     }
 

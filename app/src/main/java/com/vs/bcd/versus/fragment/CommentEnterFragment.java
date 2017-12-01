@@ -94,14 +94,15 @@ public class CommentEnterFragment extends Fragment{
 
                         //send appropriate notification
                         if(post != null){    //if root comment
-                            //send post comment notification to post author
-                            String postAuthorPath = getUsernameHash(post.getAuthor()) + "/" + post.getAuthor() + "/n/r/" + post.getPost_id();
-                            //since we're pushing, simply grab the top element in this path for the most recent, get its timestamp for most recent update time.
-                            //then get the children count in this path to get the new root comment count
+                            String nKey = postID+":"+sanitizeContentForURL(post.getRedname())+":"+sanitizeContentForURL(post.getBlackname())+":"+sanitizeContentForURL(post.getQuestion());
+                            String postAuthorPath = getUsernameHash(post.getAuthor()) + "/" + post.getAuthor() + "/n/v/" + nKey;
                             mFirebaseDatabaseReference.child(postAuthorPath).push().setValue(System.currentTimeMillis()/1000);  //set value = timestamp as seconds from epoch
                         }
                         else if(subjectComment != null){   //else this is a reply to a comment
-                            String subjectAuthorPath = getUsernameHash(subjectComment.getAuthor()) + "/" + subjectComment.getAuthor() + "/n/c/" + subjectComment.getComment_id();
+                            String payloadContent = sanitizeContentForURL(subjectComment.getContent());
+
+                            String subjectAuthorPath = getUsernameHash(subjectComment.getAuthor()) + "/" + subjectComment.getAuthor() + "/n/c/"
+                                                                        + subjectComment.getParent_id() + ":" + subjectComment.getComment_id() + ":" + payloadContent;
                             mFirebaseDatabaseReference.child(subjectAuthorPath).push().setValue(System.currentTimeMillis()/1000);
 
                         }
@@ -366,6 +367,14 @@ public class CommentEnterFragment extends Fragment{
         }
 
         return Integer.toString(usernameHash);
+    }
+
+    private String sanitizeContentForURL(String url){
+        String strIn = url.trim();
+        if(strIn.length()>26){
+            strIn.substring(0,26);
+        }
+        return strIn.trim().replaceAll("[ /\\\\.\\\\$\\[\\]\\\\#]", "^").replaceAll(":", ";");
     }
 }
 

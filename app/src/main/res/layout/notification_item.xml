@@ -1,30 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
+
         <ImageView
-            android:id="@+id/category_ic_iv"
-            android:layout_width="40dp"
-            android:layout_height="40dp" />
+            android:id="@+id/notification_icon"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            app:srcCompat="@drawable/vs_shadow_w_tag" />
 
         <TextView
-            android:id="@+id/tv_category"
-            android:layout_width="wrap_content"
+            android:id="@+id/notification_body"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginLeft="20dp"
-            android:gravity="center_vertical|center_horizontal"
-            android:text="Category"
-            android:textColor="@color/colorPrimaryDark"
-            android:textSize="16sp" />
+            android:padding="8dp"
+            android:gravity="center_vertical"
+            android:text="notification_body" />
+
+
     </LinearLayout>
 
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="@color/vsOne" />
+
 </LinearLayout>

@@ -1498,7 +1498,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     //update activityHistoryMap
                                     actionHistoryMap.put(entry.getKey(), entry.getValue());
 
-                                    sendCommentUpvoteNotification(tempNode.getNodeContent().getAuthor(), entry.getKey());
+                                    sendCommentUpvoteNotification(tempNode.getNodeContent());
                                     break;
 
                                 case "D":
@@ -1568,7 +1568,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     //update activityHistoryMap
                                     actionHistoryMap.put(entry.getKey(), entry.getValue());
 
-                                    sendCommentUpvoteNotification(tempNode.getNodeContent().getAuthor(), entry.getKey());
+                                    sendCommentUpvoteNotification(tempNode.getNodeContent());
                                     break;
 
                                 case "D":
@@ -2635,13 +2635,15 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         mythread.start();
     }
 
-    private void sendCommentUpvoteNotification(String cUsername, String commentID){
-        String commentAuthorPath = getUsernameHash(cUsername) + "/" + cUsername + "/n/u/" + commentID;
+    private void sendCommentUpvoteNotification(VSComment content){
+        String payloadContent = sanitizeContentForURL(content.getContent());
+        String commentAuthorPath = getUsernameHash(content.getAuthor()) + "/" + content.getAuthor() + "/n/u/" + content.getParent_id() + ":" +content.getComment_id() + ":" + payloadContent;
         mFirebaseDatabaseReference.child(commentAuthorPath).push().setValue(System.currentTimeMillis()/1000);
     }
 
     private void sendPostVoteNotification(){
-        String postAuthorPath = getUsernameHash(post.getAuthor()) + "/" + post.getAuthor() + "/n/v/" + postID;
+        String nKey = postID+":"+sanitizeContentForURL(post.getRedname())+":"+sanitizeContentForURL(post.getBlackname())+":"+sanitizeContentForURL(post.getQuestion());
+        String postAuthorPath = getUsernameHash(post.getAuthor()) + "/" + post.getAuthor() + "/n/v/" + nKey;
         mFirebaseDatabaseReference.child(postAuthorPath).push().setValue(System.currentTimeMillis()/1000);
     }
 
@@ -2668,6 +2670,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     public String getQ(){
         return post.getQuestion();
+    }
+
+    private String sanitizeContentForURL(String url){
+        String strIn = url.trim();
+        if(strIn.length()>26){
+            strIn.substring(0,26);
+        }
+        return strIn.trim().replaceAll("[ /\\\\.\\\\$\\[\\]\\\\#]", "^").replaceAll(":", ";");
     }
 
 

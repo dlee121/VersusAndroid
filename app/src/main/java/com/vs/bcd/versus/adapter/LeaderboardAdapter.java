@@ -36,7 +36,7 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
         //TODO:this is where values are put into the layout, from the post object
-        final LeaderboardEntry leaderboardEntry = leaders.get(position);
+        LeaderboardEntry leaderboardEntry = leaders.get(position);
         LeaderViewHolder leaderViewHolder = (LeaderViewHolder) holder;
 
         //TODO: add onclick listener to profile pic and username that navigates user to clicked user's profile page
