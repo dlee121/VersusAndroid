@@ -126,6 +126,13 @@ public class NotificationsTab extends Fragment {
         newNotificationsButton = (Button) rootView.findViewById(R.id.new_notifications);
         nnbLP = (RelativeLayout.LayoutParams) newNotificationsButton.getLayoutParams();
 
+        newNotificationsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mLayoutManager.scrollToPosition(mLayoutManager.getItemCount() - 1);
+            }
+        });
+
         disableChildViews();
         return rootView;
     }
@@ -738,6 +745,7 @@ public class NotificationsTab extends Fragment {
 
                 mNotificationsAdapter = new NotificationsAdapter(notificationItems, activity);
                 recyclerView.setAdapter(mNotificationsAdapter);
+
             }
 
             @Override
