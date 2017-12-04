@@ -74,6 +74,7 @@ public class NotificationsTab extends Fragment {
     private boolean gAdded, sAdded, bAdded;
     private long fTime, gTime, sTime, bTime;
     private boolean initialULoaded, initialVLoaded, initialCLoaded, initialRLoaded;
+    private boolean topUnread = false;
 
     String userNotificationsPath = "";
 
@@ -105,6 +106,15 @@ public class NotificationsTab extends Fragment {
         mLayoutManager.setReverseLayout(true);
         mLayoutManager.setStackFromEnd(true);
         recyclerView.setLayoutManager(mLayoutManager);
+
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                if (mLayoutManager.findLastVisibleItemPosition() == mLayoutManager.getItemCount() - 1) {
+                    hideNNB();
+                }
+            }
+        });
 
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();
@@ -217,6 +227,8 @@ public class NotificationsTab extends Fragment {
         initialVLoaded = false;
         initialRLoaded = false;
 
+        topUnread = false;
+
         mFirebaseDatabaseReference.child(uPath).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -255,6 +267,7 @@ public class NotificationsTab extends Fragment {
 
                 if(initialULoaded && mNotificationsAdapter != null){
                     mNotificationsAdapter.notifyDataSetChanged();
+                    checkAndSetTopButton();
                 }
             }
 
@@ -298,6 +311,7 @@ public class NotificationsTab extends Fragment {
                     notificationItems.add(n);
                 }
                 mNotificationsAdapter.notifyDataSetChanged();
+                checkAndSetTopButton();
 
             }
 
@@ -352,6 +366,7 @@ public class NotificationsTab extends Fragment {
 
                 if(initialCLoaded && mNotificationsAdapter != null){
                     mNotificationsAdapter.notifyDataSetChanged();
+                    checkAndSetTopButton();
                 }
             }
 
@@ -395,6 +410,7 @@ public class NotificationsTab extends Fragment {
                     notificationItems.add(n);
                 }
                 mNotificationsAdapter.notifyDataSetChanged();
+                checkAndSetTopButton();
 
             }
 
@@ -449,6 +465,7 @@ public class NotificationsTab extends Fragment {
 
                 if(initialVLoaded && mNotificationsAdapter != null){
                     mNotificationsAdapter.notifyDataSetChanged();
+                    checkAndSetTopButton();
                 }
             }
 
@@ -493,6 +510,7 @@ public class NotificationsTab extends Fragment {
                     notificationItems.add(n);
                 }
                 mNotificationsAdapter.notifyDataSetChanged();
+                checkAndSetTopButton();
 
             }
 
@@ -547,6 +565,7 @@ public class NotificationsTab extends Fragment {
 
                 if(initialRLoaded && mNotificationsAdapter != null){
                     mNotificationsAdapter.notifyDataSetChanged();
+                    checkAndSetTopButton();
                 }
             }
 
@@ -590,6 +609,7 @@ public class NotificationsTab extends Fragment {
                     notificationItems.add(n);
                 }
                 mNotificationsAdapter.notifyDataSetChanged();
+                checkAndSetTopButton();
 
             }
 
@@ -658,6 +678,7 @@ public class NotificationsTab extends Fragment {
                         notificationItems.add(fNotification);
                     }
                     mNotificationsAdapter.notifyDataSetChanged();
+                    checkAndSetTopButton();
                 }
             }
 
@@ -756,6 +777,7 @@ public class NotificationsTab extends Fragment {
                                 notificationItems.add(gNotification);
                             }
                             mNotificationsAdapter.notifyDataSetChanged();
+                            checkAndSetTopButton();
                         }
                         break;
 
@@ -780,6 +802,7 @@ public class NotificationsTab extends Fragment {
                                 notificationItems.add(sNotification);
                             }
                             mNotificationsAdapter.notifyDataSetChanged();
+                            checkAndSetTopButton();
                         }
                         break;
 
@@ -804,6 +827,7 @@ public class NotificationsTab extends Fragment {
                                 notificationItems.add(bNotification);
                             }
                             mNotificationsAdapter.notifyDataSetChanged();
+                            checkAndSetTopButton();
                         }
                         break;
                 }
@@ -993,6 +1017,7 @@ public class NotificationsTab extends Fragment {
                     }
 
                     mNotificationsAdapter.notifyDataSetChanged();
+                    checkAndSetTopButton();
                 }
             }
 
@@ -1014,9 +1039,17 @@ public class NotificationsTab extends Fragment {
     }
 
     public void hideNNB(){
-        newNotificationsButton.setLayoutParams(new ViewGroup.LayoutParams(0,0));
+        newNotificationsButton.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
         newNotificationsButton.setClickable(false);
         newNotificationsButton.setEnabled(false);
+    }
+
+    private void checkAndSetTopButton(){ //called after notifyDataSetChanged is called
+        if(mLayoutManager != null){
+            if(mLayoutManager.findLastVisibleItemPosition() < mLayoutManager.getItemCount() - 1){
+                showNNB();
+            }
+        }
     }
 
 }
