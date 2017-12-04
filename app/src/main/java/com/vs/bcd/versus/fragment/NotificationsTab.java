@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.RelativeLayout;
 
 import com.google.firebase.database.ChildEventListener;
@@ -23,9 +24,12 @@ import com.vs.bcd.versus.adapter.InvitedUserAdapter;
 import com.vs.bcd.versus.adapter.NotificationsAdapter;
 import com.vs.bcd.versus.adapter.UserSearchAdapter;
 import com.vs.bcd.versus.model.NotificationItem;
+import com.vs.bcd.versus.model.PostSkeleton;
 import com.vs.bcd.versus.model.UserSearchItem;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 
 import static android.R.string.no;
@@ -53,6 +57,9 @@ public class NotificationsTab extends Fragment {
     private RecyclerView recyclerView;
     private NotificationsAdapter mNotificationsAdapter;
     private HashMap<String, NotificationItem> notificationItemsMap;
+    private Button newNotificationsButton;
+    private RelativeLayout.LayoutParams nnbLP;
+    private LinearLayoutManager mLayoutManager;
 
     private DatabaseReference mFirebaseDatabaseReference;
     private ChildEventListener uListener, cListener, vListener, rListener, fListener, mListener;
@@ -60,12 +67,13 @@ public class NotificationsTab extends Fragment {
     private HashMap<String, Long> newFollowers;
     private int gnew, snew, bnew;
     private HashMap<String, String> medalComments;
-    private Long fTime = (long) 0;
     private NotificationItem fNotification, gNotification, sNotification, bNotification;
     private boolean initialFLoaded = false;
     private boolean fNotificationAdded = false;
     private boolean initialMLoaded = false;
     private boolean gAdded, sAdded, bAdded;
+    private long fTime, gTime, sTime, bTime;
+    private boolean initialULoaded, initialVLoaded, initialCLoaded, initialRLoaded;
 
     String userNotificationsPath = "";
 
@@ -93,7 +101,10 @@ public class NotificationsTab extends Fragment {
         bnew = 0;
 
         recyclerView = (RecyclerView) rootView.findViewById(R.id.notifications_rv);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        mLayoutManager = new LinearLayoutManager(getActivity());
+        mLayoutManager.setReverseLayout(true);
+        mLayoutManager.setStackFromEnd(true);
+        recyclerView.setLayoutManager(mLayoutManager);
 
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();
@@ -101,6 +112,9 @@ public class NotificationsTab extends Fragment {
             childViews.add(((ViewGroup)rootView).getChildAt(i));
             LPStore.add(childViews.get(i).getLayoutParams());
         }
+
+        newNotificationsButton = (Button) rootView.findViewById(R.id.new_notifications);
+        nnbLP = (RelativeLayout.LayoutParams) newNotificationsButton.getLayoutParams();
 
         disableChildViews();
         return rootView;
@@ -159,7 +173,7 @@ public class NotificationsTab extends Fragment {
     }
 
     public void enableChildViews(){
-        for(int i = 0; i<childViews.size(); i++){
+        for(int i = 1; i<childViews.size(); i++){   //skip i == 0, that's the newNotificationsButton, which is enabled separately as needed
             childViews.get(i).setEnabled(true);
             childViews.get(i).setClickable(true);
             childViews.get(i).setLayoutParams(LPStore.get(i));
@@ -192,12 +206,21 @@ public class NotificationsTab extends Fragment {
         snew = 0;
         bnew = 0;
 
-        fTime = (long) 0;
+        fTime = 0;
         initialFLoaded = false;
+        gTime = 0;
+        sTime = 0;
+        bTime = 0;
+
+        initialULoaded = false;
+        initialCLoaded = false;
+        initialVLoaded = false;
+        initialRLoaded = false;
 
         mFirebaseDatabaseReference.child(uPath).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                initialULoaded = true;
                 fetchCNotifications();  //called after initial onChildAdded calls finish for uListener below
             }
 
@@ -229,6 +252,10 @@ public class NotificationsTab extends Fragment {
                 NotificationItem n = new NotificationItem(body, TYPE_U, parentID+":"+commentID, dataSnapshot.getChildren().iterator().next().getValue(Long.class));
                 notificationItemsMap.put("U:"+commentID, n);
                 notificationItems.add(n);
+
+                if(initialULoaded && mNotificationsAdapter != null){
+                    mNotificationsAdapter.notifyDataSetChanged();
+                }
             }
 
             @Override
@@ -249,8 +276,12 @@ public class NotificationsTab extends Fragment {
                     else{
                         heading = Long.toString(childrenCount)+" users";
                     }
+
                     String body = heading + " upvoted your comment: \"" + content + "\".";
-                    notificationItemsMap.get("U:"+commentID).setBody(body).setTimestamp(dataSnapshot.getChildren().iterator().next().getValue(Long.class));
+                    NotificationItem temp = notificationItemsMap.get("U:"+commentID);
+                    notificationItems.remove(temp);
+                    temp.setBody(body).setTimestamp(dataSnapshot.getChildren().iterator().next().getValue(Long.class));
+                    notificationItems.add(temp);
                 }
                 else{
                     long childrenCount = dataSnapshot.getChildrenCount();
@@ -286,6 +317,7 @@ public class NotificationsTab extends Fragment {
         mFirebaseDatabaseReference.child(cPath).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                initialCLoaded = true;
                 fetchVNotifications();  //called after initial onChildAdded calls finish for cListener below
             }
 
@@ -317,6 +349,10 @@ public class NotificationsTab extends Fragment {
                 NotificationItem n = new NotificationItem(body, TYPE_C, parentID+":"+commentID, dataSnapshot.getChildren().iterator().next().getValue(Long.class));
                 notificationItemsMap.put("C:"+commentID, n);
                 notificationItems.add(n);
+
+                if(initialCLoaded && mNotificationsAdapter != null){
+                    mNotificationsAdapter.notifyDataSetChanged();
+                }
             }
 
             @Override
@@ -337,9 +373,12 @@ public class NotificationsTab extends Fragment {
                     else{
                         heading = Long.toString(childrenCount)+" users";
                     }
-                    String body = heading + " replied to your comment: \"" + content + "\".";
-                    notificationItemsMap.get("C:"+commentID).setBody(body).setTimestamp(dataSnapshot.getChildren().iterator().next().getValue(Long.class));
 
+                    String body = heading + " replied to your comment: \"" + content + "\".";
+                    NotificationItem temp = notificationItemsMap.get("C:"+commentID);
+                    notificationItems.remove(temp);
+                    temp.setBody(body).setTimestamp(dataSnapshot.getChildren().iterator().next().getValue(Long.class));
+                    notificationItems.add(temp);
                 }
                 else{
                     long childrenCount = dataSnapshot.getChildrenCount();
@@ -374,6 +413,7 @@ public class NotificationsTab extends Fragment {
         mFirebaseDatabaseReference.child(vPath).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                initialVLoaded = true;
                 fetchRNotifications();  //called after initial onChildAdded calls finish for vListener below
             }
 
@@ -406,6 +446,10 @@ public class NotificationsTab extends Fragment {
                 NotificationItem n = new NotificationItem(body, TYPE_V, redName+":"+blackName+":"+question, dataSnapshot.getChildren().iterator().next().getValue(Long.class));
                 notificationItemsMap.put("V:"+postID, n);
                 notificationItems.add(n);
+
+                if(initialVLoaded && mNotificationsAdapter != null){
+                    mNotificationsAdapter.notifyDataSetChanged();
+                }
             }
 
             @Override
@@ -427,9 +471,12 @@ public class NotificationsTab extends Fragment {
                     else{
                         heading = Long.toString(childrenCount)+" users";
                     }
-                    String body = heading + " voted in your post: \"" + redName + " VS " + blackName + ", " + question + "\".";
-                    notificationItemsMap.get("V:"+postID).setBody(body).setTimestamp(dataSnapshot.getChildren().iterator().next().getValue(Long.class));
 
+                    String body = heading + " voted in your post: \"" + redName + " VS " + blackName + ", " + question + "\".";
+                    NotificationItem temp = notificationItemsMap.get("V:"+postID);
+                    notificationItems.remove(temp);
+                    temp.setBody(body).setTimestamp(dataSnapshot.getChildren().iterator().next().getValue(Long.class));
+                    notificationItems.add(temp);
                 }
                 else{
                     long childrenCount = dataSnapshot.getChildrenCount();
@@ -464,6 +511,7 @@ public class NotificationsTab extends Fragment {
         mFirebaseDatabaseReference.child(rPath).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                initialRLoaded = true;
                 fetchFNotifications();  //called after initial onChildAdded calls finish for rListener below
             }
 
@@ -496,6 +544,10 @@ public class NotificationsTab extends Fragment {
                 NotificationItem n = new NotificationItem(body, TYPE_R, redName+":"+blackName+":"+question, dataSnapshot.getChildren().iterator().next().getValue(Long.class));
                 notificationItemsMap.put("R:"+postID, n);
                 notificationItems.add(n);
+
+                if(initialRLoaded && mNotificationsAdapter != null){
+                    mNotificationsAdapter.notifyDataSetChanged();
+                }
             }
 
             @Override
@@ -518,7 +570,10 @@ public class NotificationsTab extends Fragment {
                         heading = Long.toString(childrenCount)+" users";
                     }
                     String body = heading + " commented in your post: \"" + redName + " VS " + blackName + ", " + question + "\".";
-                    notificationItemsMap.get("R:"+postID).setBody(body).setTimestamp(dataSnapshot.getChildren().iterator().next().getValue(Long.class));
+                    NotificationItem temp = notificationItemsMap.get("R:"+postID);
+                    notificationItems.remove(temp);
+                    temp.setBody(body).setTimestamp(dataSnapshot.getChildren().iterator().next().getValue(Long.class));
+                    notificationItems.add(temp);
                 }
                 else{
                     long childrenCount = dataSnapshot.getChildrenCount();
@@ -581,6 +636,7 @@ public class NotificationsTab extends Fragment {
         fListener = mFirebaseDatabaseReference.child(fPath).addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String prevChildKey) {
+                //Log.d("POSPOS", Integer.toString(mLayoutManager.findFirstVisibleItemPosition()) + " and " + Integer.toString(mLayoutManager.findLastVisibleItemPosition()));
                 newFollowers.put(dataSnapshot.getKey(), dataSnapshot.getValue(Long.class));
                 if(dataSnapshot.getValue(Long.class) > fTime){
                     fTime = dataSnapshot.getValue(Long.class);
@@ -591,10 +647,15 @@ public class NotificationsTab extends Fragment {
                     if(newFollowers.size() == 1){
                         body = "You have a new follower!";
                     }
+                    Log.d("deet", Long.toString(fTime)+" is long");
                     fNotification.setBody(body).setTimestamp(fTime);
                     if(!fNotificationAdded){
                         notificationItems.add(fNotification);
                         fNotificationAdded = true;
+                    }
+                    else{
+                        notificationItems.remove(fNotification);
+                        notificationItems.add(fNotification);
                     }
                     mNotificationsAdapter.notifyDataSetChanged();
                 }
@@ -625,25 +686,34 @@ public class NotificationsTab extends Fragment {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 initialMLoaded = true;
                 if(gnew > 0){
-                    String body = "You won " + Integer.toString(gnew) + " new gold medals";
-                    gNotification = new NotificationItem(body, TYPE_M, 0);
+                    String body = "You won " + Integer.toString(gnew) + " new gold medals!";
+                    gNotification = new NotificationItem(body, TYPE_M, gTime);
                     notificationItems.add(gNotification);
                     gAdded = true;
                 }
 
                 if(snew > 0){
-                    String body = "You won " + Integer.toString(snew) + " new silver medals";
-                    sNotification = new NotificationItem(body, TYPE_M, 0);
+                    String body = "You won " + Integer.toString(snew) + " new silver medals!";
+                    sNotification = new NotificationItem(body, TYPE_M, sTime);
                     notificationItems.add(sNotification);
                     sAdded = true;
                 }
 
                 if(bnew > 0){
-                    String body = "You won " + Integer.toString(bnew) + " new bronze medals";
-                    bNotification = new NotificationItem(body, TYPE_M, 0);
+                    String body = "You won " + Integer.toString(bnew) + " new bronze medals!";
+                    bNotification = new NotificationItem(body, TYPE_M, bTime);
                     notificationItems.add(bNotification);
                     bAdded = true;
                 }
+
+                //sort the assembledResults by popularity velocity
+                Collections.sort(notificationItems, new Comparator<NotificationItem>() {
+                    //TODO: confirm that this sorts dates where most recent is at top. If not then just flip around o1 and o2: change to o2.getDate().compareTo(o1.getDate())
+                    @Override
+                    public int compare(NotificationItem o1, NotificationItem o2) {
+                        return (int)(o1.getTimestamp() - o2.getTimestamp());
+                    }
+                });
 
                 mNotificationsAdapter = new NotificationsAdapter(notificationItems, activity);
                 recyclerView.setAdapter(mNotificationsAdapter);
@@ -658,22 +728,32 @@ public class NotificationsTab extends Fragment {
         mListener = mFirebaseDatabaseReference.child(mPath).addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String prevChildKey) {
-                medalComments.put(dataSnapshot.getKey(), dataSnapshot.getValue(String.class));
-                switch (dataSnapshot.getValue(String.class)){
+                String[] args = dataSnapshot.getValue(String.class).split(":",2);
+                String medalType = args[0];
+                long timeValue = Long.parseLong(args[1]) / 1000;
+
+                medalComments.put(dataSnapshot.getKey(), medalType);
+
+                switch (medalType){
                     case "g":
                         gnew++;
+                        if(timeValue > gTime){
+                            gTime = timeValue;
+                        }
                         if(initialMLoaded){
                             String body = "You won a new gold medal!";
                             if(gnew > 1){
                                 body = "You won " + Integer.toString(gnew) + " new gold medals!";
                             }
                             if(!gAdded){
-                                gNotification = new NotificationItem(body, TYPE_M, 0);
+                                gNotification = new NotificationItem(body, TYPE_M, gTime);
                                 notificationItems.add(gNotification);
                                 gAdded = true;
                             }
                             else{
+                                notificationItems.remove(gNotification);
                                 gNotification.setBody(body);
+                                notificationItems.add(gNotification);
                             }
                             mNotificationsAdapter.notifyDataSetChanged();
                         }
@@ -681,18 +761,23 @@ public class NotificationsTab extends Fragment {
 
                     case "s":
                         snew++;
+                        if(timeValue > sTime){
+                            sTime = timeValue;
+                        }
                         if(initialMLoaded){
                             String body = "You won a new silver medal!";
                             if(snew > 1){
                                 body = "You won " + Integer.toString(snew) + " new silver medals!";
                             }
                             if(!sAdded){
-                                sNotification = new NotificationItem(body, TYPE_M, 0);
+                                sNotification = new NotificationItem(body, TYPE_M, sTime);
                                 notificationItems.add(sNotification);
                                 sAdded = true;
                             }
                             else{
+                                notificationItems.remove(sNotification);
                                 sNotification.setBody(body);
+                                notificationItems.add(sNotification);
                             }
                             mNotificationsAdapter.notifyDataSetChanged();
                         }
@@ -700,18 +785,23 @@ public class NotificationsTab extends Fragment {
 
                     case "b":
                         bnew++;
+                        if(timeValue > bTime){
+                            bTime = timeValue;
+                        }
                         if(initialMLoaded){
                             String body = "You won a new bronze medal!";
                             if(bnew > 1){
                                 body = "You won " + Integer.toString(bnew) + " new bronze medals!";
                             }
                             if(!bAdded){
-                                bNotification = new NotificationItem(body, TYPE_M, 0);
+                                bNotification = new NotificationItem(body, TYPE_M, bTime);
                                 notificationItems.add(bNotification);
                                 bAdded = true;
                             }
                             else{
+                                notificationItems.remove(bNotification);
                                 bNotification.setBody(body);
+                                notificationItems.add(bNotification);
                             }
                             mNotificationsAdapter.notifyDataSetChanged();
                         }
@@ -722,6 +812,11 @@ public class NotificationsTab extends Fragment {
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String prevChildKey) {
+
+                String[] args = dataSnapshot.getValue(String.class).split(":",2);
+                String medalType = args[0];
+                long timeValue = Long.parseLong(args[1]) / 1000;
+
                 if(medalComments.containsKey(dataSnapshot.getKey())){
                     switch (medalComments.get(dataSnapshot.getKey())){
                         case "g":
@@ -803,25 +898,33 @@ public class NotificationsTab extends Fragment {
                             break;
                     }
 
-                    medalComments.put(dataSnapshot.getKey(), dataSnapshot.getValue(String.class));
+                    medalComments.put(dataSnapshot.getKey(), medalType);
 
-                    switch (dataSnapshot.getValue(String.class)){
+                    switch (medalType){
                         case "g":
                             gnew++;
                             if(gNotification != null){
                                 switch (gnew){
                                     case 1:
-                                        gNotification.setBody("You won a new gold medal!");
+                                        gNotification.setBody("You won a new gold medal!").setTimestamp(timeValue);
                                         if(!gAdded){
                                             notificationItems.add(gNotification);
                                             gAdded = true;
                                         }
+                                        else{
+                                            notificationItems.remove(gNotification);
+                                            notificationItems.add(gNotification);
+                                        }
                                         break;
                                     default:
-                                        gNotification.setBody("You won " + Integer.toString(gnew) + " new gold medals!");
+                                        gNotification.setBody("You won " + Integer.toString(gnew) + " new gold medals!").setTimestamp(timeValue);
                                         if(!gAdded){
                                             notificationItems.add(gNotification);
                                             gAdded = true;
+                                        }
+                                        else{
+                                            notificationItems.remove(gNotification);
+                                            notificationItems.add(gNotification);
                                         }
                                         break;
                                 }
@@ -833,17 +936,25 @@ public class NotificationsTab extends Fragment {
                             if(sNotification != null){
                                 switch (snew){
                                     case 1:
-                                        sNotification.setBody("You won a new silver medal!");
+                                        sNotification.setBody("You won a new silver medal!").setTimestamp(timeValue);
                                         if(!sAdded){
                                             notificationItems.add(sNotification);
                                             sAdded = true;
                                         }
+                                        else{
+                                            notificationItems.remove(sNotification);
+                                            notificationItems.add(sNotification);
+                                        }
                                         break;
                                     default:
-                                        sNotification.setBody("You won " + Integer.toString(snew) + " new silver medals!");
+                                        sNotification.setBody("You won " + Integer.toString(snew) + " new silver medals!").setTimestamp(timeValue);
                                         if(!sAdded){
                                             notificationItems.add(sNotification);
                                             sAdded = true;
+                                        }
+                                        else{
+                                            notificationItems.remove(sNotification);
+                                            notificationItems.add(sNotification);
                                         }
                                         break;
                                 }
@@ -855,17 +966,25 @@ public class NotificationsTab extends Fragment {
                             if(bNotification != null){
                                 switch (bnew){
                                     case 1:
-                                        bNotification.setBody("You won a new bronze medal!");
+                                        bNotification.setBody("You won a new bronze medal!").setTimestamp(timeValue);
                                         if(!bAdded){
                                             notificationItems.add(bNotification);
                                             bAdded = true;
                                         }
+                                        else{
+                                            notificationItems.remove(bNotification);
+                                            notificationItems.add(bNotification);
+                                        }
                                         break;
                                     default:
-                                        bNotification.setBody("You won " + Integer.toString(bnew) + " new bronze medals!");
+                                        bNotification.setBody("You won " + Integer.toString(bnew) + " new bronze medals!").setTimestamp(timeValue);
                                         if(!bAdded){
                                             notificationItems.add(bNotification);
                                             bAdded = true;
+                                        }
+                                        else{
+                                            notificationItems.remove(bNotification);
+                                            notificationItems.add(bNotification);
                                         }
                                         break;
                                 }
@@ -886,8 +1005,18 @@ public class NotificationsTab extends Fragment {
             @Override
             public void onCancelled(DatabaseError databaseError) {}
         });
+    }
 
+    public void showNNB(){
+        newNotificationsButton.setEnabled(true);
+        newNotificationsButton.setClickable(true);
+        newNotificationsButton.setLayoutParams(nnbLP);
+    }
 
+    public void hideNNB(){
+        newNotificationsButton.setLayoutParams(new ViewGroup.LayoutParams(0,0));
+        newNotificationsButton.setClickable(false);
+        newNotificationsButton.setEnabled(false);
     }
 
 }

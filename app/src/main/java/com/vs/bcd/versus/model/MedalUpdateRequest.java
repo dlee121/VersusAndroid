@@ -13,13 +13,15 @@ public class MedalUpdateRequest {
 
     private int p; //points increment
     private String id; //postID
+    private long t; //timestamp in seconds from epoch
 
     public MedalUpdateRequest() {
     }
 
-    public MedalUpdateRequest(int p, String id) {
+    public MedalUpdateRequest(int p, String id, long t) {
         this.p = p;
         this.id = id;
+        this.t = t;
     }
 
 
@@ -37,6 +39,13 @@ public class MedalUpdateRequest {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public long getT(){
+        return t;
+    }
+    public void setT(long t){
+        this.t = t;
     }
 
 }

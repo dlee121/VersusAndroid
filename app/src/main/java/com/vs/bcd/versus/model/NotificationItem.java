@@ -1,5 +1,7 @@
 package com.vs.bcd.versus.model;
 
+import android.util.Log;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -56,6 +58,10 @@ public class NotificationItem {
 
     public void setTimestamp(long timestamp){
         this.timestamp = timestamp;
+    }
+
+    public long getTimestamp(){
+        return timestamp;
     }
 
     public String getTimeString(){

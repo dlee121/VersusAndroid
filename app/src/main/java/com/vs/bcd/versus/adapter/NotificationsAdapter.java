@@ -75,6 +75,7 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
         }
 
         notificationViewHolder.body.setText(notificationItem.getBody());
+        notificationViewHolder.time.setText(notificationItem.getTimeString());
     }
 
     @Override
@@ -86,11 +87,13 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
 
         public ImageView icon;   //maybe switch to circular colorful icons
         public TextView body;
+        public TextView time;
 
         public NotificationViewHolder(View view) {
             super(view);
             icon = (ImageView) view.findViewById(R.id.notification_icon);
             body = (TextView) view.findViewById(R.id.notification_body);
+            time = (TextView) view.findViewById(R.id.notification_time);
         }
     }
 
