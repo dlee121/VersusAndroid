@@ -226,6 +226,12 @@ public class MainContainer extends AppCompatActivity {
                 "us-east-1:88614505-c8df-4dce-abd8-79a0543852ff", // Identity Pool ID
                 Regions.US_EAST_1 // Region
         );
+        /*
+        //these two for signing REST requests to Amazon Elasticsearch
+        credentialsProvider.getCredentials().getAWSAccessKeyId()
+        credentialsProvider.getCredentials().getAWSSecretKey()
+        */
+
         ddbClient = new AmazonDynamoDBClient(credentialsProvider);
         mapper = new DynamoDBMapper(ddbClient);
         s3 = new AmazonS3Client(credentialsProvider);
