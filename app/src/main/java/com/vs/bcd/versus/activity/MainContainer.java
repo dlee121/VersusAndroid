@@ -25,6 +25,7 @@ import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Regions;
@@ -114,6 +115,8 @@ public class MainContainer extends AppCompatActivity {
     private boolean initialFollowingLoaded = false;
     private String fcmToken = "";
     private boolean goToMainActivityOnResume = false;
+
+    private CognitoCachingCredentialsProvider credentialsProvider;
 
     private DatabaseReference mFirebaseDatabaseReference;
 
@@ -221,7 +224,7 @@ public class MainContainer extends AppCompatActivity {
         setContentView(R.layout.activity_main_container);
         sessionManager = new SessionManager(this);
         // Initialize the Amazon Cognito credentials provider
-        CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
+        credentialsProvider = new CognitoCachingCredentialsProvider(
                 getApplicationContext(),
                 "us-east-1:88614505-c8df-4dce-abd8-79a0543852ff", // Identity Pool ID
                 Regions.US_EAST_1 // Region
@@ -1130,6 +1133,10 @@ public class MainContainer extends AppCompatActivity {
 
     public boolean isInMessageRoom(){
         return mViewPager.getCurrentItem() == 11;
+    }
+
+    public AWSCredentials getCred(){
+        return credentialsProvider.getCredentials();
     }
 
 

@@ -11,7 +11,7 @@
     tools:context="com.vs.bcd.versus.activity.MainContainer">
 
     <EditText
-        android:id="@+id/editText2"
+        android:id="@+id/search_et"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
@@ -20,5 +20,14 @@
         android:ems="10"
         android:inputType="textPersonName"
         android:text="Name"
-        android:textColor="@android:color/white" />
+        android:textColor="@android:color/black" />
+
+    <Button
+        android:id="@+id/searchbutton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/search_et"
+        android:text="Search" />
+
+
 </RelativeLayout>
