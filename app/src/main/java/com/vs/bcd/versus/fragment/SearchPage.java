@@ -1,47 +1,58 @@
 package com.vs.bcd.versus.fragment;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.RelativeLayout;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.AmazonWebServiceResponse;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.DefaultRequest;
+
 import com.amazonaws.Request;
-import com.amazonaws.Response;
 import com.amazonaws.auth.AWS4Signer;
 import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.http.AmazonHttpClient;
-import  com.amazonaws.http.ExecutionContext;
+import com.amazonaws.http.ExecutionContext;
 
-import com.amazonaws.http.HttpResponseHandler;
 import com.amazonaws.http.HttpMethodName;
+import com.android.volley.AuthFailureError;
+import com.android.volley.RequestQueue;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
-import com.vs.bcd.versus.model.ElasticRestClient;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.vs.bcd.versus.model.AWSV4Auth;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
+
+import cz.msebera.android.httpclient.HttpEntity;
+import cz.msebera.android.httpclient.HttpResponse;
+import cz.msebera.android.httpclient.client.ClientProtocolException;
+import cz.msebera.android.httpclient.client.ResponseHandler;
+import cz.msebera.android.httpclient.client.methods.HttpPost;
+import cz.msebera.android.httpclient.entity.ContentType;
+import cz.msebera.android.httpclient.entity.StringEntity;
+import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
+import cz.msebera.android.httpclient.impl.client.HttpClients;
+import cz.msebera.android.httpclient.util.EntityUtils;
+
 
 /**
  * Created by dlee on 5/19/17.
@@ -55,7 +66,6 @@ public class SearchPage extends Fragment {
     private ArrayList<ViewGroup.LayoutParams> LPStore;
     private static MainContainer activity;
     private Button searchButton;
-    String url ="https://search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com/post/_search?size=10&pretty=true&q=*";
 
     private static final String SERVICE_NAME = "es";
     private static final String REGION = "us-east-1";
@@ -63,6 +73,13 @@ public class SearchPage extends Fragment {
     private static final String ENDPOINT_ROOT = "https://" + HOST;
     private static final String PATH = "/";
     private static final String ENDPOINT = ENDPOINT_ROOT + PATH;
+
+    // replace following 4 String with real values to make it work
+    // following 3 are fake values, so it wont run as it is...
+    static String host = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
+    static String accessKey = "";
+    static String secretKey = "";
+    static String region = "us-east-1";
 
 
     @Override
@@ -77,7 +94,6 @@ public class SearchPage extends Fragment {
                 searchTest();
             }
         });
-
 
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();
@@ -130,134 +146,102 @@ public class SearchPage extends Fragment {
 
     public void searchTest() {
 
+
         Runnable runnable = new Runnable() {
             public void run() {
-
-                // Generate the request
-                Request<?> request = generateRequest();
-
-                // Perform Signature Version 4 signing
-                performSigningSteps(request);
-
-                // Send the request to the server
-                sendRequest(request);
-
                 /*
-                //Instantiate the request
-                Request<Void> request = new DefaultRequest<Void>("es"); //Request to ElasticSearch
-                request.setHttpMethod(HttpMethodName.GET);
-                request.setEndpoint(URI.create("https://search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com/post/_search?size=10&pretty=true&q=*"));
-
-                //Sign it...
-                AWS4Signer signer = new AWS4Signer();
-                signer.setRegionName("us-east-1");
-                signer.setServiceName(request.getServiceName());
-                signer.sign(request, activity.getCred());
-
-
-                MyHttpResponseHandler<Void> responseHandler = new MyHttpResponseHandler<Void>();
-                MyErrorHandler errorHandler = new MyErrorHandler();
-
-                //Execute it and get the response...
-                Response<Void> rsp = new AmazonHttpClient(new ClientConfiguration())
-                        .execute(request, responseHandler, errorHandler, new ExecutionContext(true));
+                if(accessKey == null || accessKey.equals("")){
+                    accessKey = activity.getCred().getAWSAccessKeyId();
+                }
+                if(secretKey == null || secretKey.equals("")){
+                    secretKey = activity.getCred().getAWSSecretKey();
+                }
                 */
+                //TODO: get accesskey and secretkey
+
+                String query = "/_search";
+                String payload = "{\"query\":{\"match_all\":{}}}";
+
+                String url = "http://" + host + query;
+
+                TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
+                awsHeaders.put("host", host);
+
+                AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder(accessKey, secretKey)
+                        .regionName(region)
+                        .serviceName("es") // es - elastic search. use your service name
+                        .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
+                        .canonicalURI(query) //end point
+                        .queryParametes(null) //query parameters if any
+                        .awsHeaders(awsHeaders) //aws header parameters
+                        .payload(payload) // payload if any
+                        .debug() // turn on the debug mode
+                        .build();
+
+                HttpPost httpPost = new HttpPost(url);
+                StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
+                httpPost.setEntity(requestEntity);
+
+		        /* Get header calculated for request */
+                Map<String, String> header = aWSV4Auth.getHeaders();
+                for (Map.Entry<String, String> entrySet : header.entrySet()) {
+                    String key = entrySet.getKey();
+                    String value = entrySet.getValue();
+
+			    /* Attach header in your request */
+			    /* Simple get request */
+
+                    httpPost.addHeader(key, value);
+                }
+                httpPostRequest(httpPost);
 
             }
         };
         Thread mythread = new Thread(runnable);
         mythread.start();
 
-
         /*
+
+        // Generate the request
+        final Request<?> signableRequest = generateRequest();
+
+        // Perform Signature Version 4 signing
+        performSigningSteps(signableRequest);
+
+        // Send the request to the server
+        //sendRequest(request);
 
         // Instantiate the RequestQueue.
         RequestQueue queue = Volley.newRequestQueue(activity);
         String url ="https://search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com/post/_search?size=10&pretty=true&q=*";
 
         // Request a string response from the provided URL.
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                new Response.Listener<String>() {
+        StringRequest stringRequest = new StringRequest(com.android.volley.Request.Method.GET, url,
+                new com.android.volley.Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
                         // Display the first 500 characters of the response string.
                         Log.d("SEARCHTEST", "Response is: "+ response.substring(0,500));
                     }
-                }, new Response.ErrorListener() {
+                }, new com.android.volley.Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.d("SEARCHTEST", "Error: "+ error.toString());
+                Log.d("SEARCHTEST", "Error");
             }
-        });
+        }){
+
+           // @Override
+           // public Map<String, String> getHeaders() throws AuthFailureError {
+           //     Map<String, String> headers = new HashMap<>();
+           //     headers.putAll(signableRequest.getHeaders());
+           //     return headers;
+           // }
+
+        };
+
         // Add the request to the RequestQueue.
         queue.add(stringRequest);
-
         */
-
-        /*
-
-        AWS4Signer aws4Signer = new AWS4Signer();
-        aws4Signer.setServiceName("es");
-        aws4Signer.setRegionName("us-east-1");
-        aws4Signer.sign(awsHttpRequest, activity.getCred());
-
-        String url = "https://search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com/post/_search?size=10&pretty=true&q=*";
-        ElasticRestClient.get(url, activity.getCred(), new AsyncHttpResponseHandler() {
-
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-                // called when response HTTP status is "200 OK"
-                String str = new String(response, StandardCharsets.UTF_8);
-                Log.d("SEARCHTEST", "Success:\n"+str);
-
-            }
-
-            @Override
-            public void onFailure(int arg0, Header[] arg1, byte[] arg2, Throwable arg3) {
-
-            }
-        });
-        */
-    }
-
-
-    public static class MyHttpResponseHandler<T> implements HttpResponseHandler<AmazonWebServiceResponse<T>> {
-
-        @Override
-        public AmazonWebServiceResponse<T> handle(
-                com.amazonaws.http.HttpResponse response) throws Exception {
-
-            InputStream responseStream = response.getContent();
-            String responseString = responseStream.toString();
-            Log.d("SEARCHTEST", responseString);
-
-            AmazonWebServiceResponse<T> awsResponse = new AmazonWebServiceResponse<T>();
-            return awsResponse;
-        }
-
-        @Override
-        public boolean needsConnectionLeftOpen() {
-            return false;
-        }
-    }
-
-    public static class MyErrorHandler implements HttpResponseHandler<AmazonServiceException> {
-
-        @Override
-        public AmazonServiceException handle(
-                com.amazonaws.http.HttpResponse response) throws Exception {
-            System.out.println("In exception handler!");
-
-            AmazonServiceException ase = new AmazonServiceException("Fake service exception.");
-            ase.setStatusCode(response.getStatusCode());
-            ase.setErrorCode(response.getStatusText());
-            return ase;
-        }
-
-        @Override
-        public boolean needsConnectionLeftOpen() {
-            return false;
-        }
     }
 
     /// Set up the request
@@ -285,20 +269,35 @@ public class SearchPage extends Fragment {
         signer.sign(requestToSign, creds);
     }
 
-    /// Send the request to the server
-    private static void sendRequest(Request<?> request) {
-        ExecutionContext context = new ExecutionContext(true);
+    public void httpPostRequest(HttpPost httpPost) {
+		/* Create object of CloseableHttpClient */
+        CloseableHttpClient httpClient = HttpClients.createDefault();
 
-        ClientConfiguration clientConfiguration = new ClientConfiguration();
-        AmazonHttpClient client = new AmazonHttpClient(clientConfiguration);
+		/* Response handler for after request execution */
+        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
 
-        MyHttpResponseHandler<Void> responseHandler = new MyHttpResponseHandler<Void>();
-        MyErrorHandler errorHandler = new MyErrorHandler();
+            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+				/* Get status code */
+                int status = response.getStatusLine().getStatusCode();
+                if (status >= 200 && status < 300) {
+					/* Convert response to String */
+                    HttpEntity entity = response.getEntity();
+                    return entity != null ? EntityUtils.toString(entity) : null;
+                } else {
+                    throw new ClientProtocolException("Unexpected response status: " + status);
+                }
+            }
+        };
 
-        Response<Void> response =
-                client.execute(request, responseHandler, errorHandler, context);
+        try {
+			/* Execute URL and attach after execution response handler */
+            String strResponse = httpClient.execute(httpPost, responseHandler);
+			/* Print the response */
+            System.out.println("Response: " + strResponse);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-
     //TODO: also implement request cancelling where cancel() is called on the Request, in case user exists search before current search completes, so as to not trigger handler unnecessarily, although it may not matter and may actually work better that way to not cancel...think about that too, not cancelling.
 }
 
