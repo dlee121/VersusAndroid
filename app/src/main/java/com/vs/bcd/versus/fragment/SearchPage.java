@@ -4,12 +4,15 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
@@ -46,7 +49,6 @@ public class SearchPage extends Fragment {
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
     private static MainContainer activity;
-    private Button searchButton;
     private EditText searchET;
 
     private static final String SERVICE_NAME = "es";
@@ -71,11 +73,14 @@ public class SearchPage extends Fragment {
 
         searchET = (EditText) rootView.findViewById(R.id.search_et);
 
-        searchButton = (Button) rootView.findViewById(R.id.searchbutton);
-        searchButton.setOnClickListener(new View.OnClickListener() {
+        searchET.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
-            public void onClick(View view) {
-                searchTest();
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    searchTest();
+                    return true;
+                }
+                return false;
             }
         });
 
@@ -145,10 +150,12 @@ public class SearchPage extends Fragment {
 
                 String query = "/_search";
                 String searchInput = searchET.getText().toString();
-                if(searchInput == null){
+                if(searchInput == null || searchInput.trim().length() == 0){
+                    Log.d("SEARCHINPUT", "empty input");
                     return;
                 }
-                String payload = "{\"query\":{\"multi_match\":{\"query\": \"" + searchInput +
+                Log.d("SEARCHINPUT", searchInput.trim());
+                String payload = "{\"query\":{\"multi_match\":{\"query\": \"" + searchInput.trim() +
                         "\",\"fields\": [\"redname\", \"blackname\", \"question\"],\"type\": \"most_fields\"}}}";
 
                 String url = "https://" + host + query;
