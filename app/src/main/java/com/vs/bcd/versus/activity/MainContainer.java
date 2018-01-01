@@ -518,6 +518,7 @@ public class MainContainer extends AppCompatActivity {
                         hideToolbarButtonRight();
                         hideToolbarTextButton();
                         enableBottomTabs();
+                        titleTxtView.setText(lastSetTitle);
                         bottomNavigation.setCurrentItem(0, false);
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
@@ -568,6 +569,7 @@ public class MainContainer extends AppCompatActivity {
                         hideToolbarButtonRight();
                         hideToolbarTextButton();
                         hideToolbarButtonLeft();
+                        titleTxtView.setText("Leaderboard");
                         bottomNavigation.setCurrentItem(1, false);
                         break;
 
@@ -577,6 +579,7 @@ public class MainContainer extends AppCompatActivity {
                         hideToolbarTextButton();
                         enableBottomTabs(); //because we might make notifications not bottom tab, putting this here just in case
                         hideToolbarButtonLeft();
+                        titleTxtView.setText("Notifications");
                         bottomNavigation.setCurrentItem(2, false);
                         break;
 
