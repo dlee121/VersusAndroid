@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.RelativeLayout;
 
 import com.amazonaws.AmazonServiceException;
@@ -66,6 +67,7 @@ public class SearchPage extends Fragment {
     private ArrayList<ViewGroup.LayoutParams> LPStore;
     private static MainContainer activity;
     private Button searchButton;
+    private EditText searchET;
 
     private static final String SERVICE_NAME = "es";
     private static final String REGION = "us-east-1";
@@ -86,6 +88,8 @@ public class SearchPage extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.search_page, container, false);
+
+        searchET = (EditText) rootView.findViewById(R.id.search_et);
 
         searchButton = (Button) rootView.findViewById(R.id.searchbutton);
         searchButton.setOnClickListener(new View.OnClickListener() {
@@ -160,14 +164,19 @@ public class SearchPage extends Fragment {
                 //TODO: get accesskey and secretkey
 
                 String query = "/_search";
-                String payload = "{\"query\":{\"match_all\":{}}}";
+                String searchInput = searchET.getText().toString();
+                if(searchInput == null){
+                    return;
+                }
+                String payload = "{\"query\":{\"multi_match\":{\"query\": \"" + searchInput +
+                        "\",\"fields\": [\"redname\", \"blackname\", \"question\"],\"type\": \"most_fields\"}}}";
 
-                String url = "http://" + host + query;
+                String url = "https://" + host + query;
 
                 TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
                 awsHeaders.put("host", host);
 
-                AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder(accessKey, secretKey)
+                AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
                         .regionName(region)
                         .serviceName("es") // es - elastic search. use your service name
                         .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
@@ -300,5 +309,4 @@ public class SearchPage extends Fragment {
     }
     //TODO: also implement request cancelling where cancel() is called on the Request, in case user exists search before current search completes, so as to not trigger handler unnecessarily, although it may not matter and may actually work better that way to not cancel...think about that too, not cancelling.
 }
-
 
