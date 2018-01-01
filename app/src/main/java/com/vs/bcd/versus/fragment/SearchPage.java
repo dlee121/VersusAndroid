@@ -34,6 +34,9 @@ import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.model.AWSV4Auth;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -208,74 +211,6 @@ public class SearchPage extends Fragment {
         };
         Thread mythread = new Thread(runnable);
         mythread.start();
-
-        /*
-
-        // Generate the request
-        final Request<?> signableRequest = generateRequest();
-
-        // Perform Signature Version 4 signing
-        performSigningSteps(signableRequest);
-
-        // Send the request to the server
-        //sendRequest(request);
-
-        // Instantiate the RequestQueue.
-        RequestQueue queue = Volley.newRequestQueue(activity);
-        String url ="https://search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com/post/_search?size=10&pretty=true&q=*";
-
-        // Request a string response from the provided URL.
-        StringRequest stringRequest = new StringRequest(com.android.volley.Request.Method.GET, url,
-                new com.android.volley.Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        // Display the first 500 characters of the response string.
-                        Log.d("SEARCHTEST", "Response is: "+ response.substring(0,500));
-                    }
-                }, new com.android.volley.Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.d("SEARCHTEST", "Error");
-            }
-        }){
-
-           // @Override
-           // public Map<String, String> getHeaders() throws AuthFailureError {
-           //     Map<String, String> headers = new HashMap<>();
-           //     headers.putAll(signableRequest.getHeaders());
-           //     return headers;
-           // }
-
-        };
-
-        // Add the request to the RequestQueue.
-        queue.add(stringRequest);
-        */
-    }
-
-    /// Set up the request
-    private static Request<?> generateRequest() {
-        Request<?> request = new DefaultRequest<Void>(SERVICE_NAME);
-        request.setContent(new ByteArrayInputStream("".getBytes()));
-        request.setEndpoint(URI.create(ENDPOINT));
-        request.setHttpMethod(HttpMethodName.GET);
-        return request;
-    }
-
-    /// Perform Signature Version 4 signing
-    private static void performSigningSteps(Request<?> requestToSign) {
-        AWS4Signer signer = new AWS4Signer();
-        signer.setServiceName(SERVICE_NAME);
-        signer.setRegionName(REGION);
-
-        // Get credentials
-        // NOTE: *Never* hard-code credentials
-        //       in source code
-
-        AWSCredentials creds = activity.getCred();
-
-        // Sign request with supplied creds
-        signer.sign(requestToSign, creds);
     }
 
     public void httpPostRequest(HttpPost httpPost) {
@@ -301,8 +236,15 @@ public class SearchPage extends Fragment {
         try {
 			/* Execute URL and attach after execution response handler */
             String strResponse = httpClient.execute(httpPost, responseHandler);
-			/* Print the response */
-            System.out.println("Response: " + strResponse);
+
+            JSONObject obj = new JSONObject(strResponse);
+            JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
+            for(int i = 0; i < hits.length(); i++){
+                JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
+                Log.d("SEARCHRESULTS", "R: " + item.getString("redname") + ", B: " + item.getString("blackname") + ", Q: " + item.getString("question"));
+                //TODO: display search results. If zero results then display empty results page. Items should be clickable, but we may want to use a new adapter, differentiating search view from MainActivity views, mainly that searchview should be more concise to display more search results in one page. Or should it be same as MainActivity's way of displaying posts list?
+            }
+            //System.out.println("Response: " + strResponse);
         } catch (Exception e) {
             e.printStackTrace();
         }
