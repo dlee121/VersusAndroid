@@ -3,20 +3,23 @@ package com.vs.bcd.versus.fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
+import com.vs.bcd.versus.adapter.MyAdapter;
 import com.vs.bcd.versus.model.AWSV4Auth;
+import com.vs.bcd.versus.model.PostSkeleton;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -48,21 +51,16 @@ public class SearchPage extends Fragment {
     private View rootView;
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
+    private ArrayList<PostSkeleton> postSearchResults;
     private static MainContainer activity;
     private EditText searchET;
+    private RecyclerView recyclerView;
+    private MyAdapter searchResultsPostsAdapter;
+    private int retrievalSize = 10;
+    private int loadThreshold = 2;
+    private boolean nowLoading = false;
 
-    private static final String SERVICE_NAME = "es";
-    private static final String REGION = "us-east-1";
-    private static final String HOST = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com/post/_search?size=10&pretty=true&q=*";
-    private static final String ENDPOINT_ROOT = "https://" + HOST;
-    private static final String PATH = "/";
-    private static final String ENDPOINT = ENDPOINT_ROOT + PATH;
-
-    // replace following 4 String with real values to make it work
-    // following 3 are fake values, so it wont run as it is...
     static String host = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
-    static String accessKey = "";
-    static String secretKey = "";
     static String region = "us-east-1";
 
 
@@ -71,16 +69,52 @@ public class SearchPage extends Fragment {
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.search_page, container, false);
 
+        postSearchResults = new ArrayList<>();
+
         searchET = (EditText) rootView.findViewById(R.id.search_et);
 
         searchET.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                    searchTest();
+                    if(searchET.getText().toString() != null && searchET.getText().toString().trim().length() > 0){
+                        if(postSearchResults != null && searchResultsPostsAdapter != null){
+                            postSearchResults.clear();
+                            searchResultsPostsAdapter.notifyDataSetChanged();
+                        }
+                        nowLoading = false;
+                        executeSearch(0);
+                    }
                     return true;
                 }
                 return false;
+            }
+        });
+
+        recyclerView = (RecyclerView) rootView.findViewById(R.id.search_results_posts);
+        recyclerView.setLayoutManager(new LinearLayoutManager(activity));
+        searchResultsPostsAdapter = new MyAdapter(recyclerView, postSearchResults, activity);
+        recyclerView.setAdapter(searchResultsPostsAdapter);
+
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                //only if postSearchResults.size()%retrievalSize == 0, meaning it's possible there's more matching documents for this search
+                if(postSearchResults != null && !postSearchResults.isEmpty() && postSearchResults.size()%retrievalSize == 0) {
+                    LinearLayoutManager layoutManager = LinearLayoutManager.class.cast(recyclerView.getLayoutManager());
+                    int totalItemCount = layoutManager.getItemCount();
+                    int lastVisible = layoutManager.findLastVisibleItemPosition();
+
+                    boolean endHasBeenReached = lastVisible + loadThreshold >= totalItemCount;  //TODO: increase the loadThreshold as we get more posts, but capping it at 5 is probably sufficient
+                    if (totalItemCount > 0 && endHasBeenReached) {
+                        //you have reached to the bottom of your recycler view
+                        if (!nowLoading) {
+                            nowLoading = true;
+                            Log.d("Load", "Now Loadin More");
+                            executeSearch(postSearchResults.size());
+                        }
+                    }
+                }
             }
         });
 
@@ -93,7 +127,6 @@ public class SearchPage extends Fragment {
         disableChildViews();
         return rootView;
     }
-
 
     @Override
     public void onAttach(Context context) {
@@ -133,7 +166,7 @@ public class SearchPage extends Fragment {
         }
     }
 
-    public void searchTest() {
+    public void executeSearch(final int fromIndex) {
 
 
         Runnable runnable = new Runnable() {
@@ -155,7 +188,7 @@ public class SearchPage extends Fragment {
                     return;
                 }
                 Log.d("SEARCHINPUT", searchInput.trim());
-                String payload = "{\"query\":{\"multi_match\":{\"query\": \"" + searchInput.trim() +
+                String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"query\":{\"multi_match\":{\"query\": \"" + searchInput.trim() +
                         "\",\"fields\": [\"redname\", \"blackname\", \"question\"],\"type\": \"most_fields\"}}}";
 
                 String url = "https://" + host + query;
@@ -220,14 +253,30 @@ public class SearchPage extends Fragment {
         try {
 			/* Execute URL and attach after execution response handler */
             String strResponse = httpClient.execute(httpPost, responseHandler);
+            if(postSearchResults == null){
+                postSearchResults = new ArrayList<>();
+            }
 
             JSONObject obj = new JSONObject(strResponse);
             JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
             for(int i = 0; i < hits.length(); i++){
                 JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
-                Log.d("SEARCHRESULTS", "R: " + item.getString("redname") + ", B: " + item.getString("blackname") + ", Q: " + item.getString("question"));
+                postSearchResults.add(new PostSkeleton(item));
+                Log.d("SEARCHRESULTS", "R: " + postSearchResults.get(i).getRedname() + ", B: " + postSearchResults.get(i).getBlackname() + ", Q: " + postSearchResults.get(i).getQuestion());
                 //TODO: display search results. If zero results then display empty results page. Items should be clickable, but we may want to use a new adapter, differentiating search view from MainActivity views, mainly that searchview should be more concise to display more search results in one page. Or should it be same as MainActivity's way of displaying posts list?
             }
+            if(postSearchResults != null && !postSearchResults.isEmpty()){
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        searchResultsPostsAdapter.notifyDataSetChanged();
+                        if(nowLoading){
+                            nowLoading = false;
+                        }
+                    }
+                });
+            }
+
             //System.out.println("Response: " + strResponse);
         } catch (Exception e) {
             e.printStackTrace();

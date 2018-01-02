@@ -2,6 +2,9 @@ package com.vs.bcd.versus.model;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -250,6 +253,23 @@ public class PostSkeleton {
         time = df.format(new Date());
         post_id = UUID.randomUUID().toString(); //generate random UUID as post_id when post is created
         stl = System.currentTimeMillis()/1000 + 1814400; //gets current time since epoch in seconds and adds 21 days (1814400 seconds)
+    }
+
+    public PostSkeleton(JSONObject postObj) throws JSONException{
+        question = postObj.getString("question");
+        author = postObj.getString("author");
+        time = postObj.getString("time");
+        redname = postObj.getString("redname");
+        redcount = postObj.getInt("redcount");
+        blackname  = postObj.getString("blackname");
+        blackcount = postObj.getInt("blackcount");
+        category = postObj.getInt("category");
+        post_id = postObj.getString("post_id");
+        redimg = postObj.getString("redimg");
+        blackimg = postObj.getString("blackimg");
+        votecount = postObj.getInt("votecount");
+        commentcount = postObj.getInt("commentcount");
+        stl = postObj.getInt("stl");
     }
 
     public void incrementRedCount(){
