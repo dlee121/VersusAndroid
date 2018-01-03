@@ -96,7 +96,7 @@ public class SearchPage extends Fragment {
 
         recyclerView = (RecyclerView) rootView.findViewById(R.id.search_results_posts);
         recyclerView.setLayoutManager(new LinearLayoutManager(activity));
-        searchResultsPostsAdapter = new MyAdapter(recyclerView, postSearchResults, activity);
+        searchResultsPostsAdapter = new MyAdapter(recyclerView, postSearchResults, activity, 1);
         recyclerView.setAdapter(searchResultsPostsAdapter);
 
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {

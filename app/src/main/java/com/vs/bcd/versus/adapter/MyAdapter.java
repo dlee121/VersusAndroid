@@ -41,10 +41,12 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private List<PostSkeleton> posts;
     private int visibleThreshold = 8;
     private int lastVisibleItem, totalItemCount;
+    private final int fragmentInt; //0 = MainActivity, 1 = Search, 6 = Category, 9 = Me (Profile). Default value of 0.
 
-    public MyAdapter(RecyclerView recyclerView, List<PostSkeleton> posts, MainContainer activity) {
+    public MyAdapter(RecyclerView recyclerView, List<PostSkeleton> posts, MainContainer activity, int fragmentInt) {
         this.posts = posts;
         this.activity = activity;
+        this.fragmentInt = fragmentInt;
 
         final LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -206,8 +208,8 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 public void onClick(View view) {
                     //if(((MainContainer)activity).getMainFrag().getUILifeStatus())
 
-                    if(((MainContainer)activity).showPost()){
-                        ((MainContainer)activity).postClicked(posts.get(position));
+                    if(activity.showPost()){
+                        activity.postClicked(posts.get(position), fragmentInt);
                     }
                 }
             });

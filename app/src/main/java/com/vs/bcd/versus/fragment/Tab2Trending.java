@@ -131,7 +131,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
 
                                 recyclerView.setLayoutManager(new LinearLayoutManager(mHostActivity));
                                 //this is where the list is passed on to adapter
-                                myAdapter = new MyAdapter(recyclerView, posts, mHostActivity);
+                                myAdapter = new MyAdapter(recyclerView, posts, mHostActivity, 0);
                                 recyclerView.setAdapter(myAdapter);
                                 initialLoadInProgress = false;
                                 mSwipeRefreshLayout.setRefreshing(false);
@@ -246,6 +246,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
             Log.d("Query on Category: ", "loop timeout");
         }
 
+        threadCounter.terminateCounter();
         displayResults = false;
 
         //sort the assembledResults by popularity velocity
@@ -365,6 +366,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                         Log.d("Query on Category: ", "loop timeout");
                     }
 
+                    threadCounter.terminateCounter();
                     displayResults = false;
 
                     //sort the assembledResults by popularity velocity

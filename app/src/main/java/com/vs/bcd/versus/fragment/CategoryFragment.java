@@ -225,7 +225,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
 
                             recyclerView.setLayoutManager(new LinearLayoutManager(mHostActivity));
                             //this is where the list is passed on to adapter
-                            myAdapter = new MyAdapter(recyclerView, posts, mHostActivity);
+                            myAdapter = new MyAdapter(recyclerView, posts, mHostActivity, 6);
                             recyclerView.setAdapter(myAdapter);
                             initialLoadInProgress = false;
                             mSwipeRefreshLayout.setRefreshing(false);
@@ -324,7 +324,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
 
                             recyclerView.setLayoutManager(new LinearLayoutManager(mHostActivity));
                             //this is where the list is passed on to adapter
-                            myAdapter = new MyAdapter(recyclerView, posts, mHostActivity);
+                            myAdapter = new MyAdapter(recyclerView, posts, mHostActivity, 6);
                             recyclerView.setAdapter(myAdapter);
                             initialLoadInProgress = false;
                             mSwipeRefreshLayout.setRefreshing(false);

@@ -390,7 +390,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
 
         List<PostSkeleton> posts = activity.getMapper().query(Post.class, queryExpression);
 
-        final MyAdapter postsAdapter = new MyAdapter(recyclerView, posts, activity);
+        final MyAdapter postsAdapter = new MyAdapter(recyclerView, posts, activity, 9);
 
         activity.runOnUiThread(new Runnable() {
             @Override

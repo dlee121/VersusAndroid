@@ -114,20 +114,6 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                 Runnable runnable = new Runnable() {
                     public void run() {
 
-                        /*
-                        //DynamoDB calls go here
-                        DynamoDBScanExpression scanExpression = new DynamoDBScanExpression();
-                        DynamoDBMapperConfig config = new DynamoDBMapperConfig(DynamoDBMapperConfig.PaginationLoadingStrategy.EAGER_LOADING);
-                        //TODO: change scan to actual query for the tab (in this case, newsfeed)
-                        PaginatedScanList<Post> result = mHostActivity.getMapper().scan(Post.class, scanExpression, config);
-                        result.loadAllResults();
-                        posts = new ArrayList<>(result.size());
-                        Iterator<Post> it = result.iterator();
-                        while (it.hasNext()) {
-                            Post element = it.next();
-                            posts.add(element);
-                        }
-                        */
                         posts = newsfeedQuery(df.format(new Date()));
 
                         Log.d("Query on Category: ", "posts set with " + Integer.toString(posts.size()) + " items");
@@ -142,7 +128,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
 
                                 recyclerView.setLayoutManager(new LinearLayoutManager(mHostActivity));
                                 //this is where the list is passed on to adapter
-                                myAdapter = new MyAdapter(recyclerView, posts, mHostActivity);
+                                myAdapter = new MyAdapter(recyclerView, posts, mHostActivity, 0);
                                 recyclerView.setAdapter(myAdapter);
                                 initialLoadInProgress = false;
                                 mSwipeRefreshLayout.setRefreshing(false);
@@ -238,7 +224,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
         else{
             Log.d("Query on Category: ", "loop timeout");
         }
-
+        threadCounter.terminateCounter();
         displayResults = false;
 
         //sort the assembledResults where posts are sorted from more recent to less recent
@@ -334,6 +320,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                         Log.d("Query on Category: ", "loop timeout");
                     }
 
+                    threadCounter.terminateCounter();
                     displayResults = false;
 
                     //sort the assembledResults where posts are sorted from more recent to less recent

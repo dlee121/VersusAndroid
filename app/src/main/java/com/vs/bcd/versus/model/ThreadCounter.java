@@ -65,4 +65,8 @@ public class ThreadCounter {
     public int getVal(){
         return n.get();
     }
+
+    public void terminateCounter(){
+        limit = -1;
+    }
 }

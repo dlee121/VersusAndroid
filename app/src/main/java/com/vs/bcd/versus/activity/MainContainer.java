@@ -115,6 +115,8 @@ public class MainContainer extends AppCompatActivity {
     private boolean initialFollowingLoaded = false;
     private String fcmToken = "";
     private boolean goToMainActivityOnResume = false;
+    private int myAdapterFragInt = 0;
+    private String postParentProfileUsername; //this could be a Stack instead of String to address nested profile-post-profile-post-etc case, for now we only keep immediate postParentProfile
 
     private CognitoCachingCredentialsProvider credentialsProvider;
 
@@ -158,16 +160,14 @@ public class MainContainer extends AppCompatActivity {
                         //Log.d("debug", "is root");
                         postPage.writeActionsToDB();
                         //postPage.clearList();
+                        if(myAdapterFragInt == 9 && postParentProfileUsername != null){
+                            goToProfile(postParentProfileUsername);
+                        }
+                        else{
+                            mViewPager.setCurrentItem(myAdapterFragInt);
+                        }
                         xBmp = null;
                         yBmp = null;
-                        if(!fromCategoryFragment){  //not from CategoryFragment, i.e. currently from Newsfeed or Trending
-                            toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
-                            titleTxtView.setText(lastSetTitle);
-                            mViewPager.setCurrentItem(0);
-                        }
-                        else {  //from CategoryFragment
-                            mViewPager.setCurrentItem(6);
-                        }
                     }
                     break;
 
@@ -334,16 +334,12 @@ public class MainContainer extends AppCompatActivity {
                         else{
                             postPage.writeActionsToDB();
                             //postPage.clearList();
-
-                            if(!fromCategoryFragment){  //not from CategoryFragment, i.e. currently from Newsfeed or Trending
-                                toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
-                                titleTxtView.setText(lastSetTitle);
-                                mViewPager.setCurrentItem(0);
+                            if(myAdapterFragInt == 9 && postParentProfileUsername != null){
+                                goToProfile(postParentProfileUsername);
                             }
-                            else {  //from CategoryFragment
-                                mViewPager.setCurrentItem(6);
+                            else{
+                                mViewPager.setCurrentItem(myAdapterFragInt);
                             }
-
                             xBmp = null;
                             yBmp = null;
                         }
@@ -525,10 +521,9 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 1: //SearchPage
-                        //enableBottomTabs();   //only accessible from MainActivity where bottom tabs are already enabled
-                        bottomNavigation.setCurrentItem(0, false);
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+                        disableBottomTabs();
                         break;
 
                     case 2: //CreatePost
@@ -869,7 +864,7 @@ public class MainContainer extends AppCompatActivity {
     }
 
     //pass post information from MyAdapter CardView click handler, through this helper method, to PostPage fragment
-    public void postClicked(PostSkeleton post){
+    public void postClicked(PostSkeleton post, int fragmentInt){
         String temp = postInDownload.get(post.getPost_id());
         if(temp == null || !temp.equals("in progress")){
             postInDownload.put(post.getPost_id(), "in progress");
@@ -877,6 +872,8 @@ public class MainContainer extends AppCompatActivity {
             postPage.setContent(post, true);
         }
         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+        myAdapterFragInt = fragmentInt;
+        postParentProfileUsername = post.getAuthor();
         mViewPager.setCurrentItem(3);
     }
 
@@ -1007,7 +1004,7 @@ public class MainContainer extends AppCompatActivity {
 
     public boolean showPost(){
         int currFragIndex = mViewPager.getCurrentItem();
-        return (currFragIndex == 0 || currFragIndex == 6);
+        return (currFragIndex == 0  || currFragIndex == 1 || currFragIndex == 6 || currFragIndex == 9); //MainActivity, Search, Category, or Me (Profile)
     }
 
     public void categoryFragmentIn(String currentCFTitle){
@@ -1045,12 +1042,13 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public void goToProfile(String username){
-        meClicked = false;
         if(username.equals(sessionManager.getCurrentUsername())){
+            meClicked = true;
             profileTab.setUpProfile(username, true);
             mViewPager.setCurrentItem(9);
         }
         else{
+            meClicked = false;
             profileTab.setUpProfile(username, false);
             mViewPager.setCurrentItem(9);
         }
