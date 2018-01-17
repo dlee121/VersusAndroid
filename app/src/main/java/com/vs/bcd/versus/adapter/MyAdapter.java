@@ -15,6 +15,7 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.vs.bcd.versus.OnLoadMoreListener;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.model.ActivePost;
@@ -34,7 +35,9 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final int VIEW_TYPE_ITEM = 0;
-    private final int VIEW_TYPE_LOADING = 1;
+    private final int NATIVE_APP_INSTALL_AD = 1;
+    private final int NATIVE_CONTENT_AD = 2;
+    private final int VIEW_TYPE_LOADING = 3;
     private OnLoadMoreListener onLoadMoreListener;
     private boolean isLoading;
     private MainContainer activity;
@@ -42,12 +45,28 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private int visibleThreshold = 8;
     private int lastVisibleItem, totalItemCount;
     private final int fragmentInt; //0 = MainActivity, 1 = Search, 6 = Category, 9 = Me (Profile). Default value of 0.
+    private String GAID;
+    private boolean gaidWait;
 
     public MyAdapter(RecyclerView recyclerView, List<PostSkeleton> posts, MainContainer activity, int fragmentInt) {
         this.posts = posts;
         this.activity = activity;
         this.fragmentInt = fragmentInt;
+        /*
+        gaidWait = true;
+        getGAID();
+        long end = System.currentTimeMillis() + 3*1000; // 3 sec * 1000 ms/sec
+        //automatic timeout at 3 seconds to prevent infinite loop
+        while(gaidWait && System.currentTimeMillis() < end){
+            //wait for getGAID()'s thread to finish retrieving device GAID
+        }
+        if(GAID == null || GAID.equals("N/A")){
 
+        }
+        else{   //we can serve targeted ads
+
+        }
+        */
         final LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -65,13 +84,20 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         });
     }
 
-    public void setOnLoadMoreListener(OnLoadMoreListener mOnLoadMoreListener) {
-        this.onLoadMoreListener = mOnLoadMoreListener;
-    }
-
     @Override
     public int getItemViewType(int position) {
-        return posts.get(position) == null ? VIEW_TYPE_LOADING : VIEW_TYPE_ITEM;
+        if(posts.get(position) == null){
+            Log.d("hey", "this happens?");
+            return VIEW_TYPE_LOADING;
+        }
+        switch (posts.get(position).getCategory()){
+            case 42069:
+                return NATIVE_APP_INSTALL_AD;
+            case 69420:
+                return NATIVE_CONTENT_AD;
+            default:
+                return VIEW_TYPE_ITEM;
+        }
     }
 
     @Override
@@ -79,9 +105,14 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         if (viewType == VIEW_TYPE_ITEM) {
             View view = LayoutInflater.from(activity).inflate(R.layout.vs_card, parent, false);
             return new UserViewHolder(view);
+        } else if (viewType == NATIVE_APP_INSTALL_AD){
+            View view = LayoutInflater.from(activity).inflate(R.layout.adview_native_app_install, parent, false);
+            return new AdViewHolder(view);
+        } else if (viewType == NATIVE_CONTENT_AD){
+            View view = LayoutInflater.from(activity).inflate(R.layout.adview_native_content, parent, false);
+            return new AdViewHolder(view);
         } else if (viewType == VIEW_TYPE_LOADING) {
             View view = LayoutInflater.from(activity).inflate(R.layout.item_loading, parent, false);
-            Log.d("hey", "this happens?");
             return new LoadingViewHolder(view);
         }
         return null;
@@ -217,6 +248,8 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         } else if (holder instanceof LoadingViewHolder) { //TODO: handle loading view to be implemented soon
             LoadingViewHolder loadingViewHolder = (LoadingViewHolder) holder;
             loadingViewHolder.progressBar.setIndeterminate(true);
+        } else if(holder instanceof AdViewHolder){
+
         }
     }
 
@@ -276,6 +309,16 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
     }
 
+    //TODO: finish AdViewHolder
+    private class AdViewHolder extends RecyclerView.ViewHolder{
+        //AdvertisingIdClient
+        public AdViewHolder(View view){
+            super(view);
+
+        }
+
+    }
+
     public void clearList(){
         posts.clear();
         notifyDataSetChanged();
@@ -304,4 +347,31 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         notifyDataSetChanged();
     }
     */
+
+    private void getGAID() {
+        Runnable runnable = new Runnable() {
+            public void run() {
+                AdvertisingIdClient.Info adInfo;
+                adInfo = null;
+                try {
+                    adInfo = AdvertisingIdClient.getAdvertisingIdInfo(activity.getApplicationContext());
+                    if (adInfo == null || adInfo.isLimitAdTrackingEnabled()) { // check if user has opted out of tracking
+                        GAID = "N/A";
+                    }
+                    else{
+                        GAID = adInfo.getId();
+                    }
+
+                    gaidWait = false;
+
+                } catch (Throwable e) {
+                    gaidWait = false;
+                    e.printStackTrace();
+                }
+            }
+        };
+        Thread mythread = new Thread(runnable);
+        mythread.start();
+    }
+
 }

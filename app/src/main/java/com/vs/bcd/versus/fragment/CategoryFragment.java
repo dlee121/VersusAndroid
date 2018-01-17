@@ -31,6 +31,9 @@ import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
 import com.amazonaws.services.dynamodbv2.model.Condition;
+import com.google.android.gms.ads.formats.NativeAd;
+import com.google.android.gms.ads.formats.NativeAppInstallAd;
+import com.google.android.gms.ads.formats.NativeContentAd;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
@@ -67,6 +70,11 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
     private final int POPULAR = 1;
 
     private int loadThreshold = 3;
+    private int adFrequency = 25; //place interstitial ad after every 25 posts
+    private int adCount = 0;
+
+    private int NATIVE_APP_INSTALL_AD = 42069;
+    private int NATIVE_CONTENT_AD = 69420;
 
 
     @Override
@@ -421,6 +429,23 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
                                 }
                             });
                             posts.addAll(queryResults);
+                            if(posts.size() / adFrequency > adCount){
+                                PostSkeleton adSkeleton = new PostSkeleton();
+                                NativeAd nextAd = mHostActivity.getNextAd();
+                                if(nextAd != null){
+                                    if(nextAd instanceof NativeAppInstallAd){
+                                        adSkeleton.setCategory(NATIVE_APP_INSTALL_AD);
+                                        posts.add(adSkeleton);
+                                        adCount++;
+                                    }
+                                    else if(nextAd instanceof NativeContentAd){
+                                        adSkeleton.setCategory(NATIVE_CONTENT_AD);
+                                        posts.add(adSkeleton);
+                                        adCount++;
+                                    }
+                                }
+                            }
+
                             nowLoading = false;
                         }
                         else {
@@ -509,7 +534,23 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
                                 }
                             });
                             posts.addAll(queryResults);
-                            Log.d("Query on Category: ", Integer.toString(queryResults.size()));
+
+                            if(posts.size() / adFrequency > adCount){
+                                PostSkeleton adSkeleton = new PostSkeleton();
+                                NativeAd nextAd = mHostActivity.getNextAd();
+                                if(nextAd != null){
+                                    if(nextAd instanceof NativeAppInstallAd){
+                                        adSkeleton.setCategory(NATIVE_APP_INSTALL_AD);
+                                        posts.add(adSkeleton);
+                                        adCount++;
+                                    }
+                                    else if(nextAd instanceof NativeContentAd){
+                                        adSkeleton.setCategory(NATIVE_CONTENT_AD);
+                                        posts.add(adSkeleton);
+                                        adCount++;
+                                    }
+                                }
+                            }
 
                             nowLoading = false;
                         }
@@ -559,6 +600,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
     }
 
     private void refreshCategoryTimeQuery(){
+        adCount = 0;
         Log.d("Refresh", "Now Refreshing");
         //mSwipeRefreshLayout.setRefreshing(true);
         lastEvaluatedKey = null;
@@ -572,6 +614,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
     }
 
     private void refreshCategoryVotecountQuery(){
+        adCount = 0;
         lastEvaluatedKey = null;
         posts.clear();
 

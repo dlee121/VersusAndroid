@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
@@ -26,6 +27,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.activity.LogIn;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.InvitedUserAdapter;
 import com.vs.bcd.versus.adapter.UserSearchAdapter;
@@ -85,6 +87,8 @@ public class CreateMessage extends Fragment {
     private boolean initialHLoaded = false;
     private String currentFilterText = "";
     private CreateMessage thisFragment;
+
+    private Toast mToast;
 
 
     @Override
@@ -320,9 +324,17 @@ public class CreateMessage extends Fragment {
     }
 
     public void createMessageRoom(){
-        //set up a new message room and go into it. actual message room in DB is created with the sending of its first message.
-        activity.getMessageRoom().setUpNewRoom(new ArrayList<UserSearchItem>(invitedUsers));
-        activity.getViewPager().setCurrentItem(11);
+        if(invitedUsers != null && !invitedUsers.isEmpty()){
+            //set up a new message room and go into it. actual message room in DB is created with the sending of its first message.
+            activity.getMessageRoom().setUpNewRoom(new ArrayList<UserSearchItem>(invitedUsers));
+            activity.getViewPager().setCurrentItem(11);
+        } else{
+            if(mToast != null){
+                mToast.cancel();
+            }
+            mToast = Toast.makeText(activity, "Please add recipient(s).", Toast.LENGTH_SHORT);
+            mToast.show();
+        }
     }
 
     private void addFollowingListener(){

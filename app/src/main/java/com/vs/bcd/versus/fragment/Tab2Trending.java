@@ -28,6 +28,9 @@ import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
 import com.amazonaws.services.dynamodbv2.model.Condition;
+import com.google.android.gms.ads.formats.NativeAd;
+import com.google.android.gms.ads.formats.NativeAppInstallAd;
+import com.google.android.gms.ads.formats.NativeContentAd;
 import com.vs.bcd.versus.OnLoadMoreListener;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
@@ -66,6 +69,11 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
     private boolean xmlLoaded = false;
 
     private int loadThreshold = 3;
+    private int adFrequency = 25; //place interstitial ad after every 25 posts
+    private int adCount = 0;
+
+    private int NATIVE_APP_INSTALL_AD = 42069;
+    private int NATIVE_CONTENT_AD = 69420;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -389,6 +397,22 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                     //otherwise we set nowLoading false so that we can load more posts when conditions are met
                     if(!assembledResults.isEmpty()){
                         posts.addAll(assembledResults);
+                        if(posts.size() / adFrequency > adCount){
+                            PostSkeleton adSkeleton = new PostSkeleton();
+                            NativeAd nextAd = mHostActivity.getNextAd();
+                            if(nextAd != null){
+                                if(nextAd instanceof NativeAppInstallAd){
+                                    adSkeleton.setCategory(NATIVE_APP_INSTALL_AD);
+                                    posts.add(adSkeleton);
+                                    adCount++;
+                                }
+                                else if(nextAd instanceof NativeContentAd){
+                                    adSkeleton.setCategory(NATIVE_CONTENT_AD);
+                                    posts.add(adSkeleton);
+                                    adCount++;
+                                }
+                            }
+                        }
                         nowLoading = false;
                     }
                     else{
@@ -430,6 +454,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
     }
 
     private void refreshTrending(){
+        adCount = 0;
         Log.d("Refresh", "Now Refreshing");
         mSwipeRefreshLayout.setRefreshing(true);
         lastEvaluatedKeysMap.clear();

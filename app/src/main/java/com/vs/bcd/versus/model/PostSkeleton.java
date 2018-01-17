@@ -119,6 +119,10 @@ public class PostSkeleton {
                 return "TV Shows";
             case 23:
                 return "Weapons";
+            case 42069:
+                return "NATIVE APP INSTALL AD";
+            case 69420:
+                return "NATIVE CONTENT AD";
             default:
                 return "N/A";
         }

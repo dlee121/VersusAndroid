@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v7.app.AppCompatActivity;
@@ -34,6 +35,11 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.formats.NativeAd;
+import com.google.android.gms.ads.identifier.AdvertisingIdClient;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -60,6 +66,8 @@ import com.vs.bcd.versus.fragment.CreatePost;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.fragment.SearchPage;
 import com.vs.bcd.versus.ViewPagerCustomDuration;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -246,6 +254,8 @@ public class MainContainer extends AppCompatActivity {
         profileImageURL = sessionManager.getProfileImageURL();
 
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
+
+        MobileAds.initialize(this, "ca-app-pub-6060736084324309~1628038990");
 
         int usernameHash;
         if(currUsername.length() < 5){
@@ -1140,5 +1150,8 @@ public class MainContainer extends AppCompatActivity {
         return credentialsProvider.getCredentials();
     }
 
+    public NativeAd getNextAd(){
+        return null; //TODO: actually return the next available ad. So we should have a list of prepared ads ready to go, like at least 5
+    }
 
 }
