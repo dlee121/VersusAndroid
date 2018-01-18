@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:card_view="http://schemas.android.com/apk/res-auto"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -16,6 +15,16 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#ffffff">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:width="15dp"
+                android:height="15dp"
+                android:background="#FFCC66"
+                android:text="Ad"/>
 
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/nc_logo_view"
@@ -23,18 +32,19 @@
                 android:layout_height="50dp"
                 android:layout_marginTop="8dp"
                 android:clickable="true"
+                android:focusable="true"
                 android:src="@drawable/vs_shadow_w_tag"
-                android:layout_marginLeft="8dp"
+                android:layout_marginStart="8dp"
                 app:civ_border_color="#FF000000"
                 app:civ_border_width="2dp"
-                android:layout_alignParentLeft="true"/>
+                android:layout_alignParentStart="true"/>
 
             <TextView
                 android:id="@+id/nc_advertiser_view"
                 android:scrollHorizontally="true"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:gravity="center|left"
+                android:gravity="center|start"
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"
                 android:layout_marginTop="8dp"
@@ -45,7 +55,7 @@
                 android:layout_toEndOf="@+id/nc_logo_view" />
 
             <View
-                android:id="@+id/horizdivider1"
+                android:id="@+id/nc_horizdivider1"
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_marginTop="8dp"
@@ -61,7 +71,7 @@
                 android:layout_marginLeft="8dp"
                 android:layout_marginRight="8dp"
                 android:layout_marginBottom="8dp"
-                android:layout_below="@+id/horizdivider1"
+                android:layout_below="@id/nc_horizdivider1"
                 android:layout_centerHorizontal="true"
                 android:text="Headline View"
                 android:textSize="28sp" />
@@ -73,7 +83,7 @@
                 android:gravity="center"
                 android:layout_marginLeft="8dp"
                 android:layout_marginRight="8dp"
-                android:layout_marginBottom="8dp"
+                android:layout_marginBottom="4dp"
                 android:layout_below="@id/nc_headline_view"
                 android:text="Body View"
                 android:textSize="18sp" />
@@ -81,15 +91,14 @@
             <ImageView
                 android:id="@+id/nc_image_view"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
+                android:layout_height="160dp"
                 android:gravity="center"
                 android:layout_below="@+id/nc_body_view"
                 android:layout_centerHorizontal="true"
                 android:src="@drawable/vs_centered_w_tag"/>
 
             <View
-                android:id="@+id/horizdivider2"
+                android:id="@+id/nc_horizdivider2"
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_marginTop="8dp"
@@ -101,13 +110,13 @@
                 android:id="@+id/nc_call_to_action"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/horizdivider2"
-                android:layout_marginRight="8dp"
+                android:layout_below="@id/nc_horizdivider2"
+                android:layout_marginEnd="8dp"
                 android:textSize="18sp"
                 android:gravity="center"
-                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
+                android:layout_marginBottom="8dp"
                 android:text="Call to Action" />
-
 
         </RelativeLayout>
 

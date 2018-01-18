@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:card_view="http://schemas.android.com/apk/res-auto"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -17,125 +16,129 @@
             android:layout_height="match_parent"
             android:background="#ffffff">
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:width="15dp"
+                android:height="15dp"
+                android:background="#FFCC66"
+                android:text="Ad"/>
+
             <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/profile_image"
+                android:id="@+id/nai_icon_view"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_marginTop="8dp"
                 android:clickable="true"
+                android:focusable="true"
                 android:src="@drawable/vs_shadow_w_tag"
-                android:layout_marginLeft="8dp"
+                android:layout_marginStart="8dp"
                 app:civ_border_color="#FF000000"
                 app:civ_border_width="2dp"
-                android:layout_alignParentLeft="true"/>
+                android:layout_alignParentStart="true"/>
 
             <TextView
-                android:id="@+id/txt_author"
+                android:id="@+id/nai_headline_view"
                 android:scrollHorizontally="true"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:gravity="center|left"
+                android:gravity="center|start"
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"
                 android:layout_marginTop="8dp"
-                android:text="Username"
+                android:text="Headline View"
                 android:textSize="18sp"
                 android:layout_marginLeft="8dp"
                 android:layout_marginRight="8dp"
-                android:layout_toRightOf="@+id/profile_image"
-                android:layout_toLeftOf="@+id/txt_time"
-                android:layout_toEndOf="@+id/profile_image"
-                android:layout_toStartOf="@+id/txt_time"/>
+                android:layout_toEndOf="@id/nai_icon_view" />
 
-            <TextView
-                android:id="@+id/txt_time"
-                android:layout_width="130dp"
-                android:layout_height="50dp"
-                android:layout_alignParentRight="true"
-                android:layout_alignParentTop="true"
-                android:layout_marginRight="8dp"
-                android:layout_marginTop="8dp"
-                android:ellipsize="end"
-                android:gravity="center"
-                android:maxLines="1"
-                android:scrollHorizontally="true"
-                android:text="59 minutes ago"
-                android:textSize="18sp" />
+            <RatingBar
+                android:id="@+id/appinstall_stars"
+                style="?android:attr/ratingBarStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:isIndicator="true"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="4dp"
+                android:layout_marginTop="25dp"
+                android:numStars="5"
+                android:stepSize="0.5" />
 
             <View
-                android:id="@+id/horizdivider1"
+                android:id="@+id/nai_horizdivider1"
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="8dp"
                 android:background="@android:color/darker_gray"
-                android:layout_below="@+id/txt_author"/>
+                android:layout_below="@id/nai_headline_view"/>
 
             <TextView
-                android:id="@+id/txt_question"
+                android:id="@+id/nai_body_view"
                 android:layout_width="match_parent"
-                android:layout_height="25dp"
-                android:gravity="center"
-                android:layout_below="@+id/horizdivider1"
-                android:layout_centerHorizontal="true"
-                android:text="TextView"
-                android:textSize="18sp" />
-
-            <TextView
-                android:id="@+id/maintitletxt"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:text="X vs Y or Y vs N"
-                android:textSize="28sp"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="16dp"
-                android:gravity="center"
-                android:layout_below="@+id/txt_question"
-                android:layout_centerHorizontal="true" />
-
-            <TextView
-                android:id="@+id/txt_category"
-                android:layout_width="wrap_content"
-                android:layout_height="25dp"
+                android:layout_height="wrap_content"
                 android:gravity="center"
                 android:layout_marginLeft="8dp"
-                android:layout_alignLeft="@+id/profile_image"
-                android:layout_alignParentLeft="true"
-                android:layout_alignStart="@+id/profile_image"
-                android:layout_below="@id/maintitletxt"
-                android:text="Category"
+                android:layout_marginRight="8dp"
+                android:layout_marginBottom="4dp"
+                android:layout_below="@id/nai_horizdivider1"
+                android:text="Body View"
                 android:textSize="18sp" />
 
-            <TextView
-                android:id="@+id/txt_votecount"
-                android:layout_width="wrap_content"
-                android:layout_height="25dp"
-                android:layout_below="@id/maintitletxt"
-                android:layout_marginRight="8dp"
-                android:textSize="18sp"
+            <ImageView
+                android:id="@+id/nai_image_view"
+                android:layout_width="match_parent"
+                android:layout_height="160dp"
                 android:gravity="center"
-                android:layout_alignParentRight="true"
-                android:text="numVotes" />
+                android:layout_below="@id/nai_body_view"
+                android:layout_centerHorizontal="true"
+                android:src="@drawable/vs_centered_w_tag"/>
+
+            <Button
+                android:id="@+id/nai_call_to_action"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_below="@id/nai_image_view"
+                android:text="Install"
+                android:textSize="12sp"
+                />
 
             <View
-                android:id="@+id/horizdivider2"
+                android:id="@+id/nai_horizdivider2"
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="8dp"
                 android:background="@android:color/darker_gray"
-                android:layout_below="@id/txt_votecount"/>
+                android:layout_below="@id/nai_call_to_action"/>
 
             <TextView
-                android:id="@+id/placeholdertxt_for_tags"
+                android:id="@+id/nai_price_view"
                 android:layout_width="wrap_content"
-                android:layout_height="50dp"
-                android:layout_below="@+id/horizdivider2"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/nai_horizdivider2"
+                android:layout_marginStart="8dp"
+                android:textSize="18sp"
                 android:gravity="center"
+                android:layout_alignParentStart="true"
                 android:layout_marginBottom="8dp"
-                android:layout_centerHorizontal="true"
-                android:text="#Tags_Will_Go_Here" />
+                android:text="Price" />
 
+            <TextView
+                android:id="@+id/nai_store_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/nai_horizdivider2"
+                android:layout_marginEnd="8dp"
+                android:textSize="18sp"
+                android:gravity="center"
+                android:layout_alignParentEnd="true"
+                android:layout_marginBottom="8dp"
+                android:text="Store" />
 
         </RelativeLayout>
 

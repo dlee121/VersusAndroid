@@ -19,18 +19,19 @@
             android:layout_height="50dp"
             android:layout_marginTop="8dp"
             android:clickable="true"
+            android:focusable="true"
             android:src="@drawable/vs_shadow_w_tag"
-            android:layout_marginLeft="8dp"
+            android:layout_marginStart="8dp"
             app:civ_border_color="#FF000000"
             app:civ_border_width="2dp"
-            android:layout_alignParentLeft="true"/>
+            android:layout_alignParentStart="true"/>
 
         <TextView
             android:id="@+id/txt_author"
             android:scrollHorizontally="true"
             android:ellipsize="end"
             android:maxLines="1"
-            android:gravity="center|left"
+            android:gravity="center|start"
             android:layout_width="wrap_content"
             android:layout_height="50dp"
             android:layout_marginTop="8dp"
@@ -38,18 +39,16 @@
             android:textSize="18sp"
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
-            android:layout_toRightOf="@+id/profile_image"
-            android:layout_toLeftOf="@+id/txt_time"
-            android:layout_toEndOf="@+id/profile_image"
+            android:layout_toEndOf="@id/profile_image"
             android:layout_toStartOf="@+id/txt_time"/>
 
         <TextView
-            android:id="@+id/txt_time"
+            android:id="@id/txt_time"
             android:layout_width="130dp"
             android:layout_height="50dp"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             android:layout_alignParentTop="true"
-            android:layout_marginRight="8dp"
+            android:layout_marginEnd="8dp"
             android:layout_marginTop="8dp"
             android:ellipsize="end"
             android:gravity="center"
@@ -72,7 +71,7 @@
             android:layout_width="match_parent"
             android:layout_height="25dp"
             android:gravity="center"
-            android:layout_below="@+id/horizdivider1"
+            android:layout_below="@id/horizdivider1"
             android:layout_centerHorizontal="true"
             android:text="TextView"
             android:textSize="18sp" />
@@ -94,10 +93,9 @@
             android:layout_width="wrap_content"
             android:layout_height="25dp"
             android:gravity="center"
-            android:layout_marginLeft="8dp"
-            android:layout_alignLeft="@+id/profile_image"
-            android:layout_alignParentLeft="true"
-            android:layout_alignStart="@+id/profile_image"
+            android:layout_marginStart="8dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignStart="@id/profile_image"
             android:layout_below="@id/maintitletxt"
             android:text="Category"
             android:textSize="18sp" />
@@ -107,10 +105,10 @@
             android:layout_width="wrap_content"
             android:layout_height="25dp"
             android:layout_below="@id/maintitletxt"
-            android:layout_marginRight="8dp"
+            android:layout_marginEnd="8dp"
             android:textSize="18sp"
             android:gravity="center"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             android:text="numVotes" />
 
         <View

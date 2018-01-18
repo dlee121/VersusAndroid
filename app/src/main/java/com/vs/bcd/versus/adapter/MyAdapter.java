@@ -15,6 +15,10 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.ads.formats.NativeAppInstallAd;
+import com.google.android.gms.ads.formats.NativeAppInstallAdView;
+import com.google.android.gms.ads.formats.NativeContentAd;
+import com.google.android.gms.ads.formats.NativeContentAdView;
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.vs.bcd.versus.OnLoadMoreListener;
 import com.vs.bcd.versus.activity.MainContainer;
@@ -314,7 +318,6 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         //AdvertisingIdClient
         public AdViewHolder(View view){
             super(view);
-
         }
 
     }
