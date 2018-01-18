@@ -92,15 +92,12 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
         return rootView;
     }
 
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         //save the activity to a member of this fragment
         mHostActivity = (MainContainer)context;
     }
-
-
 
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
