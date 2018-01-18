@@ -69,7 +69,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
     private boolean xmlLoaded = false;
 
     private int loadThreshold = 3;
-    private int adFrequency = 25; //place interstitial ad after every 25 posts
+    private int adFrequency = 25; //place native ad after every 25 posts
     private int adCount = 0;
 
     private int NATIVE_APP_INSTALL_AD = 42069;
@@ -403,11 +403,13 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                             if(nextAd != null){
                                 if(nextAd instanceof NativeAppInstallAd){
                                     adSkeleton.setCategory(NATIVE_APP_INSTALL_AD);
+                                    adSkeleton.setNAI((NativeAppInstallAd) nextAd);
                                     posts.add(adSkeleton);
                                     adCount++;
                                 }
                                 else if(nextAd instanceof NativeContentAd){
                                     adSkeleton.setCategory(NATIVE_CONTENT_AD);
+                                    adSkeleton.setNC((NativeContentAd) nextAd);
                                     posts.add(adSkeleton);
                                     adCount++;
                                 }

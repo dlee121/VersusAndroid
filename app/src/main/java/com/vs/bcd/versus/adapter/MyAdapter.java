@@ -9,12 +9,15 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RatingBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.ads.formats.NativeAd;
 import com.google.android.gms.ads.formats.NativeAppInstallAd;
 import com.google.android.gms.ads.formats.NativeAppInstallAdView;
 import com.google.android.gms.ads.formats.NativeContentAd;
@@ -111,10 +114,10 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             return new UserViewHolder(view);
         } else if (viewType == NATIVE_APP_INSTALL_AD){
             View view = LayoutInflater.from(activity).inflate(R.layout.adview_native_app_install, parent, false);
-            return new AdViewHolder(view);
+            return new NAIAdViewHolder(view);
         } else if (viewType == NATIVE_CONTENT_AD){
             View view = LayoutInflater.from(activity).inflate(R.layout.adview_native_content, parent, false);
-            return new AdViewHolder(view);
+            return new NCAdViewHolder(view);
         } else if (viewType == VIEW_TYPE_LOADING) {
             View view = LayoutInflater.from(activity).inflate(R.layout.item_loading, parent, false);
             return new LoadingViewHolder(view);
@@ -249,10 +252,76 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 }
             });
 
-        } else if (holder instanceof LoadingViewHolder) { //TODO: handle loading view to be implemented soon
-            LoadingViewHolder loadingViewHolder = (LoadingViewHolder) holder;
-            loadingViewHolder.progressBar.setIndeterminate(true);
-        } else if(holder instanceof AdViewHolder){
+        }
+
+        else if(holder instanceof NAIAdViewHolder){
+            PostSkeleton adSkeleton = posts.get(position);
+            NativeAppInstallAd nativeAppInstallAd = adSkeleton.getNAI();
+
+            NAIAdViewHolder naiAdViewHolder = (NAIAdViewHolder) holder;
+
+            naiAdViewHolder.iconView.setImageDrawable(nativeAppInstallAd.getIcon().getDrawable());
+            naiAdViewHolder.headlineView.setText(nativeAppInstallAd.getHeadline());
+            naiAdViewHolder.bodyView.setText(nativeAppInstallAd.getBody());
+            naiAdViewHolder.callToActionView.setText(nativeAppInstallAd.getCallToAction());
+
+            List<NativeAd.Image> images = nativeAppInstallAd.getImages();
+            if (images.size() > 0) {
+                naiAdViewHolder.imageView.setImageDrawable(images.get(0).getDrawable());
+            }
+
+            if (nativeAppInstallAd.getPrice() == null) {
+                naiAdViewHolder.priceView.setVisibility(View.INVISIBLE);
+            } else {
+                naiAdViewHolder.priceView.setVisibility(View.VISIBLE);
+                naiAdViewHolder.priceView.setText(nativeAppInstallAd.getPrice());
+            }
+
+            if (nativeAppInstallAd.getStore() == null) {
+                naiAdViewHolder.storeView.setVisibility(View.INVISIBLE);
+            } else {
+                naiAdViewHolder.storeView.setVisibility(View.VISIBLE);
+                naiAdViewHolder.storeView.setText(nativeAppInstallAd.getStore());
+            }
+
+            if (nativeAppInstallAd.getStarRating() == null) {
+                naiAdViewHolder.starsView.setVisibility(View.INVISIBLE);
+            } else {
+                naiAdViewHolder.starsView.setRating(nativeAppInstallAd.getStarRating().floatValue());
+                naiAdViewHolder.starsView.setVisibility(View.VISIBLE);
+            }
+
+            naiAdViewHolder.nativeAppInstallAdView.setNativeAd(nativeAppInstallAd);
+
+        }
+
+        else if(holder instanceof NCAdViewHolder){
+            PostSkeleton adSkeleton = posts.get(position);
+            NativeContentAd nativeContentAd = adSkeleton.getNC();
+
+            NCAdViewHolder ncAdViewHolder = (NCAdViewHolder) holder;
+
+            ncAdViewHolder.headlineView.setText(nativeContentAd.getHeadline());
+            ncAdViewHolder.bodyView.setText(nativeContentAd.getBody());
+            ncAdViewHolder.callToActionView.setText(nativeContentAd.getCallToAction());
+            ncAdViewHolder.advertiserView.setText(nativeContentAd.getAdvertiser());
+
+            List<NativeAd.Image> images = nativeContentAd.getImages();
+
+            if (images.size() > 0) {
+                ncAdViewHolder.imageView.setImageDrawable(images.get(0).getDrawable());
+            }
+
+            NativeAd.Image logoImage = nativeContentAd.getLogo();
+
+            if (logoImage == null) {
+                ncAdViewHolder.logoView.setVisibility(View.INVISIBLE);
+            } else {
+                ncAdViewHolder.logoView.setImageDrawable(logoImage.getDrawable());
+                ncAdViewHolder.logoView.setVisibility(View.VISIBLE);
+            }
+
+            ncAdViewHolder.nativeContentAdView.setNativeAd(nativeContentAd);
 
         }
     }
@@ -276,18 +345,6 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     private class UserViewHolder extends RecyclerView.ViewHolder {
-        /*
-        public TextView post_id;
-        public TextView question;
-        public TextView author;
-        public TextView time;
-        public TextView viewcount;
-        public TextView redname;
-        public TextView redcount;
-        public TextView blackname;
-        public TextView blackcount;
-        public TextView category;
-        */
 
         public TextView author;
         public TextView time;
@@ -313,13 +370,70 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
     }
 
-    //TODO: finish AdViewHolder
-    private class AdViewHolder extends RecyclerView.ViewHolder{
-        //AdvertisingIdClient
-        public AdViewHolder(View view){
-            super(view);
-        }
+    private class NCAdViewHolder extends RecyclerView.ViewHolder{
+        NativeContentAdView nativeContentAdView;
+        ImageView logoView, imageView;
+        TextView advertiserView, headlineView, bodyView, callToActionView;
 
+        public NCAdViewHolder(View view){
+            super(view);
+            nativeContentAdView = view.findViewById(R.id.nc_adview);
+
+            logoView = nativeContentAdView.findViewById(R.id.nc_logo_view);
+            nativeContentAdView.setLogoView(logoView);
+
+            imageView = nativeContentAdView.findViewById(R.id.nc_image_view);
+            nativeContentAdView.setImageView(imageView);
+
+            advertiserView = nativeContentAdView.findViewById(R.id.nc_advertiser_view);
+            nativeContentAdView.setAdvertiserView(advertiserView);
+
+            headlineView = nativeContentAdView.findViewById(R.id.nc_headline_view);
+            nativeContentAdView.setHeadlineView(headlineView);
+
+            bodyView = nativeContentAdView.findViewById(R.id.nc_body_view);
+            nativeContentAdView.setBodyView(bodyView);
+
+            callToActionView = nativeContentAdView.findViewById(R.id.nc_call_to_action);
+            nativeContentAdView.setCallToActionView(callToActionView);
+        }
+    }
+
+    private class NAIAdViewHolder extends RecyclerView.ViewHolder{
+        NativeAppInstallAdView nativeAppInstallAdView;
+        ImageView iconView, imageView;
+        TextView headlineView, bodyView, priceView, storeView;
+        Button callToActionView;
+        RatingBar starsView;
+
+        public NAIAdViewHolder(View view){
+            super(view);
+            nativeAppInstallAdView = view.findViewById(R.id.nai_adview);
+
+            iconView = nativeAppInstallAdView.findViewById(R.id.nai_icon_view);
+            nativeAppInstallAdView.setIconView(iconView);
+
+            imageView = nativeAppInstallAdView.findViewById(R.id.nai_image_view);
+            nativeAppInstallAdView.setImageView(imageView);
+
+            headlineView = nativeAppInstallAdView.findViewById(R.id.nai_headline_view);
+            nativeAppInstallAdView.setHeadlineView(headlineView);
+
+            bodyView = nativeAppInstallAdView.findViewById(R.id.nai_body_view);
+            nativeAppInstallAdView.setBodyView(bodyView);
+
+            priceView = nativeAppInstallAdView.findViewById(R.id.nai_price_view);
+            nativeAppInstallAdView.setPriceView(priceView);
+
+            storeView = nativeAppInstallAdView.findViewById(R.id.nai_store_view);
+            nativeAppInstallAdView.setStoreView(storeView);
+
+            callToActionView = nativeAppInstallAdView.findViewById(R.id.nai_call_to_action);
+            nativeAppInstallAdView.setCallToActionView(callToActionView);
+
+            starsView = nativeAppInstallAdView.findViewById(R.id.nai_stars_view);
+            nativeAppInstallAdView.setStarRatingView(starsView);
+        }
     }
 
     public void clearList(){

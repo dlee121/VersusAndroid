@@ -1,6 +1,8 @@
 package com.vs.bcd.versus.model;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
+import com.google.android.gms.ads.formats.NativeAppInstallAd;
+import com.google.android.gms.ads.formats.NativeContentAd;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -35,6 +37,9 @@ public class PostSkeleton {
     private int commentcount;
     private long stl;
     private double popularityVelocity = 0;  //May move this to ActivePost if we don't plan on using this for Post as well.
+
+    private NativeAppInstallAd NAI;
+    private NativeContentAd NC;
 
 
     /***
@@ -305,6 +310,22 @@ public class PostSkeleton {
     }
     public void setPopularityVelocity(double popularityVelocity){
         this.popularityVelocity = 1000 * popularityVelocity;
+    }
+
+    @DynamoDBIgnore
+    public NativeAppInstallAd getNAI(){
+        return NAI;
+    }
+    public void setNAI(NativeAppInstallAd NAI){
+        this.NAI = NAI;
+    }
+
+    @DynamoDBIgnore
+    public NativeContentAd getNC(){
+        return NC;
+    }
+    public void setNC(NativeContentAd NC){
+        this.NC = NC;
     }
 
 }

@@ -70,7 +70,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
     private final int POPULAR = 1;
 
     private int loadThreshold = 3;
-    private int adFrequency = 25; //place interstitial ad after every 25 posts
+    private int adFrequency = 25; //place native ad after every 25 posts
     private int adCount = 0;
 
     private int NATIVE_APP_INSTALL_AD = 42069;
@@ -435,11 +435,13 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
                                 if(nextAd != null){
                                     if(nextAd instanceof NativeAppInstallAd){
                                         adSkeleton.setCategory(NATIVE_APP_INSTALL_AD);
+                                        adSkeleton.setNAI((NativeAppInstallAd) nextAd);
                                         posts.add(adSkeleton);
                                         adCount++;
                                     }
                                     else if(nextAd instanceof NativeContentAd){
                                         adSkeleton.setCategory(NATIVE_CONTENT_AD);
+                                        adSkeleton.setNC((NativeContentAd) nextAd);
                                         posts.add(adSkeleton);
                                         adCount++;
                                     }
@@ -534,18 +536,19 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
                                 }
                             });
                             posts.addAll(queryResults);
-
                             if(posts.size() / adFrequency > adCount){
                                 PostSkeleton adSkeleton = new PostSkeleton();
                                 NativeAd nextAd = mHostActivity.getNextAd();
                                 if(nextAd != null){
                                     if(nextAd instanceof NativeAppInstallAd){
                                         adSkeleton.setCategory(NATIVE_APP_INSTALL_AD);
+                                        adSkeleton.setNAI((NativeAppInstallAd) nextAd);
                                         posts.add(adSkeleton);
                                         adCount++;
                                     }
                                     else if(nextAd instanceof NativeContentAd){
                                         adSkeleton.setCategory(NATIVE_CONTENT_AD);
+                                        adSkeleton.setNC((NativeContentAd) nextAd);
                                         posts.add(adSkeleton);
                                         adCount++;
                                     }

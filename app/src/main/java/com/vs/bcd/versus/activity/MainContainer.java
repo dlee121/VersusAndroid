@@ -35,11 +35,16 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdLoader;
+import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.formats.NativeAd;
-import com.google.android.gms.ads.identifier.AdvertisingIdClient;
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
-import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.ads.formats.NativeAdOptions;
+import com.google.android.gms.ads.formats.NativeAppInstallAd;
+import com.google.android.gms.ads.formats.NativeAppInstallAd.OnAppInstallAdLoadedListener;
+import com.google.android.gms.ads.formats.NativeContentAd;
+import com.google.android.gms.ads.formats.NativeContentAd.OnContentAdLoadedListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -129,6 +134,8 @@ public class MainContainer extends AppCompatActivity {
     private CognitoCachingCredentialsProvider credentialsProvider;
 
     private DatabaseReference mFirebaseDatabaseReference;
+
+    private ArrayList<NativeAd> nativeAds;
 
     @Override
     public void onBackPressed(){
@@ -255,7 +262,9 @@ public class MainContainer extends AppCompatActivity {
 
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
-        MobileAds.initialize(this, "ca-app-pub-6060736084324309~1628038990");
+        nativeAds = new ArrayList<>();
+        MobileAds.initialize(this, "ca-app-pub-3940256099942544/2247696110"); //TODO: this loads test ads. Replace the app_id_string with our adMob account app_id_string to get real ads.
+        loadNativeAds();
 
         int usernameHash;
         if(currUsername.length() < 5){
@@ -1150,8 +1159,50 @@ public class MainContainer extends AppCompatActivity {
         return credentialsProvider.getCredentials();
     }
 
+    private void loadNativeAds(){
+        AdLoader adLoader = new AdLoader.Builder(this, "ca-app-pub-3940256099942544/2247696110")
+                .forAppInstallAd(new OnAppInstallAdLoadedListener() {
+                    @Override
+                    public void onAppInstallAdLoaded(NativeAppInstallAd appInstallAd) {
+                        nativeAds.add(appInstallAd);
+                    }
+                })
+                .forContentAd(new OnContentAdLoadedListener() {
+                    @Override
+                    public void onContentAdLoaded(NativeContentAd contentAd) {
+                        nativeAds.add(contentAd);
+                    }
+                })
+                .withAdListener(new AdListener() {
+                    @Override
+                    public void onAdFailedToLoad(int errorCode) {
+                        // Handle the failure by logging, altering the UI, and so on.
+                        //TODO: handle ad loading failure event
+                    }
+                })
+                .withNativeAdOptions(new NativeAdOptions.Builder()
+                        // Methods in the NativeAdOptions.Builder class can be
+                        // used here to specify individual options settings.
+                        .setImageOrientation(NativeAdOptions.ORIENTATION_LANDSCAPE)
+                        .build())
+                .build();
+
+        adLoader.loadAds(new AdRequest.Builder().build(), 5); //TODO: use keywords on the AdRequest.Builder to get targeted ads. for now, it's location based generic ads I believe.
+    }
+
     public NativeAd getNextAd(){
-        return null; //TODO: actually return the next available ad. So we should have a list of prepared ads ready to go, like at least 5
+        if(nativeAds == null || nativeAds.isEmpty()){
+            nativeAds = new ArrayList<>();
+            loadNativeAds();
+            return null; //TODO: I hear returning null is not the best design pattern, so let's see if we can refactor this.
+        } else {
+            NativeAd nextAd = nativeAds.get(0);
+            nativeAds.remove(0);
+            if(nativeAds.isEmpty()){
+                loadNativeAds();
+            }
+            return nextAd;
+        }
     }
 
 }

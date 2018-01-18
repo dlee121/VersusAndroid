@@ -8,6 +8,7 @@
     app:cardCornerRadius="0dp">
 
     <com.google.android.gms.ads.formats.NativeAppInstallAdView
+        android:id="@+id/nai_adview"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -56,7 +57,7 @@
                 android:layout_toEndOf="@id/nai_icon_view" />
 
             <RatingBar
-                android:id="@+id/appinstall_stars"
+                android:id="@+id/nai_stars_view"
                 style="?android:attr/ratingBarStyleSmall"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

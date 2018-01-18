@@ -66,7 +66,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
     private boolean xmlLoaded = false;  //marks whether or not xml has finished getting inflated.
 
     private int loadThreshold = 3;
-    private int adFrequency = 25; //place interstitial ad after every 25 posts
+    private int adFrequency = 25; //place native ad after every 25 posts
     private int adCount = 0;
 
     private int NATIVE_APP_INSTALL_AD = 42069;
@@ -340,24 +340,32 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                         }
                     });
 
+                    Log.d("adscheck", "we here");
                     //if we don't add new materials from the loading operation, prevent future loading by setting nowLoading to true
                     //otherwise we set nowLoading false so that we can load more posts when conditions are met
                     if(!assembledResults.isEmpty()){
                         posts.addAll(assembledResults);
+                        Log.d("adscheck", "we here");
                         if(posts.size() / adFrequency > adCount){
                             PostSkeleton adSkeleton = new PostSkeleton();
                             NativeAd nextAd = mHostActivity.getNextAd();
                             if(nextAd != null){
+                                Log.d("adscheck", "ads loaded");
                                 if(nextAd instanceof NativeAppInstallAd){
                                     adSkeleton.setCategory(NATIVE_APP_INSTALL_AD);
+                                    adSkeleton.setNAI((NativeAppInstallAd) nextAd);
                                     posts.add(adSkeleton);
                                     adCount++;
                                 }
                                 else if(nextAd instanceof NativeContentAd){
                                     adSkeleton.setCategory(NATIVE_CONTENT_AD);
+                                    adSkeleton.setNC((NativeContentAd) nextAd);
                                     posts.add(adSkeleton);
                                     adCount++;
                                 }
+                            }
+                            else{
+                                Log.d("adscheck", "ads not loaded");
                             }
                         }
                         nowLoading = false;
