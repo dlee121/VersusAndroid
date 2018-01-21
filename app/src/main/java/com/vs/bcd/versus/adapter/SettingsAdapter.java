@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
+import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.SettingObject;
 
 import java.util.List;
@@ -45,6 +46,31 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     @Override
                     public void onClick(View view) {
                         ((MainContainer)activity).sessionLogOut();
+                    }
+                });
+                break;
+            case "Add 10 Posts":
+                settingObjectViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Runnable runnable = new Runnable() {
+                            public void run() {
+                                for(int i = 0; i<10; i++){
+                                    Post post = new Post();
+                                    post.setCategory(5);
+                                    post.setAuthor("Deeks");
+                                    post.setRedname("red");
+                                    post.setBlackname("blue");
+                                    post.setQuestion("question?");
+                                    post.setRedimg("default");
+                                    post.setBlackimg("default");
+                                    ((MainContainer)activity).getMapper().save(post);
+                                }
+                            }
+                        };
+                        Thread mythread = new Thread(runnable);
+                        mythread.start();
+
                     }
                 });
                 break;

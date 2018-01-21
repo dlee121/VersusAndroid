@@ -13,6 +13,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,6 +23,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
@@ -34,11 +37,26 @@ import com.vs.bcd.versus.OnLoadMoreListener;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.MyAdapter;
+import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.ActivePost;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.PostSkeleton;
 import com.vs.bcd.versus.model.ThreadCounter;
 import com.vs.bcd.versus.model.VSComment;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import cz.msebera.android.httpclient.HttpEntity;
+import cz.msebera.android.httpclient.HttpResponse;
+import cz.msebera.android.httpclient.client.ClientProtocolException;
+import cz.msebera.android.httpclient.client.ResponseHandler;
+import cz.msebera.android.httpclient.client.methods.HttpPost;
+import cz.msebera.android.httpclient.entity.ContentType;
+import cz.msebera.android.httpclient.entity.StringEntity;
+import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
+import cz.msebera.android.httpclient.impl.client.HttpClients;
+import cz.msebera.android.httpclient.util.EntityUtils;
 
 /**
  * Created by dlee on 4/29/17.
@@ -60,17 +78,19 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
     private int numCategoriesToQuery = 24;  //this may change if user preference or Premium user option dictates removal of certain categories from getting queried and added to Newsfeed
     private int retrievalLimit = 10;
     SwipeRefreshLayout mSwipeRefreshLayout;
-    //the two booleans below are two-way dependency thing where, if xml loads first, we trigger initial loading animation in setUserVisibleHint (which is triggered when tab becomes visible)
-    //and if setUserVisibleHint(true) is triggered before xml loads, then we mark that initial loading in progress and trigger initial loading animation during xml loading in onCreateView
-    private boolean initialLoadInProgress = false;
-    private boolean xmlLoaded = false;  //marks whether or not xml has finished getting inflated.
 
-    private int loadThreshold = 3;
-    private int adFrequency = 25; //place native ad after every 25 posts
+    private int loadThreshold = 8;
+    private int adFrequency = 16; //place native ad after every 18 posts
     private int adCount = 0;
+    private int retrievalSize = 16;
 
     private int NATIVE_APP_INSTALL_AD = 42069;
     private int NATIVE_CONTENT_AD = 69420;
+
+    private int currPostsIndex = 0;
+
+    static String host = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
+    static String region = "us-east-1";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -80,14 +100,41 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
         //TODO: create, at the right location, list of constant enumeration to represent categories. probably at post creation page, which is for now replaced by sample data creation below
         //mHostActivity.setToolbarTitleTextForTabs("Newsfeed");
 
+        posts = new ArrayList<>();
+
+        recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler_view);
+
+        recyclerView.setLayoutManager(new LinearLayoutManager(mHostActivity));
+        //this is where the list is passed on to adapter
+        myAdapter = new MyAdapter(recyclerView, posts, mHostActivity, 0);
+        recyclerView.setAdapter(myAdapter);
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                //only if postSearchResults.size()%retrievalSize == 0, meaning it's possible there's more matching documents for this search
+                if(posts != null && !posts.isEmpty() && currPostsIndex%retrievalSize == 0) {
+                    LinearLayoutManager layoutManager = LinearLayoutManager.class.cast(recyclerView.getLayoutManager());
+                    int lastVisible = layoutManager.findLastVisibleItemPosition();
+
+                    boolean endHasBeenReached = lastVisible + loadThreshold >= currPostsIndex;  //TODO: increase the loadThreshold as we get more posts, but capping it at 5 is probably sufficient
+                    if (currPostsIndex > 0 && endHasBeenReached) {
+                        //you have reached to the bottom of your recycler view
+                        if (!nowLoading) {
+                            nowLoading = true;
+                            newsfeedESQuery(posts.size());
+                        }
+                    }
+                }
+            }
+        });
+
         // SwipeRefreshLayout
-        mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_container_tab1);
+        mSwipeRefreshLayout = rootView.findViewById(R.id.swipe_container_tab1);
         mSwipeRefreshLayout.setOnRefreshListener(this);
 
-        if(initialLoadInProgress){
-            mSwipeRefreshLayout.setRefreshing(true);
+        if(getUserVisibleHint()){
+            newsfeedESQuery(0);
         }
-        xmlLoaded = true;
 
         return rootView;
     }
@@ -102,297 +149,6 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
-
-        if (isVisibleToUser) {
-            if(fragmentSelected) {
-                //mHostActivity.setToolbarTitleTextForTabs("Newsfeed");
-                //toolbar title text now set in MainActivity addOnTabSelectedListener section
-            }
-            else{
-                fragmentSelected = true;
-
-                initialLoadInProgress = true;
-                if(xmlLoaded){
-                    mSwipeRefreshLayout.setRefreshing(true);
-                }
-
-                Runnable runnable = new Runnable() {
-                    public void run() {
-
-                        posts = newsfeedQuery(df.format(new Date()));
-
-                        Log.d("Query on Category: ", "posts set with " + Integer.toString(posts.size()) + " items");
-
-
-                        //run UI updates on UI Thread
-                        mHostActivity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                //find view by id and attaching adapter for the RecyclerView
-                                recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler_view);
-
-                                recyclerView.setLayoutManager(new LinearLayoutManager(mHostActivity));
-                                //this is where the list is passed on to adapter
-                                myAdapter = new MyAdapter(recyclerView, posts, mHostActivity, 0);
-                                recyclerView.setAdapter(myAdapter);
-                                initialLoadInProgress = false;
-                                mSwipeRefreshLayout.setRefreshing(false);
-
-                                recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-                                    @Override
-                                    public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                                        LinearLayoutManager layoutManager=LinearLayoutManager.class.cast(recyclerView.getLayoutManager());
-                                        int totalItemCount = layoutManager.getItemCount();
-                                        int lastVisible = layoutManager.findLastVisibleItemPosition();
-
-                                        boolean endHasBeenReached = lastVisible + loadThreshold >= totalItemCount;  //TODO: increase the loadThreshold as we get more posts, but capping it at 5 is probably sufficient
-                                        if (totalItemCount > 0 && endHasBeenReached) {
-                                            //you have reached to the bottom of your recycler view
-                                            if(!nowLoading){
-                                                nowLoading = true;
-                                                Log.d("Load", "Now Loadin More");
-                                                loadMorePosts();
-                                            }
-                                        }
-                                    }
-                                });
-                            }
-                        });
-
-
-
-                    }
-                };
-                Thread mythread = new Thread(runnable);
-                mythread.start();
-            }
-        }
-    }
-
-    //returns newsfeed query result, sorted by date
-    private ArrayList<PostSkeleton> newsfeedQuery(String maxTimestamp){
-        final ArrayList<PostSkeleton> assembledResults = new ArrayList<>();
-        final Condition rangeKeyCondition = new Condition()
-                .withComparisonOperator(ComparisonOperator.LT.toString())
-                .withAttributeValueList(new AttributeValue().withS(maxTimestamp));
-
-        final ThreadCounter threadCounter = new ThreadCounter(0, numCategoriesToQuery, this);
-        for(int i = 0; i <  numCategoriesToQuery; i++){
-            final int index = i;
-
-            Runnable runnable = new Runnable() {
-                public void run() {
-                    ActivePost queryTemplate = new ActivePost();
-                    queryTemplate.setCategory(index);
-                    //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
-                    DynamoDBQueryExpression queryExpression =
-                            new DynamoDBQueryExpression()
-                                    .withIndexName("category-time-index")
-                                    .withHashKeyValues(queryTemplate)
-                                    .withRangeKeyCondition("time", rangeKeyCondition)
-                                    .withScanIndexForward(false)
-                                    .withLimit(retrievalLimit);
-                    /*
-                    PaginatedQueryList<ActivePost> queryResults = ((MainContainer)getActivity()).getMapper().query(ActivePost.class, queryExpression);
-                    queryResults.loadAllResults();
-                    assembledResults.addAll(queryResults);
-                    */
-                    ArrayList<ActivePost> queryResults = new ArrayList<ActivePost>(((MainContainer)getActivity()).getMapper().queryPage(ActivePost.class, queryExpression).getResults());
-                    assembledResults.addAll(queryResults);
-                    //bookmark for the range key for loading more when user scrolls down far enough and triggers "load more action"
-
-                    if(queryResults.size() < retrievalLimit){
-                        lastEvaluatedTimeKey.put(new Integer(index), "done");
-                    }
-                    else{
-                        //Log.d("Load: ", "retrieved " + Integer.toString(queryResults.size()) + " more items");
-                        lastEvaluatedTimeKey.put(new Integer(index), queryResults.get(queryResults.size()-1).getTime());
-                    }
-                    Log.d("Query on Category: ", Integer.toString(queryTemplate.getCategory()));
-
-
-                    threadCounter.increment();
-                }
-            };
-            Thread mythread = new Thread(runnable);
-            mythread.start();
-        }
-
-        long end = System.currentTimeMillis() + 10*1000; // 10 seconds * 1000 ms/sec
-        //automatic timeout at 10 seconds to prevent infinite loop
-        while(!displayResults && System.currentTimeMillis() < end){
-
-        }
-        if(displayResults){
-            Log.d("Query on Category: ", "got through");
-        }
-        else{
-            Log.d("Query on Category: ", "loop timeout");
-        }
-        threadCounter.terminateCounter();
-        displayResults = false;
-
-        //sort the assembledResults where posts are sorted from more recent to less recent
-        Collections.sort(assembledResults, new Comparator<PostSkeleton>() {
-            //TODO: confirm that this sorts dates where most recent is at top. If not then just flip around o1 and o2: change to o2.getDate().compareTo(o1.getDate())
-            @Override
-            public int compare(PostSkeleton o1, PostSkeleton o2) {
-                return o2.getDate().compareTo(o1.getDate());
-            }
-        });
-
-        return assembledResults;
-    }
-
-    public void yesDisplayResults(){
-        Log.d("Load", "displayResults set to true");
-
-        displayResults = true;
-    }
-
-    private void loadMorePosts() {
-
-        AsyncTask<String, String, String> _Task = new AsyncTask<String, String, String>() {
-
-            @Override
-            protected void onPreExecute() {
-                mSwipeRefreshLayout.setRefreshing(true);
-
-            }
-
-            @Override
-            protected String doInBackground(String... arg0)
-            {
-                try {
-                    final ArrayList<PostSkeleton> assembledResults = new ArrayList<>();
-
-                    final ThreadCounter threadCounter = new ThreadCounter(0, numCategoriesToQuery, thisTab);
-                    for(int i = 0; i <  numCategoriesToQuery; i++){
-                        String leTime = lastEvaluatedTimeKey.get(new Integer(i));
-                        if(leTime != null && !(leTime.equals("done"))){
-                            final Condition rangeKeyCondition = new Condition()
-                                    .withComparisonOperator(ComparisonOperator.LT.toString())
-                                    .withAttributeValueList(new AttributeValue().withS(leTime));
-
-                            final int index = i;
-
-                            Runnable runnable = new Runnable() {
-                                public void run() {
-                                    ActivePost queryTemplate = new ActivePost();
-                                    queryTemplate.setCategory(index);
-                                    //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
-                                    DynamoDBQueryExpression queryExpression =
-                                            new DynamoDBQueryExpression()
-                                                    .withIndexName("category-time-index")
-                                                    .withHashKeyValues(queryTemplate)
-                                                    .withRangeKeyCondition("time", rangeKeyCondition)
-                                                    .withScanIndexForward(false)
-                                                    .withLimit(retrievalLimit);
-                                    Log.d("Query on Category: ", Integer.toString(queryTemplate.getCategory()));
-
-                                    ArrayList<ActivePost> queryResults = new ArrayList<>(((MainContainer)getActivity()).getMapper().queryPage(ActivePost.class, queryExpression).getResults());
-                                    assembledResults.addAll(queryResults);
-                                    //bookmark for the range key for loading more when user scrolls down far enough and triggers "load more action"
-                                    //if(!queryResults.isEmpty()){
-                                    if(queryResults.size() < retrievalLimit){
-                                        lastEvaluatedTimeKey.put(new Integer(index), "done");
-                                    }
-                                    else{
-                                        //Log.d("Load: ", "retrieved " + Integer.toString(queryResults.size()) + " more items");
-                                        lastEvaluatedTimeKey.put(new Integer(index), queryResults.get(queryResults.size()-1).getTime());
-                                    }
-                                    //}
-                                    threadCounter.increment();
-                                }
-                            };
-                            Thread mythread = new Thread(runnable);
-                            mythread.start();
-                        }
-                        else {
-                            threadCounter.increment();
-                        }
-                    }
-
-                    long end = System.currentTimeMillis() + 10*1000; // 10 seconds * 1000 ms/sec
-                    //automatic timeout at 10 seconds to prevent infinite loop
-                    while(!displayResults && System.currentTimeMillis() < end){
-
-                    }
-                    if(displayResults){
-                        Log.d("Query on Category: ", "got through");
-                    }
-                    else{
-                        Log.d("Query on Category: ", "loop timeout");
-                    }
-
-                    threadCounter.terminateCounter();
-                    displayResults = false;
-
-                    //sort the assembledResults where posts are sorted from more recent to less recent
-                    Collections.sort(assembledResults, new Comparator<PostSkeleton>() {
-                        //TODO: confirm that this sorts dates where most recent is at top. If not then just flip around o1 and o2: change to o2.getDate().compareTo(o1.getDate())
-                        @Override
-                        public int compare(PostSkeleton o1, PostSkeleton o2) {
-                            return o2.getDate().compareTo(o1.getDate());
-                        }
-                    });
-
-                    Log.d("adscheck", "we here");
-                    //if we don't add new materials from the loading operation, prevent future loading by setting nowLoading to true
-                    //otherwise we set nowLoading false so that we can load more posts when conditions are met
-                    if(!assembledResults.isEmpty()){
-                        posts.addAll(assembledResults);
-                        Log.d("adscheck", "we here");
-                        if(posts.size() / adFrequency > adCount){
-                            PostSkeleton adSkeleton = new PostSkeleton();
-                            NativeAd nextAd = mHostActivity.getNextAd();
-                            if(nextAd != null){
-                                Log.d("adscheck", "ads loaded");
-                                if(nextAd instanceof NativeAppInstallAd){
-                                    adSkeleton.setCategory(NATIVE_APP_INSTALL_AD);
-                                    adSkeleton.setNAI((NativeAppInstallAd) nextAd);
-                                    posts.add(adSkeleton);
-                                    adCount++;
-                                }
-                                else if(nextAd instanceof NativeContentAd){
-                                    adSkeleton.setCategory(NATIVE_CONTENT_AD);
-                                    adSkeleton.setNC((NativeContentAd) nextAd);
-                                    posts.add(adSkeleton);
-                                    adCount++;
-                                }
-                            }
-                            else{
-                                Log.d("adscheck", "ads not loaded");
-                            }
-                        }
-                        nowLoading = false;
-                    }
-                    else{
-                        nowLoading = true;
-                    }
-
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                return null;
-            }
-            @Override
-            protected void onProgressUpdate(String... values) {
-                // TODO Auto-generated method stub
-                super.onProgressUpdate(values);
-                System.out.println("Progress : "  + values);
-            }
-
-            @Override
-            protected void onPostExecute(String result)
-            {
-                recyclerView.getAdapter().notifyDataSetChanged();
-                mSwipeRefreshLayout.setRefreshing(false);
-            }
-        };
-        _Task.execute((String[]) null);
     }
 
     /**
@@ -400,40 +156,165 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
      */
     @Override
     public void onRefresh() {
-
         // Fetching data from server
-        refreshNewsfeed();
-    }
-
-    private void refreshNewsfeed(){
         adCount = 0;
         Log.d("Refresh", "Now Refreshing");
-        mSwipeRefreshLayout.setRefreshing(true);
-        lastEvaluatedTimeKey.clear();
+
         posts.clear();
+        newsfeedESQuery(0);
+
+        Log.d("Refresh", "Now posts has " + Integer.toString(posts.size()) + " items");
+    }
+
+
+    public void newsfeedESQuery(final int fromIndex) {
+
+        if(fromIndex == 0){
+            mSwipeRefreshLayout.setRefreshing(true);
+            currPostsIndex = 0;
+            nowLoading = false;
+        }
+
+        Log.d("newnewsfeed", "From index: " + Integer.toString(currPostsIndex));
 
         Runnable runnable = new Runnable() {
             public void run() {
-                posts.addAll(newsfeedQuery(df.format(new Date())));
-                Log.d("Refresh", "Now posts has " + Integer.toString(posts.size()) + " items");
+                /*
+                if(accessKey == null || accessKey.equals("")){
+                    accessKey = activity.getCred().getAWSAccessKeyId();
+                }
+                if(secretKey == null || secretKey.equals("")){
+                    secretKey = activity.getCred().getAWSSecretKey();
+                }
+                */
+                //TODO: get accesskey and secretkey
 
-                mHostActivity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        recyclerView.getAdapter().notifyDataSetChanged();
-                        mSwipeRefreshLayout.setRefreshing(false);
-                    }
-                });
+                String query = "/_search";
+                String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\"@timestamp\":{\"order\":\"desc\"}}],\"query\":{\"match_all\":{}}}";
+
+                String url = "https://" + host + query;
+
+                TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
+                awsHeaders.put("host", host);
+
+                AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
+                        .regionName(region)
+                        .serviceName("es") // es - elastic search. use your service name
+                        .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
+                        .canonicalURI(query) //end point
+                        .queryParametes(null) //query parameters if any
+                        .awsHeaders(awsHeaders) //aws header parameters
+                        .payload(payload) // payload if any
+                        .debug() // turn on the debug mode
+                        .build();
+
+                HttpPost httpPost = new HttpPost(url);
+                StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
+                httpPost.setEntity(requestEntity);
+
+		        /* Get header calculated for request */
+                Map<String, String> header = aWSV4Auth.getHeaders();
+                for (Map.Entry<String, String> entrySet : header.entrySet()) {
+                    String key = entrySet.getKey();
+                    String value = entrySet.getValue();
+
+			    /* Attach header in your request */
+			    /* Simple get request */
+
+                    httpPost.addHeader(key, value);
+                }
+                httpPostRequest(httpPost);
 
             }
         };
-
         Thread mythread = new Thread(runnable);
         mythread.start();
 
-        //lastRetrievedTime = assembledResults.get(assembledResults.size()-1).getTime();
-        nowLoading = false;
+        //TODO: also ad ads as we did with the ddb Newsfeed query
+    }
 
+    public void httpPostRequest(HttpPost httpPost) {
+		/* Create object of CloseableHttpClient */
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+		/* Response handler for after request execution */
+        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
+
+            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+				/* Get status code */
+                int status = response.getStatusLine().getStatusCode();
+                if (status >= 200 && status < 300) {
+					/* Convert response to String */
+                    HttpEntity entity = response.getEntity();
+                    return entity != null ? EntityUtils.toString(entity) : null;
+                } else {
+                    throw new ClientProtocolException("Unexpected response status: " + status);
+                }
+            }
+        };
+
+        try {
+			/* Execute URL and attach after execution response handler */
+            String strResponse = httpClient.execute(httpPost, responseHandler);
+            if(posts == null){
+                posts = new ArrayList<>();
+                myAdapter = new MyAdapter(recyclerView, posts, mHostActivity, 0);
+                recyclerView.setAdapter(myAdapter);
+            }
+
+            JSONObject obj = new JSONObject(strResponse);
+            JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
+            if(hits.length() == 0){
+                Log.d("newnewsfeed", "end reached, disabling loadMore");
+                return;
+            }
+            for(int i = 0; i < hits.length(); i++){
+                JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
+                posts.add(new PostSkeleton(item));
+                currPostsIndex++;
+                if(currPostsIndex%adFrequency == 0){
+                    PostSkeleton adSkeleton = new PostSkeleton();
+                    NativeAd nextAd = mHostActivity.getNextAd();
+                    if(nextAd != null){
+                        Log.d("adscheck", "ads loaded");
+                        if(nextAd instanceof NativeAppInstallAd){
+                            adSkeleton.setCategory(NATIVE_APP_INSTALL_AD);
+                            adSkeleton.setNAI((NativeAppInstallAd) nextAd);
+                            posts.add(adSkeleton);
+                            adCount++;
+                        }
+                        else if(nextAd instanceof NativeContentAd){
+                            adSkeleton.setCategory(NATIVE_CONTENT_AD);
+                            adSkeleton.setNC((NativeContentAd) nextAd);
+                            posts.add(adSkeleton);
+                            adCount++;
+                        }
+                    }
+                    else{
+                        Log.d("adscheck", "ads not loaded");
+                    }
+                }
+                Log.d("SEARCHRESULTS", "R: " + posts.get(i).getRedname() + ", B: " + posts.get(i).getBlackname() + ", Q: " + posts.get(i).getQuestion());
+                //TODO: display search results. If zero results then display empty results page. Items should be clickable, but we may want to use a new adapter, differentiating search view from MainActivity views, mainly that searchview should be more concise to display more search results in one page. Or should it be same as MainActivity's way of displaying posts list?
+            }
+
+            if(posts != null && !posts.isEmpty()){
+                mHostActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        myAdapter.notifyDataSetChanged();
+                        mSwipeRefreshLayout.setRefreshing(false);
+                        if(nowLoading){
+                            nowLoading = false;
+                        }
+                    }
+                });
+            }
+            //System.out.println("Response: " + strResponse);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
