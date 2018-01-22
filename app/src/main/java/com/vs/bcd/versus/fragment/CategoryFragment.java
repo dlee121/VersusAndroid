@@ -39,7 +39,6 @@ import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
 import com.vs.bcd.versus.adapter.MyAdapter;
 import com.vs.bcd.versus.model.Post;
-import com.vs.bcd.versus.model.PostSkeleton;
 
 /**
  * Created by dlee on 9/8/17.
@@ -47,7 +46,7 @@ import com.vs.bcd.versus.model.PostSkeleton;
 
 public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
-    private ArrayList<PostSkeleton> posts = new ArrayList<>();
+    private ArrayList<Post> posts = new ArrayList<>();
     private MyAdapter myAdapter;
     private View rootView;
     private MainContainer mHostActivity;
@@ -430,7 +429,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
                             });
                             posts.addAll(queryResults);
                             if(posts.size() / adFrequency > adCount){
-                                PostSkeleton adSkeleton = new PostSkeleton();
+                                Post adSkeleton = new Post();
                                 NativeAd nextAd = mHostActivity.getNextAd();
                                 if(nextAd != null){
                                     if(nextAd instanceof NativeAppInstallAd){
@@ -537,7 +536,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
                             });
                             posts.addAll(queryResults);
                             if(posts.size() / adFrequency > adCount){
-                                PostSkeleton adSkeleton = new PostSkeleton();
+                                Post adSkeleton = new Post();
                                 NativeAd nextAd = mHostActivity.getNextAd();
                                 if(nextAd != null){
                                     if(nextAd instanceof NativeAppInstallAd){

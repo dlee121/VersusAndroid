@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.os.AsyncTask;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v7.app.AppCompatActivity;
@@ -63,7 +62,7 @@ import com.vs.bcd.versus.fragment.ProfileTab;
 import com.vs.bcd.versus.fragment.SelectCategory;
 import com.vs.bcd.versus.fragment.SettingsFragment;
 import com.vs.bcd.versus.model.CategoryObject;
-import com.vs.bcd.versus.model.PostSkeleton;
+import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.RNumAndUList;
 import com.vs.bcd.versus.model.RoomObject;
 import com.vs.bcd.versus.model.SessionManager;
@@ -72,7 +71,6 @@ import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.fragment.SearchPage;
 import com.vs.bcd.versus.ViewPagerCustomDuration;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -883,7 +881,7 @@ public class MainContainer extends AppCompatActivity {
     }
 
     //pass post information from MyAdapter CardView click handler, through this helper method, to PostPage fragment
-    public void postClicked(PostSkeleton post, int fragmentInt){
+    public void postClicked(Post post, int fragmentInt){
         String temp = postInDownload.get(post.getPost_id());
         if(temp == null || !temp.equals("in progress")){
             postInDownload.put(post.getPost_id(), "in progress");

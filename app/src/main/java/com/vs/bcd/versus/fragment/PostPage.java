@@ -35,13 +35,13 @@ import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
 import com.vs.bcd.versus.adapter.PostPageAdapter;
 import com.vs.bcd.versus.model.MedalUpdateRequest;
 import com.vs.bcd.versus.model.Post;
-import com.vs.bcd.versus.model.PostSkeleton;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.ThreadCounter;
 import com.vs.bcd.versus.model.UserAction;
 import com.vs.bcd.versus.model.VSCNode;
 import com.vs.bcd.versus.model.VSComment;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -74,7 +74,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private String postTopic;
     private String postX;
     private String postY;
-    private PostSkeleton post;
+    private Post post;
     private SessionManager sessionManager;
     private List<Object> vsComments = new ArrayList<>(); //ArrayList of VSCNode
     private ViewGroup.LayoutParams RVLayoutParams;
@@ -119,6 +119,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private int goldPoints = 30;
     private int silverPoints = 15;
     private int bronzePoints = 5;
+
+    private double votePSI = 2.0; //ps increment per vote
 
     private DatabaseReference mFirebaseDatabaseReference;
 
@@ -516,7 +518,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 rootComments.addAll(queryResultPage.getResults());
 
                 chunkSorter(rootComments);
-
 
                 VSCNode prevNode = null;
 
@@ -1146,7 +1147,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
 
 
-    public void setContent(final PostSkeleton post, final boolean downloadImages){  //downloadImages signifies initial post page set up
+    public void setContent(final Post post, final boolean downloadImages){  //downloadImages signifies initial post page set up
         /*  Local postsList and commentsList contents check section
             //used to check local lists against DB.User version to test list setup/modification
 
@@ -1631,12 +1632,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         String redOrBlack;
                         boolean decrement = false;
                         if (redIncrementedLast) {
-                            redOrBlack = "redcount";
+                            redOrBlack = "rc";
                             if (lastSubmittedVote.equals("BLK")) {
                                 decrement = true;
                             }
                         } else {
-                            redOrBlack = "blackcount";
+                            redOrBlack = "bc";
                             if (lastSubmittedVote.equals("RED")) {
                                 decrement = true;
                             }
@@ -1644,8 +1645,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                         HashMap<String, AttributeValue> keyMap =
                                 new HashMap<>();
-                        keyMap.put("category", new AttributeValue().withN(post.getCategoryIntAsString()));
-                        keyMap.put("post_id", new AttributeValue().withS(postID));
+                        keyMap.put("c", new AttributeValue().withN(post.getCategoryIntAsString()));
+                        keyMap.put("i", new AttributeValue().withS(postID));
 
                         HashMap<String, AttributeValueUpdate> updates =
                                 new HashMap<>();
@@ -1656,9 +1657,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         updates.put(redOrBlack, avu);
 
                         if (decrement) {
-                            String voteToDecrement = "redcount";
-                            if (redOrBlack.equals("redcount")) {
-                                voteToDecrement = "blackcount";
+                            String voteToDecrement = "rc";
+                            if (redOrBlack.equals("rc")) {
+                                voteToDecrement = "bc";
                             }
                             AttributeValueUpdate avd = new AttributeValueUpdate()
                                     .withValue(new AttributeValue().withN("-1"))
@@ -1666,10 +1667,25 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             updates.put(voteToDecrement, avd);
                         }
                         else {  //decrement == false means this is a new vote, therefore increment votecount
-                            AttributeValueUpdate vcu = new AttributeValueUpdate()
-                                    .withValue(new AttributeValue().withN("1"))
+                            //update pt and increment ps
+                            int currPt = (int)((System.currentTimeMillis()/1000)/60);
+                            AttributeValueUpdate ptu = new AttributeValueUpdate()
+                                    .withValue(new AttributeValue().withN(Integer.toString(currPt)))
+                                    .withAction(AttributeAction.PUT);
+                            updates.put("pt", ptu);
+
+                            int timeDiff = currPt - post.getPt();
+                            Log.d("timeDiff", "timeDiff = "+Integer.toString(timeDiff));
+                            if(timeDiff <= 0){ //if timeDiff is negative due to some bug or if timeDiff is zero, we just make it equal 1.
+                                timeDiff = 1;
+                            }
+
+                            double psIncrement = votePSI/timeDiff;
+                            AttributeValueUpdate psu = new AttributeValueUpdate()
+                                    .withValue(new AttributeValue().withN(Double.toString(psIncrement)))
                                     .withAction(AttributeAction.ADD);
-                            updates.put("votecount", vcu);
+                            updates.put("ps", psu);
+                            Log.d("timeDiff", "timeDiff = "+Double.toString(psIncrement));
 
                             sendPostVoteNotification();
                         }
@@ -1680,16 +1696,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                 .withAttributeUpdates(updates);
 
                         activity.getDDBClient().updateItem(request);
-
-
-                        if(System.currentTimeMillis()/1000 < post.getStl()){    //this condition determines if the post only exists in post table or also exists in active_post table
-                            request = new UpdateItemRequest()
-                                    .withTableName("active_post")
-                                    .withKey(keyMap)
-                                    .withAttributeUpdates(updates);
-
-                            activity.getDDBClient().updateItem(request);
-                        }
 
                         //update lastSubmittedVote
                         lastSubmittedVote = userAction.getVotedSide();
@@ -1759,10 +1765,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     public String getCatNumString(){
         return post.getCategoryIntAsString();
-    }
-
-    public long getCurrPostSTL(){
-        return post.getStl();
     }
 
     public void yesExitLoop(){

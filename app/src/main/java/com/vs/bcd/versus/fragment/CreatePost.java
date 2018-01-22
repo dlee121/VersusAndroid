@@ -21,10 +21,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -37,26 +34,15 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeAction;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
-import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.vs.bcd.versus.R;
-import com.vs.bcd.versus.adapter.CategoriesAdapter;
-import com.vs.bcd.versus.model.ActivePost;
-import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.model.Post;
-
-import static com.amazonaws.auth.policy.actions.DynamoDBv2Actions.UpdateItem;
 
 /**
  * Created by dlee on 5/19/17.
@@ -162,12 +148,14 @@ public class CreatePost extends Fragment {
             public void run() {
                 final Post post = new Post();
 
-                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                //ByteArrayOutputStream bos = new ByteArrayOutputStream();
                 try {
-
-                    uploadImageToAWS(ivLeft.getDrawingCache(), post.getPost_id(), "left");
-                    uploadImageToAWS(ivRight.getDrawingCache(), post.getPost_id(), "right");
-
+                    if(redimgSet.equals("s3")){
+                        uploadImageToAWS(ivLeft.getDrawingCache(), post.getPost_id(), "left");
+                    }
+                    if(blackimgSet.equals("s3")){
+                        uploadImageToAWS(ivRight.getDrawingCache(), post.getPost_id(), "right");
+                    }
                     /*
                     //clear out drawing cache so that we can use it again with different images for another upload
                     ivLeft.setDrawingCacheEnabled(false);
@@ -179,6 +167,7 @@ public class CreatePost extends Fragment {
                 } catch (Exception e) {
                     Log.e(getClass().getSimpleName(), "Error writing bitmap", e);
                 }
+
 
                 post.setCategory(currentCategorySelection);
                 /*
@@ -194,10 +183,6 @@ public class CreatePost extends Fragment {
                 post.setRedimg(redimgSet);
                 post.setBlackimg(blackimgSet);
                 activity.getMapper().save(post);
-
-                //create activePost, an entry into the ActivePost table, since this is a new post.
-                final ActivePost activePost = new ActivePost(post);
-                activity.getMapper().save(activePost);
 
                 //update DB User.posts list with the new postID String
                 /*  retired the attribute but keeping this code as reference for list_append
@@ -337,7 +322,7 @@ public class CreatePost extends Fragment {
 
 
                     //run UI updates on UI Thread
-                    getActivity().runOnUiThread(new Runnable() {
+                    activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             if(side.equals("left")){

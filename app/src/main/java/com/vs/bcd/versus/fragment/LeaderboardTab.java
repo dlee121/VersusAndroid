@@ -1,25 +1,16 @@
 package com.vs.bcd.versus.fragment;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBQueryExpression;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
-import com.amazonaws.services.dynamodbv2.model.Condition;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -28,22 +19,10 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
-import com.vs.bcd.versus.adapter.CategoriesAdapter;
 import com.vs.bcd.versus.adapter.LeaderboardAdapter;
-import com.vs.bcd.versus.adapter.PostPageAdapter;
-import com.vs.bcd.versus.model.ActivePost;
-import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.model.LeaderboardEntry;
-import com.vs.bcd.versus.model.PostSkeleton;
-import com.vs.bcd.versus.model.ThreadCounter;
-import com.vs.bcd.versus.model.User;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
-import static android.content.ContentValues.TAG;
 
 /**
  * Created by dlee on 8/6/17.

@@ -20,19 +20,13 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
-import com.vs.bcd.versus.adapter.InvitedUserAdapter;
 import com.vs.bcd.versus.adapter.NotificationsAdapter;
-import com.vs.bcd.versus.adapter.UserSearchAdapter;
 import com.vs.bcd.versus.model.NotificationItem;
-import com.vs.bcd.versus.model.PostSkeleton;
-import com.vs.bcd.versus.model.UserSearchItem;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-
-import static android.R.string.no;
 
 /**
  * Created by dlee on 8/6/17.

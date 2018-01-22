@@ -23,7 +23,6 @@ import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
 import com.amazonaws.services.dynamodbv2.model.Condition;
 import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
 import com.amazonaws.services.dynamodbv2.model.GetItemResult;
-import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -34,12 +33,9 @@ import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.CommentHistoryAdapter;
 import com.vs.bcd.versus.adapter.MyAdapter;
 import com.vs.bcd.versus.model.Post;
-import com.vs.bcd.versus.model.PostSkeleton;
-import com.vs.bcd.versus.model.UserSearchItem;
 import com.vs.bcd.versus.model.VSComment;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -388,7 +384,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                         .withConsistentRead(false)
                         .withLimit(postRetrievalLimit);
 
-        List<PostSkeleton> posts = activity.getMapper().query(Post.class, queryExpression);
+        List<Post> posts = activity.getMapper().query(Post.class, queryExpression);
 
         final MyAdapter postsAdapter = new MyAdapter(recyclerView, posts, activity, 9);
 

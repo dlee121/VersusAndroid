@@ -1,8 +1,5 @@
 package com.vs.bcd.versus.adapter;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -10,11 +7,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.ads.formats.NativeAd;
@@ -25,14 +20,11 @@ import com.google.android.gms.ads.formats.NativeContentAdView;
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.vs.bcd.versus.OnLoadMoreListener;
 import com.vs.bcd.versus.activity.MainContainer;
-import com.vs.bcd.versus.model.ActivePost;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.R;
-import com.vs.bcd.versus.model.PostSkeleton;
 
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Date;
 import java.util.Locale;
@@ -48,14 +40,14 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private OnLoadMoreListener onLoadMoreListener;
     private boolean isLoading;
     private MainContainer activity;
-    private List<PostSkeleton> posts;
+    private List<Post> posts;
     private int visibleThreshold = 8;
     private int lastVisibleItem, totalItemCount;
     private final int fragmentInt; //0 = MainActivity, 1 = Search, 6 = Category, 9 = Me (Profile). Default value of 0.
     private String GAID;
     private boolean gaidWait;
 
-    public MyAdapter(RecyclerView recyclerView, List<PostSkeleton> posts, MainContainer activity, int fragmentInt) {
+    public MyAdapter(RecyclerView recyclerView, List<Post> posts, MainContainer activity, int fragmentInt) {
         this.posts = posts;
         this.activity = activity;
         this.fragmentInt = fragmentInt;
@@ -130,7 +122,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         if (holder instanceof UserViewHolder) {
 
             //TODO:this is where values are put into the layout, from the post object
-            PostSkeleton post = posts.get(position);
+            Post post = posts.get(position);
             final String postID = post.getPost_id();
             int timeFormat = 0;
             UserViewHolder userViewHolder = (UserViewHolder) holder;
@@ -255,7 +247,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
 
         else if(holder instanceof NAIAdViewHolder){
-            PostSkeleton adSkeleton = posts.get(position);
+            Post adSkeleton = posts.get(position);
             NativeAppInstallAd nativeAppInstallAd = adSkeleton.getNAI();
 
             NAIAdViewHolder naiAdViewHolder = (NAIAdViewHolder) holder;
@@ -296,7 +288,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
 
         else if(holder instanceof NCAdViewHolder){
-            PostSkeleton adSkeleton = posts.get(position);
+            Post adSkeleton = posts.get(position);
             NativeContentAd nativeContentAd = adSkeleton.getNC();
 
             NCAdViewHolder ncAdViewHolder = (NCAdViewHolder) holder;
@@ -446,7 +438,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         //TODO: implement this for when profile pic is clicked on PostCard
     }
     /*
-    public boolean addToPostsList(ArrayList<PostSkeleton> additionalPosts){
+    public boolean addToPostsList(ArrayList<Post> additionalPosts){
         if(additionalPosts.isEmpty()){
             return false;
         }
@@ -457,7 +449,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
     }
 
-    public void refreshPostsList(ArrayList<PostSkeleton> postsIn){
+    public void refreshPostsList(ArrayList<Post> postsIn){
         posts.clear();
         posts.addAll(postsIn);
         Log.d("Refresh", "Now posts has " + Integer.toString(posts.size()) + " items");

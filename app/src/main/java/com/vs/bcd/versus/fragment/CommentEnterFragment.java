@@ -19,7 +19,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.PostPageAdapter;
-import com.vs.bcd.versus.model.PostSkeleton;
+import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.VSComment;
 
 import java.text.ParseException;
@@ -41,7 +41,7 @@ public class CommentEnterFragment extends Fragment{
     private Button submitButton;
     private RelativeLayout postRef, commentRef;
     private RelativeLayout.LayoutParams postRefLP, commentRefLP;
-    private PostSkeleton post = null;
+    private Post post = null;
     private VSComment subjectComment = null;
     private String parentID = "0";
     private String postID;
@@ -51,6 +51,7 @@ public class CommentEnterFragment extends Fragment{
     private String r = "";
     private String b = "";
     private String q = "";
+    private double commentPSI = 3.0; //ps increment per comment
 
     private DatabaseReference mFirebaseDatabaseReference;
 
@@ -109,31 +110,35 @@ public class CommentEnterFragment extends Fragment{
 
                         //increment commentcount
                         HashMap<String, AttributeValue> keyMap = new HashMap<>();
-                        keyMap.put("category", new AttributeValue().withN(categoryInt));  //partition key
-                        keyMap.put("post_id", new AttributeValue().withS(postID));   //sort key
+                        keyMap.put("c", new AttributeValue().withN(categoryInt));  //partition key
+                        keyMap.put("i", new AttributeValue().withS(postID));   //sort key
 
                         HashMap<String, AttributeValueUpdate> updates = new HashMap<>();
 
-                        AttributeValueUpdate avu;
+                        //update pt and increment ps
+                        int currPt = (int)((System.currentTimeMillis()/1000)/60);
+                        AttributeValueUpdate ptu = new AttributeValueUpdate()
+                                .withValue(new AttributeValue().withN(Integer.toString(currPt)))
+                                .withAction(AttributeAction.PUT);
+                        updates.put("pt", ptu);
 
-                        avu = new AttributeValueUpdate().withValue(new AttributeValue().withN("1")).withAction(AttributeAction.ADD);
-                        updates.put("commentcount", avu);
+                        int timeDiff = currPt - post.getPt();
+                        Log.d("timeDiff", "timeDiff = "+Integer.toString(timeDiff));
+                        if(timeDiff <= 0){ //if timeDiff is negative due to some bug or if timeDiff is zero, we just make it equal 1.
+                            timeDiff = 1;
+                        }
+
+                        double psIncrement = commentPSI/timeDiff;
+                        AttributeValueUpdate psu = new AttributeValueUpdate()
+                                .withValue(new AttributeValue().withN(Double.toString(psIncrement)))
+                                .withAction(AttributeAction.ADD);
+                        updates.put("ps", psu);
 
                         UpdateItemRequest request = new UpdateItemRequest()
                                 .withTableName("post")
                                 .withKey(keyMap)
                                 .withAttributeUpdates(updates);
                         activity.getDDBClient().updateItem(request);
-
-                        //if current post's STL is not expired (STL is still in future), then update commentcount for active_post counterpart as well
-                        if(System.currentTimeMillis()/1000 < currSTL){
-                            //Log.d("STL", Long.toString(currSTL));
-                            request = new UpdateItemRequest()
-                                    .withTableName("active_post")
-                                    .withKey(keyMap)
-                                    .withAttributeUpdates(updates);
-                            activity.getDDBClient().updateItem(request);
-                        }
 
                         //update DB User.posts list with the new postID String
                         /*  retired the attribute but keeping this code as reference for list_append
@@ -186,7 +191,7 @@ public class CommentEnterFragment extends Fragment{
         return rootView;
     }
 
-    public void setContentReplyToPost(String question, String x, String y, PostSkeleton post){
+    public void setContentReplyToPost(String question, String x, String y, Post post){
         questionTV.setText(question);
         vsX.setText(x);
         vsY.setText(y);
@@ -194,7 +199,6 @@ public class CommentEnterFragment extends Fragment{
         postID = post.getPost_id();
         parentID = postID;
         categoryInt = post.getCategoryIntAsString();
-        currSTL = post.getStl();
         subjectComment = null;
         showPostRef();
         r = x;
@@ -212,7 +216,6 @@ public class CommentEnterFragment extends Fragment{
         post = null;
         PostPage postPage = activity.getPostPage();
         categoryInt = postPage.getCatNumString();
-        currSTL = postPage.getCurrPostSTL();
         postID = postPage.getPostPagePostID();
         r = postPage.getR();
         b = postPage.getB();

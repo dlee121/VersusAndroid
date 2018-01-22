@@ -20,7 +20,7 @@ import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.MyAdapter;
 import com.vs.bcd.versus.model.AWSV4Auth;
-import com.vs.bcd.versus.model.PostSkeleton;
+import com.vs.bcd.versus.model.Post;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -52,7 +52,7 @@ public class SearchPage extends Fragment {
     private View rootView;
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
-    private ArrayList<PostSkeleton> postSearchResults;
+    private ArrayList<Post> postSearchResults;
     private static MainContainer activity;
     private EditText searchET;
     private RecyclerView recyclerView;
@@ -264,7 +264,7 @@ public class SearchPage extends Fragment {
             JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
             for(int i = 0; i < hits.length(); i++){
                 JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
-                postSearchResults.add(new PostSkeleton(item));
+                postSearchResults.add(new Post(item));
                 Log.d("SEARCHRESULTS", "R: " + postSearchResults.get(i).getRedname() + ", B: " + postSearchResults.get(i).getBlackname() + ", Q: " + postSearchResults.get(i).getQuestion());
                 //TODO: display search results. If zero results then display empty results page. Items should be clickable, but we may want to use a new adapter, differentiating search view from MainActivity views, mainly that searchview should be more concise to display more search results in one page. Or should it be same as MainActivity's way of displaying posts list?
             }

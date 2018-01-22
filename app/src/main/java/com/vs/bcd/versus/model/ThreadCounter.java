@@ -47,9 +47,6 @@ public class ThreadCounter {
     public void increment(){
         if(n.incrementAndGet() == limit){
             switch (tabNumber){
-                case 2:
-                    tab2.yesDisplayResults();
-                    break;
                 case 3:
                     postPage.yesExitLoop();
                     break;

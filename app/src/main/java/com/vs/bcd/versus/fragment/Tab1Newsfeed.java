@@ -1,7 +1,6 @@
 package com.vs.bcd.versus.fragment;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -11,38 +10,23 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.widget.Toast;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
-import com.amazonaws.services.dynamodbv2.model.Condition;
 import com.google.android.gms.ads.formats.NativeAd;
 import com.google.android.gms.ads.formats.NativeAppInstallAd;
 import com.google.android.gms.ads.formats.NativeContentAd;
-import com.vs.bcd.versus.OnLoadMoreListener;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.MyAdapter;
 import com.vs.bcd.versus.model.AWSV4Auth;
-import com.vs.bcd.versus.model.ActivePost;
 import com.vs.bcd.versus.model.Post;
-import com.vs.bcd.versus.model.PostSkeleton;
-import com.vs.bcd.versus.model.ThreadCounter;
-import com.vs.bcd.versus.model.VSComment;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -64,7 +48,7 @@ import cz.msebera.android.httpclient.util.EntityUtils;
 
 public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
-    private ArrayList<PostSkeleton> posts;
+    private ArrayList<Post> posts;
     private MyAdapter myAdapter;
     private boolean fragmentSelected = false; //marks if initial loading for this fragment was already done (as in, fragment was already selected once before if true). Used so that we don't load content every time the tab gets selected.
     private View rootView;
@@ -72,11 +56,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
     private SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
     private boolean displayResults = false;
     private boolean nowLoading = false;
-    private HashMap<Integer, String> lastEvaluatedTimeKey = new HashMap<>();
     private RecyclerView recyclerView;
-    private final Tab1Newsfeed thisTab = this;
-    private int numCategoriesToQuery = 24;  //this may change if user preference or Premium user option dictates removal of certain categories from getting queried and added to Newsfeed
-    private int retrievalLimit = 10;
     SwipeRefreshLayout mSwipeRefreshLayout;
 
     private int loadThreshold = 8;
@@ -96,8 +76,6 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.tab1newsfeed, container, false);
-        //TODO: need to add categories. maybe a separate categories table where post IDs have rows of categories they are linked with
-        //TODO: create, at the right location, list of constant enumeration to represent categories. probably at post creation page, which is for now replaced by sample data creation below
         //mHostActivity.setToolbarTitleTextForTabs("Newsfeed");
 
         posts = new ArrayList<>();
@@ -270,10 +248,10 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
             }
             for(int i = 0; i < hits.length(); i++){
                 JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
-                posts.add(new PostSkeleton(item));
+                posts.add(new Post(item));
                 currPostsIndex++;
                 if(currPostsIndex%adFrequency == 0){
-                    PostSkeleton adSkeleton = new PostSkeleton();
+                    Post adSkeleton = new Post();
                     NativeAd nextAd = mHostActivity.getNextAd();
                     if(nextAd != null){
                         Log.d("adscheck", "ads loaded");
