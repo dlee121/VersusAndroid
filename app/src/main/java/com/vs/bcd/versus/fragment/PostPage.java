@@ -1685,7 +1685,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     .withValue(new AttributeValue().withN(Double.toString(psIncrement)))
                                     .withAction(AttributeAction.ADD);
                             updates.put("ps", psu);
-                            Log.d("timeDiff", "timeDiff = "+Double.toString(psIncrement));
 
                             sendPostVoteNotification();
                         }
@@ -2680,6 +2679,10 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             strIn.substring(0,26);
         }
         return strIn.trim().replaceAll("[ /\\\\.\\\\$\\[\\]\\\\#]", "^").replaceAll(":", ";");
+    }
+
+    public Post getCurrentPost(){
+        return post;
     }
 
 

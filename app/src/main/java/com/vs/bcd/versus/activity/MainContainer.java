@@ -1190,8 +1190,6 @@ public class MainContainer extends AppCompatActivity {
 
     public NativeAd getNextAd(){
         if(nativeAds == null || nativeAds.isEmpty()){
-            nativeAds = new ArrayList<>();
-            loadNativeAds();
             return null; //TODO: I hear returning null is not the best design pattern, so let's see if we can refactor this.
         } else {
             NativeAd nextAd = nativeAds.get(0);
@@ -1201,6 +1199,10 @@ public class MainContainer extends AppCompatActivity {
             }
             return nextAd;
         }
+    }
+
+    public Post getCurrentPost(){
+        return getPostPage().getCurrentPost();
     }
 
 }

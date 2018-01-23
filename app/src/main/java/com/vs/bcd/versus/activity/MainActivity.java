@@ -44,7 +44,10 @@ public class MainActivity extends Fragment {
     private LinearLayout tabStrip;
     private MainContainer mainContainer;
     private FloatingActionButton fab;
+    private Tab1Newsfeed tab1;
+    private Tab2Trending tab2;
     private Tab4Messenger tab4;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -79,11 +82,19 @@ public class MainActivity extends Fragment {
                         tab.setIcon(R.drawable.ic_trending_selected);
                         mainContainer.setToolbarTitleTextForTabs("Newsfeed");
                         enableCPFab();
+                        Log.d("matab", "tab1Newsfeed selected");
+                        if(!tab1.postsLoaded()){
+                            tab1.newsfeedESQuery(0);
+                        }
                         break;
                     case 1: //trending
                         tab.setIcon(R.drawable.ic_trending_selected);
                         mainContainer.setToolbarTitleTextForTabs("Trending");
                         enableCPFab();
+                        Log.d("matab", "tab1Newsfeed selected");
+                        if(!tab2.postsLoaded()){
+                            tab2.trendingESQuery(0);
+                        }
                         break;
                     case 2: //categories
                         tab.setIcon(R.drawable.ic_trending_selected);
@@ -182,10 +193,10 @@ public class MainActivity extends Fragment {
             //Return current tabs
             switch (position) {
                 case 0:
-                    Tab1Newsfeed tab1 = new Tab1Newsfeed();
+                    tab1 = new Tab1Newsfeed();
                     return tab1;
                 case 1:
-                    Tab2Trending tab2 = new Tab2Trending();
+                    tab2 = new Tab2Trending();
                     return tab2;
                 case 2:
                     Tab3Categories tab3 = new Tab3Categories();

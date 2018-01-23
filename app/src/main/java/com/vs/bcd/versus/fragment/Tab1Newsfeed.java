@@ -60,7 +60,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
     SwipeRefreshLayout mSwipeRefreshLayout;
 
     private int loadThreshold = 8;
-    private int adFrequency = 16; //place native ad after every 18 posts
+    private int adFrequency = 18; //place native ad after every 18 posts
     private int adCount = 0;
     private int retrievalSize = 16;
 
@@ -99,7 +99,8 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                         //you have reached to the bottom of your recycler view
                         if (!nowLoading) {
                             nowLoading = true;
-                            newsfeedESQuery(posts.size());
+                            Log.d("loadmore", "now loading more");
+                            newsfeedESQuery(currPostsIndex);
                         }
                     }
                 }
@@ -153,8 +154,6 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
             nowLoading = false;
         }
 
-        Log.d("newnewsfeed", "From index: " + Integer.toString(currPostsIndex));
-
         Runnable runnable = new Runnable() {
             public void run() {
                 /*
@@ -168,7 +167,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                 //TODO: get accesskey and secretkey
 
                 String query = "/_search";
-                String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\"@timestamp\":{\"order\":\"desc\"}}],\"query\":{\"match_all\":{}}}";
+                String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\"t\":{\"order\":\"desc\"}}],\"query\":{\"match_all\":{}}}";
 
                 String url = "https://" + host + query;
 
@@ -243,7 +242,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
             JSONObject obj = new JSONObject(strResponse);
             JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
             if(hits.length() == 0){
-                Log.d("newnewsfeed", "end reached, disabling loadMore");
+                Log.d("loadmore", "end reached, disabling loadMore");
                 return;
             }
             for(int i = 0; i < hits.length(); i++){
@@ -273,26 +272,30 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                     }
                 }
                 Log.d("SEARCHRESULTS", "R: " + posts.get(i).getRedname() + ", B: " + posts.get(i).getBlackname() + ", Q: " + posts.get(i).getQuestion());
-                //TODO: display search results. If zero results then display empty results page. Items should be clickable, but we may want to use a new adapter, differentiating search view from MainActivity views, mainly that searchview should be more concise to display more search results in one page. Or should it be same as MainActivity's way of displaying posts list?
             }
 
-            if(posts != null && !posts.isEmpty()){
-                mHostActivity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-
-                        myAdapter.notifyDataSetChanged();
-                        mSwipeRefreshLayout.setRefreshing(false);
-                        if(nowLoading){
-                            nowLoading = false;
-                        }
+            mHostActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mSwipeRefreshLayout.setRefreshing(false);
+                    if(nowLoading){
+                        nowLoading = false;
                     }
-                });
-            }
+                    if(posts != null && !posts.isEmpty()){
+                        myAdapter.notifyDataSetChanged();
+                    }
+                }
+            });
+
+
             //System.out.println("Response: " + strResponse);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean postsLoaded(){
+        return posts != null && !posts.isEmpty();
     }
 
 

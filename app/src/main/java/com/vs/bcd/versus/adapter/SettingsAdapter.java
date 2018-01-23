@@ -49,7 +49,7 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     }
                 });
                 break;
-            /*
+
             case "Add 10 Posts":
                 settingObjectViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -75,7 +75,7 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     }
                 });
                 break;
-            */
+
         }
 
     }

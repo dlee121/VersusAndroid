@@ -1,7 +1,6 @@
 package com.vs.bcd.versus.fragment;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -15,17 +14,10 @@ import android.support.v7.widget.RecyclerView;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
-import com.amazonaws.services.dynamodbv2.model.Condition;
 import com.google.android.gms.ads.formats.NativeAd;
 import com.google.android.gms.ads.formats.NativeAppInstallAd;
 import com.google.android.gms.ads.formats.NativeContentAd;
@@ -34,7 +26,6 @@ import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.MyAdapter;
 import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.Post;
-import com.vs.bcd.versus.model.ThreadCounter;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -68,7 +59,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
     SwipeRefreshLayout mSwipeRefreshLayout;
 
     private int loadThreshold = 8;
-    private int adFrequency = 16; //place native ad after every 18 posts
+    private int adFrequency = 18; //place native ad after every 18 posts
     private int adCount = 0;
     private int retrievalSize = 16;
 
@@ -107,7 +98,8 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                         //you have reached to the bottom of your recycler view
                         if (!nowLoading) {
                             nowLoading = true;
-                            newsfeedESQuery(posts.size());
+                            Log.d("loadmore", "now loading more");
+                            trendingESQuery(currPostsIndex);
                         }
                     }
                 }
@@ -119,7 +111,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
         mSwipeRefreshLayout.setOnRefreshListener(this);
 
         if(getUserVisibleHint()){
-            newsfeedESQuery(0);
+            trendingESQuery(0);
         }
 
         return rootView;
@@ -147,21 +139,19 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
         Log.d("Refresh", "Now Refreshing");
 
         posts.clear();
-        newsfeedESQuery(0);
+        trendingESQuery(0);
 
         Log.d("Refresh", "Now posts has " + Integer.toString(posts.size()) + " items");
     }
 
 
-    public void newsfeedESQuery(final int fromIndex) {
+    public void trendingESQuery(final int fromIndex) {
 
         if(fromIndex == 0){
             mSwipeRefreshLayout.setRefreshing(true);
             currPostsIndex = 0;
             nowLoading = false;
         }
-
-        Log.d("newnewsfeed", "From index: " + Integer.toString(currPostsIndex));
 
         Runnable runnable = new Runnable() {
             public void run() {
@@ -176,7 +166,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                 //TODO: get accesskey and secretkey
 
                 String query = "/_search";
-                String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\"@timestamp\":{\"order\":\"desc\"}}],\"query\":{\"match_all\":{}}}";
+                String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\"ps\":{\"order\":\"desc\"}}],\"query\":{\"match_all\":{}}}";
 
                 String url = "https://" + host + query;
 
@@ -251,56 +241,57 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
             JSONObject obj = new JSONObject(strResponse);
             JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
             if(hits.length() == 0){
-                Log.d("newnewsfeed", "end reached, disabling loadMore");
+                Log.d("loadmore", "end reached, disabling loadMore");
                 return;
             }
-            for(int i = 0; i < hits.length(); i++){
+            for(int i = 0; i < hits.length(); i++) {
                 JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
                 posts.add(new Post(item));
                 currPostsIndex++;
-                if(currPostsIndex%adFrequency == 0){
+                if (currPostsIndex % adFrequency == 0) {
                     Post adSkeleton = new Post();
                     NativeAd nextAd = mHostActivity.getNextAd();
-                    if(nextAd != null){
+                    if (nextAd != null) {
                         Log.d("adscheck", "ads loaded");
-                        if(nextAd instanceof NativeAppInstallAd){
+                        if (nextAd instanceof NativeAppInstallAd) {
                             adSkeleton.setCategory(NATIVE_APP_INSTALL_AD);
                             adSkeleton.setNAI((NativeAppInstallAd) nextAd);
                             posts.add(adSkeleton);
                             adCount++;
-                        }
-                        else if(nextAd instanceof NativeContentAd){
+                        } else if (nextAd instanceof NativeContentAd) {
                             adSkeleton.setCategory(NATIVE_CONTENT_AD);
                             adSkeleton.setNC((NativeContentAd) nextAd);
                             posts.add(adSkeleton);
                             adCount++;
                         }
-                    }
-                    else{
+                    } else {
                         Log.d("adscheck", "ads not loaded");
                     }
                 }
                 Log.d("SEARCHRESULTS", "R: " + posts.get(i).getRedname() + ", B: " + posts.get(i).getBlackname() + ", Q: " + posts.get(i).getQuestion());
-                //TODO: display search results. If zero results then display empty results page. Items should be clickable, but we may want to use a new adapter, differentiating search view from MainActivity views, mainly that searchview should be more concise to display more search results in one page. Or should it be same as MainActivity's way of displaying posts list?
             }
 
-            if(posts != null && !posts.isEmpty()){
-                mHostActivity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-
-                        myAdapter.notifyDataSetChanged();
-                        mSwipeRefreshLayout.setRefreshing(false);
-                        if(nowLoading){
-                            nowLoading = false;
-                        }
+            mHostActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mSwipeRefreshLayout.setRefreshing(false);
+                    if(nowLoading){
+                        nowLoading = false;
                     }
-                });
-            }
+                    if(posts != null && !posts.isEmpty()){
+                        myAdapter.notifyDataSetChanged();
+                    }
+                }
+            });
+
             //System.out.println("Response: " + strResponse);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean postsLoaded(){
+        return posts != null && !posts.isEmpty();
     }
 
 

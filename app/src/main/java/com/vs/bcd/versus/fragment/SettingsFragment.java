@@ -90,7 +90,7 @@ public class SettingsFragment extends Fragment {
 
     private void setUpSettings(){
         settingObjects.add(new SettingObject("Log Out"));
-        //settingObjects.add(new SettingObject("Add 10 Posts")); //TODO: must delete this when dev is done lol
+        settingObjects.add(new SettingObject("Add 10 Posts")); //TODO: must delete this when dev is done lol
     }
 
 }

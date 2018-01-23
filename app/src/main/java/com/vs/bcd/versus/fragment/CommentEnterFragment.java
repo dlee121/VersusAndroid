@@ -122,8 +122,13 @@ public class CommentEnterFragment extends Fragment{
                                 .withAction(AttributeAction.PUT);
                         updates.put("pt", ptu);
 
-                        int timeDiff = currPt - post.getPt();
-                        Log.d("timeDiff", "timeDiff = "+Integer.toString(timeDiff));
+                        int timeDiff;
+                        if(post == null){
+                            timeDiff = currPt - activity.getCurrentPost().getPt();
+                        }
+                        else{
+                            timeDiff = currPt - post.getPt();
+                        }
                         if(timeDiff <= 0){ //if timeDiff is negative due to some bug or if timeDiff is zero, we just make it equal 1.
                             timeDiff = 1;
                         }
