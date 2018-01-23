@@ -62,7 +62,7 @@ public class CategoriesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                     public void onClick(View view) {
                         //TODO: navigate to CategoryFragment and tell CategoryFragment which category was selected so that the appropriate query can be triggered
                         //Log.d("CATEGORY SELECT", "clicked " + categoryObject.getCategoryName() + ", code: " + categoryObject.getCategoryInt());
-                        ((MainContainer)activity).getCategoryFragment().categoryTimeQuery(categoryObject.getCategoryInt());
+                        ((MainContainer)activity).getCategoryFragment().setCurrCategoryInt(categoryObject.getCategoryInt()).categoryTimeESQuery(0);
                         ((MainContainer)activity).setToolbarTitleForCF(categoryObject.getCategoryName());
                         ((MainContainer)activity).getViewPager().setCurrentItem(6);
                         ((MainContainer)activity).categoryFragmentIn(categoryObject.getCategoryName());

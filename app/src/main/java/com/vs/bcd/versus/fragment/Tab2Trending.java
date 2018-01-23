@@ -242,6 +242,12 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
             JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
             if(hits.length() == 0){
                 Log.d("loadmore", "end reached, disabling loadMore");
+                mHostActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mSwipeRefreshLayout.setRefreshing(false);
+                    }
+                });
                 return;
             }
             for(int i = 0; i < hits.length(); i++) {
