@@ -2706,11 +2706,13 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         String query = "/vscomment/_msearch";
         StringBuilder strBuilder = new StringBuilder(100*commentParents.size());
 
-        strBuilder.append("{}\n{\"query\":{\"match\":{\"pr\":\""+commentParents.get(0).getComment_id()+"\"}},\"size\":2}");
-        for(int n = 1; n<commentParents.size(); n++){
-            strBuilder.append("\n{}\n{\"query\":{\"match\":{\"pr\":\""+commentParents.get(n).getComment_id()+"\"}},\"size\":2}");
+        //strBuilder.append("{}\n{\"query\":{\"match\":{\"pr\":\""+commentParents.get(0).getComment_id()+"\"}},\"size\":2}");
+        for(int n = 0; n<commentParents.size(); n++){
+            strBuilder.append("{}\n{\"query\":{\"match\":{\"pr\":\""+commentParents.get(n).getComment_id()+"\"}},\"size\":2}\n");
         }
         String payload = strBuilder.toString();
+
+        Log.d("childCommentsQuery", payload);
 
         String url = "https://" + host + query;
 
@@ -2767,50 +2769,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 			/* Execute URL and attach after execution response handler */
             String strResponse = httpClient.execute(httpPost, responseHandler);
             Log.d("childCommentsQuery", strResponse);
-
-            /*
-            JSONObject obj = new JSONObject(strResponse);
-            JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
-            //Log.d("idformat", hits.getJSONObject(0).getString("_id"));
-            if(hits.length() == 0){
-                Log.d("loadmore", "end reached, disabling loadMore");
-                mHostActivity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mSwipeRefreshLayout.setRefreshing(false);
-                    }
-                });
-                return;
-            }
-            for(int i = 0; i < hits.length(); i++){
-                JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
-                posts.add(new Post(item));
-                currPostsIndex++;
-                if(currPostsIndex%adFrequency == 0){
-                    Post adSkeleton = new Post();
-                    NativeAd nextAd = mHostActivity.getNextAd();
-                    if(nextAd != null){
-                        Log.d("adscheck", "ads loaded");
-                        if(nextAd instanceof NativeAppInstallAd){
-                            adSkeleton.setCategory(NATIVE_APP_INSTALL_AD);
-                            adSkeleton.setNAI((NativeAppInstallAd) nextAd);
-                            posts.add(adSkeleton);
-                            adCount++;
-                        }
-                        else if(nextAd instanceof NativeContentAd){
-                            adSkeleton.setCategory(NATIVE_CONTENT_AD);
-                            adSkeleton.setNC((NativeContentAd) nextAd);
-                            posts.add(adSkeleton);
-                            adCount++;
-                        }
-                    }
-                    else{
-                        Log.d("adscheck", "ads not loaded");
-                    }
+            JSONObject responseObj = new JSONObject(strResponse);
+            JSONArray responseArray = responseObj.getJSONArray("responses");
+            for(int r = 0; r<responseArray.length(); r++){
+                JSONArray hArray = responseArray.getJSONObject(r).getJSONObject("hits").getJSONArray("hits");
+                for(int h = 0; h<hArray.length(); h++){
+                    results.add(new VSComment(hArray.getJSONObject(h).getJSONObject("_source")));
                 }
-                Log.d("SEARCHRESULTS", "R: " + posts.get(i).getRedname() + ", B: " + posts.get(i).getBlackname() + ", Q: " + posts.get(i).getQuestion());
             }
-            */
 
             //System.out.println("Response: " + strResponse);
         } catch (Exception e) {
