@@ -518,7 +518,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 long thisThreadID = Thread.currentThread().getId();
                 final List<Object> masterList = new ArrayList<>();
 
-                getRootComments(0, rootComments);
+                getRootComments(0, rootComments, rootParentID);
                 chunkSorter(rootComments);
 
                 VSCNode prevNode = null;
@@ -2610,7 +2610,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         return post;
     }
 
-    public void getRootComments(final int fromIndex, ArrayList<VSComment> results) {
+    public void getRootComments(final int fromIndex, ArrayList<VSComment> results, String prIn) {
 
         if(fromIndex == 0){
             mSwipeRefreshLayout.setRefreshing(true);
@@ -2619,7 +2619,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
 
         String query = "/vscomment/_search";
-        String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\"u\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"pt\":\""+postID+"\"}}}";
+        String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\"u\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"pr\":\""+prIn+"\"}}}";
 
         String url = "https://" + host + query;
 
