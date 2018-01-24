@@ -27,15 +27,11 @@ import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
 import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.amazonaws.services.dynamodbv2.model.Condition;
 
-import com.google.android.gms.ads.formats.NativeAd;
-import com.google.android.gms.ads.formats.NativeAppInstallAd;
-import com.google.android.gms.ads.formats.NativeContentAd;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
-import com.vs.bcd.versus.adapter.MyAdapter;
 import com.vs.bcd.versus.adapter.PostPageAdapter;
 import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.MedalUpdateRequest;
@@ -50,7 +46,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -523,24 +518,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 long thisThreadID = Thread.currentThread().getId();
                 final List<Object> masterList = new ArrayList<>();
 
-                //vsComments.clear();
-                //nodeMap.clear();
-
-                VSComment queryTemplate = new VSComment();
-                queryTemplate.setParent_id(rootParentID);
-
-                DynamoDBQueryExpression queryExpression =
-                        new DynamoDBQueryExpression()
-                                .withIndexName("parent_id-upvotes-index")
-                                .withHashKeyValues(queryTemplate)
-                                .withRangeKeyCondition("upvotes", rangeKeyCondition)
-                                .withScanIndexForward(false)
-                                .withLimit(retrievalLimit);
-
-                //get the root comments
-                QueryResultPage queryResultPage = activity.getMapper().queryPage(VSComment.class, queryExpression);
-                rootComments.addAll(queryResultPage.getResults());
-
+                getRootComments(0, rootComments);
                 chunkSorter(rootComments);
 
                 VSCNode prevNode = null;
@@ -554,8 +532,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     int prevUpvotes = rootComments.get(0).getUpvotes();
                     VSComment currComment;
 
-                    //get the children while setting up nodeMap with root comments
-                    final ThreadCounter threadCounter = new ThreadCounter(0, rootComments.size(), thisPage);
+                    //set up nodeMap with root comments
                     for(int i = 0; i < rootComments.size(); i++){
                         if(thisThreadID != queryThreadID){
                             Log.d("wow", "broke out of old query thread");
@@ -597,41 +574,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                 currMedalNumber = 0; //this will stop subsequent medal handling for this query
                             }
                         }
-
-                        Runnable runnable = new Runnable() {
-                            public void run() {
-                                VSComment queryTemplate = new VSComment();
-                                queryTemplate.setParent_id(commentID);
-                                //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
-                                DynamoDBQueryExpression childQueryExpression =
-                                        new DynamoDBQueryExpression()
-                                                .withIndexName("parent_id-upvotes-index")
-                                                .withHashKeyValues(queryTemplate)
-                                                .withRangeKeyCondition("upvotes", rangeKeyCondition)
-                                                .withScanIndexForward(false)
-                                                .withLimit(2);
-
-                                QueryResultPage childQueryResultPage = activity.getMapper().queryPage(VSComment.class, childQueryExpression);
-                                childComments.addAll(childQueryResultPage.getResults());
-
-                                Log.d("wow", "child query result size: " + childComments.size());
-
-                                threadCounter.increment();
-                            }
-                        };
-                        Thread mythread = new Thread(runnable);
-                        mythread.start();
                     }
-
-                    long end = System.currentTimeMillis() + 10*1000; // 10 seconds * 1000 ms/sec
-
-                    while(!exitLoop && System.currentTimeMillis() < end){
-                        if(thisThreadID != queryThreadID){
-                            Log.d("wow", "broke out of old query thread");
-                            return;
-                        }
-                    }
-                    exitLoop = false;
+                    getChildComments(rootComments, childComments);
                 }
                 else if(!rootParentID.equals(postID)){
                     activity.runOnUiThread(new Runnable() {
@@ -650,13 +594,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     medalsUpdateDB(medalUpgradeMap, medalWinners);
                 }
 
-
-                Log.d("wow", "child query result size at the end: " + childComments.size());
-                exitLoop = false;
                 if(!childComments.isEmpty()){
-
-                    //get the grandchildren while setting up nodeMap with child comments
-                    final ThreadCounter threadCounter2 = new ThreadCounter(0, childComments.size(), thisPage);
+                    //set up nodeMap with child comments
                     for(int i = 0; i < childComments.size(); i++){
                         if(thisThreadID != queryThreadID){
                             Log.d("wow", "broke out of old query thread");
@@ -690,38 +629,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         }
 
                         nodeMap.put(commentID, cNode);
-
-                        Runnable runnable = new Runnable() {
-                            public void run() {
-                                VSComment queryTemplate = new VSComment();
-                                queryTemplate.setParent_id(commentID);
-                                //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
-                                DynamoDBQueryExpression gChildQueryExpression =
-                                        new DynamoDBQueryExpression()
-                                                .withIndexName("parent_id-upvotes-index")
-                                                .withHashKeyValues(queryTemplate)
-                                                .withRangeKeyCondition("upvotes", rangeKeyCondition)
-                                                .withScanIndexForward(false)
-                                                .withLimit(2);
-
-                                QueryResultPage gChildQueryResultPage = activity.getMapper().queryPage(VSComment.class, gChildQueryExpression);
-                                grandchildComments.addAll(gChildQueryResultPage.getResults());
-                                threadCounter2.increment();
-                            }
-                        };
-                        Thread mythread = new Thread(runnable);
-                        mythread.start();
                     }
 
-                    long end2 = System.currentTimeMillis() + 10*1000; // 10 seconds * 1000 ms/sec
-
-                    while(!exitLoop && System.currentTimeMillis() < end2){
-                        if(thisThreadID != queryThreadID){
-                            Log.d("wow", "broke out of old query thread");
-                            return;
-                        }
-                    }
-                    exitLoop = false;
+                    getChildComments(childComments, grandchildComments);
                 }
 
                 //set up nodeMap with grandchild comments
@@ -778,14 +688,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     if(temp != null){
                         setCommentList(temp, masterList);
                     }
-                }
-
-                if(rootComments.size() < retrievalLimit){
-                    lastEvaluatedKey = null;
-                }
-                else{
-                    //Log.d("Load: ", "retrieved " + Integer.toString(queryResults.size()) + " more items");
-                    lastEvaluatedKey = queryResultPage.getLastEvaluatedKey();
                 }
 
                 //run UI updates on UI Thread
@@ -1669,7 +1571,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                         HashMap<String, AttributeValue> keyMap =
                                 new HashMap<>();
-                        keyMap.put("c", new AttributeValue().withN(post.getCategoryIntAsString()));
                         keyMap.put("i", new AttributeValue().withS(postID));
 
                         HashMap<String, AttributeValueUpdate> updates =
@@ -2800,7 +2701,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
 
-    public void getCommentChildren(ArrayList<VSComment> commentParents, ArrayList<VSComment> results) {
+    public void getChildComments(ArrayList<VSComment> commentParents, ArrayList<VSComment> results) {
 
         String query = "/vscomment/_msearch";
         StringBuilder strBuilder = new StringBuilder(100*commentParents.size());

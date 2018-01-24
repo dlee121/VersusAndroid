@@ -48,7 +48,7 @@ public class VSComment {
     }
 
     public VSComment(JSONObject vscObj) throws JSONException {
-        parent_id = vscObj.getString("pi");
+        parent_id = vscObj.getString("pr");
         post_id = vscObj.getString("pt");
         time = vscObj.getString("t");
         comment_id = vscObj.getString("i");
