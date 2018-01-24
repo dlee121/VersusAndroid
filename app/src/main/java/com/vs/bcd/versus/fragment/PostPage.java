@@ -27,12 +27,17 @@ import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
 import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.amazonaws.services.dynamodbv2.model.Condition;
 
+import com.google.android.gms.ads.formats.NativeAd;
+import com.google.android.gms.ads.formats.NativeAppInstallAd;
+import com.google.android.gms.ads.formats.NativeContentAd;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
+import com.vs.bcd.versus.adapter.MyAdapter;
 import com.vs.bcd.versus.adapter.PostPageAdapter;
+import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.MedalUpdateRequest;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.SessionManager;
@@ -41,6 +46,10 @@ import com.vs.bcd.versus.model.UserAction;
 import com.vs.bcd.versus.model.VSCNode;
 import com.vs.bcd.versus.model.VSComment;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,7 +59,18 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Date;
 import java.text.SimpleDateFormat;
+import java.util.TreeMap;
 
+import cz.msebera.android.httpclient.HttpEntity;
+import cz.msebera.android.httpclient.HttpResponse;
+import cz.msebera.android.httpclient.client.ClientProtocolException;
+import cz.msebera.android.httpclient.client.ResponseHandler;
+import cz.msebera.android.httpclient.client.methods.HttpPost;
+import cz.msebera.android.httpclient.entity.ContentType;
+import cz.msebera.android.httpclient.entity.StringEntity;
+import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
+import cz.msebera.android.httpclient.impl.client.HttpClients;
+import cz.msebera.android.httpclient.util.EntityUtils;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 import static com.vs.bcd.versus.adapter.PostPageAdapter.DOWNVOTE;
@@ -121,8 +141,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private int bronzePoints = 5;
 
     private double votePSI = 2.0; //ps increment per vote
+    private int currCommentsIndex = 0;
+    private int retrievalSize = 30;
 
     private DatabaseReference mFirebaseDatabaseReference;
+    static String host = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
+    static String region = "us-east-1";
 
 
     @Override
@@ -2685,5 +2709,212 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         return post;
     }
 
+    public void getRootComments(final int fromIndex, ArrayList<VSComment> results) {
+
+        if(fromIndex == 0){
+            mSwipeRefreshLayout.setRefreshing(true);
+            currCommentsIndex = 0;
+            nowLoading = false;
+        }
+
+        String query = "/vscomment/_search";
+        String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\"u\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"pt\":\""+postID+"\"}}}";
+
+        String url = "https://" + host + query;
+
+        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
+        awsHeaders.put("host", host);
+
+        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
+                .regionName(region)
+                .serviceName("es") // es - elastic search. use your service name
+                .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
+                .canonicalURI(query) //end point
+                .queryParametes(null) //query parameters if any
+                .awsHeaders(awsHeaders) //aws header parameters
+                .payload(payload) // payload if any
+                .debug() // turn on the debug mode
+                .build();
+
+        HttpPost httpPost = new HttpPost(url);
+        StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
+        httpPost.setEntity(requestEntity);
+
+		        /* Get header calculated for request */
+        Map<String, String> header = aWSV4Auth.getHeaders();
+        for (Map.Entry<String, String> entrySet : header.entrySet()) {
+            String key = entrySet.getKey();
+            String value = entrySet.getValue();
+
+			    /* Attach header in your request */
+			    /* Simple get request */
+
+            httpPost.addHeader(key, value);
+        }
+
+        /* Create object of CloseableHttpClient */
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+		/* Response handler for after request execution */
+        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
+
+            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+				/* Get status code */
+                int status = response.getStatusLine().getStatusCode();
+                if (status >= 200 && status < 300) {
+					/* Convert response to String */
+                    HttpEntity entity = response.getEntity();
+                    return entity != null ? EntityUtils.toString(entity) : null;
+                } else {
+                    throw new ClientProtocolException("Unexpected response status: " + status);
+                }
+            }
+        };
+
+        try {
+			/* Execute URL and attach after execution response handler */
+            String strResponse = httpClient.execute(httpPost, responseHandler);
+
+            JSONObject obj = new JSONObject(strResponse);
+            JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
+            //Log.d("idformat", hits.getJSONObject(0).getString("_id"));
+            if(hits.length() == 0){
+                Log.d("loadmore", "end reached, disabling loadMore");
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mSwipeRefreshLayout.setRefreshing(false);
+                    }
+                });
+                return;
+            }
+            for(int i = 0; i < hits.length(); i++){
+                JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
+                results.add(new VSComment(item));
+                currCommentsIndex++;
+            }
+            //System.out.println("Response: " + strResponse);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void getCommentChildren(ArrayList<VSComment> commentParents, ArrayList<VSComment> results) {
+
+        String query = "/vscomment/_msearch";
+        StringBuilder strBuilder = new StringBuilder(100*commentParents.size());
+
+        strBuilder.append("{}\n{\"query\":{\"match\":{\"pr\":\""+commentParents.get(0).getComment_id()+"\"}},\"size\":2}");
+        for(int n = 1; n<commentParents.size(); n++){
+            strBuilder.append("\n{}\n{\"query\":{\"match\":{\"pr\":\""+commentParents.get(n).getComment_id()+"\"}},\"size\":2}");
+        }
+        String payload = strBuilder.toString();
+
+        String url = "https://" + host + query;
+
+        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
+        awsHeaders.put("host", host);
+
+        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
+                .regionName(region)
+                .serviceName("es") // es - elastic search. use your service name
+                .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
+                .canonicalURI(query) //end point
+                .queryParametes(null) //query parameters if any
+                .awsHeaders(awsHeaders) //aws header parameters
+                .payload(payload) // payload if any
+                .debug() // turn on the debug mode
+                .build();
+
+        HttpPost httpPost = new HttpPost(url);
+        StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
+        httpPost.setEntity(requestEntity);
+
+		        /* Get header calculated for request */
+        Map<String, String> header = aWSV4Auth.getHeaders();
+        for (Map.Entry<String, String> entrySet : header.entrySet()) {
+            String key = entrySet.getKey();
+            String value = entrySet.getValue();
+
+			    /* Attach header in your request */
+			    /* Simple get request */
+
+            httpPost.addHeader(key, value);
+        }
+
+        /* Create object of CloseableHttpClient */
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+		/* Response handler for after request execution */
+        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
+
+            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+				/* Get status code */
+                int status = response.getStatusLine().getStatusCode();
+                if (status >= 200 && status < 300) {
+					/* Convert response to String */
+                    HttpEntity entity = response.getEntity();
+                    return entity != null ? EntityUtils.toString(entity) : null;
+                } else {
+                    throw new ClientProtocolException("Unexpected response status: " + status);
+                }
+            }
+        };
+
+        try {
+			/* Execute URL and attach after execution response handler */
+            String strResponse = httpClient.execute(httpPost, responseHandler);
+            Log.d("childCommentsQuery", strResponse);
+
+            /*
+            JSONObject obj = new JSONObject(strResponse);
+            JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
+            //Log.d("idformat", hits.getJSONObject(0).getString("_id"));
+            if(hits.length() == 0){
+                Log.d("loadmore", "end reached, disabling loadMore");
+                mHostActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mSwipeRefreshLayout.setRefreshing(false);
+                    }
+                });
+                return;
+            }
+            for(int i = 0; i < hits.length(); i++){
+                JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
+                posts.add(new Post(item));
+                currPostsIndex++;
+                if(currPostsIndex%adFrequency == 0){
+                    Post adSkeleton = new Post();
+                    NativeAd nextAd = mHostActivity.getNextAd();
+                    if(nextAd != null){
+                        Log.d("adscheck", "ads loaded");
+                        if(nextAd instanceof NativeAppInstallAd){
+                            adSkeleton.setCategory(NATIVE_APP_INSTALL_AD);
+                            adSkeleton.setNAI((NativeAppInstallAd) nextAd);
+                            posts.add(adSkeleton);
+                            adCount++;
+                        }
+                        else if(nextAd instanceof NativeContentAd){
+                            adSkeleton.setCategory(NATIVE_CONTENT_AD);
+                            adSkeleton.setNC((NativeContentAd) nextAd);
+                            posts.add(adSkeleton);
+                            adCount++;
+                        }
+                    }
+                    else{
+                        Log.d("adscheck", "ads not loaded");
+                    }
+                }
+                Log.d("SEARCHRESULTS", "R: " + posts.get(i).getRedname() + ", B: " + posts.get(i).getBlackname() + ", Q: " + posts.get(i).getQuestion());
+            }
+            */
+
+            //System.out.println("Response: " + strResponse);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 }

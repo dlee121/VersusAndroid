@@ -48,7 +48,7 @@ public class CommentHistoryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
         //TODO: add onclick listener to profile pic and username that navigates user to clicked user's profile page
 
-        commentHistoryViewHolder.itemHeading.setText(itemComment.getR() + " vs " + itemComment.getB() + ", " + itemComment.getQ());
+        //commentHistoryViewHolder.itemHeading.setText(itemComment.getR() + " vs " + itemComment.getB() + ", " + itemComment.getQ());
         commentHistoryViewHolder.timeTV.setText(getTimeString(itemComment.getTime()));
         commentHistoryViewHolder.points.setText(Integer.toString(itemComment.getUpvotes() - itemComment.getDownvotes()));
         commentHistoryViewHolder.content.setText(itemComment.getContent());

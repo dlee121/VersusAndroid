@@ -133,6 +133,13 @@ public class Post {
         }
     }
 
+    @DynamoDBHashKey(attributeName = "i")
+    public String getPost_id(){
+        return  post_id;
+    }
+    public void setPost_id(String post_id){
+        this.post_id = post_id;
+    }
 
     @DynamoDBAttribute(attributeName = "q")
     public String getQuestion() {
@@ -144,7 +151,7 @@ public class Post {
         this.question = topic;
     }
 
-    @DynamoDBIndexHashKey(globalSecondaryIndexNames = {"author-votecount-index", "author-time-index"}, attributeName = "a")
+    @DynamoDBAttribute(attributeName = "a")
     public String getAuthor() {
         return author;
     }
@@ -152,15 +159,7 @@ public class Post {
         this.author = author;
     }
 
-    @DynamoDBRangeKey(attributeName = "i")
-    public String getPost_id(){
-        return  post_id;
-    }
-    public void setPost_id(String post_id){
-        this.post_id = post_id;
-    }
-
-    @DynamoDBIndexRangeKey(localSecondaryIndexName = "category-time-index", globalSecondaryIndexNames = "author-time-index", attributeName="t")
+    @DynamoDBAttribute(attributeName="t")
     public String getTime() {
         return time;
     }
@@ -200,7 +199,7 @@ public class Post {
         this.blackcount = blackcount;
     }
 
-    @DynamoDBHashKey(attributeName = "c")
+    @DynamoDBAttribute(attributeName = "c")
     public int getCategory() {
         return category;
     }

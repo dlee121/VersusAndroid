@@ -166,7 +166,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                 */
                 //TODO: get accesskey and secretkey
 
-                String query = "/_search";
+                String query = "/post/_search";
                 String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\"t\":{\"order\":\"desc\"}}],\"query\":{\"match_all\":{}}}";
 
                 String url = "https://" + host + query;
@@ -241,6 +241,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
 
             JSONObject obj = new JSONObject(strResponse);
             JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
+            //Log.d("idformat", hits.getJSONObject(0).getString("_id"));
             if(hits.length() == 0){
                 Log.d("loadmore", "end reached, disabling loadMore");
                 mHostActivity.runOnUiThread(new Runnable() {

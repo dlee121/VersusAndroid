@@ -87,9 +87,6 @@ public class CommentEnterFragment extends Fragment{
                         vsc.setPost_id(postID);
                         vsc.setAuthor(((MainContainer)getActivity()).getSessionManager().getCurrentUsername());
                         vsc.setContent(((TextView)(rootView.findViewById(R.id.commentInput))).getText().toString().trim());
-                        vsc.setR(r);
-                        vsc.setB(b);
-                        vsc.setQ(q);
 
                         activity.getMapper().save(vsc);
 

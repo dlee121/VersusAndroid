@@ -4,6 +4,9 @@ import android.util.Log;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -26,10 +29,6 @@ public class VSComment {
     private int upvotes; //number of upvotes for this comment
     private int downvotes; //number of downvotes for this comment
 
-    private String r;   //redname of the post this comment belongs to. only used for comment history query
-    private String b;   //blackname of the post this comment belongs to. only used for comment history query
-    private String q;   //question of the post this comment belongs to. only used for comment history query
-
     private int nestedLevel = 0;    //not used by DB.
     private int uservote = 0; //0 if NOVOTE, 1 if UPVOTE, 2 if DOWNVOTE
     private final int NOVOTE = 0;
@@ -48,15 +47,19 @@ public class VSComment {
         topmedal = 0;
     }
 
-    @DynamoDBHashKey(attributeName = "parent_id")
-    public String getParent_id() {
-        return parent_id;
-    }
-    public void setParent_id(String parent_id) {
-        this.parent_id = parent_id;
+    public VSComment(JSONObject vscObj) throws JSONException {
+        parent_id = vscObj.getString("pi");
+        post_id = vscObj.getString("pt");
+        time = vscObj.getString("t");
+        comment_id = vscObj.getString("i");
+        author = vscObj.getString("a");
+        content = vscObj.getString("ct");
+        topmedal = vscObj.getInt("m");
+        upvotes = vscObj.getInt("u");
+        downvotes = vscObj.getInt("d");
     }
 
-    @DynamoDBRangeKey(attributeName = "comment_id")
+    @DynamoDBHashKey(attributeName = "i")
     public String getComment_id() {
         return comment_id;
     }
@@ -64,7 +67,15 @@ public class VSComment {
         this.comment_id = comment_id;
     }
 
-    @DynamoDBAttribute(attributeName = "post_id")
+    @DynamoDBAttribute(attributeName = "pr")
+    public String getParent_id() {
+        return parent_id;
+    }
+    public void setParent_id(String parent_id) {
+        this.parent_id = parent_id;
+    }
+
+    @DynamoDBAttribute(attributeName = "pt")
     public String getPost_id() {
         return post_id;
     }
@@ -72,7 +83,7 @@ public class VSComment {
         this.post_id = post_id;
     }
 
-    @DynamoDBIndexRangeKey(localSecondaryIndexName = "parent_id-time-index", globalSecondaryIndexName = "author-time-index", attributeName = "time")
+    @DynamoDBAttribute(attributeName = "t")
     public String getTime() {
         return time;
     }
@@ -80,7 +91,7 @@ public class VSComment {
         this.time = time;
     }
 
-    @DynamoDBIndexHashKey(globalSecondaryIndexNames = {"author-upvotes-index", "author-time-index"}, attributeName = "author")
+    @DynamoDBAttribute(attributeName = "a")
     public String getAuthor() {
         return author;
     }
@@ -88,7 +99,7 @@ public class VSComment {
         this.author = author;
     }
 
-    @DynamoDBAttribute(attributeName = "content")
+    @DynamoDBAttribute(attributeName = "ct")
     public String getContent() {
         return content;
     }
@@ -96,7 +107,7 @@ public class VSComment {
         this.content = content;
     }
 
-    @DynamoDBIndexRangeKey(localSecondaryIndexName = "parent_id-upvotes-index", globalSecondaryIndexName = "author-upvotes-index", attributeName = "upvotes")
+    @DynamoDBAttribute(attributeName = "u")
     public int getUpvotes() {
         return upvotes;
     }
@@ -104,7 +115,7 @@ public class VSComment {
         this.upvotes = upvotes;
     }
 
-    @DynamoDBAttribute(attributeName = "downvotes")
+    @DynamoDBAttribute(attributeName = "d")
     public int getDownvotes() {
         return downvotes;
     }
@@ -112,36 +123,12 @@ public class VSComment {
         this.downvotes = downvotes;
     }
 
-    @DynamoDBAttribute(attributeName = "topmedal")
+    @DynamoDBAttribute(attributeName = "m")
     public int getTopmedal(){
         return topmedal;
     }
     public void setTopmedal(int topmedal){
         this.topmedal = topmedal;
-    }
-
-    @DynamoDBAttribute(attributeName = "r")
-    public String getR(){
-        return r;
-    }
-    public void setR(String r){
-        this.r = r;
-    }
-
-    @DynamoDBAttribute(attributeName = "b")
-    public String getB(){
-        return b;
-    }
-    public void setB(String b){
-        this.b = b;
-    }
-
-    @DynamoDBAttribute(attributeName = "q")
-    public String getQ(){
-        return q;
-    }
-    public void setQ(String q){
-        this.q = q;
     }
 
     @DynamoDBIgnore
