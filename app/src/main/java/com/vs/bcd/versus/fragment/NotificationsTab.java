@@ -69,6 +69,7 @@ public class NotificationsTab extends Fragment {
     private long fTime, gTime, sTime, bTime;
     private boolean initialULoaded, initialVLoaded, initialCLoaded, initialRLoaded;
     private boolean topUnread = false;
+    private boolean fragmentVisible = false;
 
     String userNotificationsPath = "";
 
@@ -173,11 +174,13 @@ public class NotificationsTab extends Fragment {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
             if(rootView != null){
+                fragmentVisible = true;
                 enableChildViews();
             }
         }
         else {
             if (rootView != null){
+                fragmentVisible = false;
                 disableChildViews();
             }
         }
@@ -1039,7 +1042,7 @@ public class NotificationsTab extends Fragment {
 
     public void showNNB(){
         Log.d("NOTIS", "show");
-        if(activity.getViewPager().getCurrentItem() == 8){
+        if(fragmentVisible){
             newNotificationsButton.setEnabled(true);
             newNotificationsButton.setClickable(true);
             newNotificationsButton.setLayoutParams(nnbLP);
