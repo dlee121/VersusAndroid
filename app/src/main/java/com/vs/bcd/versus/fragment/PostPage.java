@@ -29,6 +29,7 @@ import com.amazonaws.services.dynamodbv2.model.Condition;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.loopj.android.http.HttpGet;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
@@ -138,7 +139,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private double votePSI = 2.0; //ps increment per vote
     private int currCommentsIndex = 0;
     private int childrenCount = 0;
-    private int retrievalSize = 3;
+    private int retrievalSize = 30;
 
     private DatabaseReference mFirebaseDatabaseReference;
     static String host = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
@@ -152,11 +153,11 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         rootView = inflater.inflate(R.layout.post_page, container, false);
         layoutInflater = inflater;
         //commentInput = (EditText) rootView.findViewById(R.id.commentInput);
-        mRelativeLayout = (RelativeLayout) rootView.findViewById(R.id.post_page_layout);
-        postPageFAB = (FloatingActionButton)rootView.findViewById(R.id.postpage_fab);
+        mRelativeLayout =  rootView.findViewById(R.id.post_page_layout);
+        postPageFAB = rootView.findViewById(R.id.postpage_fab);
         fabLP = (RelativeLayout.LayoutParams)postPageFAB.getLayoutParams();
-        topCard = (RelativeLayout)rootView.findViewById(R.id.topCard);
-        RV = (RecyclerView)rootView.findViewById(R.id.recycler_view_cs);
+        topCard = rootView.findViewById(R.id.topCard);
+        RV = rootView.findViewById(R.id.recycler_view_cs);
         RVLayoutParams = RV.getLayoutParams();
 
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
@@ -260,7 +261,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         });
 
         // SwipeRefreshLayout
-        mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_container_postpage);
+        mSwipeRefreshLayout = rootView.findViewById(R.id.swipe_container_postpage);
         mSwipeRefreshLayout.setOnRefreshListener(this);
 
         if(initialLoadInProgress){
@@ -329,12 +330,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                     //update post card if atRootLevel, else update top card
                     if(atRootLevel){
-
-                        //TODO: is this ok or do we have to specify that the query is on base table?
-                        post = activity.getMapper().load(Post.class, post.getCategory(), postID);
-
-                        postID = post.getPost_id();
-
+                        post = getPost(postID);
                         postTopic = post.getQuestion();
                         postX = post.getRedname();
                         postY = post.getBlackname();
@@ -351,7 +347,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         */
                     }
                     else{
-                        final VSComment updatedTopCardContent = activity.getMapper().load(VSComment.class, topCardContent.getParent_id(), topCardContent.getComment_id());
+                        final VSComment updatedTopCardContent = getComment(topCardContent.getComment_id());
                         nodeMap.get(topCardContent.getComment_id()).setNodeContent(updatedTopCardContent);
                         activity.runOnUiThread(new Runnable() {
                             @Override
@@ -506,13 +502,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         final ArrayList<VSComment> childComments = new ArrayList<>();
         final ArrayList<VSComment> grandchildComments = new ArrayList<>();
 
-        /*
-        BY THE TIME THIS FUNCTION IS CALLED, post SHOULD BE SET SO WE CAN JUST GET THE hashkey = parent_id = post_id FROM THERE
-        We also put together the structure and display onto recycler view all on here too
-        */
-        final Condition rangeKeyCondition = new Condition()
-                .withComparisonOperator(ComparisonOperator.GT.toString())
-                .withAttributeValueList(new AttributeValue().withN("-1"));
+        mSwipeRefreshLayout.setRefreshing(true);
 
         Runnable runnable = new Runnable() {
             public void run() {
@@ -520,6 +510,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 final List<Object> masterList = new ArrayList<>();
 
                 getRootComments(0, rootComments, rootParentID);
+
                 chunkSorter(rootComments);
 
                 VSCNode prevNode = null;
@@ -2512,7 +2503,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     public void getRootComments(final int fromIndex, ArrayList<VSComment> results, String prIn) {
 
         if(fromIndex == 0){
-            mSwipeRefreshLayout.setRefreshing(true);
             currCommentsIndex = 0;
             childrenCount = 0;
             nowLoading = false;
@@ -2576,7 +2566,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         try {
 			/* Execute URL and attach after execution response handler */
+            long startTime = System.currentTimeMillis();
+
             String strResponse = httpClient.execute(httpPost, responseHandler);
+
+            long elapsedTime = System.currentTimeMillis() - startTime;
+            Log.d("httpElapsedTime", "root query elapsed time in milliseconds: " + elapsedTime);
 
             JSONObject obj = new JSONObject(strResponse);
             JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
@@ -2604,13 +2599,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
 
     public void getChildComments(ArrayList<VSComment> commentParents, ArrayList<VSComment> results) {
-
         String query = "/vscomment/_msearch";
         StringBuilder strBuilder = new StringBuilder(100*commentParents.size());
 
         //strBuilder.append("{}\n{\"query\":{\"match\":{\"pr\":\""+commentParents.get(0).getComment_id()+"\"}},\"size\":2}");
         for(int n = 0; n<commentParents.size(); n++){
-            strBuilder.append("{}\n{\"query\":{\"match\":{\"pr\":\""+commentParents.get(n).getComment_id()+"\"}},\"size\":2}\n");
+            strBuilder.append("{}\n{\"from\":0,\"size\":2,\"sort\":[{\"u\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"pr\":\"" + commentParents.get(n).getComment_id() + "\"}}}\n");
         }
         String payload = strBuilder.toString();
 
@@ -2669,7 +2663,13 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         try {
 			/* Execute URL and attach after execution response handler */
+            long startTime = System.currentTimeMillis();
+
             String strResponse = httpClient.execute(httpPost, responseHandler);
+
+            long elapsedTime = System.currentTimeMillis() - startTime;
+            Log.d("httpElapsedTime", "child query elapsed time in milliseconds: " + elapsedTime);
+
             //Log.d("childCommentsQuery", strResponse);
             JSONObject responseObj = new JSONObject(strResponse);
             JSONArray responseArray = responseObj.getJSONArray("responses");
@@ -2685,6 +2685,146 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private VSComment getComment(String comment_id){
+
+        String query = "/vscomment/vscomment_type/"+comment_id;
+        String url = "https://" + host + query;
+
+        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
+        awsHeaders.put("host", host);
+
+        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
+                .regionName(region)
+                .serviceName("es") // es - elastic search. use your service name
+                .httpMethodName("GET") //GET, PUT, POST, DELETE, etc...
+                .canonicalURI(query) //end point
+                .queryParametes(null) //query parameters if any
+                .awsHeaders(awsHeaders) //aws header parameters
+                .debug() // turn on the debug mode
+                .build();
+
+        HttpGet httpGet = new HttpGet(url);
+
+		        /* Get header calculated for request */
+        Map<String, String> header = aWSV4Auth.getHeaders();
+        for (Map.Entry<String, String> entrySet : header.entrySet()) {
+            String key = entrySet.getKey();
+            String value = entrySet.getValue();
+
+			    /* Attach header in your request */
+			    /* Simple get request */
+
+            httpGet.addHeader(key, value);
+        }
+
+        /* Create object of CloseableHttpClient */
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+		/* Response handler for after request execution */
+        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
+
+            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+				/* Get status code */
+                int status = response.getStatusLine().getStatusCode();
+                if (status >= 200 && status < 300) {
+					/* Convert response to String */
+                    HttpEntity entity = response.getEntity();
+                    return entity != null ? EntityUtils.toString(entity) : null;
+                } else {
+                    throw new ClientProtocolException("Unexpected response status: " + status);
+                }
+            }
+        };
+
+        try {
+			/* Execute URL and attach after execution response handler */
+            long startTime = System.currentTimeMillis();
+
+            String strResponse = httpClient.execute(httpGet, responseHandler);
+
+            JSONObject obj = new JSONObject(strResponse);
+            JSONObject item = obj.getJSONObject("_source");
+            return new VSComment(item);
+
+            //System.out.println("Response: " + strResponse);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //if the ES GET fails, then return old topCardContent
+        return topCardContent;
+    }
+
+    private Post getPost(String post_id){
+
+        String query = "/post/post_type/"+post_id;
+        String url = "https://" + host + query;
+
+        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
+        awsHeaders.put("host", host);
+
+        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
+                .regionName(region)
+                .serviceName("es") // es - elastic search. use your service name
+                .httpMethodName("GET") //GET, PUT, POST, DELETE, etc...
+                .canonicalURI(query) //end point
+                .queryParametes(null) //query parameters if any
+                .awsHeaders(awsHeaders) //aws header parameters
+                .debug() // turn on the debug mode
+                .build();
+
+        HttpGet httpGet = new HttpGet(url);
+
+		        /* Get header calculated for request */
+        Map<String, String> header = aWSV4Auth.getHeaders();
+        for (Map.Entry<String, String> entrySet : header.entrySet()) {
+            String key = entrySet.getKey();
+            String value = entrySet.getValue();
+
+			    /* Attach header in your request */
+			    /* Simple get request */
+
+            httpGet.addHeader(key, value);
+        }
+
+        /* Create object of CloseableHttpClient */
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+		/* Response handler for after request execution */
+        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
+
+            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+				/* Get status code */
+                int status = response.getStatusLine().getStatusCode();
+                if (status >= 200 && status < 300) {
+					/* Convert response to String */
+                    HttpEntity entity = response.getEntity();
+                    return entity != null ? EntityUtils.toString(entity) : null;
+                } else {
+                    throw new ClientProtocolException("Unexpected response status: " + status);
+                }
+            }
+        };
+
+        try {
+			/* Execute URL and attach after execution response handler */
+            long startTime = System.currentTimeMillis();
+
+            String strResponse = httpClient.execute(httpGet, responseHandler);
+
+            JSONObject obj = new JSONObject(strResponse);
+            JSONObject item = obj.getJSONObject("_source");
+            return new Post(item);
+
+            //System.out.println("Response: " + strResponse);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //if the ES GET fails, then return old topCardContent
+        return post;
     }
 
 }

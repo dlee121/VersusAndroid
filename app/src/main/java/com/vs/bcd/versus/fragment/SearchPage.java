@@ -184,7 +184,7 @@ public class SearchPage extends Fragment {
                 */
                 //TODO: get accesskey and secretkey
 
-                String query = "/_search";
+                String query = "/post/_search";
                 String searchInput = searchET.getText().toString();
                 if(searchInput == null || searchInput.trim().length() == 0){
                     Log.d("SEARCHINPUT", "empty input");
@@ -192,7 +192,7 @@ public class SearchPage extends Fragment {
                 }
                 Log.d("SEARCHINPUT", searchInput.trim());
                 String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"query\":{\"multi_match\":{\"query\": \"" + searchInput.trim() +
-                        "\",\"fields\": [\"redname\", \"blackname\", \"question\"],\"type\": \"most_fields\"}}}";
+                        "\",\"fields\": [\"rn\", \"bn\", \"q\"],\"type\": \"most_fields\"}}}";
 
                 String url = "https://" + host + query;
 
