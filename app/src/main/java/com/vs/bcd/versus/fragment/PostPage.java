@@ -1391,8 +1391,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             HashMap<String, AttributeValue> keyMap =
                                     new HashMap<>();
                             tempNode = nodeMap.get(entry.getKey());
-                            keyMap.put("parent_id", new AttributeValue().withS(tempNode.getParentID()));  //partition key
-                            keyMap.put("comment_id", new AttributeValue().withS(entry.getKey()));   //sort key
+                            keyMap.put("i", new AttributeValue().withS(entry.getKey()));
 
                             HashMap<String, AttributeValueUpdate> updates =
                                     new HashMap<>();
@@ -1404,7 +1403,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     avu = new AttributeValueUpdate()
                                             .withValue(new AttributeValue().withN("1"))
                                             .withAction(AttributeAction.ADD);
-                                    updates.put("upvotes", avu);
+                                    updates.put("u", avu);
 
                                     UpdateItemRequest request = new UpdateItemRequest()
                                             .withTableName("vscomment")
@@ -1424,7 +1423,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     avu = new AttributeValueUpdate()
                                             .withValue(new AttributeValue().withN("1"))
                                             .withAction(AttributeAction.ADD);
-                                    updates.put("downvotes", avu);
+                                    updates.put("d", avu);
 
                                     request = new UpdateItemRequest()
                                             .withTableName("vscomment")
@@ -1456,8 +1455,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             HashMap<String, AttributeValue> keyMap =
                                     new HashMap<>();
                             tempNode = nodeMap.get(entry.getKey());
-                            keyMap.put("parent_id", new AttributeValue().withS(tempNode.getParentID()));  //partition key
-                            keyMap.put("comment_id", new AttributeValue().withS(entry.getKey()));   //sort key //TODO:sort key which we'll eventually change
+                            keyMap.put("i", new AttributeValue().withS(entry.getKey()));
 
                             HashMap<String, AttributeValueUpdate> updates =
                                     new HashMap<>();
@@ -1472,11 +1470,11 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     avu = new AttributeValueUpdate()
                                             .withValue(new AttributeValue().withN("1"))
                                             .withAction(AttributeAction.ADD);
-                                    updates.put("upvotes", avu);
+                                    updates.put("u", avu);
                                     avd = new AttributeValueUpdate()
                                             .withValue(new AttributeValue().withN("-1"))
                                             .withAction(AttributeAction.ADD);
-                                    updates.put("downvotes", avd);
+                                    updates.put("d", avd);
                                     request = new UpdateItemRequest()
                                             .withTableName("vscomment")
                                             .withKey(keyMap)
@@ -1495,11 +1493,11 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     avu = new AttributeValueUpdate()
                                             .withValue(new AttributeValue().withN("1"))
                                             .withAction(AttributeAction.ADD);
-                                    updates.put("downvotes", avu);
+                                    updates.put("d", avu);
                                     avd = new AttributeValueUpdate()
                                             .withValue(new AttributeValue().withN("-1"))
                                             .withAction(AttributeAction.ADD);
-                                    updates.put("upvotes", avd);
+                                    updates.put("u", avd);
                                     request = new UpdateItemRequest()
                                             .withTableName("vscomment")
                                             .withKey(keyMap)
@@ -1518,13 +1516,13 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                         avd = new AttributeValueUpdate()
                                                 .withValue(new AttributeValue().withN("-1"))
                                                 .withAction(AttributeAction.ADD);
-                                        updates.put("upvotes", avd);
+                                        updates.put("u", avd);
                                     } else {   //it's either "U" or "D", because if it was "N" (the only other option) then it wouldn't arrive to this switch case since history and current are equal //TODO: test if that's true
                                         Log.d("DB update", "downvote decrement");
                                         avd = new AttributeValueUpdate()
                                                 .withValue(new AttributeValue().withN("-1"))
                                                 .withAction(AttributeAction.ADD);
-                                        updates.put("downvotes", avd);
+                                        updates.put("d", avd);
                                     }
 
                                     request = new UpdateItemRequest()
@@ -1582,7 +1580,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     .withAction(AttributeAction.ADD);
                             updates.put(voteToDecrement, avd);
                         }
-                        else {  //decrement == false means this is a new vote, therefore increment votecount
+
+                        else {
                             //update pt and increment ps
                             int currPt = (int)((System.currentTimeMillis()/1000)/60);
                             AttributeValueUpdate ptu = new AttributeValueUpdate()
@@ -1604,6 +1603,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                             sendPostVoteNotification();
                         }
+
 
                         UpdateItemRequest request = new UpdateItemRequest()
                                 .withTableName("post")

@@ -189,6 +189,9 @@ public class NotificationsTab extends Fragment {
             childViews.get(i).setClickable(true);
             childViews.get(i).setLayoutParams(LPStore.get(i));
         }
+        if(topUnread){
+            showNNB();
+        }
     }
 
     public void disableChildViews(){
@@ -228,7 +231,7 @@ public class NotificationsTab extends Fragment {
         initialVLoaded = false;
         initialRLoaded = false;
 
-        topUnread = false;
+        //topUnread = false;
 
         mFirebaseDatabaseReference.child(uPath).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -1035,15 +1038,22 @@ public class NotificationsTab extends Fragment {
     }
 
     public void showNNB(){
-        newNotificationsButton.setEnabled(true);
-        newNotificationsButton.setClickable(true);
-        newNotificationsButton.setLayoutParams(nnbLP);
+        Log.d("NOTIS", "show");
+        if(activity.getViewPager().getCurrentItem() == 8){
+            newNotificationsButton.setEnabled(true);
+            newNotificationsButton.setClickable(true);
+            newNotificationsButton.setLayoutParams(nnbLP);
+            Log.d("NOTIS", "show foreal");
+        }
+
+        topUnread = true;
     }
 
     public void hideNNB(){
         newNotificationsButton.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
         newNotificationsButton.setClickable(false);
         newNotificationsButton.setEnabled(false);
+        topUnread = false;
     }
 
     private void checkAndSetTopButton(){ //called after notifyDataSetChanged is called
