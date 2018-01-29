@@ -244,8 +244,10 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
     }
 
     public void setProfileUsername(String profileUsername){
-        this.profileUsername = profileUsername;
-        getUserComments(0, "u");
+        if(this.profileUsername != null && !this.profileUsername.equals(profileUsername)){
+            this.profileUsername = profileUsername;
+            getUserComments(0, "u");
+        }
     }
 
 

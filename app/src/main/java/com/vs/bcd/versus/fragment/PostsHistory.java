@@ -246,8 +246,10 @@ public class PostsHistory extends Fragment implements SwipeRefreshLayout.OnRefre
     }
 
     public void setProfileUsername(String profileUsername){
-        this.profileUsername = profileUsername;
-        getUserPosts(0, "pt");
+        if(this.profileUsername != null && !this.profileUsername.equals(profileUsername)){
+            this.profileUsername = profileUsername;
+            getUserPosts(0, "pt");
+        }
     }
 
 
