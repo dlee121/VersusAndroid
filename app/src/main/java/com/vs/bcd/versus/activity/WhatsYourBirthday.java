@@ -65,7 +65,7 @@ public class WhatsYourBirthday extends Fragment {
                     datePicker.updateDate(calendar.get(Calendar.YEAR), month, dayOfMonth);
                 }
                 nextButton.setEnabled(true);
-                nextButton.setBackgroundColor(ContextCompat.getColor(activity,R.color.vsTwo));
+                nextButton.setBackgroundColor(ContextCompat.getColor(activity,R.color.vsRed));
                 validated = true;
             }
         });

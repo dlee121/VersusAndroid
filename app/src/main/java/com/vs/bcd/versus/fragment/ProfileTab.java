@@ -4,6 +4,9 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -29,22 +32,40 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.activity.MainActivity;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.CommentHistoryAdapter;
 import com.vs.bcd.versus.adapter.MyAdapter;
+import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.VSComment;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+
+import cz.msebera.android.httpclient.HttpEntity;
+import cz.msebera.android.httpclient.HttpResponse;
+import cz.msebera.android.httpclient.client.ClientProtocolException;
+import cz.msebera.android.httpclient.client.ResponseHandler;
+import cz.msebera.android.httpclient.client.methods.HttpPost;
+import cz.msebera.android.httpclient.entity.ContentType;
+import cz.msebera.android.httpclient.entity.StringEntity;
+import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
+import cz.msebera.android.httpclient.impl.client.HttpClients;
+import cz.msebera.android.httpclient.util.EntityUtils;
 
 /**
  * Created by dlee on 4/29/17.
  */
 
-public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
+public class ProfileTab extends Fragment {
 
     private MainContainer activity;
     private TextView usernameTV, goldTV, silverTV, bronzeTV, pointsTV, followingTextTV, followerCountTV, followingCountTV;
@@ -52,15 +73,11 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
     private ProgressBar progressBar;
     private LinearLayout mainCase, followCase, medalCase;
     private TabLayout tabLayout;
-    private RelativeLayout.LayoutParams mainCaseLP, followCaseLP, medalCaseLP, progressbarLP, swipeLayoutLP, tabsLP;
+    private RelativeLayout.LayoutParams mainCaseLP, followCaseLP, medalCaseLP, progressbarLP, swipeLayoutLP, tabsLP, viewpagerLP;
     private LinearLayout.LayoutParams followingtextLP, followbuttonLP;
     private View rootView;
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
-    private SwipeRefreshLayout mSwipeRefreshLayout;
-    private RecyclerView recyclerView;
-    private int postRetrievalLimit = 20;
-    private int commentRetrievalLimit = 20;
     private int commentsORposts = 0;    //0 = comments, 1 = posts
     private final int COMMENTS = 0;
     private final int POSTS = 1;
@@ -69,77 +86,56 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
     private long followingCount = 0;
     private long followerCount = 0;
 
+    private int currCommentsIndex = 0;
+    private int currPostsIndex = 0;
+    private boolean nowLoading = false;
+    private int commentsRetrievalSize = 25;
+    private int postsRetrievalSize = 20;
+    static String host = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
+    static String region = "us-east-1";
+
+    private ProfileTab.SectionsPagerAdapter mSectionsPagerAdapter;
+    private ViewPager mViewPager;
+
+    private CommentsHistory commentsTab;
+    private PostsHistory postsTab;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.profile, container, false);
 
-        progressBar = (ProgressBar) rootView.findViewById(R.id.progressbar_pt);
-        progressbarLP = (RelativeLayout.LayoutParams) progressBar.getLayoutParams();
+        // Create the adapter that will return a fragment for each of the three
+        // primary sections of the activity.
+        mSectionsPagerAdapter = new ProfileTab.SectionsPagerAdapter(getChildFragmentManager());
 
-        mainCase = (LinearLayout) rootView.findViewById(R.id.maincase);
-        followCase = (LinearLayout) rootView.findViewById(R.id.follow_case);
-        medalCase = (LinearLayout) rootView.findViewById(R.id.medal_case);
+        // Set up the ViewPager with the sections adapter.
+        mViewPager = rootView.findViewById(R.id.history_container);
+        mViewPager.setAdapter(mSectionsPagerAdapter);
+        mViewPager.setOffscreenPageLimit(2);
 
-        mainCaseLP = (RelativeLayout.LayoutParams) mainCase.getLayoutParams();
-        followCaseLP = (RelativeLayout.LayoutParams) followCase.getLayoutParams();
-        medalCaseLP = (RelativeLayout.LayoutParams) medalCase.getLayoutParams();
-
-        usernameTV = (TextView) rootView.findViewById(R.id.username_pt);
-        goldTV = (TextView) rootView.findViewById(R.id.gmedal_pt);
-        silverTV = (TextView) rootView.findViewById(R.id.smedal_pt);
-        bronzeTV = (TextView) rootView.findViewById(R.id.bmedal_pt);
-        pointsTV = (TextView) rootView.findViewById(R.id.points_pt);
-
-        followerCountTV = (TextView) rootView.findViewById(R.id.num_followers);
-        followingCountTV = (TextView) rootView.findViewById(R.id.num_following);
-
-        followingTextTV = (TextView) rootView.findViewById(R.id.followingtext);
-        followingtextLP = (LinearLayout.LayoutParams) followingTextTV.getLayoutParams();
-
-        followButton = (Button) rootView.findViewById(R.id.followbutton);
-        followbuttonLP = (LinearLayout.LayoutParams) followButton.getLayoutParams();
-        followButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                followThisUser();
-            }
-        });
-
-
-        tabLayout = (TabLayout) rootView.findViewById(R.id.tabs_profile);
-        tabLayout.addTab(tabLayout.newTab().setText("COMMENTS"), true);
-        tabLayout.addTab(tabLayout.newTab().setText("POSTS"));
+        tabLayout = rootView.findViewById(R.id.tabs_profile);
+        //tabLayout.addTab(tabLayout.newTab().setText("COMMENTS"), true);
+        //tabLayout.addTab(tabLayout.newTab().setText("POSTS"));
         tabsLP = (RelativeLayout.LayoutParams) tabLayout.getLayoutParams();
+        tabLayout.setupWithViewPager(mViewPager);
 
+        tabLayout.getTabAt(0).setText("Comments");
+        tabLayout.getTabAt(1).setText("Posts");
+        tabLayout.setBackgroundColor(getResources().getColor(R.color.vsBlue));
+        tabLayout.setSelectedTabIndicatorColor(getResources().getColor(R.color.vsRed));
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 switch (tab.getPosition()) {
                     case 0: //comments history
-                        if(commentsORposts == POSTS && profileUsername != null){
-                            Runnable runnable = new Runnable() {
-                                public void run() {
-                                    setUpComments(profileUsername);
-                                }
-                            };
-                            Thread mythread = new Thread(runnable);
-                            mythread.start();
-                        }
                         commentsORposts = COMMENTS;
+                        //mViewPager.setCurrentItem(0);
                         break;
                     case 1: //posts history
-                        if(commentsORposts == COMMENTS && profileUsername != null){
-                            Runnable runnable = new Runnable() {
-                                public void run() {
-                                    setUpPosts(profileUsername);
-                                }
-                            };
-                            Thread mythread = new Thread(runnable);
-                            mythread.start();
-                        }
                         commentsORposts = POSTS;
+                        //mViewPager.setCurrentItem(1);
                         break;
                 }
             }
@@ -154,10 +150,36 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
             }
         });
 
-        mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_container_profile);
-        swipeLayoutLP = (RelativeLayout.LayoutParams) mSwipeRefreshLayout.getLayoutParams();
-        recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler_view_profile);
-        recyclerView.setLayoutManager(new LinearLayoutManager(activity));
+        mainCase = (LinearLayout) rootView.findViewById(R.id.maincase);
+        followCase = (LinearLayout) rootView.findViewById(R.id.follow_case);
+        medalCase = (LinearLayout) rootView.findViewById(R.id.medal_case);
+
+        mainCaseLP = (RelativeLayout.LayoutParams) mainCase.getLayoutParams();
+        followCaseLP = (RelativeLayout.LayoutParams) followCase.getLayoutParams();
+        medalCaseLP = (RelativeLayout.LayoutParams) medalCase.getLayoutParams();
+
+        usernameTV = rootView.findViewById(R.id.username_pt);
+        goldTV = rootView.findViewById(R.id.gmedal_pt);
+        silverTV = rootView.findViewById(R.id.smedal_pt);
+        bronzeTV = rootView.findViewById(R.id.bmedal_pt);
+        pointsTV = rootView.findViewById(R.id.points_pt);
+
+        followerCountTV = rootView.findViewById(R.id.num_followers);
+        followingCountTV = rootView.findViewById(R.id.num_following);
+
+        followingTextTV = rootView.findViewById(R.id.followingtext);
+        followingtextLP = (LinearLayout.LayoutParams) followingTextTV.getLayoutParams();
+
+        followButton = rootView.findViewById(R.id.followbutton);
+        followbuttonLP = (LinearLayout.LayoutParams) followButton.getLayoutParams();
+        followButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                followThisUser();
+            }
+        });
+
+        viewpagerLP = (RelativeLayout.LayoutParams) mViewPager.getLayoutParams();
 
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();
@@ -173,36 +195,51 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
         return rootView;
     }
 
+    /**
+     * A {@link FragmentStatePagerAdapter} that returns a fragment corresponding to
+     * one of the sections/tabs/pages.
+     */
+    public class SectionsPagerAdapter extends FragmentStatePagerAdapter {
+
+        public SectionsPagerAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            //Return current tabs
+            switch (position) {
+                case 0:
+                    commentsTab = new CommentsHistory();
+                    return commentsTab;
+                case 1:
+                    postsTab = new PostsHistory();
+                    return postsTab;
+                default:
+                    return null;
+            }
+        }
+
+        @Override
+        public int getCount() {
+            // Show 2 total pages.
+            return 2;
+        }
+    }
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         activity = (MainContainer)context;
     }
 
-    @Override
-    public void onRefresh() {
-        //TODO: do a refresh operation here
-    }
-
     //for accessing another user's profile page
     public void setUpProfile(final String username, boolean myProfile){
 
-        /* don't need to delete because we hide layout and show layout when it's ready with updated info
-        if(recyclerView != null && recyclerView.getAdapter() != null){
-            switch (commentsORposts){
-                case COMMENTS:
-                    ((PostPageAdapter)recyclerView.getAdapter()).clearList();
-                    break;
-                case POSTS:
-                    ((MyAdapter)recyclerView.getAdapter()).clearList();
-                    break;
-            }
-        }
-        */
-
         profileUsername = username;
 
-        displayLoadingScreen(); //hide all page content and show refresh animation during loading, no other UI element
+        commentsTab.setProfileUsername(username);
+        postsTab.setProfileUsername(username);
 
         if(myProfile){
             //this is setting up the profile page for the logged-in user, as in "Me" page
@@ -216,7 +253,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
 
             Runnable runnable = new Runnable() {
                 public void run() {
-                    setUpComments(username);
+                    //setUpComments(username);
 
                     activity.runOnUiThread(new Runnable() {
                         @Override
@@ -225,7 +262,6 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
                             usernameTV.setText(username);
                             followingCountTV.setText(Integer.toString(activity.getFollowingNum()) + "\nFollowing");
                             followerCountTV.setText(Integer.toString(activity.getFollowerNum()) + "\nFollowers");
-                            displayMyProfile();
                         }
                     });
                 }
@@ -253,7 +289,7 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
             Runnable runnable = new Runnable() {
                 public void run() {
 
-                    setUpComments(username);
+                    //setUpComments(username);
 
                     activity.runOnUiThread(new Runnable() {
                         @Override
@@ -279,70 +315,37 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
         }
     }
 
-
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
-        if (!isVisibleToUser) { //we don't care about case of isVisibleToUser==true because that case is handled by setUpProfile()
-            if(rootView != null) {
+        if (isVisibleToUser) {
+            if(rootView != null){
                 commentsORposts = COMMENTS;
-                tabLayout.getTabAt(0).select();
-                disableChildViews();
+                mViewPager.setCurrentItem(0);
+                enableChildViews();
             }
+        }
+        else{
+            if (rootView != null)
+                disableChildViews();
         }
     }
 
+    public void enableChildViews(){
+        /* commented these out since resetCatSelection handles these operations now
+        redimgSet = "default";
+        blackimgSet = "default";
+        */
+        for(int i = 0; i<childViews.size(); i++){
+            childViews.get(i).setEnabled(true);
+            childViews.get(i).setClickable(true);
+            childViews.get(i).setLayoutParams(LPStore.get(i));
 
-    private void displayLoadingScreen(){
-        progressBar.setEnabled(true);
-        progressBar.setVisibility(View.VISIBLE);
-        progressBar.setLayoutParams(progressbarLP);
-        mainCase.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
-        followCase.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
-        medalCase.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
-        tabLayout.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
-        mSwipeRefreshLayout.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+        }
     }
 
-    private void displayMyProfile(){
-        progressBar.setEnabled(false);
-        progressBar.setVisibility(View.INVISIBLE);
-        progressBar.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
-        mainCase.setLayoutParams(mainCaseLP);
-        followCase.setLayoutParams(followCaseLP);
-        medalCase.setLayoutParams(medalCaseLP);
-
-        tabLayout.setEnabled(true);
-        tabLayout.setClickable(true);
-        tabLayout.setLayoutParams(tabsLP);
-
-        mSwipeRefreshLayout.setLayoutParams(swipeLayoutLP);
-        mSwipeRefreshLayout.setEnabled(true);
-        //TODO: does mSwipeRefreshLayout need setClickable(true) as well?
-        //activate ME specific UI
-
-    }
-
-    private void displayOtherProfile(){
-        progressBar.setEnabled(false);
-        progressBar.setVisibility(View.INVISIBLE);
-        progressBar.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
-        mainCase.setLayoutParams(mainCaseLP);
-        followCase.setLayoutParams(followCaseLP);
-        medalCase.setLayoutParams(medalCaseLP);
-
-        tabLayout.setEnabled(true);
-        tabLayout.setClickable(true);
-        tabLayout.setLayoutParams(tabsLP);
-
-        mSwipeRefreshLayout.setLayoutParams(swipeLayoutLP);
-        mSwipeRefreshLayout.setEnabled(true);
-        //TODO: does mSwipeRefreshLayout need setClickable(true) as well?
-        //activate Other User Profile specific UI
-
-    }
-
-    private void disableChildViews(){
+    public void disableChildViews(){
+        Log.d("disabling", "This many: " + Integer.toString(childViews.size()));
         for(int i = 0; i<childViews.size(); i++){
             childViews.get(i).setEnabled(false);
             childViews.get(i).setClickable(false);
@@ -360,77 +363,6 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
             childViews.get(i).setLayoutParams(LPStore.get(i));
         }
     }
-
-    private void setUpPosts(String username){
-
-        Log.d("profilesetup", "setUpPosts called");
-
-        commentsORposts = POSTS;
-
-        final Condition rangeKeyCondition = new Condition()
-                .withComparisonOperator(ComparisonOperator.GT.toString())
-                .withAttributeValueList(new AttributeValue().withN("-1"));
-
-        Post queryTemplate = new Post();
-        queryTemplate.setAuthor(username);
-
-
-        DynamoDBQueryExpression queryExpression =
-                new DynamoDBQueryExpression()
-                        .withIndexName("author-votecount-index")
-                        .withHashKeyValues(queryTemplate)
-                        .withRangeKeyCondition("votecount", rangeKeyCondition)
-                        .withScanIndexForward(false)
-                        .withConsistentRead(false)
-                        .withLimit(postRetrievalLimit);
-
-        List<Post> posts = activity.getMapper().query(Post.class, queryExpression);
-
-        final MyAdapter postsAdapter = new MyAdapter(recyclerView, posts, activity, 9);
-
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                recyclerView.setAdapter(postsAdapter);
-            }
-        });
-
-
-    }
-
-    private void setUpComments(String username){
-        commentsORposts = COMMENTS;
-
-        final Condition rangeKeyCondition = new Condition()
-                .withComparisonOperator(ComparisonOperator.GT.toString())
-                .withAttributeValueList(new AttributeValue().withN("-1"));
-
-        VSComment queryTemplate = new VSComment();
-        queryTemplate.setAuthor(username);
-
-
-        DynamoDBQueryExpression queryExpression =
-                new DynamoDBQueryExpression()
-                        .withIndexName("author-upvotes-index")
-                        .withHashKeyValues(queryTemplate)
-                        .withRangeKeyCondition("upvotes", rangeKeyCondition)
-                        .withScanIndexForward(false)
-                        .withConsistentRead(false)
-                        .withLimit(commentRetrievalLimit);
-
-        final List<VSComment> comments = activity.getMapper().query(VSComment.class, queryExpression);
-
-        //final PostPageAdapter commentsAdapter = new PostPageAdapter(recyclerView, comments, new Post(), activity, false, false);   //the Post item here is just a dummy, there to prevent null-related errors just in case
-        final CommentHistoryAdapter commentsAdapter = new CommentHistoryAdapter(comments, activity);
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                recyclerView.setAdapter(commentsAdapter);
-            }
-        });
-
-    }
-
 
     private void showFollowingText(){
         followingTextTV.setEnabled(true);
@@ -656,8 +588,6 @@ public class ProfileTab extends Fragment implements SwipeRefreshLayout.OnRefresh
 
                                 followerCountTV.setText(Long.toString(followerCount) + "\nFollowers");
                                 followingCountTV.setText(Long.toString(followingCount) + "\nFollowing");
-
-                                displayOtherProfile();
                             }
 
                             @Override

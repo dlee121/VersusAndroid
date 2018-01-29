@@ -102,8 +102,15 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         if (viewType == VIEW_TYPE_ITEM) {
+            //0 = MainActivity, 1 = Search, 6 = Category, 9 = Me (Profile). Default value of 0.
+            if(fragmentInt == 0 || fragmentInt == 6){
+                View view = LayoutInflater.from(activity).inflate(R.layout.vs_card, parent, false);
+                return new UserViewHolder(view);
+            }
+            //TODO: replace below with a new view holder, a compact version of post card that is used for Search and Profile
             View view = LayoutInflater.from(activity).inflate(R.layout.vs_card, parent, false);
             return new UserViewHolder(view);
+
         } else if (viewType == NATIVE_APP_INSTALL_AD){
             View view = LayoutInflater.from(activity).inflate(R.layout.adview_native_app_install, parent, false);
             return new NAIAdViewHolder(view);

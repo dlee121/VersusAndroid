@@ -61,7 +61,7 @@ public class WhatsYourName extends Fragment {
                 if(firstLength + lastLength > 0){
                     nextButton.setEnabled(true);
                     validated = true;
-                    nextButton.setBackgroundColor(ContextCompat.getColor(activity,R.color.vsTwo));
+                    nextButton.setBackgroundColor(ContextCompat.getColor(activity,R.color.vsRed));
                 }
                 else{
                     nextButton.setBackgroundColor(Color.rgb(238, 238, 238));
@@ -78,7 +78,7 @@ public class WhatsYourName extends Fragment {
                 if(firstLength + lastLength > 0){
                     nextButton.setEnabled(true);
                     validated = true;
-                    nextButton.setBackgroundColor(ContextCompat.getColor(activity,R.color.vsTwo));
+                    nextButton.setBackgroundColor(ContextCompat.getColor(activity,R.color.vsRed));
                 }
                 else{
                     nextButton.setBackgroundColor(Color.rgb(238, 238, 238));

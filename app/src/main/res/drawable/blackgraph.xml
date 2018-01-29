@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/blackgraphshape">
-    <stroke android:width="2dp" android:color="@color/vsOne" />
+    <stroke android:width="2dp" android:color="@color/vsBlue" />
     <padding android:left="2dp"
         android:top="2dp"
         android:right="2dp"
@@ -10,5 +10,5 @@
         android:topRightRadius="5dp"
         android:bottomRightRadius="5dp"
         android:bottomLeftRadius="0dp"/>
-    <solid android:color="@color/vsOne" />
+    <solid android:color="@color/vsBlue" />
 </shape>

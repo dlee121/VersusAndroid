@@ -2500,7 +2500,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         return post;
     }
 
-    public void getRootComments(final int fromIndex, ArrayList<VSComment> results, String prIn) {
+    private void getRootComments(final int fromIndex, ArrayList<VSComment> results, String prIn) {
 
         if(fromIndex == 0){
             currCommentsIndex = 0;
@@ -2598,7 +2598,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
 
-    public void getChildComments(ArrayList<VSComment> commentParents, ArrayList<VSComment> results) {
+    private void getChildComments(ArrayList<VSComment> commentParents, ArrayList<VSComment> results) {
         String query = "/vscomment/_msearch";
         StringBuilder strBuilder = new StringBuilder(100*commentParents.size());
 

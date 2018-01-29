@@ -64,7 +64,7 @@ public class WhatsYourPassword extends Fragment {
             public void validate(TextView textView, String text) {
                 if (text.length() > 0) { //no need to consider leading/trailing whitespace, since we trim the string before taking it
                     passwordStrengthCheck(text);
-                    signupButton.setBackgroundColor(ContextCompat.getColor(activity,R.color.vsTwo));
+                    signupButton.setBackgroundColor(ContextCompat.getColor(activity,R.color.vsRed));
                     signupButton.setEnabled(true);
                     validated = true;
 
@@ -111,7 +111,7 @@ public class WhatsYourPassword extends Fragment {
         }
         else{
             perkyText.setEnabled(true);
-            signupButton.setBackgroundColor(ContextCompat.getColor(activity,R.color.vsTwo));
+            signupButton.setBackgroundColor(ContextCompat.getColor(activity,R.color.vsRed));
             signupButton.setEnabled(true);
             signupButton.setVisibility(View.VISIBLE);
             signupPB.setEnabled(false);

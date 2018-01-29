@@ -25,16 +25,9 @@ import com.vs.bcd.versus.fragment.Tab4Messenger;
 import java.util.ArrayList;
 
 public class MainActivity extends Fragment {
-    /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the sections. We use a
-     * {@link FragmentStatePagerAdapter} derivative
-     */
+
     private SectionsPagerAdapter mSectionsPagerAdapter;
 
-    /**
-     * The {@link ViewPager} that will host the section contents.
-     */
     private ViewPager mViewPager;
     private View rootView;
     private boolean childrenFragmentsUIActive = false;
@@ -66,7 +59,7 @@ public class MainActivity extends Fragment {
 
         TabLayout tabLayout = (TabLayout) rootView.findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
-        tabStrip = ((LinearLayout)tabLayout.getChildAt(0));
+        //tabStrip = ((LinearLayout)tabLayout.getChildAt(0));
         //set tab icons
 
         tabLayout.getTabAt(0).setIcon(R.drawable.ic_trending_selected);
@@ -177,7 +170,6 @@ public class MainActivity extends Fragment {
         return super.onOptionsItemSelected(item);
     }
 
-    //deleted PlaceholderFragment class
     /**
      * A {@link FragmentStatePagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.

@@ -170,7 +170,7 @@ public class WhatsYourUsername extends Fragment {
                                             etWarning.setText("Username available");
                                             nextButton.setEnabled(true);
                                             validated = true;
-                                            nextButton.setBackgroundColor(ContextCompat.getColor(activity,R.color.vsTwo));
+                                            nextButton.setBackgroundColor(ContextCompat.getColor(activity,R.color.vsRed));
                                         }
                                     }
                                 });
