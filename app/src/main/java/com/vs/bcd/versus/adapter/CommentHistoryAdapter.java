@@ -47,8 +47,8 @@ public class CommentHistoryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
         CommentHistoryViewHolder commentHistoryViewHolder = (CommentHistoryViewHolder) holder;
 
         //TODO: add onclick listener to profile pic and username that navigates user to clicked user's profile page
-
-        //commentHistoryViewHolder.itemHeading.setText(itemComment.getR() + " vs " + itemComment.getB() + ", " + itemComment.getQ());
+        commentHistoryViewHolder.redTv.setText(itemComment.getR());
+        commentHistoryViewHolder.blueTv.setText(itemComment.getB());
         commentHistoryViewHolder.timeTV.setText(getTimeString(itemComment.getTime()));
         commentHistoryViewHolder.points.setText(Integer.toString(itemComment.getUpvotes() - itemComment.getDownvotes()));
         commentHistoryViewHolder.content.setText(itemComment.getContent());
@@ -75,7 +75,9 @@ public class CommentHistoryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
     private class CommentHistoryViewHolder extends RecyclerView.ViewHolder {
 
-        public TextView itemHeading;   //maybe switch to circular colorful icons
+        //public TextView itemHeading;   //maybe switch to circular colorful icons
+        public TextView redTv;
+        public TextView blueTv;
         public TextView timeTV;
         public TextView points;
         public ImageView medalView;
@@ -83,7 +85,8 @@ public class CommentHistoryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
         public CommentHistoryViewHolder(View view) {
             super(view);
-            itemHeading = (TextView) view.findViewById(R.id.item_heading);
+            redTv = view.findViewById(R.id.red_chi);
+            blueTv = view.findViewById(R.id.blue_chi);
             timeTV = (TextView) view.findViewById(R.id.timetvhistory);
             points = (TextView) view.findViewById(R.id.points_comment_history);
             medalView = (ImageView) view.findViewById(R.id.medal_image_history);

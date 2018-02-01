@@ -36,6 +36,9 @@ public class VSComment {
     private final int DOWNVOTE = 2;
     private int currentMedal = 0;   //current medal to display for UI
 
+    private String r;
+    private String b;
+
 
     public VSComment(){
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
@@ -146,6 +149,30 @@ public class VSComment {
     public void setNestedLevel(int nestedLevel){
         this.nestedLevel = nestedLevel;
     }
+
+    @DynamoDBIgnore
+    public String getR(){
+        if(r == null){
+            return "";
+        }
+        return r;
+    }
+    public VSComment setR(String r){
+        this.r = r;
+        return this;
+    }
+
+    @DynamoDBIgnore
+    public String getB(){
+        if(b == null){
+            return "";
+        }
+        return b;
+    }
+    public void setB(String b){
+        this.b = b;
+    }
+
 
     @DynamoDBIgnore
     public int getUservote(){

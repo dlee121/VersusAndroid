@@ -123,7 +123,7 @@ public class ProfileTab extends Fragment {
 
         tabLayout.getTabAt(0).setText("Comments");
         tabLayout.getTabAt(1).setText("Posts");
-        tabLayout.setBackgroundColor(getResources().getColor(R.color.vsBlue));
+        //tabLayout.setBackgroundColor(getResources().getColor(R.color.vsBlue));
         tabLayout.setSelectedTabIndicatorColor(getResources().getColor(R.color.vsRed));
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override

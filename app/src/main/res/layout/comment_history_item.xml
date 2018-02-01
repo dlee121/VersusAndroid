@@ -14,13 +14,46 @@
         android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/item_heading"
+            android:id="@+id/red_chi"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_marginLeft="8dp"
+            android:text="red"
+            android:textColor="#FF000000"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/v_chi"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="4dp"
+            android:layout_toEndOf="@id/red_chi"
+            android:text="v"
+            android:textColor="@color/vsBlue"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/s_chi"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginRight="4dp"
+            android:layout_toEndOf="@id/v_chi"
+            android:text="s"
+            android:textColor="@color/vsRed"
+            android:textSize="12sp" />
+
+
+        <TextView
+            android:id="@+id/blue_chi"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
             android:layout_marginRight="8dp"
-            android:text="X vs Y, question"
+            android:layout_toEndOf="@id/s_chi"
+            android:text="blue"
             android:textColor="#FF000000"
             android:textSize="12sp" />
 
@@ -28,7 +61,7 @@
             android:id="@+id/timetvhistory"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/item_heading"
+            android:layout_below="@id/red_chi"
             android:layout_marginLeft="8dp"
             android:layout_marginTop="2dp"
             android:text="two minutes ago"
@@ -38,7 +71,7 @@
             android:id="@+id/points_comment_history"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/item_heading"
+            android:layout_below="@id/red_chi"
             android:layout_marginLeft="12dp"
             android:layout_marginTop="2dp"
             android:layout_toRightOf="@id/timetvhistory"
@@ -52,7 +85,7 @@
             android:layout_height="wrap_content"
             android:layout_alignBottom="@id/timetvhistory"
             android:layout_alignTop="@id/timetvhistory"
-            android:layout_below="@id/item_heading"
+            android:layout_below="@id/red_chi"
             android:layout_toEndOf="@id/points_comment_history"
             android:layout_marginBottom="1dp"
             android:layout_marginTop="-1dp"
@@ -65,7 +98,7 @@
             android:layout_height="wrap_content"
             android:layout_alignBottom="@id/timetvhistory"
             android:layout_alignTop="@id/timetvhistory"
-            android:layout_below="@id/item_heading"
+            android:layout_below="@id/red_chi"
             android:layout_toEndOf="@id/hearticon" />
 
         <TextView
