@@ -243,8 +243,8 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
                         VSComment vsc = new VSComment(item);
                         comments.add(vsc);
                         postInfoMap.put(vsc.getPost_id(), new PostInfo());
-                        StringBuilder strBuilder = new StringBuilder((40*hitsLength) - 2);
-                        strBuilder.append("\""+vsc.getPost_id()+"\"");
+                        StringBuilder strBuilder = new StringBuilder((67*hitsLength) - 1);
+                        strBuilder.append("{\"_id\":\""+vsc.getPost_id()+"\",\"_source\":[\"rn\",\"bn\"]}");
 
                         for(int i = 1; i < hits.length(); i++){
                             item = hits.getJSONObject(i).getJSONObject("_source");
@@ -252,11 +252,12 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
                             comments.add(vsc);
                             if(postInfoMap.get(vsc.getPost_id()) == null){
                                 postInfoMap.put(vsc.getPost_id(), new PostInfo());
-                                strBuilder.append(", \""+vsc.getPost_id()+"\"");
+                                strBuilder.append(",{\"_id\":\""+vsc.getPost_id()+"\",\"_source\":[\"rn\",\"bn\"]}");
+
                             }
                         }
 
-                        String postIDs = "{\"ids\":["+strBuilder.toString()+"]}";
+                        String postIDs = "{\"docs\":["+strBuilder.toString()+"]}";
                         addPostInfo(true, postIDs, fromIndex);
 
                     }
@@ -339,14 +340,15 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
 			/* Execute URL and attach after execution response handler */
 
                 String strResponse = httpClient.execute(httpPost, responseHandler);
-                Log.d("natResponse", "multiGet:"+strResponse);
+                Log.d("natresponse", strResponse);
 
                 //iterate through hits and put the info in postInfoMap
                 JSONObject obj = new JSONObject(strResponse);
                 JSONArray hits = obj.getJSONArray("docs");
                 for(int i = 0; i<hits.length(); i++){
-                    JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
-                    postInfoMap.get(item.getString("i")).setRB(item.getString("rn"), item.getString("bn"));
+                    JSONObject item = hits.getJSONObject(i);
+                    JSONObject src = item.getJSONObject("_source");
+                    postInfoMap.get(item.getString("_id")).setRB(src.getString("rn"), src.getString("bn"));
                 }
                 //iterate comments array and add the post info in order starting from fromIndex-th element, using postInfoMap
                 PostInfo postInfo;
@@ -364,18 +366,20 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
 
         }
         else{
-            query = "/post/post_type/" + payload;
+            TreeMap<String, String> queryParams = new TreeMap<>();
+            queryParams.put("_source", "bn,rn");
+            query = "/post/post_type/" + payload + "/_source";
             aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
                     .regionName(region)
                     .serviceName("es") // es - elastic search. use your service name
                     .httpMethodName("GET") //GET, PUT, POST, DELETE, etc...
                     .canonicalURI(query) //end point
-                    .queryParametes(null) //query parameters if any
+                    .queryParametes(queryParams) //query parameters if any
                     .awsHeaders(awsHeaders) //aws header parameters
                     .debug() // turn on the debug mode
                     .build();
 
-            String url = "https://" + host + query;
+            String url = "https://" + host + query + "?_source=bn,rn";
 
             HttpGet httpGet = new HttpGet(url);
 
@@ -412,15 +416,14 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
 
             try {
 			/* Execute URL and attach after execution response handler */
-                long startTime = System.currentTimeMillis();
 
                 String strResponse = httpClient.execute(httpGet, responseHandler);
 
                 Log.d("natResponse", "GET:"+strResponse);
                 //TODO: there's only one comment in the comments array, add the post info to the fromIndex-th of the comments array
                 JSONObject obj = new JSONObject(strResponse);
-                JSONObject item = obj.getJSONObject("_source");
-                comments.get(fromIndex).setR(item.getString("rn")).setB(item.getString("bn"));
+                //JSONObject item = obj.getJSONObject("_source");
+                comments.get(fromIndex).setR(obj.getString("rn")).setB(obj.getString("bn"));
 
 
                 //System.out.println("Response: " + strResponse);
