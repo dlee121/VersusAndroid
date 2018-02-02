@@ -149,7 +149,7 @@ public class PostsHistory extends Fragment implements SwipeRefreshLayout.OnRefre
                 }
 
                 String query = "/post/_search";
-                String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\""+ptORt+"\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"a\":\""+profileUsername+"\"}}}";
+                String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\""+ptORt+"\":{\"order\":\"desc\"}}],\"_source\":[\"bn\",\"bc\",\"q\",\"t\",\"rn\",\"rc\"],\"query\":{\"match\":{\"a\":\""+profileUsername+"\"}}}";
 
                 String url = "https://" + host + query;
 
@@ -204,8 +204,10 @@ public class PostsHistory extends Fragment implements SwipeRefreshLayout.OnRefre
 
                 try {
 			/* Execute URL and attach after execution response handler */
-
+                    //long startTime = System.currentTimeMillis();
                     String strResponse = httpClient.execute(httpPost, responseHandler);
+                    //long elapsedTime = System.currentTimeMillis() - startTime;
+                    //System.out.println("natTime: " + elapsedTime);
 
                     JSONObject obj = new JSONObject(strResponse);
                     JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
@@ -222,7 +224,7 @@ public class PostsHistory extends Fragment implements SwipeRefreshLayout.OnRefre
                     }
                     for(int i = 0; i < hits.length(); i++){
                         JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
-                        posts.add(new Post(item));
+                        posts.add(new Post(item, true));
                         currPostsIndex++;
                     }
                     activity.runOnUiThread(new Runnable() {

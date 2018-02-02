@@ -191,7 +191,7 @@ public class SearchPage extends Fragment {
                     return;
                 }
                 Log.d("SEARCHINPUT", searchInput.trim());
-                String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"query\":{\"multi_match\":{\"query\": \"" + searchInput.trim() +
+                String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"_source\":[\"bn\",\"bc\",\"q\",\"t\",\"rn\",\"rc\"],\"query\":{\"multi_match\":{\"query\": \"" + searchInput.trim() +
                         "\",\"fields\": [\"rn\", \"bn\", \"q\"],\"type\": \"most_fields\"}}}";
 
                 String url = "https://" + host + query;
@@ -264,8 +264,7 @@ public class SearchPage extends Fragment {
             JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
             for(int i = 0; i < hits.length(); i++){
                 JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
-                postSearchResults.add(new Post(item));
-                Log.d("SEARCHRESULTS", "R: " + postSearchResults.get(i).getRedname() + ", B: " + postSearchResults.get(i).getBlackname() + ", Q: " + postSearchResults.get(i).getQuestion());
+                postSearchResults.add(new Post(item, true));
                 //TODO: display search results. If zero results then display empty results page. Items should be clickable, but we may want to use a new adapter, differentiating search view from MainActivity views, mainly that searchview should be more concise to display more search results in one page. Or should it be same as MainActivity's way of displaying posts list?
             }
             if(postSearchResults != null && !postSearchResults.isEmpty()){

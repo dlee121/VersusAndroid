@@ -2816,7 +2816,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
             JSONObject obj = new JSONObject(strResponse);
             JSONObject item = obj.getJSONObject("_source");
-            return new Post(item);
+            return new Post(item, false);
 
             //System.out.println("Response: " + strResponse);
         } catch (Exception e) {

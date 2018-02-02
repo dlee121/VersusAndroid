@@ -107,9 +107,9 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 View view = LayoutInflater.from(activity).inflate(R.layout.vs_card, parent, false);
                 return new UserViewHolder(view);
             }
-            //TODO: replace below with a new view holder, a compact version of post card that is used for Search and Profile
-            View view = LayoutInflater.from(activity).inflate(R.layout.vs_card, parent, false);
-            return new UserViewHolder(view);
+            //a compact version of post card that is used for Search and Profile
+            View view = LayoutInflater.from(activity).inflate(R.layout.vscard_compact, parent, false);
+            return new CompactViewHolder(view);
 
         } else if (viewType == NATIVE_APP_INSTALL_AD){
             View view = LayoutInflater.from(activity).inflate(R.layout.adview_native_app_install, parent, false);
@@ -130,8 +130,6 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
             //TODO:this is where values are put into the layout, from the post object
             Post post = posts.get(position);
-            final String postID = post.getPost_id();
-            int timeFormat = 0;
             UserViewHolder userViewHolder = (UserViewHolder) holder;
 
             final String authorName = post.getAuthor();
@@ -151,87 +149,8 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 }
             });
 
-            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
-            Date myDate = null;
-            try {
-                myDate = df.parse(post.getTime());
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
+            userViewHolder.time.setText(getFormattedTime(post.getTime()));
 
-            //TODO: test all possible cases to make sure date format conversion works correctly, for seconds, for all time format constants (secs, mins, ... , years), singulars / plurals
-            long timediff = ((new Date()).getTime() - myDate.getTime()) / 1000;  //time elapsed since post creation, in seconds
-
-            //time format constants: 0 = seconds, 1 = minutes, 2 = hours, 3 = days , 4 = weeks, 5 = months, 6 = years
-            if(timediff >= 60) {  //if 60 seconds or more, convert to minutes
-                timediff /= 60;
-                timeFormat = 1;
-                if(timediff >= 60) { //if 60 minutes or more, convert to hours
-                    timediff /= 60;
-                    timeFormat = 2;
-                    if(timediff >= 24) { //if 24 hours or more, convert to days
-                        timediff /= 24;
-                        timeFormat = 3;
-
-                        if(timediff >= 365) { //if 365 days or more, convert to years
-                            timediff /= 365;
-                            timeFormat = 6;
-                        }
-
-                        else if (timeFormat < 6 && timediff >= 30) { //if 30 days or more and not yet converted to years, convert to months
-                            timediff /= 30;
-                            timeFormat = 5;
-                        }
-
-                        else if(timeFormat < 5 && timediff >= 7) { //if 7 days or more and not yet converted to months or years, convert to weeks
-                            timediff /= 7;
-                            timeFormat = 4;
-                        }
-
-                    }
-                }
-            }
-
-
-            if(timediff > 1) //if timediff is not a singular value
-                timeFormat += 7;
-
-            switch (timeFormat) {
-                //plural
-                case 7:  userViewHolder.time.setText(String.valueOf(timediff) + " seconds ago");
-                    break;
-                case 8:  userViewHolder.time.setText(String.valueOf(timediff) + " minutes ago");
-                    break;
-                case 9:  userViewHolder.time.setText(String.valueOf(timediff) + " hours ago");
-                    break;
-                case 10:  userViewHolder.time.setText(String.valueOf(timediff) + " days ago");
-                    break;
-                case 11:  userViewHolder.time.setText(String.valueOf(timediff) + " weeks ago");
-                    break;
-                case 12:  userViewHolder.time.setText(String.valueOf(timediff) + " months ago");
-                    break;
-                case 13:  userViewHolder.time.setText(String.valueOf(timediff) + " years ago");
-                    break;
-
-                //singular
-                case 0:  userViewHolder.time.setText(String.valueOf(timediff) + " second ago");
-                    break;
-                case 1:  userViewHolder.time.setText(String.valueOf(timediff) + " minute ago");
-                    break;
-                case 2:  userViewHolder.time.setText(String.valueOf(timediff) + " hour ago");
-                    break;
-                case 3:  userViewHolder.time.setText(String.valueOf(timediff) + " day ago");
-                    break;
-                case 4:  userViewHolder.time.setText(String.valueOf(timediff) + " week ago");
-                    break;
-                case 5:  userViewHolder.time.setText(String.valueOf(timediff) + " month ago");
-                    break;
-                case 6:  userViewHolder.time.setText(String.valueOf(timediff) + " year ago");
-                    break;
-
-                default: userViewHolder.time.setText("");
-                    break;
-            }
 
             //TODO: handle cases where question doesn't exist (as in the column doesn't even exist. in that case question.setText(""), leaving it as empty string
             userViewHolder.question.setText(post.getQuestion());
@@ -323,6 +242,18 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             ncAdViewHolder.nativeContentAdView.setNativeAd(nativeContentAd);
 
         }
+
+        else { //the only remaining possibility; the vscard_compact for Search and Post History
+            Post compactPost = posts.get(position);
+
+            CompactViewHolder compactViewHolder = (CompactViewHolder) holder;
+            compactViewHolder.question.setText(compactPost.getQuestion());
+            compactViewHolder.rname.setText(compactPost.getRedname());
+            compactViewHolder.bname.setText(compactPost.getBlackname());
+            compactViewHolder.votecount.setText(Integer.toString(compactPost.getVotecount()));
+            compactViewHolder.time.setText(getFormattedTime(compactPost.getTime()));
+
+        }
     }
 
     @Override
@@ -365,7 +296,19 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             mainVSText = (TextView) view.findViewById(R.id.maintitletxt);
             category = (TextView) view.findViewById(R.id.txt_category);
             votecount = (TextView) view.findViewById(R.id.txt_votecount);
+        }
+    }
 
+    private class CompactViewHolder extends RecyclerView.ViewHolder{
+        private TextView question, votecount, rname, bname, time;
+
+        public CompactViewHolder(View view){
+            super(view);
+            question = view.findViewById(R.id.question_vc);
+            votecount = view.findViewById(R.id.votes_vc);
+            rname = view.findViewById(R.id.red_vc);
+            bname = view.findViewById(R.id.blue_vc);
+            time = view.findViewById(R.id.time_vc);
         }
     }
 
@@ -488,6 +431,79 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         };
         Thread mythread = new Thread(runnable);
         mythread.start();
+    }
+
+    private String getFormattedTime(String timestring){
+        int timeFormat = 0;
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
+        Date myDate = null;
+        try {
+            myDate = df.parse(timestring);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        //TODO: test all possible cases to make sure date format conversion works correctly, for seconds, for all time format constants (secs, mins, ... , years), singulars / plurals
+        long timediff = ((new Date()).getTime() - myDate.getTime()) / 1000;  //time elapsed since post creation, in seconds
+
+        //time format constants: 0 = seconds, 1 = minutes, 2 = hours, 3 = days , 4 = weeks, 5 = months, 6 = years
+        if(timediff >= 60) {  //if 60 seconds or more, convert to minutes
+            timediff /= 60;
+            timeFormat = 1;
+            if(timediff >= 60) { //if 60 minutes or more, convert to hours
+                timediff /= 60;
+                timeFormat = 2;
+                if(timediff >= 24) { //if 24 hours or more, convert to days
+                    timediff /= 24;
+                    timeFormat = 3;
+
+                    if(timediff >= 365) { //if 365 days or more, convert to years
+                        timediff /= 365;
+                        timeFormat = 6;
+                    }
+
+                    else if (timeFormat < 6 && timediff >= 30) { //if 30 days or more and not yet converted to years, convert to months
+                        timediff /= 30;
+                        timeFormat = 5;
+                    }
+
+                    else if(timeFormat < 5 && timediff >= 7) { //if 7 days or more and not yet converted to months or years, convert to weeks
+                        timediff /= 7;
+                        timeFormat = 4;
+                    }
+
+                }
+            }
+        }
+
+
+        if(timediff > 1) //if timediff is not a singular value
+            timeFormat += 7;
+
+        switch (timeFormat) {
+            //plural
+            case 7:  return String.valueOf(timediff) + " seconds ago";
+            case 8:  return String.valueOf(timediff) + " minutes ago";
+            case 9:  return String.valueOf(timediff) + " hours ago";
+            case 10:  return String.valueOf(timediff) + " days ago";
+            case 11:  return String.valueOf(timediff) + " weeks ago";
+            case 12:  return String.valueOf(timediff) + " months ago";
+            case 13:  return String.valueOf(timediff) + " years ago";
+
+            //singular
+            case 0:  return String.valueOf(timediff) + " second ago";
+            case 1:  return String.valueOf(timediff) + " minute ago";
+            case 2:  return String.valueOf(timediff) + " hour ago";
+            case 3:  return String.valueOf(timediff) + " day ago";
+            case 4:  return String.valueOf(timediff) + " week ago";
+            case 5:  return String.valueOf(timediff) + " month ago";
+            case 6:  return String.valueOf(timediff) + " year ago";
+
+            default: return "";
+        }
+
+
+
     }
 
 }

@@ -255,20 +255,30 @@ public class Post {
         post_id = UUID.randomUUID().toString(); //generate random UUID as post_id when post is created
     }
 
-    public Post(JSONObject postObj) throws JSONException{
-        question = postObj.getString("q");
-        author = postObj.getString("a");
-        time = postObj.getString("t");
-        redname = postObj.getString("rn");
-        redcount = postObj.getInt("rc");
-        blackname  = postObj.getString("bn");
-        blackcount = postObj.getInt("bc");
-        category = postObj.getInt("c");
-        post_id = postObj.getString("i");
-        redimg = postObj.getString("ri");
-        blackimg = postObj.getString("bi");
-        pt = postObj.getInt("pt");
-        ps = BigDecimal.valueOf(postObj.getDouble("ps"));
+    public Post(JSONObject postObj, boolean compact) throws JSONException{
+        if(!compact){
+            question = postObj.getString("q");
+            author = postObj.getString("a");
+            time = postObj.getString("t");
+            redname = postObj.getString("rn");
+            redcount = postObj.getInt("rc");
+            blackname  = postObj.getString("bn");
+            blackcount = postObj.getInt("bc");
+            category = postObj.getInt("c");
+            post_id = postObj.getString("i");
+            redimg = postObj.getString("ri");
+            blackimg = postObj.getString("bi");
+            pt = postObj.getInt("pt");
+            ps = BigDecimal.valueOf(postObj.getDouble("ps"));
+        }
+        else{
+            question = postObj.getString("q");
+            time = postObj.getString("t");
+            redname = postObj.getString("rn");
+            redcount = postObj.getInt("rc");
+            blackname  = postObj.getString("bn");
+            blackcount = postObj.getInt("bc");
+        }
     }
 
     public void incrementRedCount(){
