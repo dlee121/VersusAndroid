@@ -50,7 +50,8 @@ public class CommentHistoryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
         commentHistoryViewHolder.redTv.setText(itemComment.getR());
         commentHistoryViewHolder.blueTv.setText(itemComment.getB());
         commentHistoryViewHolder.timeTV.setText(getTimeString(itemComment.getTime()));
-        commentHistoryViewHolder.points.setText(Integer.toString(itemComment.getUpvotes() - itemComment.getDownvotes()));
+        commentHistoryViewHolder.upvotes.setText(Integer.toString(itemComment.getUpvotes()));
+        commentHistoryViewHolder.downvotes.setText(Integer.toString(itemComment.getDownvotes()));
         commentHistoryViewHolder.content.setText(itemComment.getContent());
 
         switch (itemComment.getTopmedal()){
@@ -79,17 +80,18 @@ public class CommentHistoryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
         public TextView redTv;
         public TextView blueTv;
         public TextView timeTV;
-        public TextView points;
         public ImageView medalView;
         public TextView content;
+        public TextView upvotes, downvotes;
 
         public CommentHistoryViewHolder(View view) {
             super(view);
             redTv = view.findViewById(R.id.red_chi);
             blueTv = view.findViewById(R.id.blue_chi);
-            timeTV = (TextView) view.findViewById(R.id.timetvhistory);
-            points = (TextView) view.findViewById(R.id.points_comment_history);
-            medalView = (ImageView) view.findViewById(R.id.medal_image_history);
+            timeTV = (TextView) view.findViewById(R.id.time_chi);
+            upvotes = view.findViewById(R.id.upvotes_chi);
+            downvotes = view.findViewById(R.id.downvotes_chi);
+            medalView = (ImageView) view.findViewById(R.id.medal_chi);
             content = (TextView) view.findViewById(R.id.usercomment_history);
         }
     }

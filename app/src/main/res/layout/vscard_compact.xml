@@ -32,7 +32,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/question_vc"
-            android:layout_marginLeft="8dp"
+            android:layout_marginStart="8dp"
             android:text="red"
             android:textColor="#FF000000"
             android:textSize="12sp" />
@@ -41,7 +41,7 @@
             android:id="@+id/v_vc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="4dp"
+            android:layout_marginStart="4dp"
             android:layout_toEndOf="@id/red_vc"
             android:layout_below="@id/question_vc"
             android:text="v"
@@ -53,7 +53,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/question_vc"
-            android:layout_marginRight="4dp"
+            android:layout_marginEnd="4dp"
             android:layout_toEndOf="@id/v_vc"
             android:text="s"
             android:textColor="@color/vsRed"
@@ -65,21 +65,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/question_vc"
-            android:layout_marginRight="8dp"
+            android:layout_marginEnd="8dp"
             android:layout_toEndOf="@id/s_vc"
             android:text="blue"
-            android:textColor="#FF000000"
-            android:textSize="12sp" />
-
-        <TextView
-            android:id="@+id/votes_vc"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentEnd="true"
-            android:layout_marginTop="2dp"
-            android:text="20K votes"
-            android:textAlignment="center"
             android:textColor="#FF000000"
             android:textSize="12sp" />
 
@@ -87,10 +75,22 @@
             android:id="@+id/time_vc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/question_vc"
+            android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"
             android:layout_marginTop="2dp"
             android:text="2m"
+            android:textColor="#FF000000"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/votes_vc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/question_vc"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="2dp"
+            android:text="20K votes"
+            android:textAlignment="center"
             android:textColor="#FF000000"
             android:textSize="12sp" />
 
