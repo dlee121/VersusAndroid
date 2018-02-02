@@ -231,20 +231,25 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
                         JSONObject item = hits.getJSONObject(0).getJSONObject("_source");
                         VSComment vsc = new VSComment(item);
                         comments.add(vsc);
-                        addPostInfo(false, vsc.getPost_id(), fromIndex);
-
-
+                        PostInfo postInfo = postInfoMap.get(vsc.getPost_id());
+                        if(postInfo != null){
+                            comments.get(fromIndex).setR(postInfo.getR()).setB(postInfo.getB());
+                        }
+                        else{
+                            addPostInfo(false, vsc.getPost_id(), fromIndex);
+                        }
                     }
                     else{   //this means hitsLength > 1
                         //use StringBuilder to generate postIDs payload and do Multi-GET to get the post info for the VSComment items
 
-
+                        StringBuilder strBuilder = new StringBuilder((67*hitsLength) - 1);
                         JSONObject item = hits.getJSONObject(0).getJSONObject("_source");
                         VSComment vsc = new VSComment(item);
                         comments.add(vsc);
-                        postInfoMap.put(vsc.getPost_id(), new PostInfo());
-                        StringBuilder strBuilder = new StringBuilder((67*hitsLength) - 1);
-                        strBuilder.append("{\"_id\":\""+vsc.getPost_id()+"\",\"_source\":[\"rn\",\"bn\"]}");
+                        if(postInfoMap.get(vsc.getPost_id()) == null){
+                            postInfoMap.put(vsc.getPost_id(), new PostInfo());
+                            strBuilder.append("{\"_id\":\""+vsc.getPost_id()+"\",\"_source\":[\"rn\",\"bn\"]}");
+                        }
 
                         for(int i = 1; i < hits.length(); i++){
                             item = hits.getJSONObject(i).getJSONObject("_source");
@@ -252,13 +257,26 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
                             comments.add(vsc);
                             if(postInfoMap.get(vsc.getPost_id()) == null){
                                 postInfoMap.put(vsc.getPost_id(), new PostInfo());
-                                strBuilder.append(",{\"_id\":\""+vsc.getPost_id()+"\",\"_source\":[\"rn\",\"bn\"]}");
+                                if(strBuilder.length() != 0){
+                                    strBuilder.append(",{\"_id\":\""+vsc.getPost_id()+"\",\"_source\":[\"rn\",\"bn\"]}");
+                                }
+                                else{
+                                    strBuilder.append("{\"_id\":\""+vsc.getPost_id()+"\",\"_source\":[\"rn\",\"bn\"]}"); //start without comma since this is the first one appended to the string builder
+                                }
 
                             }
                         }
-
-                        String postIDs = "{\"docs\":["+strBuilder.toString()+"]}";
-                        addPostInfo(true, postIDs, fromIndex);
+                        if(strBuilder.length() > 0){
+                            String postIDs = "{\"docs\":["+strBuilder.toString()+"]}";
+                            addPostInfo(true, postIDs, fromIndex);
+                        }
+                        else{
+                            PostInfo postInfo;
+                            for (int j = fromIndex; j<comments.size(); j++){
+                                postInfo = postInfoMap.get(comments.get(j).getPost_id());
+                                comments.get(j).setR(postInfo.getR()).setB(postInfo.getB());
+                            }
+                        }
 
                     }
 
@@ -423,7 +441,10 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
                 //TODO: there's only one comment in the comments array, add the post info to the fromIndex-th of the comments array
                 JSONObject obj = new JSONObject(strResponse);
                 //JSONObject item = obj.getJSONObject("_source");
-                comments.get(fromIndex).setR(obj.getString("rn")).setB(obj.getString("bn"));
+                PostInfo postInfo = new PostInfo();
+                postInfo.setRB(obj.getString("rn"), obj.getString("bn"));
+                comments.get(fromIndex).setR(postInfo.getR()).setB(postInfo.getB());
+                postInfoMap.put(payload, postInfo);
 
 
                 //System.out.println("Response: " + strResponse);

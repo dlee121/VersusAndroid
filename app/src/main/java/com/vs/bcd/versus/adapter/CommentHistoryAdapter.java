@@ -56,6 +56,7 @@ public class CommentHistoryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
         switch (itemComment.getTopmedal()){
             case 0:
+                commentHistoryViewHolder.medalView.setImageResource(android.R.color.transparent);
                 break; //no medal, default currentMedal value
             case 1: //bronze
                 commentHistoryViewHolder.medalView.setImageResource(R.drawable.bronzemedal);
