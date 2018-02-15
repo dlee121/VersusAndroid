@@ -51,6 +51,13 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         this.posts = posts;
         this.activity = activity;
         this.fragmentInt = fragmentInt;
+
+        if(fragmentInt == 0 || fragmentInt == 6){   //load from cache or download the images for the posts using Glide
+
+
+
+        }
+
         /*
         gaidWait = true;
         getGAID();

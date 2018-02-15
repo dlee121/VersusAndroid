@@ -9,12 +9,15 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.provider.MediaStore;
+import android.support.media.ExifInterface;
 import android.support.v4.app.Fragment;
 import android.system.ErrnoException;
 import android.util.Log;
@@ -32,6 +35,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +43,9 @@ import java.util.List;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.activity.MainContainer;
@@ -73,6 +80,7 @@ public class CreatePost extends Fragment {
     private String blackimgSet = "default";
     private MainContainer activity;
     private int currentCategorySelection = -1;
+    private RequestOptions requestOptions;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -103,6 +111,10 @@ public class CreatePost extends Fragment {
         LPStore.add(ivLeft.getLayoutParams());
         childViews.add(ivRight);
         LPStore.add(ivRight.getLayoutParams());
+
+        requestOptions = new RequestOptions();
+        requestOptions.skipMemoryCache(true);
+        requestOptions.diskCacheStrategy(DiskCacheStrategy.NONE);
 
 
         ivLeft.setOnClickListener(new View.OnClickListener() {
@@ -385,17 +397,51 @@ public class CreatePost extends Fragment {
             }
 
             if (!requirePermissions) {
+
+                float rotate = 0;
+                InputStream in = null;
+                try {
+
+                    ContentResolver resolver = getContext().getContentResolver();
+                    in = resolver.openInputStream(imageUri);
+                    ExifInterface exif = new ExifInterface(in);
+                    // Now you can extract any Exif tag you want
+                    // Assuming the image is a JPEG or supported raw format
+                    int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+
+                    switch (orientation) {
+                        case ExifInterface.ORIENTATION_ROTATE_270:
+                            rotate = 270;
+                            break;
+                        case ExifInterface.ORIENTATION_ROTATE_180:
+                            rotate = 180;
+                            break;
+                        case ExifInterface.ORIENTATION_ROTATE_90:
+                            rotate = 90;
+                            break;
+                    }
+                } catch (IOException e) {
+                    // Handle any errors
+                } finally {
+                    if (in != null) {
+                        try {
+                            in.close();
+                        } catch (IOException ignored) {}
+                    }
+                }
+
                 if(cropperNumber == 1) {
                     //cropper1.setImageUriAsync(imageUri);
-                    ivLeft.setImageURI(imageUri);
+                    Glide.with(this).load(imageUri).apply(requestOptions).into(ivLeft);
                     redimgSet = "s3";
                 }
 
                 else {
                     //cropper2.setImageUriAsync(imageUri);
-                    ivRight.setImageURI(imageUri);
+                    Glide.with(this).load(imageUri).apply(requestOptions).into(ivRight);
                     blackimgSet = "s3";
                 }
+
                 Log.d("cropper", "Cropper Number: " + Integer.toString(cropperNumber) + ", URI: " + imageUri.toString());
             }
         }
@@ -404,16 +450,18 @@ public class CreatePost extends Fragment {
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         if (mCropImageUri != null && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
             if(cropperNumber == 1){
                 //cropper1.setImageUriAsync(mCropImageUri);
-                ivLeft.setImageURI(mCropImageUri);
+                Glide.with(this).load(mCropImageUri).apply(requestOptions).into(ivLeft);
                 redimgSet = "s3";
             }
             else{
-                ///cropper2.setImageUriAsync(mCropImageUri);
-                ivRight.setImageURI(mCropImageUri);
+                Glide.with(this).load(mCropImageUri).apply(requestOptions).into(ivRight);
                 blackimgSet = "s3";
             }
+
+
         } else {
             Toast.makeText(getActivity(), "Required permissions are not granted", Toast.LENGTH_LONG).show();
         }

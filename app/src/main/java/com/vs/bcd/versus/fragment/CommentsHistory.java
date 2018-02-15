@@ -358,7 +358,6 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
 			/* Execute URL and attach after execution response handler */
 
                 String strResponse = httpClient.execute(httpPost, responseHandler);
-                Log.d("natresponse", strResponse);
 
                 //iterate through hits and put the info in postInfoMap
                 JSONObject obj = new JSONObject(strResponse);
@@ -437,7 +436,6 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
 
                 String strResponse = httpClient.execute(httpGet, responseHandler);
 
-                Log.d("natResponse", "GET:"+strResponse);
                 //TODO: there's only one comment in the comments array, add the post info to the fromIndex-th of the comments array
                 JSONObject obj = new JSONObject(strResponse);
                 //JSONObject item = obj.getJSONObject("_source");
