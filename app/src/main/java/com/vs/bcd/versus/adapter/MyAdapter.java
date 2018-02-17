@@ -1,5 +1,6 @@
 package com.vs.bcd.versus.adapter;
 
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -8,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
@@ -33,10 +35,12 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 
 public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    private final int VIEW_TYPE_ITEM = 0;
-    private final int NATIVE_APP_INSTALL_AD = 1;
-    private final int NATIVE_CONTENT_AD = 2;
-    private final int VIEW_TYPE_LOADING = 3;
+    private final int VIEW_TYPE_IT = 0;
+    private final int VIEW_TYPE_T = 1;
+    private final int VIEW_TYPE_C = 2;
+    private final int NATIVE_APP_INSTALL_AD = 3;
+    private final int NATIVE_CONTENT_AD = 4;
+    private final int VIEW_TYPE_LOADING = 5;
     private OnLoadMoreListener onLoadMoreListener;
     private boolean isLoading;
     private MainContainer activity;
@@ -47,13 +51,20 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private String GAID;
     private boolean gaidWait;
 
+    private int DEFAULT = 0;
+    private int S3 = 1;
+    private int VSRED = 0;
+    private int VSBLUE = 0;
+
     public MyAdapter(RecyclerView recyclerView, List<Post> posts, MainContainer activity, int fragmentInt) {
         this.posts = posts;
         this.activity = activity;
         this.fragmentInt = fragmentInt;
 
         if(fragmentInt == 0 || fragmentInt == 6){   //load from cache or download the images for the posts using Glide
-
+            VSRED = ContextCompat.getColor(this.activity, R.color.vsRed);
+            VSBLUE = ContextCompat.getColor(this.activity, R.color.vsBlue);
+            //TODO: glide grab images
 
 
         }
@@ -92,32 +103,38 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     @Override
     public int getItemViewType(int position) {
-        if(posts.get(position) == null){
+        Post post = posts.get(position);
+        if(post == null){
             Log.d("hey", "this happens?");
             return VIEW_TYPE_LOADING;
         }
-        switch (posts.get(position).getCategory()){
+        switch (post.getCategory()){
             case 42069:
                 return NATIVE_APP_INSTALL_AD;
             case 69420:
                 return NATIVE_CONTENT_AD;
             default:
-                return VIEW_TYPE_ITEM;
+                if(fragmentInt == 0 || fragmentInt == 6){
+                    if(post.getRedimg() == S3 || post.getBlackimg() == S3){
+                        return VIEW_TYPE_IT;
+                    }
+                    return VIEW_TYPE_T;
+                }
+                return VIEW_TYPE_C;
         }
     }
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        if (viewType == VIEW_TYPE_ITEM) {
-            //0 = MainActivity, 1 = Search, 6 = Category, 9 = Me (Profile). Default value of 0.
-            if(fragmentInt == 0 || fragmentInt == 6){
-                View view = LayoutInflater.from(activity).inflate(R.layout.vs_card, parent, false);
-                return new UserViewHolder(view);
-            }
-            //a compact version of post card that is used for Search and Profile
+        if (viewType == VIEW_TYPE_IT) {
+            View view = LayoutInflater.from(activity).inflate(R.layout.vscard_with_img, parent, false);
+            return new TxtImgViewHolder(view);
+        } else if (viewType == VIEW_TYPE_T){
+            View view = LayoutInflater.from(activity).inflate(R.layout.vscard_txt_only, parent, false);
+            return new TxtOnlyViewHolder(view);
+        } else if (viewType == VIEW_TYPE_C){
             View view = LayoutInflater.from(activity).inflate(R.layout.vscard_compact, parent, false);
             return new CompactViewHolder(view);
-
         } else if (viewType == NATIVE_APP_INSTALL_AD){
             View view = LayoutInflater.from(activity).inflate(R.layout.adview_native_app_install, parent, false);
             return new NAIAdViewHolder(view);
@@ -133,40 +150,101 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
-        if (holder instanceof UserViewHolder) {
+        if(holder instanceof TxtImgViewHolder){
 
-            //TODO:this is where values are put into the layout, from the post object
             Post post = posts.get(position);
-            UserViewHolder userViewHolder = (UserViewHolder) holder;
+            TxtImgViewHolder txtImgViewHolder = (TxtImgViewHolder) holder;
+
+            txtImgViewHolder.rname.setText(post.getRedname());
+            txtImgViewHolder.bname.setText(post.getBlackname());
+            if(position % 2 == 0){
+                txtImgViewHolder.txtV.setTextColor(VSRED);
+                txtImgViewHolder.txtS.setTextColor(VSBLUE);
+            }
+            else{
+                txtImgViewHolder.txtV.setTextColor(VSBLUE);
+                txtImgViewHolder.txtS.setTextColor(VSRED);
+            }
 
             final String authorName = post.getAuthor();
             //set onClickListener for profile pic
-            ((UserViewHolder) holder).circView.setOnClickListener(new View.OnClickListener(){
+            txtImgViewHolder.circView.setOnClickListener(new View.OnClickListener(){
                 @Override
                 public void onClick(View v){
                     activity.goToProfile(authorName);
                 }
             });
 
-            userViewHolder.author.setText(authorName);
-            userViewHolder.author.setOnClickListener(new View.OnClickListener() {
+            txtImgViewHolder.author.setText(authorName);
+            txtImgViewHolder.author.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     activity.goToProfile(authorName);
                 }
             });
 
-            userViewHolder.time.setText(getFormattedTime(post.getTime()));
+            txtImgViewHolder.time.setText(getFormattedTime(post.getTime()));
+
+            //TODO: handle cases where question doesn't exist (as in the column doesn't even exist. in that case question.setText(""), leaving it as empty string
+            txtImgViewHolder.question.setText(post.getQuestion());
+            txtImgViewHolder.category.setText(post.getCategoryString());
+            txtImgViewHolder.votecount.setText(Integer.toString(post.getVotecount()) + " votes");
+            //set CardView onClickListener to go to PostPage fragment with corresponding Post data
+            txtImgViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    //if(((MainContainer)activity).getMainFrag().getUILifeStatus())
+
+                    if(activity.showPost()){
+                        activity.postClicked(posts.get(position), fragmentInt);
+                    }
+                }
+            });
+        }
+
+        else if (holder instanceof TxtOnlyViewHolder) {
+
+            //TODO:this is where values are put into the layout, from the post object
+            Post post = posts.get(position);
+            TxtOnlyViewHolder txtOnlyViewHolder = (TxtOnlyViewHolder) holder;
+
+            txtOnlyViewHolder.rname.setText(post.getRedname());
+            txtOnlyViewHolder.bname.setText(post.getBlackname());
+            if(position % 2 == 0){
+                txtOnlyViewHolder.txtV.setTextColor(VSRED);
+                txtOnlyViewHolder.txtS.setTextColor(VSBLUE);
+            }
+            else{
+                txtOnlyViewHolder.txtV.setTextColor(VSBLUE);
+                txtOnlyViewHolder.txtS.setTextColor(VSRED);
+            }
+
+            final String authorName = post.getAuthor();
+            //set onClickListener for profile pic
+            txtOnlyViewHolder.circView.setOnClickListener(new View.OnClickListener(){
+                @Override
+                public void onClick(View v){
+                    activity.goToProfile(authorName);
+                }
+            });
+
+            txtOnlyViewHolder.author.setText(authorName);
+            txtOnlyViewHolder.author.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    activity.goToProfile(authorName);
+                }
+            });
+
+            txtOnlyViewHolder.time.setText(getFormattedTime(post.getTime()));
 
 
             //TODO: handle cases where question doesn't exist (as in the column doesn't even exist. in that case question.setText(""), leaving it as empty string
-            userViewHolder.question.setText(post.getQuestion());
-            userViewHolder.mainVSText.setText(post.getRedname() + " vs " + post.getBlackname());
-            userViewHolder.category.setText(post.getCategoryString());
-            //userViewHolder.votecount.setText(Double.toString(post.getPopularityVelocity()) + " PV");
-            userViewHolder.votecount.setText(Integer.toString(post.getVotecount()) + " votes");
+            txtOnlyViewHolder.question.setText(post.getQuestion());
+            txtOnlyViewHolder.category.setText(post.getCategoryString());
+            txtOnlyViewHolder.votecount.setText(Integer.toString(post.getVotecount()) + " votes");
             //set CardView onClickListener to go to PostPage fragment with corresponding Post data
-            userViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+            txtOnlyViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     //if(((MainContainer)activity).getMainFrag().getUILifeStatus())
@@ -281,28 +359,59 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
     }
 
-    private class UserViewHolder extends RecyclerView.ViewHolder {
+    private class TxtOnlyViewHolder extends RecyclerView.ViewHolder {
 
-        public TextView author;
-        public TextView time;
-        public TextView question;
-        public TextView mainVSText;
-        public TextView category;
-        public TextView votecount;
-
+        public TextView author, time, question, category, votecount, rname, bname, txtV, txtS;
+        public LinearLayout textOnly;
         public CircleImageView circView;
 
         //TODO: thumbnails
 
-        public UserViewHolder(View view) {
+        public TxtOnlyViewHolder(View view) {
             super(view);
-            circView = (CircleImageView)view.findViewById(R.id.profile_image);
-            author = (TextView) view.findViewById(R.id.txt_author);
-            time = (TextView) view.findViewById(R.id.txt_time);
-            question = (TextView) view.findViewById(R.id.txt_question);
-            mainVSText = (TextView) view.findViewById(R.id.maintitletxt);
-            category = (TextView) view.findViewById(R.id.txt_category);
-            votecount = (TextView) view.findViewById(R.id.txt_votecount);
+
+            textOnly = view.findViewById(R.id.only_texts);
+            rname = textOnly.findViewById(R.id.vsc_r_t);
+            bname = textOnly.findViewById(R.id.vsc_b_t);
+            txtV = textOnly.findViewById(R.id.vsc_v_t);
+            txtS = textOnly.findViewById(R.id.vsc_s_t);
+
+            circView = view.findViewById(R.id.profile_image_t);
+            author = view.findViewById(R.id.author_t);
+            time = view.findViewById(R.id.time_t);
+            question = view.findViewById(R.id.question_t);
+            category = view.findViewById(R.id.category_t);
+            votecount = view.findViewById(R.id.votecount_t);
+        }
+    }
+
+    private class TxtImgViewHolder extends RecyclerView.ViewHolder {
+
+        public TextView author, time, question, category, votecount;
+        public LinearLayout withImages;
+
+        public TextView rname, bname, txtV, txtS; //for images+text version TODO: if we only have one image then put a placeholder image in the iv without image
+        public CircleImageView circView;
+        public ImageView leftIV, rightIV;
+
+        //TODO: thumbnails
+
+        public TxtImgViewHolder(View view) {
+            super(view);
+            withImages = view.findViewById(R.id.images_and_texts);
+            rname = withImages.findViewById(R.id.vsc_r_it);
+            bname = withImages.findViewById(R.id.vsc_b_it);
+            txtV = withImages.findViewById(R.id.vsc_v_it);
+            txtS = withImages.findViewById(R.id.vsc_s_it);
+            leftIV = withImages.findViewById(R.id.vsc_r_iv);
+            rightIV = withImages.findViewById(R.id.vsc_b_iv);
+
+            circView = view.findViewById(R.id.profile_image_it);
+            author = view.findViewById(R.id.author_it);
+            time = view.findViewById(R.id.time_it);
+            question = view.findViewById(R.id.question_it);
+            category = view.findViewById(R.id.category_it);
+            votecount = view.findViewById(R.id.votecount_it);
         }
     }
 

@@ -64,20 +64,22 @@ public class PostsHistory extends Fragment implements SwipeRefreshLayout.OnRefre
     private int loadThreshold = 2;
     private boolean nowLoading = false;
 
-    static String host = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
-    static String region = "us-east-1";
-
     private ArrayList<Post> posts;
     private MyAdapter myAdapter;
     private int currPostsIndex = 0;
     SwipeRefreshLayout mSwipeRefreshLayout;
     private String profileUsername = "";
 
+    private String host, region;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.posts_history, container, false);
+
+        host = activity.getESHost();
+        region = activity.getESRegion();
 
         posts = new ArrayList<>();
 

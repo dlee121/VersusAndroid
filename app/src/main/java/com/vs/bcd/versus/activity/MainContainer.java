@@ -128,12 +128,13 @@ public class MainContainer extends AppCompatActivity {
     private boolean goToMainActivityOnResume = false;
     private int myAdapterFragInt = 0;
     private String postParentProfileUsername; //this could be a Stack instead of String to address nested profile-post-profile-post-etc case, for now we only keep immediate postParentProfile
-
     private CognitoCachingCredentialsProvider credentialsProvider;
-
     private DatabaseReference mFirebaseDatabaseReference;
-
     private ArrayList<NativeAd> nativeAds;
+
+
+    private String esHost = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
+    private String esRegion = "us-east-1";
 
     @Override
     public void onBackPressed(){
@@ -1203,6 +1204,13 @@ public class MainContainer extends AppCompatActivity {
 
     public Post getCurrentPost(){
         return getPostPage().getCurrentPost();
+    }
+
+    public String getESHost(){
+        return esHost;
+    }
+    public String getESRegion(){
+        return esRegion;
     }
 
 }

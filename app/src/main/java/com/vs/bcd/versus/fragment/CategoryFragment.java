@@ -95,8 +95,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
 
     private int currPostsIndex = 0;
 
-    static String host = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
-    static String region = "us-east-1";
+    private String host, region;
 
 
     @Override
@@ -106,6 +105,9 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
         //TODO: need to add categories. maybe a separate categories table where post IDs have rows of categories they are linked with
         //TODO: create, at the right location, list of constant enumeration to represent categories. probably at post creation page, which is for now replaced by sample data creation below
         //mHostActivity.setToolbarTitleTextForTabs("Trending");
+
+        host = mHostActivity.getESHost();
+        region = mHostActivity.getESRegion();
 
         posts = new ArrayList<>();
 

@@ -68,14 +68,16 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
 
     private int currPostsIndex = 0;
 
-    static String host = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
-    static String region = "us-east-1";
+    private String host, region;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.tab2trending, container, false);
         //mHostActivity.setToolbarTitleTextForTabs("Trending");
+
+        host = mHostActivity.getESHost();
+        region = mHostActivity.getESRegion();
 
         posts = new ArrayList<>();
 

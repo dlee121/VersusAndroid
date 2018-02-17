@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="10dp"
+    android:layout_marginBottom="6dp"
+    app:cardCornerRadius="0dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#ffffff">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/profile_image_it"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginTop="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:src="@drawable/vs_shadow_w_tag"
+            android:layout_marginStart="8dp"
+            app:civ_border_color="#FF000000"
+            app:civ_border_width="2dp"
+            android:layout_alignParentStart="true"/>
+
+        <TextView
+            android:id="@+id/author_it"
+            android:scrollHorizontally="true"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:gravity="center|start"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:layout_marginTop="8dp"
+            android:text="Username"
+            android:textSize="18sp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_toEndOf="@id/profile_image_it"
+            android:layout_toStartOf="@+id/votecount_it"/>
+
+        <TextView
+            android:id="@id/votecount_it"
+            android:layout_width="130dp"
+            android:layout_height="50dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginEnd="8dp"
+            android:layout_marginTop="8dp"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="1"
+            android:scrollHorizontally="true"
+            android:textSize="18sp"
+            android:text="numVotes" />
+
+        <View
+            android:id="@+id/horizdivider1_it"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:background="@android:color/darker_gray"
+            android:layout_below="@id/author_it"/>
+
+        <TextView
+            android:id="@+id/question_it"
+            android:layout_width="match_parent"
+            android:layout_height="25dp"
+            android:gravity="center"
+            android:layout_below="@id/horizdivider1_it"
+            android:layout_centerHorizontal="true"
+            android:textColor="#FF000000"
+            android:text="TextView"
+            android:textSize="18sp" />
+
+        <!--for vs card with images-->
+        <LinearLayout
+            android:id="@+id/images_and_texts"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false"
+            android:orientation="horizontal"
+            android:layout_below="@id/question_it"
+            android:weightSum="11">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="5"
+                android:orientation="vertical"
+                android:weightSum="5">
+
+                <ImageView
+                    android:id="@+id/vsc_r_iv"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="4"
+                    android:adjustViewBounds="true"
+                    app:srcCompat="@drawable/ic_heart_highlighted"
+                    android:clickable="true" />
+
+                <TextView
+                    android:id="@+id/vsc_r_it"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:textColor="#FF000000"
+                    android:text="redname"
+                    android:textAlignment="center"
+                    android:textStyle="bold"
+                    android:textSize="25sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/vsc_v_it"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="V"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/vsRed" />
+
+                <TextView
+                    android:id="@+id/vsc_s_it"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="S"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/vsBlue" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="5"
+                android:orientation="vertical"
+                android:weightSum="5">
+
+                <ImageView
+                    android:id="@+id/vsc_b_iv"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="4"
+                    android:adjustViewBounds="true"
+                    app:srcCompat="@drawable/ic_heart_highlighted"
+                    android:clickable="true" />
+
+                <TextView
+                    android:id="@+id/vsc_b_it"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:textColor="#FF000000"
+                    android:text="blackname"
+                    android:textAlignment="center"
+                    android:textStyle="bold"
+                    android:textSize="25sp" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/category_it"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_marginStart="8dp"
+            android:layout_below="@id/images_and_texts"
+            android:layout_alignParentStart="true"
+            android:text="Category"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/time_it"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:gravity="center"
+            android:layout_below="@id/images_and_texts"
+            android:layout_alignParentEnd="true"
+            android:text="59 minutes ago"
+            android:textSize="18sp" />
+
+    </RelativeLayout>
+
+
+
+
+</android.support.v7.widget.CardView>

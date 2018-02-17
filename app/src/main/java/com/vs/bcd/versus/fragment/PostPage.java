@@ -142,8 +142,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private int retrievalSize = 30;
 
     private DatabaseReference mFirebaseDatabaseReference;
-    static String host = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
-    static String region = "us-east-1";
+    private String host, region;
 
 
     @Override
@@ -152,6 +151,10 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         activity = (MainContainer)getActivity();
         rootView = inflater.inflate(R.layout.post_page, container, false);
         layoutInflater = inflater;
+
+        host = activity.getESHost();
+        region = activity.getESRegion();
+
         //commentInput = (EditText) rootView.findViewById(R.id.commentInput);
         mRelativeLayout =  rootView.findViewById(R.id.post_page_layout);
         postPageFAB = rootView.findViewById(R.id.postpage_fab);

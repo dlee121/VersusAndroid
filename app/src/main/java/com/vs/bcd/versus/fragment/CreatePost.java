@@ -76,11 +76,14 @@ public class CreatePost extends Fragment {
     private Uri mCropImageUri;
     private AmazonS3 s3;
     private int cropperNumber = 1;
-    private String redimgSet = "default";
-    private String blackimgSet = "default";
+    private int redimgSet = 0;
+    private int blackimgSet = 0;
     private MainContainer activity;
     private int currentCategorySelection = -1;
     private RequestOptions requestOptions;
+
+    private int DEFAULT = 0;
+    private int S3 = 1;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -162,10 +165,10 @@ public class CreatePost extends Fragment {
 
                 //ByteArrayOutputStream bos = new ByteArrayOutputStream();
                 try {
-                    if(redimgSet.equals("s3")){
+                    if(redimgSet == S3){
                         uploadImageToAWS(ivLeft.getDrawingCache(), post.getPost_id(), "left");
                     }
-                    if(blackimgSet.equals("s3")){
+                    if(blackimgSet == S3){
                         uploadImageToAWS(ivRight.getDrawingCache(), post.getPost_id(), "right");
                     }
                     /*
@@ -433,13 +436,13 @@ public class CreatePost extends Fragment {
                 if(cropperNumber == 1) {
                     //cropper1.setImageUriAsync(imageUri);
                     Glide.with(this).load(imageUri).apply(requestOptions).into(ivLeft);
-                    redimgSet = "s3";
+                    redimgSet = S3;
                 }
 
                 else {
                     //cropper2.setImageUriAsync(imageUri);
                     Glide.with(this).load(imageUri).apply(requestOptions).into(ivRight);
-                    blackimgSet = "s3";
+                    blackimgSet = S3;
                 }
 
                 Log.d("cropper", "Cropper Number: " + Integer.toString(cropperNumber) + ", URI: " + imageUri.toString());
@@ -454,11 +457,11 @@ public class CreatePost extends Fragment {
             if(cropperNumber == 1){
                 //cropper1.setImageUriAsync(mCropImageUri);
                 Glide.with(this).load(mCropImageUri).apply(requestOptions).into(ivLeft);
-                redimgSet = "s3";
+                redimgSet = S3;
             }
             else{
                 Glide.with(this).load(mCropImageUri).apply(requestOptions).into(ivRight);
-                blackimgSet = "s3";
+                blackimgSet = S3;
             }
 
 
@@ -571,8 +574,8 @@ public class CreatePost extends Fragment {
     public void resetCatSelection(){
         currentCategorySelection = -1;
         cropperNumber = 1;
-        redimgSet = "default";
-        blackimgSet = "default";
+        redimgSet = DEFAULT;
+        blackimgSet = DEFAULT;
         ivLeft.setImageResource(R.drawable.ic_add_24dp);
         ivRight.setImageResource(R.drawable.ic_add_24dp);
         rednameET.setText("");

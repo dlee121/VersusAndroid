@@ -68,9 +68,7 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
     SwipeRefreshLayout mSwipeRefreshLayout;
     private String profileUsername = "";
     private HashMap<String, PostInfo> postInfoMap;
-
-    static String host = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
-    static String region = "us-east-1";
+    private String host, region;
 
 
 
@@ -78,6 +76,9 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.comments_history, container, false);
+
+        host = activity.getESHost();
+        region = activity.getESRegion();
 
         comments = new ArrayList<>();
         postInfoMap = new HashMap<>();

@@ -32,8 +32,8 @@ public class Post {
     private int blackcount;
     private int category;
     private String post_id;
-    private String redimg; //"default", "s3", "in-app (like emojis. to be implemented later)"
-    private String blackimg;
+    private int redimg; //0 = default (no image), 1 = s3 image
+    private int blackimg;
     private int pt; //last modified time in minutes since epoch, used for popularity score calculation
     private BigDecimal ps; //popularity score
     private double popularityVelocity = 0;  //May move this to ActivePost if we don't plan on using this for Post as well.
@@ -208,18 +208,18 @@ public class Post {
     }
 
     @DynamoDBAttribute(attributeName = "ri")
-    public String getRedimg(){
+    public int getRedimg(){
         return redimg;
     }
-    public void setRedimg(String redimg){
+    public void setRedimg(int redimg){
         this.redimg = redimg;
     }
 
     @DynamoDBAttribute(attributeName = "bi")
-    public String getBlackimg(){
+    public int getBlackimg(){
         return blackimg;
     }
-    public void setBlackimg(String blackimg){
+    public void setBlackimg(int blackimg){
         this.blackimg = blackimg;
     }
 
@@ -266,8 +266,8 @@ public class Post {
             blackcount = postObj.getInt("bc");
             category = postObj.getInt("c");
             post_id = postObj.getString("i");
-            redimg = postObj.getString("ri");
-            blackimg = postObj.getString("bi");
+            redimg = postObj.getInt("ri");
+            blackimg = postObj.getInt("bi");
             pt = postObj.getInt("pt");
             ps = BigDecimal.valueOf(postObj.getDouble("ps"));
         }

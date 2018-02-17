@@ -86,14 +86,6 @@ public class ProfileTab extends Fragment {
     private long followingCount = 0;
     private long followerCount = 0;
 
-    private int currCommentsIndex = 0;
-    private int currPostsIndex = 0;
-    private boolean nowLoading = false;
-    private int commentsRetrievalSize = 25;
-    private int postsRetrievalSize = 20;
-    static String host = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
-    static String region = "us-east-1";
-
     private ProfileTab.SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
 

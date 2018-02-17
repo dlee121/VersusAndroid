@@ -88,7 +88,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     //to set imageviews, first fill out the drawable[3] with 0=image layer, 1=tint layer, 2=check mark layer, make LayerDrawable out of the array, then use setImageMask which sets the correct mask layers AND ALSO sets imageview drawable as the LayerDrawable
 
     public PostPageAdapter(RecyclerView recyclerView, List<Object> masterList, Post post, MainContainer activity, boolean downloadImages, boolean includesPost) {
-        this.s3 = ((MainContainer)activity).getS3Client();
+        s3 = activity.getS3Client();
         this.masterList = masterList;
         this.post = post;
         this.activity = activity;
@@ -447,7 +447,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     expiration.setTime(msec);
                     publishProgress(arg0);
 
-                    if(post.getRedimg().equals("s3")){
+                    if(post.getRedimg() == 1){ //equaling 1 means image is in S3
                         Log.d("Debug", "download red");
                         S3Object object1 = s3.getObject(
                                 new GetObjectRequest("versus.pictures", post.getPost_id() + "-left.jpeg"));
@@ -456,7 +456,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         ins1.close();
                     }
 
-                    if(post.getBlackimg().equals("s3")){
+                    if(post.getBlackimg() == 1){
                         Log.d("Debug", "download black");
                         S3Object object2 = s3.getObject(
                                 new GetObjectRequest("versus.pictures", post.getPost_id() + "-right.jpeg"));
