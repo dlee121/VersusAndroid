@@ -35,14 +35,27 @@
                 android:weightSum="5"
                 android:orientation="vertical">
 
-                <ImageView
-                    android:id="@+id/rediv"
+                <RelativeLayout
+                    android:id="@+id/redimgbox"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
-                    android:layout_weight="4"
-                    android:adjustViewBounds="true"
                     android:clickable="true"
-                    app:srcCompat="@drawable/default_background" />
+                    android:layout_weight="4">
+
+                    <ImageView
+                        android:id="@+id/rediv"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:adjustViewBounds="true"
+                        app:srcCompat="@drawable/default_background" />
+
+                    <ImageView
+                        android:id="@+id/rediv_mask"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:adjustViewBounds="true"/>
+
+                </RelativeLayout>
 
                 <TextView
                     android:id="@+id/rednametvpc"
@@ -68,14 +81,27 @@
                 android:weightSum="5"
                 android:orientation="vertical">
 
-                <ImageView
-                    android:id="@+id/blackiv"
+                <RelativeLayout
+                    android:id="@+id/blkimgbox"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
-                    android:layout_weight="4"
-                    android:adjustViewBounds="true"
                     android:clickable="true"
-                    app:srcCompat="@drawable/default_background" />
+                    android:layout_weight="4">
+
+                    <ImageView
+                        android:id="@+id/blackiv"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:adjustViewBounds="true"
+                        app:srcCompat="@drawable/default_background" />
+
+                    <ImageView
+                        android:id="@+id/blkiv_mask"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:adjustViewBounds="true"/>
+
+                </RelativeLayout>
 
                 <TextView
                     android:id="@+id/blacknametvpc"

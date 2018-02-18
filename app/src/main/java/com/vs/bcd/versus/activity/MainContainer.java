@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.net.Uri;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v7.app.AppCompatActivity;
@@ -71,7 +72,13 @@ import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.fragment.SearchPage;
 import com.vs.bcd.versus.ViewPagerCustomDuration;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -1211,6 +1218,11 @@ public class MainContainer extends AppCompatActivity {
     }
     public String getESRegion(){
         return esRegion;
+    }
+
+    public URL getImgURI(String bucket, String key) throws URISyntaxException{
+        long expirationTime = System.currentTimeMillis() + 86400000; //24 hours from current time
+        return s3.generatePresignedUrl(bucket, key, new Date(expirationTime));
     }
 
 }

@@ -1,14 +1,12 @@
 package com.vs.bcd.versus.adapter;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
-import android.os.AsyncTask;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -25,16 +23,16 @@ import android.widget.TextView;
 
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.S3Object;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.model.GlideUrl;
 import com.vs.bcd.versus.OnLoadMoreListener;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.model.GlideUrlCustom;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.UserAction;
 import com.vs.bcd.versus.model.VSComment;
 
-import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -55,8 +53,8 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private final int NOMASK = 0;
     private final int TINT = 1;
     private final int TINTCHECK = 2;
-    private final int REDINT = 0;
-    private final int BLKINT = 1;
+    private final int RED = 0;
+    private final int BLK = 1;
 
     private final int VIEW_TYPE_ITEM = 0;
     private final int VIEW_TYPE_LOADING = 1;
@@ -76,13 +74,16 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private boolean downloadImages, includesPost;
     private UserAction userAction;
     private Map<String, String> actionMap;
-    private Drawable[] redLayers = new Drawable[3];
-    private Drawable[] blackLayers = new Drawable[3];
+    private Drawable[] redLayers = new Drawable[2];
+    private Drawable[] blackLayers = new Drawable[2];
     private ShapeDrawable redTint;
     private ShapeDrawable blackTint;
     private LayerDrawable redLayerDrawable;
     private LayerDrawable blackLayerDrawable;
     private RelativeLayout.LayoutParams graphBoxParams = null;
+
+    private int DEFAULT = 0;
+    private int S3 = 1;
 
 
     //to set imageviews, first fill out the drawable[3] with 0=image layer, 1=tint layer, 2=check mark layer, make LayerDrawable out of the array, then use setImageMask which sets the correct mask layers AND ALSO sets imageview drawable as the LayerDrawable
@@ -327,40 +328,40 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             postCard.blacknameTV.setText(post.getBlackname());
 
             redTint = new ShapeDrawable (new RectShape());
-            redTint.setIntrinsicWidth (postCard.redImage.getWidth());
-            redTint.setIntrinsicHeight (postCard.redImage.getHeight());
+            redTint.setIntrinsicWidth (postCard.redIV.getWidth());
+            redTint.setIntrinsicHeight (postCard.redIV.getHeight());
             redTint.getPaint().setColor(Color.argb(175, 165, 35, 57));
-            redLayers[0] = ContextCompat.getDrawable(activity, R.drawable.default_background);
-            redLayers[1] = redTint;
-            redLayers[2] = ContextCompat.getDrawable(activity, R.drawable.ic_check_overlay);
+            //redLayers[0] = ContextCompat.getDrawable(activity, R.drawable.default_background);
+            redLayers[0] = redTint;
+            redLayers[1] = ContextCompat.getDrawable(activity, R.drawable.ic_check_overlay);
 
             blackTint = new ShapeDrawable(new RectShape());
-            blackTint.setIntrinsicWidth(postCard.blackImage.getWidth());
-            blackTint.setIntrinsicHeight(postCard.blackImage.getHeight());
+            blackTint.setIntrinsicWidth(postCard.blkIV.getWidth());
+            blackTint.setIntrinsicHeight(postCard.blkIV.getHeight());
             blackTint.getPaint().setColor(Color.argb(175, 48, 48, 48));
-            blackLayers[0] = ContextCompat.getDrawable(activity, R.drawable.default_background);
-            blackLayers[1] = blackTint;
-            blackLayers[2] = ContextCompat.getDrawable(activity, R.drawable.ic_check_overlay_2);
+            //blackLayers[0] = ContextCompat.getDrawable(activity, R.drawable.default_background);
+            blackLayers[0] = blackTint;
+            blackLayers[1] = ContextCompat.getDrawable(activity, R.drawable.ic_check_overlay_2);
 
 
-            postCard.redImage.setOnClickListener(new View.OnClickListener() {
+            postCard.redimgBox.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if(!userAction.getVotedSide().equals("RED")){
                         activity.getPostPage().redVotePressed();
-                        setImageMask(TINTCHECK, REDINT);
-                        setImageMask(TINT, BLKINT);
+                        setImageMask(TINTCHECK, RED);
+                        setImageMask(TINT, BLK);
                     }
                 }
             });
 
-            postCard.blackImage.setOnClickListener(new View.OnClickListener() {
+            postCard.blkimgBox.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if(!userAction.getVotedSide().equals("BLK")){
                         activity.getPostPage().blackVotePressed();
-                        setImageMask(TINTCHECK, BLKINT);
-                        setImageMask(TINT, REDINT);
+                        setImageMask(TINTCHECK, BLK);
+                        setImageMask(TINT, RED);
                     }
                 }
             });
@@ -372,31 +373,31 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 }
             });
 
-            //TODO: have a field that lets me know if this post contains left / right images so that I do S3 query only when I have to.
-            //TODO: and clear the BMP's whenever the fragment detaches, i think we already clear most fields anyway but still
-            if(downloadImages){
-                downloadImageFromAWS(); //downloads images and calls the helper method setImages() once download completes to set the images on post card
-                downloadImages = false; //so that we don't repeat download while same adapter is alive and performing routine refresh function or whatever.
-                                        // when we want to update the whole post page including the images, we simply create new adapter in PostPage.setContent(with downloadImages = true)
+
+            if(post.getRedimg() == S3){
+                try{
+                    GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI("versus.pictures", post.getPost_id() + "-left.jpeg"));
+                    Glide.with(activity).load(gurlLeft).into(postCard.redIV);
+                } catch (Exception e){
+                    postCard.redIV.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
+                }
             }
             else{
-
-                if(activity.hasXBMP()){
-                    Log.d("THIS", "NYOK");
-                    redLayers[0] = new BitmapDrawable(activity.getResources(), activity.getXBMP());
-                }
-                else{
-                    redLayers[0] = ContextCompat.getDrawable(activity, R.drawable.default_background);
-                }
-                if(activity.hasYBMP()){
-                    Log.d("THIS", "FYOK");
-                    blackLayers[0] = new BitmapDrawable(activity.getResources(), activity.getYBMP());
-                }
-                else{
-                    blackLayers[0] = ContextCompat.getDrawable(activity, R.drawable.default_background);
-                }
-                setInitialMask();
+                postCard.redIV.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
             }
+
+            if(post.getBlackimg() == S3){
+                try{
+                    GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI("versus.pictures", post.getPost_id() + "-right.jpeg"));
+                    Glide.with(activity).load(gurlRight).into(postCard.blkIV);
+                } catch (Exception e){
+                    postCard.blkIV.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
+                }
+            }
+            else{
+                postCard.blkIV.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
+            }
+            setInitialMask();
 
         } else if (holder instanceof LoadingViewHolder) { //TODO: handle loading view to be implemented soon
             LoadingViewHolder loadingViewHolder = (LoadingViewHolder) holder;
@@ -406,18 +407,18 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private void setInitialMask(){
         switch (userAction.getVotedSide()){
             case "none":
-                setImageMask(NOMASK, REDINT);
-                setImageMask(NOMASK, BLKINT);
+                setImageMask(NOMASK, RED);
+                setImageMask(NOMASK, BLK);
                 break;
 
             case "RED":
-                setImageMask(TINTCHECK, REDINT);
-                setImageMask(TINT, BLKINT);
+                setImageMask(TINTCHECK, RED);
+                setImageMask(TINT, BLK);
                 break;
 
             case "BLK":
-                setImageMask(TINT, REDINT);
-                setImageMask(TINTCHECK, BLKINT);
+                setImageMask(TINT, RED);
+                setImageMask(TINTCHECK, BLK);
                 break;
 
             default:
@@ -428,70 +429,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     private void downloadImageFromAWS() {
 
-        AsyncTask<String, String, String> _Task = new AsyncTask<String, String, String>() {
 
-            @Override
-            protected void onPreExecute() {
-
-            }
-
-            @Override
-            protected String doInBackground(String... arg0)
-            {
-                //if (NetworkAvailablity.checkNetworkStatus(MyActivity.this))
-                //{
-                try {
-                    java.util.Date expiration = new java.util.Date();
-                    long msec = expiration.getTime();
-                    msec += 1000 * 60 * 60; // 1 hour.
-                    expiration.setTime(msec);
-                    publishProgress(arg0);
-
-                    if(post.getRedimg() == 1){ //equaling 1 means image is in S3
-                        Log.d("Debug", "download red");
-                        S3Object object1 = s3.getObject(
-                                new GetObjectRequest("versus.pictures", post.getPost_id() + "-left.jpeg"));
-                        InputStream ins1 = object1.getObjectContent();
-                        redBMP = BitmapFactory.decodeStream(ins1);
-                        ins1.close();
-                    }
-
-                    if(post.getBlackimg() == 1){
-                        Log.d("Debug", "download black");
-                        S3Object object2 = s3.getObject(
-                                new GetObjectRequest("versus.pictures", post.getPost_id() + "-right.jpeg"));
-                        InputStream ins2 = object2.getObjectContent();
-                        blackBMP = BitmapFactory.decodeStream(ins2);
-                        ins2.close();
-                    }
-                    setImages();
-
-                } catch (Exception e) {
-                    // writing error to Log
-                    e.printStackTrace();
-                }
-            /*
-                }
-                else
-                {
-
-                }
-            */
-                return null;
-            }
-            @Override
-            protected void onProgressUpdate(String... values) {
-                // TODO Auto-generated method stub
-                super.onProgressUpdate(values);
-                System.out.println("Progress : "  + values);
-            }
-            @Override
-            protected void onPostExecute(String result)
-            {
-
-            }
-        };
-        _Task.execute((String[]) null);
     }
 
     private void setImages(){
@@ -521,18 +459,18 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
                 switch (userAction.getVotedSide()){
                     case "none":
-                        setImageMask(NOMASK, REDINT);   //sets mask and also sets the drawable to corresponding imageview
-                        setImageMask(NOMASK, BLKINT);
+                        setImageMask(NOMASK, RED);   //sets mask and also sets the drawable to corresponding imageview
+                        setImageMask(NOMASK, BLK);
                         //Log.d("vote", "user voted none");
                         break;
                     case "RED":
-                        setImageMask(TINTCHECK, REDINT);
-                        setImageMask(TINT, BLKINT);
+                        setImageMask(TINTCHECK, RED);
+                        setImageMask(TINT, BLK);
                         //Log.d("vote", "user voted red");
                         break;
                     case "BLK":
-                        setImageMask(TINT, REDINT);
-                        setImageMask(TINTCHECK, BLKINT);
+                        setImageMask(TINT, RED);
+                        setImageMask(TINTCHECK, BLK);
                         //Log.d("vote", "user voted black");
                         break;
                     default:
@@ -562,19 +500,26 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         public TextView questionTV;
         public TextView rednameTV;
         public TextView blacknameTV;
-        public ImageView redImage;
-        public ImageView blackImage;
+        public ImageView redIV;
+        public ImageView blkIV;
+        public ImageView redMask;
+        public ImageView blkMask;
         public View redgraphView;
         public RelativeLayout graphBox;
         public Button sortTypeSelector;
+        public RelativeLayout redimgBox, blkimgBox;
 
         public PostCardViewHolder (View view){
             super(view);
             questionTV = (TextView)view.findViewById(R.id.post_page_question);
             rednameTV = (TextView)view.findViewById(R.id.rednametvpc);
             blacknameTV = (TextView)view.findViewById(R.id.blacknametvpc);
-            redImage = (ImageView)view.findViewById(R.id.rediv);
-            blackImage = (ImageView)view.findViewById(R.id.blackiv);
+            redimgBox = view.findViewById(R.id.redimgbox);
+            redMask = redimgBox.findViewById(R.id.rediv_mask);
+            redIV = redimgBox.findViewById(R.id.rediv);
+            blkimgBox = view.findViewById(R.id.blkimgbox);
+            blkMask = blkimgBox.findViewById(R.id.blkiv_mask);
+            blkIV = blkimgBox.findViewById(R.id.blackiv);
             redgraphView = view.findViewById(R.id.redgraphview);
             graphBox = (RelativeLayout)view.findViewById(R.id.graphbox);
             sortTypeSelector = (Button)view.findViewById(R.id.sort_type_selector_pc);
@@ -733,51 +678,51 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         //Log.d("input", "maskCode = " + Integer.toString(maskCode) + ", redOrBlack = " + Integer.toString(redOrBlack));
         switch (redOrBlack){
-            case REDINT:
+            case RED:
                 switch (maskCode){
                     case NOMASK:
+                        redLayers[0].setAlpha(0);
                         redLayers[1].setAlpha(0);
-                        redLayers[2].setAlpha(0);
                         hideGraph();
                         break;
                     case TINT:
-                        redLayers[1].setAlpha(175);
-                        redLayers[2].setAlpha(0);
+                        redLayers[0].setAlpha(175);
+                        redLayers[1].setAlpha(0);
                         showGraph();
                         break;
                     case TINTCHECK:
-                        redLayers[1].setAlpha(175);
-                        redLayers[2].setAlpha(255);
+                        redLayers[0].setAlpha(175);
+                        redLayers[1].setAlpha(255);
                         showGraph();
                         break;
                     default:
                         return;
                 }
                 redLayerDrawable = new LayerDrawable(redLayers);
-                postCard.redImage.setImageDrawable(redLayerDrawable);
-                postCard.redImage.invalidate();
+                postCard.redMask.setImageDrawable(redLayerDrawable);
+                postCard.redMask.invalidate();
                 break;
 
-            case BLKINT:
+            case BLK:
                 switch (maskCode){
                     case NOMASK:
+                        blackLayers[0].setAlpha(0);
                         blackLayers[1].setAlpha(0);
-                        blackLayers[2].setAlpha(0);
                         break;
                     case TINT:
-                        blackLayers[1].setAlpha(175);
-                        blackLayers[2].setAlpha(0);
+                        blackLayers[0].setAlpha(175);
+                        blackLayers[1].setAlpha(0);
                         break;
                     case TINTCHECK:
-                        blackLayers[1].setAlpha(175);
-                        blackLayers[2].setAlpha(255);
+                        blackLayers[0].setAlpha(175);
+                        blackLayers[1].setAlpha(255);
                         break;
                     default:
                         return;
                 }
                 blackLayerDrawable = new LayerDrawable(blackLayers);
-                postCard.blackImage.setImageDrawable(blackLayerDrawable);
-                postCard.blackImage.invalidate();
+                postCard.blkMask.setImageDrawable(blackLayerDrawable);
+                postCard.blkMask.invalidate();
                 break;
 
             default:
@@ -808,5 +753,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         masterList.addAll(listInput);
         notifyDataSetChanged();
     }
+
+
 
 }
