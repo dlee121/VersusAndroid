@@ -62,17 +62,17 @@ public class MainActivity extends Fragment {
         //tabStrip = ((LinearLayout)tabLayout.getChildAt(0));
         //set tab icons
 
-        tabLayout.getTabAt(0).setIcon(R.drawable.ic_trending_selected);
+        tabLayout.getTabAt(0).setIcon(R.drawable.ic_home_selected);
         tabLayout.getTabAt(1).setIcon(R.drawable.ic_trending_unselected);
-        tabLayout.getTabAt(2).setIcon(R.drawable.ic_trending_unselected);
-        tabLayout.getTabAt(3).setIcon(R.drawable.ic_messenger_unselected_24dp);
+        tabLayout.getTabAt(2).setIcon(R.drawable.ic_categories_unselected);
+        tabLayout.getTabAt(3).setIcon(R.drawable.ic_messenger_unselected);
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 switch (tab.getPosition()) {
                     case 0: //newsfeed
-                        tab.setIcon(R.drawable.ic_trending_selected);
+                        tab.setIcon(R.drawable.ic_home_selected);
                         mainContainer.setToolbarTitleTextForTabs("Newsfeed");
                         enableCPFab();
                         Log.d("matab", "tab1Newsfeed selected");
@@ -90,17 +90,17 @@ public class MainActivity extends Fragment {
                         }
                         break;
                     case 2: //categories
-                        tab.setIcon(R.drawable.ic_trending_selected);
+                        tab.setIcon(R.drawable.ic_categories_selected);
                         mainContainer.setToolbarTitleTextForTabs("Categories");
                         disableCPFab();
                         break;
                     case 3: //messenger
-                        tab.setIcon(R.drawable.ic_messenger_selected_24dp);
+                        tab.setIcon(R.drawable.ic_messenger_selected);
                         mainContainer.setToolbarTitleTextForTabs("Messenger");
                         disableCPFab();
                         break;
                     default:
-                        tab.setIcon(R.drawable.ic_trending_selected);
+                        tab.setIcon(R.drawable.ic_home_selected);
                         break;
                 }
             }
@@ -109,19 +109,19 @@ public class MainActivity extends Fragment {
             public void onTabUnselected(TabLayout.Tab tab) {
                 switch (tab.getPosition()) {
                     case 0: //newsfeed
-                        tab.setIcon(R.drawable.ic_trending_unselected);
+                        tab.setIcon(R.drawable.ic_home_unselected);
                         break;
                     case 1: //trending
                         tab.setIcon(R.drawable.ic_trending_unselected);
                         break;
                     case 2: //categories
-                        tab.setIcon(R.drawable.ic_trending_unselected);
+                        tab.setIcon(R.drawable.ic_categories_unselected);
                         break;
                     case 3: //messenger
-                        tab.setIcon(R.drawable.ic_messenger_unselected_24dp);
+                        tab.setIcon(R.drawable.ic_messenger_unselected);
                         break;
                     default:
-                        tab.setIcon(R.drawable.ic_trending_unselected);
+                        tab.setIcon(R.drawable.ic_home_unselected);
                         break;
                 }
 
