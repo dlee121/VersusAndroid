@@ -7,6 +7,7 @@ android {
         applicationId "com.vs.bcd.versus"
         minSdkVersion 19
         targetSdkVersion 27
+        multiDexEnabled true
         versionCode 1
         versionName "1.0"
         vectorDrawables.useSupportLibrary = true
@@ -25,6 +26,9 @@ android {
 }
 
 dependencies {
+
+    compile 'com.android.support:multidex:1.0.2'
+
     compile fileTree(include: ['*.jar'], dir: 'libs')
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
@@ -67,7 +71,7 @@ dependencies {
     //compile 'com.google.android.gms:play-services-ads:11.8.0'
 
     compile 'com.github.bumptech.glide:glide:4.6.1'
-
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.6.1'
     compile ("com.github.bumptech.glide:recyclerview-integration:4.6.1") {
         // Excludes the support library because it's already included by Glide.
         transitive = false
@@ -80,3 +84,5 @@ dependencies {
 }
 
 apply plugin: 'com.google.gms.google-services'
+
+apply plugin: 'com.getkeepsafe.dexcount'

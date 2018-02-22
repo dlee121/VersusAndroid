@@ -1,5 +1,8 @@
 package com.vs.bcd.versus.adapter;
 
+import android.graphics.drawable.Drawable;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -14,6 +17,8 @@ import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
+import com.bumptech.glide.ListPreloader;
+import com.bumptech.glide.RequestBuilder;
 import com.google.android.gms.ads.formats.NativeAd;
 import com.google.android.gms.ads.formats.NativeAppInstallAd;
 import com.google.android.gms.ads.formats.NativeAppInstallAdView;
@@ -22,11 +27,14 @@ import com.google.android.gms.ads.formats.NativeContentAdView;
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.vs.bcd.versus.OnLoadMoreListener;
 import com.vs.bcd.versus.activity.MainContainer;
+import com.vs.bcd.versus.model.GlideApp;
+import com.vs.bcd.versus.model.GlideUrlCustom;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.R;
 
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Date;
 import java.util.Locale;
@@ -34,7 +42,7 @@ import java.util.Locale;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 
-public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements ListPreloader.PreloadModelProvider<Post>{
     private final int VIEW_TYPE_IT = 0;
     private final int VIEW_TYPE_T = 1;
     private final int VIEW_TYPE_C = 2;
@@ -56,49 +64,23 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private int VSRED = 0;
     private int VSBLUE = 0;
 
+    private int imageWidthPixels = 696;
+    private int imageHeightPixels = 747;
+
+    Drawable defaultImage;
+
     public MyAdapter(RecyclerView recyclerView, List<Post> posts, MainContainer activity, int fragmentInt) {
         this.posts = posts;
         this.activity = activity;
         this.fragmentInt = fragmentInt;
 
-        if(fragmentInt == 0 || fragmentInt == 6){   //load from cache or download the images for the posts using Glide
-            VSRED = ContextCompat.getColor(this.activity, R.color.vsRed);
-            VSBLUE = ContextCompat.getColor(this.activity, R.color.vsBlue);
-            //TODO: glide grab images
+        VSRED = ContextCompat.getColor(this.activity, R.color.vsRed);
+        VSBLUE = ContextCompat.getColor(this.activity, R.color.vsBlue);
 
-
+        if(fragmentInt == 0 || fragmentInt == 6){
+            defaultImage = ContextCompat.getDrawable(activity, R.drawable.default_background);
         }
 
-        /*
-        gaidWait = true;
-        getGAID();
-        long end = System.currentTimeMillis() + 3*1000; // 3 sec * 1000 ms/sec
-        //automatic timeout at 3 seconds to prevent infinite loop
-        while(gaidWait && System.currentTimeMillis() < end){
-            //wait for getGAID()'s thread to finish retrieving device GAID
-        }
-        if(GAID == null || GAID.equals("N/A")){
-
-        }
-        else{   //we can serve targeted ads
-
-        }
-        */
-        final LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
-        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-                totalItemCount = linearLayoutManager.getItemCount();
-                lastVisibleItem = linearLayoutManager.findLastVisibleItemPosition();
-                if (!isLoading && totalItemCount <= (lastVisibleItem + visibleThreshold)) {
-                    if (onLoadMoreListener != null) {
-                        onLoadMoreListener.onLoadMore();
-                    }
-                    isLoading = true;
-                }
-            }
-        });
     }
 
     @Override
@@ -200,6 +182,51 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     }
                 }
             });
+            txtImgViewHolder.leftIV.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    //if(((MainContainer)activity).getMainFrag().getUILifeStatus())
+
+                    if(activity.showPost()){
+                        activity.postClicked(posts.get(position), fragmentInt);
+                    }
+                }
+            });
+            txtImgViewHolder.rightIV.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    //if(((MainContainer)activity).getMainFrag().getUILifeStatus())
+
+                    if(activity.showPost()){
+                        activity.postClicked(posts.get(position), fragmentInt);
+                    }
+                }
+            });
+
+
+            try{
+                if(post.getRedimg() == S3){
+                    GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI("versus.pictures", post.getPost_id() + "-left.jpeg"));
+                    GlideApp.with(activity).load(gurlLeft).override(imageWidthPixels, imageHeightPixels).into(txtImgViewHolder.leftIV);
+                }
+                else if(post.getRedimg() == DEFAULT){
+                    //set default image
+                    GlideApp.with(activity).load(defaultImage).override(imageWidthPixels, imageHeightPixels).into(txtImgViewHolder.leftIV);
+                }
+
+                if(post.getBlackimg() == S3){
+                    GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI("versus.pictures", post.getPost_id() + "-right.jpeg"));
+                    GlideApp.with(activity).load(gurlRight).override(imageWidthPixels, imageHeightPixels).into(txtImgViewHolder.rightIV);
+                }
+                else if(post.getBlackimg() == DEFAULT){
+                    //set default image
+                    GlideApp.with(activity).load(defaultImage).override(imageWidthPixels, imageHeightPixels).into(txtImgViewHolder.rightIV);
+                }
+
+            }catch (Throwable t){
+
+            }
+
         }
 
         else if (holder instanceof TxtOnlyViewHolder) {
@@ -617,9 +644,44 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
             default: return "";
         }
+    }
 
+    @Override
+    @NonNull
+    public List<Post> getPreloadItems(int position) {
+        Post post = posts.get(position);
+        if (post.getRedimg() == S3 || post.getBlackimg() == S3) {
+            return Collections.singletonList(post);
+        }
+        return Collections.emptyList();
+    }
 
+    @Override
+    @Nullable
+    public RequestBuilder getPreloadRequestBuilder(Post post) {
+        //Log.d("hihihihoy", "doing work");
+        try{
+            if(post.getRedimg() == S3){
+                if(post.getBlackimg() == S3){
+                    GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI("versus.pictures", post.getPost_id() + "-left.jpeg"));
+                    GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI("versus.pictures", post.getPost_id() + "-right.jpeg"));
+                    return GlideApp.with(activity).load(gurlLeft).override(imageWidthPixels, imageHeightPixels).load(gurlRight).override(imageWidthPixels, imageHeightPixels);
+                }
+                else{
+                    GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI("versus.pictures", post.getPost_id() + "-left.jpeg"));
+                    return GlideApp.with(activity).load(gurlLeft).override(imageWidthPixels, imageHeightPixels);
+                }
+            }
+            else if(post.getBlackimg() == S3){
+                GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI("versus.pictures", post.getPost_id() + "-right.jpeg"));
+                return GlideApp.with(activity).load(gurlRight).override(imageWidthPixels, imageHeightPixels);
+            }
+        }
+        catch (Throwable t){
 
+        }
+
+        return null;
     }
 
 }

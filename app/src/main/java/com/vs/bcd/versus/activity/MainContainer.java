@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.net.Uri;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v7.app.AppCompatActivity;
@@ -72,11 +71,8 @@ import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.fragment.SearchPage;
 import com.vs.bcd.versus.ViewPagerCustomDuration;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.time.LocalDate;
-import java.time.Month;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -190,6 +186,12 @@ public class MainContainer extends AppCompatActivity {
                         xBmp = null;
                         yBmp = null;
                     }
+                    break;
+
+                case 4:
+                    mViewPager.setCurrentItem(3);
+                    titleTxtView.setText(lastSetTitle);
+                    commentEnterFragment.clearTextInput();
                     break;
 
                 case 5: //currently in SelectCategory for CreatePost
@@ -373,10 +375,7 @@ public class MainContainer extends AppCompatActivity {
                     case 4: //commentEnterFragment
                         mViewPager.setCurrentItem(3);
                         titleTxtView.setText(lastSetTitle);
-                        /*  why were these lines here in the first place?
-                        xBmp = null;
-                        yBmp = null;
-                        */
+                        commentEnterFragment.clearTextInput();
                         break;
 
                     case 5: //category selection screen for CreatePost
@@ -451,6 +450,13 @@ public class MainContainer extends AppCompatActivity {
             public void onClick(View view) {
                 int currPage = mViewPager.getCurrentItem();
                 switch (currPage){
+
+                    case 4:
+                        commentEnterFragment.submitButtonPressed();
+                        mViewPager.setCurrentItem(3);
+                        titleTxtView.setText(lastSetTitle);
+                        break;
+
                     case 12:    //CreateMessage fragment
                         String dmTarget = createMessageFragment.getDMTarget();
                         if(!(dmTarget.equals(""))){
@@ -569,6 +575,8 @@ public class MainContainer extends AppCompatActivity {
 
                     case 4: //CommentEnterFragment
                         //disableBottomTabs();  //accessed from PostPage which already disables bottom tabs
+                        hideToolbarButtonRight();
+                        showToolbarTextButton("POST");
                         break;
 
                     case 5: //SelectCategory
@@ -1223,6 +1231,14 @@ public class MainContainer extends AppCompatActivity {
     public URL getImgURI(String bucket, String key) throws URISyntaxException{
         long expirationTime = System.currentTimeMillis() + 86400000; //24 hours from current time
         return s3.generatePresignedUrl(bucket, key, new Date(expirationTime));
+    }
+
+    public int getImageWidthPixels(){
+        return 696;
+    }
+
+    public int getImageHeightPixels(){
+        return 747;
     }
 
 }

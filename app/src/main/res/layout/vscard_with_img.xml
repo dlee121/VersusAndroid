@@ -100,7 +100,7 @@
                     android:layout_height="0dp"
                     android:layout_weight="4"
                     android:adjustViewBounds="true"
-                    app:srcCompat="@drawable/ic_heart_highlighted"
+                    app:srcCompat="@drawable/default_background"
                     android:clickable="true" />
 
                 <TextView
@@ -157,7 +157,7 @@
                     android:layout_height="0dp"
                     android:layout_weight="4"
                     android:adjustViewBounds="true"
-                    app:srcCompat="@drawable/ic_heart_highlighted"
+                    app:srcCompat="@drawable/default_background"
                     android:clickable="true" />
 
                 <TextView

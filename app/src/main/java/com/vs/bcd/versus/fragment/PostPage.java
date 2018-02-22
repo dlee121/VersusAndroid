@@ -184,7 +184,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             public void onClick(View v) {
                 //TODO: implement a version where we reply to comments and have this function choose between that and root comment version
                 //depending if we're at isRootLevel or not
-                ((MainContainer)getActivity()).getCommentEnterFragment().setContentReplyToPost(postTopic, postX, postY, post);
+                ((MainContainer)getActivity()).getCommentEnterFragment().setContentReplyToPost(post);
                 ((MainContainer)getActivity()).getViewPager().setCurrentItem(4);
             }
         });

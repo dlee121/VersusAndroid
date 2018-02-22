@@ -20,6 +20,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
 import com.amazonaws.services.s3.AmazonS3;
@@ -81,6 +82,8 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private LayerDrawable redLayerDrawable;
     private LayerDrawable blackLayerDrawable;
     private RelativeLayout.LayoutParams graphBoxParams = null;
+
+    private Toast mToast;
 
     private int DEFAULT = 0;
     private int S3 = 1;
@@ -351,6 +354,12 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         activity.getPostPage().redVotePressed();
                         setImageMask(TINTCHECK, RED);
                         setImageMask(TINT, BLK);
+
+                        if(mToast != null){
+                            mToast.cancel();
+                        }
+                        mToast = Toast.makeText(activity, "Vote Submitted", Toast.LENGTH_SHORT);
+                        mToast.show();
                     }
                 }
             });
@@ -362,6 +371,12 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         activity.getPostPage().blackVotePressed();
                         setImageMask(TINTCHECK, BLK);
                         setImageMask(TINT, RED);
+
+                        if(mToast != null){
+                            mToast.cancel();
+                        }
+                        mToast = Toast.makeText(activity, "Vote Submitted", Toast.LENGTH_SHORT);
+                        mToast.show();
                     }
                 }
             });

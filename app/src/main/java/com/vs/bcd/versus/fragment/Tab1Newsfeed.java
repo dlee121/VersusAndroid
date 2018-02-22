@@ -2,6 +2,8 @@ package com.vs.bcd.versus.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
@@ -14,11 +16,18 @@ import android.support.v7.widget.RecyclerView;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.ListPreloader;
+import com.bumptech.glide.RequestBuilder;
+import com.bumptech.glide.integration.recyclerview.RecyclerViewPreloader;
+import com.bumptech.glide.util.FixedPreloadSizeProvider;
 import com.google.android.gms.ads.formats.NativeAd;
 import com.google.android.gms.ads.formats.NativeAppInstallAd;
 import com.google.android.gms.ads.formats.NativeContentAd;
@@ -26,6 +35,7 @@ import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.MyAdapter;
 import com.vs.bcd.versus.model.AWSV4Auth;
+import com.vs.bcd.versus.model.GlideApp;
 import com.vs.bcd.versus.model.Post;
 
 import org.json.JSONArray;
@@ -71,6 +81,9 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
 
     private String host, region;
 
+    private int DEFAULT = 0;
+    private int S3 = 1;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -108,6 +121,15 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                 }
             }
         });
+
+
+        //recyclerview preloader setup
+        ListPreloader.PreloadSizeProvider sizeProvider =
+                new FixedPreloadSizeProvider(mHostActivity.getImageWidthPixels(), mHostActivity.getImageHeightPixels());
+        RecyclerViewPreloader<Post> preloader =
+                new RecyclerViewPreloader<>(Glide.with(mHostActivity), myAdapter, sizeProvider, 10);
+        recyclerView.addOnScrollListener(preloader);
+
 
         // SwipeRefreshLayout
         mSwipeRefreshLayout = rootView.findViewById(R.id.swipe_container_tab1);
@@ -303,10 +325,10 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
         }
     }
 
-    public boolean postsLoaded(){
+    public boolean postsLoaded() {
         return posts != null && !posts.isEmpty();
     }
 
 
-
 }
+

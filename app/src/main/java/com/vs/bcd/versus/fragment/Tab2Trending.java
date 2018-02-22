@@ -18,6 +18,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.ListPreloader;
+import com.bumptech.glide.integration.recyclerview.RecyclerViewPreloader;
+import com.bumptech.glide.util.FixedPreloadSizeProvider;
 import com.google.android.gms.ads.formats.NativeAd;
 import com.google.android.gms.ads.formats.NativeAppInstallAd;
 import com.google.android.gms.ads.formats.NativeContentAd;
@@ -107,6 +111,13 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                 }
             }
         });
+
+        //recyclerview preloader setup
+        ListPreloader.PreloadSizeProvider sizeProvider =
+                new FixedPreloadSizeProvider(mHostActivity.getImageWidthPixels(), mHostActivity.getImageHeightPixels());
+        RecyclerViewPreloader<Post> preloader =
+                new RecyclerViewPreloader<>(Glide.with(mHostActivity), myAdapter, sizeProvider, 10);
+        recyclerView.addOnScrollListener(preloader);
 
         // SwipeRefreshLayout
         mSwipeRefreshLayout = rootView.findViewById(R.id.swipe_container_tab2);
