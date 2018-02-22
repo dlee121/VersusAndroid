@@ -118,7 +118,11 @@ public class CEFAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     public String getTextInput(){
-        return textInput.getText().toString().trim();
+        String textIn = textInput.getText().toString().trim();
+        if(textIn != null && textIn.length() > 8888){ //limits comments to 8888 characters
+            textIn = textIn.substring(0, 8888).concat("...");
+        }
+        return textIn;
     }
 
     public void clearTextInput(){

@@ -134,7 +134,7 @@ public class MainContainer extends AppCompatActivity {
     private CognitoCachingCredentialsProvider credentialsProvider;
     private DatabaseReference mFirebaseDatabaseReference;
     private ArrayList<NativeAd> nativeAds;
-
+    private InputMethodManager imm;
 
     private String esHost = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
     private String esRegion = "us-east-1";
@@ -289,7 +289,7 @@ public class MainContainer extends AppCompatActivity {
 
         //soft input (keyboard) settings
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0);
 
         // Create the adapter that will return a fragment for each of the three
@@ -373,6 +373,7 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 4: //commentEnterFragment
+                        imm.hideSoftInputFromWindow(toolbarButtonLeft.getWindowToken(), 0);
                         mViewPager.setCurrentItem(3);
                         titleTxtView.setText(lastSetTitle);
                         commentEnterFragment.clearTextInput();
@@ -452,6 +453,7 @@ public class MainContainer extends AppCompatActivity {
                 switch (currPage){
 
                     case 4:
+                        imm.hideSoftInputFromWindow(toolbarButtonLeft.getWindowToken(), 0);
                         commentEnterFragment.submitButtonPressed();
                         mViewPager.setCurrentItem(3);
                         titleTxtView.setText(lastSetTitle);
