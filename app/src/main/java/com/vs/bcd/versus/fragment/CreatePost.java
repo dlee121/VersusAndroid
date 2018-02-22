@@ -24,6 +24,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -85,16 +86,15 @@ public class CreatePost extends Fragment {
     private int DEFAULT = 0;
     private int S3 = 1;
 
+    private Toast mToast;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.create_post, container, false);
 
-        activity = (MainContainer)getActivity();
         s3 = ((MainContainer)getActivity()).getS3Client();
 
-        //cropper1 = (CropImageView)rootView.findViewById(R.id.CropImageView1);
-        //cropper2 = (CropImageView)rootView.findViewById(R.id.CropImageView2);
         ivLeft = (ImageView)rootView.findViewById(R.id.leftImage);
         ivLeft.setDrawingCacheEnabled(true);
         ivRight = (ImageView)rootView.findViewById(R.id.rightImage);
@@ -123,6 +123,7 @@ public class CreatePost extends Fragment {
         ivLeft.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                activity.closeSoftKeyboard();
                 cropperNumber = 1;      //TODO: will there be any race condition for this variable or any other bugs?
                 onLoadImageClick();
             }
@@ -131,6 +132,7 @@ public class CreatePost extends Fragment {
         ivRight.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                activity.closeSoftKeyboard();
                 cropperNumber = 2;
                 onLoadImageClick();
             }
@@ -139,6 +141,7 @@ public class CreatePost extends Fragment {
         categorySelectionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                activity.closeSoftKeyboard();
                 activity.getViewPager().setCurrentItem(5);
             }
         });
@@ -148,16 +151,47 @@ public class CreatePost extends Fragment {
         return rootView;
     }
 
-    public void createButtonPressed(View view){
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        activity = (MainContainer) context;
+    }
+
+    public boolean createButtonPressed(){
         if(currentCategorySelection == -1){
-            //TODO: warning message telling user to pick a category.
-            return;
+            if(mToast != null){
+                mToast.cancel();
+            }
+            mToast = Toast.makeText(activity, "Please select a category", Toast.LENGTH_SHORT);
+            mToast.show();
+
+            return false;
         }
         //this is where you validate data and, if valid, write to database
         //TODO: validate submission here
         redStr = rednameET.getText().toString();
         blackStr = blacknameET.getText().toString();
         questiongStr = questionET.getText().toString();
+
+        if(!(questiongStr!=null&&questiongStr.length()>0)){
+            if(mToast != null){
+                mToast.cancel();
+            }
+            mToast = Toast.makeText(activity, "Please enter a question or topic for this post", Toast.LENGTH_SHORT);
+            mToast.show();
+
+            return false;
+        }
+
+        if(!(redStr!=null&&redStr.length()>0&&blackStr!=null&&blackStr.length()>0)){
+            if(mToast != null){
+                mToast.cancel();
+            }
+            mToast = Toast.makeText(activity, "Please enter what you'd like to compare (pictures optional)", Toast.LENGTH_SHORT);
+            mToast.show();
+
+            return false;
+        }
 
         Runnable runnable = new Runnable() {
             public void run() {
@@ -171,26 +205,13 @@ public class CreatePost extends Fragment {
                     if(blackimgSet == S3){
                         uploadImageToAWS(ivRight.getDrawingCache(), post.getPost_id(), "right");
                     }
-                    /*
-                    //clear out drawing cache so that we can use it again with different images for another upload
-                    ivLeft.setDrawingCacheEnabled(false);
-                    ivRight.setDrawingCacheEnabled(false);
-                    ivLeft.setDrawingCacheEnabled(true);
-                    ivRight.setDrawingCacheEnabled(true);
-                    */
 
                 } catch (Exception e) {
                     Log.e(getClass().getSimpleName(), "Error writing bitmap", e);
                 }
 
-
                 post.setCategory(currentCategorySelection);
-                /*
-                //time is now set in the constructor. refer to Post.java
 
-                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
-                post.setTime(df.format(new Date()));
-                */
                 post.setAuthor(sessionManager.getCurrentUsername());
                 post.setRedname(redStr);
                 post.setBlackname(blackStr);
@@ -199,28 +220,12 @@ public class CreatePost extends Fragment {
                 post.setBlackimg(blackimgSet);
                 activity.getMapper().save(post);
 
-                //update DB User.posts list with the new postID String
-                /*  retired the attribute but keeping this code as reference for list_append
-                UpdateItemRequest postslistUpdateRequest = new UpdateItemRequest();
-                postslistUpdateRequest.withTableName("user")
-                        .withKey(Collections.singletonMap("username",
-                            new AttributeValue().withS(activity.getUsername())))
-                        .withUpdateExpression("SET posts = list_append(posts, :val)")
-                        .withExpressionAttributeValues(
-                            Collections.singletonMap(":val",
-                                new AttributeValue().withL(new AttributeValue().withS(post.getPost_id()))
-                            )
-                        );
-                activity.getDDBClient().updateItem(postslistUpdateRequest);
-                */
-
-                getActivity().runOnUiThread(new Runnable() {
+                activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         activity.getPostPage().setContent(post, true);
                         activity.getViewPager().setCurrentItem(3);
                         activity.setToolbarTitleTextForCP();
-                        //getActivity().overridePendingTransition(0, 0);
                     }
                 });
             }
@@ -228,6 +233,7 @@ public class CreatePost extends Fragment {
         Thread mythread = new Thread(runnable);
         mythread.start();
 
+        return true;
     }
 
 
@@ -238,26 +244,21 @@ public class CreatePost extends Fragment {
         if (isVisibleToUser) {
             Log.d("VISIBLE", "CREATE POST VISIBLE");
             if(rootView != null){
+                activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
                 enableChildViews();
+                /*
                 if(currentCategorySelection < 0){
-                    InputMethodManager imgr = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                    InputMethodManager imgr = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
                     imgr.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
                     questionET.requestFocus();
                 }
+                */
             }
         }
         else {
             Log.d("VISIBLE", "CREATE POST GONE");
             if (rootView != null) {
                 disableChildViews();
-
-                // Check if no view has focus:
-                View view = getActivity().getCurrentFocus();
-                if (view != null) {
-                    InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                }
-
             }
 
         }

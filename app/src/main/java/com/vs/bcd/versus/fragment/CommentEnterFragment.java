@@ -14,6 +14,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.amazonaws.services.dynamodbv2.model.AttributeAction;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
@@ -66,6 +67,7 @@ public class CommentEnterFragment extends Fragment{
     private RecyclerView recyclerView;
     private CEFAdapter cefAdapter;
     private ArrayList<CEFObject> cefObjectList;
+    private Toast mToast;
 
     private DatabaseReference mFirebaseDatabaseReference;
 
@@ -86,8 +88,6 @@ public class CommentEnterFragment extends Fragment{
         recyclerView.setLayoutManager(new LinearLayoutManager(activity));
         cefAdapter = new CEFAdapter(cefObjectList, activity);
         recyclerView.setAdapter(cefAdapter);
-
-        activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
 
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
@@ -132,6 +132,7 @@ public class CommentEnterFragment extends Fragment{
         if (isVisibleToUser) {
             Log.d("VISIBLE", "SEARCH VISIBLE");
             if(rootView != null)
+                activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
                 enableChildViews();
         }
         else {
@@ -179,12 +180,14 @@ public class CommentEnterFragment extends Fragment{
         return strIn.trim().replaceAll("[ /\\\\.\\\\$\\[\\]\\\\#]", "^").replaceAll(":", ";");
     }
 
-    public void submitButtonPressed(){
+    public boolean submitButtonPressed(){
+
+        final String inputString = cefAdapter.getTextInput();
 
         //TODO: form validation (although most strings should be acceptable as comments anyway)
         Runnable runnable = new Runnable() {
             public void run() {
-                String inputString = cefAdapter.getTextInput();
+
                 if(inputString != null && inputString.length() > 0){
 
                     final VSComment vsc = new VSComment();
@@ -273,12 +276,32 @@ public class CommentEnterFragment extends Fragment{
                     });
 
                 }
+                else{
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(mToast != null){
+                                mToast.cancel();
+                            }
+                            if(subjectComment != null){
+                                mToast = Toast.makeText(activity, "Please enter a reply", Toast.LENGTH_SHORT);
+                            }
+                            else{
+                                mToast = Toast.makeText(activity, "Please enter a comment", Toast.LENGTH_SHORT);
+                            }
+                            mToast.show();
+                        }
+                    });
+
+
+                }
             }
         };
         Thread mythread = new Thread(runnable);
         mythread.start();
         //Log.d("VSCOMMENT", "VSComment submitted");
 
+        return inputString != null && inputString.length() > 0;
     }
 
     public void clearTextInput(){

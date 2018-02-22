@@ -6,15 +6,22 @@
     android:layout_height="match_parent"
     android:background="#efefef"
     android:orientation="vertical"
-    android:weightSum="15"
+    android:weightSum="13"
     tools:context="com.vs.bcd.versus.activity.MainContainer">
+
+    <Button
+        android:id="@+id/go_to_catselect"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:text="Select Category" />
 
     <EditText
         android:id="@+id/question_in"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="2"
-        android:hint="Question"
+        android:layout_weight="1"
+        android:hint="Question or Topic"
         android:inputType="textPersonName"
         android:text=""
         android:textAlignment="center"
@@ -32,7 +39,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:weightSum="5"
+            android:weightSum="7"
             android:orientation="vertical">
 
             <EditText
@@ -55,7 +62,7 @@
                 android:layout_marginLeft="4dp"
                 android:layout_marginRight="2dp"
                 android:layout_marginTop="4dp"
-                android:layout_weight="4"
+                android:layout_weight="5"
                 android:clickable="true"
                 android:scaleType="fitXY"
                 app:srcCompat="@drawable/ic_add_24dp" />
@@ -66,7 +73,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:weightSum="5"
+            android:weightSum="7"
             android:orientation="vertical">
 
             <EditText
@@ -88,7 +95,7 @@
                 android:layout_marginLeft="2dp"
                 android:layout_marginRight="4dp"
                 android:layout_marginTop="4dp"
-                android:layout_weight="4"
+                android:layout_weight="5"
                 android:clickable="true"
                 android:scaleType="fitXY"
                 app:srcCompat="@drawable/ic_add_24dp" />
@@ -96,22 +103,5 @@
         </LinearLayout>
 
     </LinearLayout>
-
-    <Button
-        android:id="@+id/go_to_catselect"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="2"
-        android:text="Select Category" />
-
-    <Button
-        android:id="@+id/button_create_post"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_weight="2"
-        android:layout_gravity="center"
-        android:onClick="createButtonPressed"
-        android:text="Create" />
-
 
 </LinearLayout>

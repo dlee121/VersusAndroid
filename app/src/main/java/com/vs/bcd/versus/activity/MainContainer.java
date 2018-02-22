@@ -343,6 +343,7 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 2: //CreatePost
+                        imm.hideSoftInputFromWindow(toolbarButtonLeft.getWindowToken(), 0);
                         if(!fromCategoryFragment){
                             mViewPager.setCurrentItem(0);
                             titleTxtView.setText(lastSetTitle);
@@ -452,11 +453,26 @@ public class MainContainer extends AppCompatActivity {
                 int currPage = mViewPager.getCurrentItem();
                 switch (currPage){
 
-                    case 4:
-                        imm.hideSoftInputFromWindow(toolbarButtonLeft.getWindowToken(), 0);
-                        commentEnterFragment.submitButtonPressed();
-                        mViewPager.setCurrentItem(3);
-                        titleTxtView.setText(lastSetTitle);
+                    case 2: //CreatePost
+                        toolbarTextButton.setClickable(false);
+                        if(createPost.createButtonPressed()){
+                            imm.hideSoftInputFromWindow(toolbarButtonLeft.getWindowToken(), 0);
+                        }
+                        else{
+                            toolbarTextButton.setClickable(true);
+                        }
+
+                        break;
+
+                    case 4: //CommentEnterFragment
+                        //Log.d("buttontest", "button press");
+                        toolbarTextButton.setClickable(false);
+                        if(commentEnterFragment.submitButtonPressed()){
+                            imm.hideSoftInputFromWindow(toolbarButtonLeft.getWindowToken(), 0);
+                        }
+                        else{
+                            toolbarTextButton.setClickable(true);
+                        }
                         break;
 
                     case 12:    //CreateMessage fragment
@@ -561,7 +577,7 @@ public class MainContainer extends AppCompatActivity {
 
                     case 2: //CreatePost
                         hideToolbarButtonRight();
-                        hideToolbarTextButton();
+                        showToolbarTextButton("POST");
                         disableBottomTabs();
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
@@ -939,10 +955,6 @@ public class MainContainer extends AppCompatActivity {
         return categoryFragment;
     }
 
-    public void createButtonPressed(View view){
-        createPost.createButtonPressed(view);
-    }
-
     public SessionManager getSessionManager(){
         return sessionManager;
     }
@@ -1241,6 +1253,10 @@ public class MainContainer extends AppCompatActivity {
 
     public int getImageHeightPixels(){
         return 747;
+    }
+
+    public void closeSoftKeyboard(){
+        imm.hideSoftInputFromWindow(toolbarButtonLeft.getWindowToken(), 0);
     }
 
 }
