@@ -403,10 +403,10 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         //clearList();
 
         if(atRootLevel){
-            commentUpvotesQuery(postID, false);
+            commentsQuery(postID, false, "u");
         }
         else {
-            commentUpvotesQuery(topCardContent.getComment_id(), false);
+            commentsQuery(topCardContent.getComment_id(), false, "u");
         }
 
 
@@ -420,10 +420,10 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         //clearList();
 
         if(atRootLevel){
-            commentTimeQuery(postID, false);
+            commentsQuery(postID, false, "t");
         }
         else {
-            commentTimeQuery(topCardContent.getComment_id(), false);
+            commentsQuery(topCardContent.getComment_id(), false, "t");
         }
 
         nowLoading = false;
@@ -498,7 +498,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     //automatically includes Post Card in the vsComments list for recycler view if rootParentId equals postID,
     // so use it for all PostPage set up cases where we query by upvotes
-    private void commentUpvotesQuery(final String rootParentID, final boolean downloadImages){
+    private void commentsQuery(final String rootParentID, final boolean downloadImages, final String uORt){
 
 
         final ArrayList<VSComment> rootComments = new ArrayList<>();
@@ -512,7 +512,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 long thisThreadID = Thread.currentThread().getId();
                 final List<Object> masterList = new ArrayList<>();
 
-                getRootComments(0, rootComments, rootParentID);
+                getRootComments(0, rootComments, rootParentID, uORt);
 
                 chunkSorter(rootComments);
 
@@ -733,327 +733,11 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     if(!nowLoading){
                                         nowLoading = true;
                                         Log.d("Load", "Now Loadin More");
-                                        loadMoreCommentsByUpvotes();
+                                        loadMoreComments(uORt);
                                     }
                                 }
                             }
                         });
-                    }
-                });
-            }
-        };
-        Thread mythread = new Thread(runnable);
-        queryThreadID = mythread.getId();
-        mythread.start();
-    }
-
-
-    private void commentTimeQuery(final String rootParentID, final boolean downloadImages){
-
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
-        final String currentTime = df.format(new Date());
-
-        final ArrayList<VSComment> rootComments = new ArrayList<>();
-        final ArrayList<VSComment> childComments = new ArrayList<>();
-        final ArrayList<VSComment> grandchildComments = new ArrayList<>();
-
-    /*
-    BY THE TIME THIS FUNCTION IS CALLED, post SHOULD BE SET SO WE CAN JUST GET THE hashkey = parent_id = post_id FROM THERE
-    We also put together the structure and display onto recycler view all on here too
-    */
-        final Condition rangeKeyCondition = new Condition()
-                .withComparisonOperator(ComparisonOperator.LT.toString())
-                .withAttributeValueList(new AttributeValue().withS(currentTime));
-
-        Runnable runnable = new Runnable() {
-            public void run() {
-                long thisThreadID = Thread.currentThread().getId();
-                final List<Object> masterList = new ArrayList<>();
-
-                //vsComments.clear();
-                //nodeMap.clear();
-
-                VSComment queryTemplate = new VSComment();
-                queryTemplate.setParent_id(rootParentID);
-
-                DynamoDBQueryExpression queryExpression =
-                        new DynamoDBQueryExpression()
-                                .withIndexName("parent_id-time-index")
-                                .withHashKeyValues(queryTemplate)
-                                .withRangeKeyCondition("time", rangeKeyCondition)
-                                .withScanIndexForward(false)
-                                .withLimit(retrievalLimit);
-
-                //get the root comments
-                QueryResultPage queryResultPage = activity.getMapper().queryPage(VSComment.class, queryExpression);
-                rootComments.addAll(queryResultPage.getResults());
-
-                final Condition childrenRKCondition = new Condition()
-                        .withComparisonOperator(ComparisonOperator.GT.toString())
-                        .withAttributeValueList(new AttributeValue().withN("-1"));
-
-                VSCNode prevNode = null;
-                exitLoop = false;
-                if(!rootComments.isEmpty()){
-                    //get the children while setting up nodeMap with root comments
-                    final ThreadCounter threadCounter = new ThreadCounter(0, rootComments.size(), thisPage);
-                    for(int i = 0; i < rootComments.size(); i++){
-                        if(thisThreadID != queryThreadID){
-                            Log.d("wow", "broke out of old query thread");
-                            return;
-                        }
-                        VSCNode cNode = new VSCNode(rootComments.get(i).withPostID(postID));
-                        final String commentID = cNode.getCommentID();
-
-                        Log.d("wow", "child query, parentID to query: " + commentID);
-
-
-                        cNode.setNestedLevel(0);
-
-                        if(prevNode != null){
-                            prevNode.setTailSibling(cNode);
-                            cNode.setHeadSibling(prevNode);
-                        }
-
-                        nodeMap.put(commentID, cNode);
-                        prevNode = cNode;
-
-                        Runnable runnable = new Runnable() {
-                            public void run() {
-                                VSComment queryTemplate = new VSComment();
-                                queryTemplate.setParent_id(commentID);
-                                //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
-                                DynamoDBQueryExpression childQueryExpression =
-                                        new DynamoDBQueryExpression()
-                                                .withIndexName("parent_id-upvotes-index")
-                                                .withHashKeyValues(queryTemplate)
-                                                .withRangeKeyCondition("upvotes", childrenRKCondition)
-                                                .withScanIndexForward(false)
-                                                .withLimit(2);
-
-                                QueryResultPage childQueryResultPage = activity.getMapper().queryPage(VSComment.class, childQueryExpression);
-                                childComments.addAll(childQueryResultPage.getResults());
-
-                                Log.d("wow", "child query result size: " + childComments.size());
-
-                                threadCounter.increment();
-                            }
-                        };
-                        Thread mythread = new Thread(runnable);
-                        mythread.start();
-                    }
-
-                    long end = System.currentTimeMillis() + 10*1000; // 10 seconds * 1000 ms/sec
-
-                    while(!exitLoop && System.currentTimeMillis() < end){
-                        if(thisThreadID != queryThreadID){
-                            Log.d("wow", "broke out of old query thread");
-                            return;
-                        }
-                    }
-                    exitLoop = false;
-                }
-                else if(!rootParentID.equals(postID)){
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mSwipeRefreshLayout.setRefreshing(false);
-                        }
-                    });
-                    return;
-                }
-                Log.d("wow", "child query result size at the end: " + childComments.size());
-                exitLoop = false;
-                if(!childComments.isEmpty()){
-
-                    //get the grandchildren while setting up nodeMap with child comments
-                    final ThreadCounter threadCounter2 = new ThreadCounter(0, childComments.size(), thisPage);
-                    for(int i = 0; i < childComments.size(); i++){
-                        if(thisThreadID != queryThreadID){
-                            Log.d("wow", "broke out of old query thread");
-                            return;
-                        }
-
-                        VSCNode cNode = new VSCNode(childComments.get(i).withPostID(postID));
-                        final String commentID = cNode.getCommentID();
-
-                        cNode.setNestedLevel(1);
-                        VSCNode parentNode = nodeMap.get(cNode.getParentID());
-                        if(parentNode != null) {
-                            if(!parentNode.hasChild()){
-                                parentNode.setFirstChild(cNode);
-                                cNode.setParent(parentNode);
-                            }
-                            else{
-                                VSCNode sibling = parentNode.getFirstChild();
-                                if(sibling.getUpvotes() == cNode.getUpvotes() && sibling.getVotecount() < cNode.getVotecount()){
-                                    sibling.setParent(null);
-                                    cNode.setParent(parentNode);
-                                    parentNode.setFirstChild(cNode);
-                                    cNode.setTailSibling(sibling);
-                                    sibling.setHeadSibling(cNode);
-                                }
-                                else{
-                                    sibling.setTailSibling(cNode);
-                                    cNode.setHeadSibling(sibling);
-                                }
-                            }
-                        }
-
-                        nodeMap.put(commentID, cNode);
-
-                        Runnable runnable = new Runnable() {
-                            public void run() {
-                                VSComment queryTemplate = new VSComment();
-                                queryTemplate.setParent_id(commentID);
-                                //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
-                                DynamoDBQueryExpression gChildQueryExpression =
-                                        new DynamoDBQueryExpression()
-                                                .withIndexName("parent_id-upvotes-index")
-                                                .withHashKeyValues(queryTemplate)
-                                                .withRangeKeyCondition("upvotes", childrenRKCondition)
-                                                .withScanIndexForward(false)
-                                                .withLimit(2);
-
-                                QueryResultPage gChildQueryResultPage = activity.getMapper().queryPage(VSComment.class, gChildQueryExpression);
-                                grandchildComments.addAll(gChildQueryResultPage.getResults());
-                                threadCounter2.increment();
-                            }
-                        };
-                        Thread mythread = new Thread(runnable);
-                        mythread.start();
-                    }
-
-                    long end2 = System.currentTimeMillis() + 10*1000; // 10 seconds * 1000 ms/sec
-
-                    while(!exitLoop && System.currentTimeMillis() < end2){
-                        if(thisThreadID != queryThreadID){
-                            Log.d("wow", "broke out of old query thread");
-                            return;
-                        }
-                    }
-                    exitLoop = false;
-                }
-
-                //set up nodeMap with grandchild comments
-                if(!grandchildComments.isEmpty()){
-                    //TODO: run chunkSorter on grandchildComments here
-
-                    for (int i = 0; i < grandchildComments.size(); i++){
-
-                        if(thisThreadID != queryThreadID){
-                            Log.d("wow", "broke out of old query thread");
-                            return;
-                        }
-
-                        VSCNode cNode = new VSCNode(grandchildComments.get(i).withPostID(postID));
-                        cNode.setNestedLevel(2);
-
-                        VSCNode parentNode = nodeMap.get(cNode.getParentID());
-                        if(parentNode != null) {
-                            if(!parentNode.hasChild()){
-                                parentNode.setFirstChild(cNode);
-                                cNode.setParent(parentNode);
-                            }
-                            else{
-                                VSCNode sibling = parentNode.getFirstChild();
-                                if(sibling.getUpvotes() == cNode.getUpvotes() && sibling.getVotecount() < cNode.getVotecount()){
-                                    sibling.setParent(null);
-                                    cNode.setParent(parentNode);
-                                    parentNode.setFirstChild(cNode);
-                                    cNode.setTailSibling(sibling);
-                                    sibling.setHeadSibling(cNode);
-                                }
-                                else{
-                                    sibling.setTailSibling(cNode);
-                                    cNode.setHeadSibling(sibling);
-                                }
-                            }
-                        }
-
-                        nodeMap.put(cNode.getCommentID(), cNode);
-                    }
-
-                }
-
-
-                //set up comments list
-                VSCNode temp;
-                for(int i = 0; i<rootComments.size(); i++){
-                    if(thisThreadID != queryThreadID){
-                        Log.d("wow", "broke out of old query thread");
-                        return;
-                    }
-
-                    temp = nodeMap.get(rootComments.get(i).getComment_id());
-                    if(temp != null){
-                        setCommentList(temp, masterList);
-                    }
-                }
-
-                if(rootComments.size() < retrievalLimit){
-                    lastEvaluatedKey = null;
-                }
-                else{
-                    //Log.d("Load: ", "retrieved " + Integer.toString(queryResults.size()) + " more items");
-                    lastEvaluatedKey = queryResultPage.getLastEvaluatedKey();
-                }
-
-                //run UI updates on UI Thread
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-
-                        if(applyActions){
-                            applyUserActions(masterList);
-                        }
-                        else{
-                            Log.d("wow", "applyActions is false");
-                        }
-
-                        //Make sure to do this after applyUserActions because applyUserActions doesn't expect post object in the list
-                        if(rootParentID.equals(postID)) {
-                            //vsComments.add(0, post);
-                            masterList.add(0,post);
-                        }
-
-                        //find view by id and attaching adapter for the RecyclerView
-                        RV.setLayoutManager(new LinearLayoutManager(getActivity()));
-
-                        //if true then we got the root comments whose parentID is postID ("rootest roots"), so include the post card for the PostPage view
-                        //this if condition also determines the boolean parameter at the end of PostPageAdapter constructor to notify adapter if it should set up Post Card
-                        if(rootParentID.equals(postID)){
-                            atRootLevel = true;
-                            PPAdapter = new PostPageAdapter(RV, masterList, post, activity, downloadImages, true);
-                        }
-                        else{
-                            atRootLevel = false;
-                            PPAdapter = new PostPageAdapter(RV, masterList, post, activity, downloadImages, false);
-                        }
-
-                        RV.setAdapter(PPAdapter);
-                        activity.setPostInDownload(postID, "done");
-                        mSwipeRefreshLayout.setRefreshing(false);
-
-                        RV.addOnScrollListener(new RecyclerView.OnScrollListener() {
-                            @Override
-                            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                                LinearLayoutManager layoutManager=LinearLayoutManager.class.cast(recyclerView.getLayoutManager());
-                                int totalItemCount = layoutManager.getItemCount();
-                                int lastVisible = layoutManager.findLastVisibleItemPosition();
-
-                                boolean endHasBeenReached = lastVisible + loadThreshold >= totalItemCount;  //TODO: increase the loadThreshold as we get more posts, but capping it at 5 is probably sufficient
-                                if (totalItemCount > 0 && endHasBeenReached) {
-                                    //you have reached to the bottom of your recycler view
-                                    if(!nowLoading){
-                                        nowLoading = true;
-                                        Log.d("Load", "Now Loadin More");
-                                        loadMoreCommentsByTime();
-                                    }
-                                }
-                            }
-                        });
-
                     }
                 });
             }
@@ -1123,7 +807,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 actionMap = userAction.getActionRecord();
                 deepCopyToActionHistoryMap(actionMap);
 
-                commentUpvotesQuery(postID, downloadImages);
+                commentsQuery(postID, downloadImages, "u");
             }
         };
         Thread mythread = new Thread(runnable);
@@ -1245,21 +929,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             ((PostPageAdapter)(RV.getAdapter())).clearList();
         }
         setUpTopCard(subjectComment);
-        //parentCache.put(subjectComment.getComment_id(), subjectComment);
 
-        /* for now comment this out and just enforce default sort order POPULAR between nested comment page navigation, no sortType storing.
-        switch (sortType){
-            case POPULAR:
-                commentUpvotesQuery(subjectComment.getComment_id(), false);
-                break;
-
-            case NEW:
-                commentTimeQuery(subjectComment.getComment_id(), false);
-                break;
-        }
-        */
         sortType = POPULAR;
-        commentUpvotesQuery(subjectComment.getComment_id(), false);
+        commentsQuery(subjectComment.getComment_id(), false, "u");
 
 
     }
@@ -1293,7 +965,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
         */
         sortType = POPULAR;
-        commentUpvotesQuery(tempParentID, false);
+        commentsQuery(tempParentID, false, "u");
 
 
     }
@@ -1787,7 +1459,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     public void selectSortType(){
         final String [] items = new String[] {"Popular", "New"};
-        final Integer[] icons = new Integer[] {R.drawable.goldmedal, R.drawable.goldmedal}; //TODO: change these icons to actual ones
+        final Integer[] icons = new Integer[] {R.drawable.ic_thumb_up, R.drawable.ic_new_releases}; //TODO: change these icons to actual ones
         ListAdapter adapter = new ArrayAdapterWithIcon(getActivity(), items, icons);
         new AlertDialog.Builder(getActivity()).setTitle("Sort by")
                 .setAdapter(adapter, new DialogInterface.OnClickListener() {
@@ -1814,7 +1486,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
 
 
-    private void loadMoreCommentsByUpvotes(){
+    private void loadMoreComments(final String uORt){
         Runnable runnable = new Runnable() {
             public void run() {
                 try{
@@ -1835,7 +1507,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         queryParentID = topCardContent.getComment_id();
                     }
 
-                    getRootComments(currCommentsIndex, rootComments, queryParentID);
+                    getRootComments(currCommentsIndex, rootComments, queryParentID, uORt);
 
                     chunkSorter(rootComments);
 
@@ -2020,319 +1692,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         mythread.start();
     }
 
-    private void loadMoreCommentsByTime(){
-
-
-        Runnable runnable = new Runnable() {
-            public void run() {
-                try{
-                    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
-                    final String currentTime = df.format(new Date());
-
-                    long thisThreadID = Thread.currentThread().getId();
-
-                    final List<Object> masterList = new ArrayList<>();
-
-                    if(lastEvaluatedKey != null){
-
-                        final ArrayList<VSComment> rootComments = new ArrayList<>();
-                        final ArrayList<VSComment> childComments = new ArrayList<>();
-                        final ArrayList<VSComment> grandchildComments = new ArrayList<>();
-
-                        final Condition rangeKeyCondition = new Condition()
-                                .withComparisonOperator(ComparisonOperator.LT.toString())
-                                .withAttributeValueList(new AttributeValue().withS(currentTime));
-
-                        VSComment queryTemplate = new VSComment();
-                        String queryParentID = topCardContent.getComment_id();
-                        if(atRootLevel){
-                            queryTemplate.setParent_id(postID);
-                        }
-                        else{
-                            queryTemplate.setParent_id(queryParentID);
-                        }
-
-                        DynamoDBQueryExpression queryExpression =
-                                new DynamoDBQueryExpression()
-                                        .withIndexName("parent_id-time-index")
-                                        .withHashKeyValues(queryTemplate)
-                                        .withRangeKeyCondition("time", rangeKeyCondition)
-                                        .withScanIndexForward(false)
-                                        .withLimit(retrievalLimit)
-                                        .withExclusiveStartKey(lastEvaluatedKey);
-
-                        //get the root comments
-                        QueryResultPage queryResultPage = activity.getMapper().queryPage(VSComment.class, queryExpression);
-                        rootComments.addAll(queryResultPage.getResults());
-
-                        //chunkSorter(rootComments); no chunk sorting necessary for timestamp sort order
-
-                        final Condition childrenRKCondition = new Condition()
-                                .withComparisonOperator(ComparisonOperator.GT.toString())
-                                .withAttributeValueList(new AttributeValue().withN("-1"));
-
-                        VSCNode prevNode = null;
-                        exitLoop = false;
-                        if(!rootComments.isEmpty()){
-                            //get the children while setting up nodeMap with root comments
-                            final ThreadCounter threadCounter = new ThreadCounter(0, rootComments.size(), thisPage);
-                            for(int i = 0; i < rootComments.size(); i++){
-                                if(thisThreadID != queryThreadID){
-                                    Log.d("wow", "broke out of old query thread");
-                                    nowLoading = false;
-                                    return;
-                                }
-                                VSCNode cNode = new VSCNode(rootComments.get(i).withPostID(postID));
-                                final String commentID = cNode.getCommentID();
-
-                                Log.d("wow", "child query, parentID to query: " + commentID);
-
-
-                                cNode.setNestedLevel(0);
-
-                                if(prevNode != null){
-                                    prevNode.setTailSibling(cNode);
-                                    cNode.setHeadSibling(prevNode);
-                                }
-
-                                nodeMap.put(commentID, cNode);
-                                prevNode = cNode;
-
-                                Runnable runnable = new Runnable() {
-                                    public void run() {
-                                        VSComment queryTemplate = new VSComment();
-                                        queryTemplate.setParent_id(commentID);
-                                        //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
-                                        DynamoDBQueryExpression childQueryExpression =
-                                                new DynamoDBQueryExpression()
-                                                        .withIndexName("parent_id-upvotes-index")
-                                                        .withHashKeyValues(queryTemplate)
-                                                        .withRangeKeyCondition("upvotes", childrenRKCondition)
-                                                        .withScanIndexForward(false)
-                                                        .withLimit(2);
-
-                                        QueryResultPage childQueryResultPage = activity.getMapper().queryPage(VSComment.class, childQueryExpression);
-                                        childComments.addAll(childQueryResultPage.getResults());
-
-                                        Log.d("wow", "child query result size: " + childComments.size());
-
-                                        threadCounter.increment();
-                                    }
-                                };
-                                Thread mythread = new Thread(runnable);
-                                mythread.start();
-                            }
-
-                            long end = System.currentTimeMillis() + 10*1000; // 10 seconds * 1000 ms/sec
-
-                            while(!exitLoop && System.currentTimeMillis() < end){
-                                if(thisThreadID != queryThreadID){
-                                    Log.d("wow", "broke out of old query thread");
-                                    nowLoading = false;
-                                    return;
-                                }
-                            }
-                            exitLoop = false;
-                        }
-                        else {
-                            nowLoading = true; //no more loading until refresh
-                            lastEvaluatedKey = null;
-                            activity.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    mSwipeRefreshLayout.setRefreshing(false);
-                                }
-                            });
-                            return;
-                        }
-                        Log.d("wow", "child query result size at the end: " + childComments.size());
-                        exitLoop = false;
-                        if(!childComments.isEmpty()){
-
-                            //get the grandchildren while setting up nodeMap with child comments
-                            final ThreadCounter threadCounter2 = new ThreadCounter(0, childComments.size(), thisPage);
-                            for(int i = 0; i < childComments.size(); i++){
-                                if(thisThreadID != queryThreadID){
-                                    Log.d("wow", "broke out of old query thread");
-                                    nowLoading = false;
-                                    return;
-                                }
-
-                                VSCNode cNode = new VSCNode(childComments.get(i).withPostID(postID));
-                                final String commentID = cNode.getCommentID();
-
-                                cNode.setNestedLevel(1);
-                                VSCNode parentNode = nodeMap.get(cNode.getParentID());
-                                if(parentNode != null) {
-                                    if(!parentNode.hasChild()){
-                                        parentNode.setFirstChild(cNode);
-                                        cNode.setParent(parentNode);
-                                    }
-                                    else{
-                                        VSCNode sibling = parentNode.getFirstChild();
-                                        if(sibling.getUpvotes() == cNode.getUpvotes() && sibling.getVotecount() < cNode.getVotecount()){
-                                            sibling.setParent(null);
-                                            cNode.setParent(parentNode);
-                                            parentNode.setFirstChild(cNode);
-                                            cNode.setTailSibling(sibling);
-                                            sibling.setHeadSibling(cNode);
-                                        }
-                                        else{
-                                            sibling.setTailSibling(cNode);
-                                            cNode.setHeadSibling(sibling);
-                                        }
-                                    }
-                                }
-
-                                nodeMap.put(commentID, cNode);
-
-                                Runnable runnable = new Runnable() {
-                                    public void run() {
-                                        VSComment queryTemplate = new VSComment();
-                                        queryTemplate.setParent_id(commentID);
-                                        //Query the category for rangekey timestamp <= maxTimestamp, Limit to retrieving 10 results
-                                        DynamoDBQueryExpression gChildQueryExpression =
-                                                new DynamoDBQueryExpression()
-                                                        .withIndexName("parent_id-upvotes-index")
-                                                        .withHashKeyValues(queryTemplate)
-                                                        .withRangeKeyCondition("upvotes", childrenRKCondition)
-                                                        .withScanIndexForward(false)
-                                                        .withLimit(2);
-
-                                        QueryResultPage gChildQueryResultPage = activity.getMapper().queryPage(VSComment.class, gChildQueryExpression);
-                                        grandchildComments.addAll(gChildQueryResultPage.getResults());
-                                        threadCounter2.increment();
-                                    }
-                                };
-                                Thread mythread = new Thread(runnable);
-                                mythread.start();
-                            }
-
-                            long end2 = System.currentTimeMillis() + 10*1000; // 10 seconds * 1000 ms/sec
-
-                            while(!exitLoop && System.currentTimeMillis() < end2){
-                                if(thisThreadID != queryThreadID){
-                                    Log.d("wow", "broke out of old query thread");
-                                    nowLoading = false;
-                                    return;
-                                }
-                            }
-                            exitLoop = false;
-                        }
-
-                        //set up nodeMap with grandchild comments
-                        if(!grandchildComments.isEmpty()){
-                            //TODO: run chunkSorter on grandchildComments here
-
-                            for (int i = 0; i < grandchildComments.size(); i++){
-
-                                if(thisThreadID != queryThreadID){
-                                    Log.d("wow", "broke out of old query thread");
-                                    nowLoading = false;
-                                    return;
-                                }
-
-                                VSCNode cNode = new VSCNode(grandchildComments.get(i).withPostID(postID));
-                                cNode.setNestedLevel(2);
-
-                                VSCNode parentNode = nodeMap.get(cNode.getParentID());
-                                if(parentNode != null) {
-                                    if(!parentNode.hasChild()){
-                                        parentNode.setFirstChild(cNode);
-                                        cNode.setParent(parentNode);
-                                    }
-                                    else{
-                                        VSCNode sibling = parentNode.getFirstChild();
-                                        if(sibling.getUpvotes() == cNode.getUpvotes() && sibling.getVotecount() < cNode.getVotecount()){
-                                            sibling.setParent(null);
-                                            cNode.setParent(parentNode);
-                                            parentNode.setFirstChild(cNode);
-                                            cNode.setTailSibling(sibling);
-                                            sibling.setHeadSibling(cNode);
-                                        }
-                                        else{
-                                            sibling.setTailSibling(cNode);
-                                            cNode.setHeadSibling(sibling);
-                                        }
-                                    }
-                                }
-
-                                nodeMap.put(cNode.getCommentID(), cNode);
-                            }
-
-                        }
-
-
-                        //set up comments list
-                        VSCNode temp;
-                        for(int i = 0; i<rootComments.size(); i++){
-                            if(thisThreadID != queryThreadID){
-                                Log.d("wow", "broke out of old query thread");
-                                nowLoading = false;
-                                return;
-                            }
-
-                            temp = nodeMap.get(rootComments.get(i).getComment_id());
-                            if(temp != null){
-                                setCommentList(temp, masterList);
-                            }
-                        }
-
-                        if(rootComments.size() < retrievalLimit){
-                            lastEvaluatedKey = null;
-                        }
-                        else{
-                            //Log.d("Load: ", "retrieved " + Integer.toString(queryResults.size()) + " more items");
-                            lastEvaluatedKey = queryResultPage.getLastEvaluatedKey();
-                        }
-
-
-                        if(!rootComments.isEmpty()){
-                            nowLoading = false;
-                        }
-                        else {
-                            nowLoading = true;  //to stop triggering loadMore
-                        }
-
-                        //run UI updates on UI Thread
-                        activity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-
-                                if(applyActions){
-                                    applyUserActions(masterList);
-                                }
-                                else{
-                                    Log.d("wow", "applyActions is false");
-                                }
-
-                                ((PostPageAdapter)RV.getAdapter()).appendToList(masterList);
-
-                                mSwipeRefreshLayout.setRefreshing(false);
-                            }
-                        });
-                    }
-                    else{
-                        activity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                mSwipeRefreshLayout.setRefreshing(false);
-
-                            }
-                        });
-                    }
-
-                }catch (Throwable t){
-
-                }
-
-            }
-        };
-        Thread mythread = new Thread(runnable);
-        queryThreadID = mythread.getId();
-        mythread.start();
-    }
-
     private void medalsUpdateDB(final HashMap<Integer, VSComment> upgradeMap, HashSet<String> newMedalists){
 
         //user gets updateDuty if user.timecode matches the one given at query time, or if user authored the post, or if user won a medal in this upgrade event
@@ -2503,7 +1862,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         return post;
     }
 
-    private void getRootComments(final int fromIndex, ArrayList<VSComment> results, String prIn) {
+    private void getRootComments(final int fromIndex, ArrayList<VSComment> results, String prIn, String uORt) {
 
         if(fromIndex == 0){
             currCommentsIndex = 0;
@@ -2514,7 +1873,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         Log.d("commentloading", "from: " + Integer.toString(fromIndex));
 
         String query = "/vscomment/_search";
-        String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\"u\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"pr\":\""+prIn+"\"}}}";
+        String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\""+uORt+"\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"pr\":\""+prIn+"\"}}}";
 
         String url = "https://" + host + query;
 

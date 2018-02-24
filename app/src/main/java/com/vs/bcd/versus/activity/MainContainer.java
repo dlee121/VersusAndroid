@@ -69,7 +69,7 @@ import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.fragment.CreatePost;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.fragment.SearchPage;
-import com.vs.bcd.versus.ViewPagerCustomDuration;
+import com.vs.bcd.versus.model.ViewPagerCustomDuration;
 
 import java.net.URISyntaxException;
 import java.net.URL;

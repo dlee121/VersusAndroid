@@ -25,8 +25,6 @@ import android.widget.Toast;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
 import com.amazonaws.services.s3.AmazonS3;
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.model.GlideUrl;
-import com.vs.bcd.versus.OnLoadMoreListener;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.model.GlideUrlCustom;
@@ -60,7 +58,6 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private final int VIEW_TYPE_ITEM = 0;
     private final int VIEW_TYPE_LOADING = 1;
     private final int VIEW_TYPE_POSTCARD = 2;
-    private OnLoadMoreListener onLoadMoreListener;
     private boolean isLoading;
     private MainContainer activity;
     private Post post;
@@ -105,29 +102,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         Log.d("DEBUG", "Action Map Size: " + Integer.toString(actionMap.size()));
 
 
-        final LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
-        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-                totalItemCount = linearLayoutManager.getItemCount();
-                lastVisibleItem = linearLayoutManager.findLastVisibleItemPosition();
-                if (!isLoading && totalItemCount <= (lastVisibleItem + visibleThreshold)) {
-                    if (onLoadMoreListener != null) {
-                        onLoadMoreListener.onLoadMore();
-                    }
-                    isLoading = true;
-                }
-            }
-        });
-
-
     }
-
-    public void setOnLoadMoreListener(OnLoadMoreListener mOnLoadMoreListener) {
-        this.onLoadMoreListener = mOnLoadMoreListener;
-    }
-
     @Override
     public int getItemViewType(int position) {
         if (position > masterList.size())

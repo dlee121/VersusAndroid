@@ -1,4 +1,4 @@
-package com.vs.bcd.versus;
+package com.vs.bcd.versus.model;
 
 import android.annotation.SuppressLint;
 import android.content.Context;

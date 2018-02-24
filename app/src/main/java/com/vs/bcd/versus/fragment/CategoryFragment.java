@@ -185,7 +185,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
             @Override
             public void onClick(View v) {
                 final String [] items = new String[] {"Popular", "New"};
-                final Integer[] icons = new Integer[] {R.drawable.goldmedal, R.drawable.goldmedal}; //TODO: change these icons to actual ones
+                final Integer[] icons = new Integer[] {R.drawable.ic_thumb_up, R.drawable.ic_new_releases}; //TODO: change these icons to actual ones
                 ListAdapter adapter = new ArrayAdapterWithIcon(getActivity(), items, icons);
 
                 new AlertDialog.Builder(getActivity()).setTitle("Sort by")

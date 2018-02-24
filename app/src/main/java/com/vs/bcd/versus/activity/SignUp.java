@@ -24,9 +24,8 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.FirebaseDatabase;
 import com.vs.bcd.versus.R;
-import com.vs.bcd.versus.ViewPagerCustomDuration;
+import com.vs.bcd.versus.model.ViewPagerCustomDuration;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.User;
 

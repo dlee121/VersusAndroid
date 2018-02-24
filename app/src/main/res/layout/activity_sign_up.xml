@@ -22,7 +22,7 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <com.vs.bcd.versus.ViewPagerCustomDuration
+    <com.vs.bcd.versus.model.ViewPagerCustomDuration
         android:id="@+id/containersup"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
