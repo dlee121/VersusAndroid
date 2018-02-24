@@ -87,7 +87,7 @@ public class PostsHistory extends Fragment implements SwipeRefreshLayout.OnRefre
 
         recyclerView.setLayoutManager(new LinearLayoutManager(activity));
         //this is where the list is passed on to adapter
-        myAdapter = new MyAdapter(recyclerView, posts, activity, 9);
+        myAdapter = new MyAdapter(posts, activity, 9);
         recyclerView.setAdapter(myAdapter);
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override

@@ -223,7 +223,7 @@ public class CreatePost extends Fragment {
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        activity.getPostPage().setContent(post, true);
+                        activity.getPostPage().setContent(post);
                         activity.getViewPager().setCurrentItem(3);
                         activity.setToolbarTitleTextForCP();
                     }

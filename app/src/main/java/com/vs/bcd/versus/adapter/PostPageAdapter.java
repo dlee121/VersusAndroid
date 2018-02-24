@@ -69,7 +69,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private PostCardViewHolder postCard;
     private Bitmap redBMP = null;
     private Bitmap blackBMP = null;
-    private boolean downloadImages, includesPost;
+    private boolean includesPost;
     private UserAction userAction;
     private Map<String, String> actionMap;
     private Drawable[] redLayers = new Drawable[2];
@@ -88,12 +88,11 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     //to set imageviews, first fill out the drawable[3] with 0=image layer, 1=tint layer, 2=check mark layer, make LayerDrawable out of the array, then use setImageMask which sets the correct mask layers AND ALSO sets imageview drawable as the LayerDrawable
 
-    public PostPageAdapter(RecyclerView recyclerView, List<Object> masterList, Post post, MainContainer activity, boolean downloadImages, boolean includesPost) {
+    public PostPageAdapter(List<Object> masterList, Post post, MainContainer activity, boolean includesPost) {
         s3 = activity.getS3Client();
         this.masterList = masterList;
         this.post = post;
         this.activity = activity;
-        this.downloadImages = downloadImages;
         this.includesPost = includesPost;
         userAction = activity.getPostPage().getUserAction();
         actionMap = userAction.getActionRecord();

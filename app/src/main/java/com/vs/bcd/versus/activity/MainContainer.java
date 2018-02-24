@@ -920,7 +920,7 @@ public class MainContainer extends AppCompatActivity {
         if(temp == null || !temp.equals("in progress")){
             postInDownload.put(post.getPost_id(), "in progress");
             postPage.clearList();
-            postPage.setContent(post, true);
+            postPage.setContent(post);
         }
         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
         myAdapterFragInt = fragmentInt;

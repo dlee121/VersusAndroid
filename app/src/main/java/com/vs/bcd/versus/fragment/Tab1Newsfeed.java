@@ -99,7 +99,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
 
         recyclerView.setLayoutManager(new LinearLayoutManager(mHostActivity));
         //this is where the list is passed on to adapter
-        myAdapter = new MyAdapter(recyclerView, posts, mHostActivity, 0);
+        myAdapter = new MyAdapter(posts, mHostActivity, 0);
         recyclerView.setAdapter(myAdapter);
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -259,7 +259,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
             String strResponse = httpClient.execute(httpPost, responseHandler);
             if(posts == null){
                 posts = new ArrayList<>();
-                myAdapter = new MyAdapter(recyclerView, posts, mHostActivity, 0);
+                myAdapter = new MyAdapter(posts, mHostActivity, 0);
                 recyclerView.setAdapter(myAdapter);
             }
 

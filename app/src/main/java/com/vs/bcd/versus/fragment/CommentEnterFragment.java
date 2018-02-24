@@ -251,27 +251,14 @@ public class CommentEnterFragment extends Fragment{
 
                     //update DB User.posts list with the new postID String
 
+                    PostPage postPage = activity.getPostPage();
+                    postPage.commentSubmissionRefresh(vsc);
+
                     //UI refresh. two options, one for setting up with post card and one for setting up with comment top card
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-
-                            PostPage postPage = ((MainContainer)getActivity()).getPostPage();
-                            PostPageAdapter m_adapter = postPage.getPPAdapter();
-                            m_adapter.clearList();
-                            //m_adapter.notifyDataSetChanged(); probably unnecessary since we'll be making new adapter in post page in setContent
-                            if(subjectComment == null && post != null){
-                                postPage.setContent(post, false);
-                            }
-                            if(post == null && subjectComment != null){
-                                postPage.hidePostPageFAB();
-                                postPage.setCommentsPage(subjectComment);
-                            }
-
-                            //TODO: refresh comments list (but not the post info part) of the PostPage when we return to it here
-                            activity.getViewPager().setCurrentItem(3);    //3 -> PostPage
                             cefAdapter.clearTextInput();
-
                         }
                     });
 
@@ -292,8 +279,6 @@ public class CommentEnterFragment extends Fragment{
                             mToast.show();
                         }
                     });
-
-
                 }
             }
         };

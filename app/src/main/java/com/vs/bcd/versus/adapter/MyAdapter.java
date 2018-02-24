@@ -66,7 +66,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
 
     Drawable defaultImage;
 
-    public MyAdapter(RecyclerView recyclerView, List<Post> posts, MainContainer activity, int fragmentInt) {
+    public MyAdapter(List<Post> posts, MainContainer activity, int fragmentInt) {
         this.posts = posts;
         this.activity = activity;
         this.fragmentInt = fragmentInt;
