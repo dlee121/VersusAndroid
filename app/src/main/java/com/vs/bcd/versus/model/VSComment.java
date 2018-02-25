@@ -242,12 +242,6 @@ public class VSComment {
 
     }
 
-    //sets postID and returns this VSComment instance
-    public VSComment withPostID(String post_id){
-        this.post_id = post_id;
-        return this;
-    }
-
     public void updateUservoteAndDecrement(int uservote){
         switch (uservote){
             case UPVOTE:

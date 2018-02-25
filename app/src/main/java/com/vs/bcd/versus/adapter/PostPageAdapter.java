@@ -239,7 +239,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                             activity.getPostPage().addGrandParentToCache(currentComment.getParent_id()); //pass in parent's id, then the function will get that parent's parent, the grandparent, and add it to the parentCache
                         }
                         activity.getPostPage().addParentToCache(currentComment.getParent_id());
-                        //TODO: Make sure we don't need to add currentComment's node to parentCache. Test it.
+                        activity.getPostPage().addThisToCache(currentComment.getComment_id());
                         activity.getCommentEnterFragment().setContentReplyToComment(currentComment);
                         activity.getViewPager().setCurrentItem(4);
                     }

@@ -930,8 +930,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     public void backToParentPage(){
         mSwipeRefreshLayout.setRefreshing(true);
 
-        if(RV != null && RV.getAdapter() != null){
-            ((PostPageAdapter)(RV.getAdapter())).clearList();
+        if(PPAdapter != null){
+            PPAdapter.clearList();
         }
 
         String tempParentID = topCardContent.getParent_id();
@@ -943,17 +943,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             setUpTopCard(parentCache.get(tempParentID));
         }
 
-        /* for now comment this out and just enforce default sort order POPULAR between nested comment page navigation, no sortType storing.
-        switch (sortType){
-            case POPULAR:
-                commentUpvotesQuery(tempParentID, false);
-                break;
-
-            case NEW:
-                commentTimeQuery(tempParentID, false);
-                break;
-        }
-        */
         sortType = POPULAR;
         commentsQuery(tempParentID, "u");
 
@@ -2266,6 +2255,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     PPAdapter = new PostPageAdapter(masterList, post, activity, false);
                     RV.setAdapter(PPAdapter);
                     activity.setPostInDownload(postID, "done");
+                    setUpTopCard(parentCache.get(rootParentID));
 
                     RV.addOnScrollListener(new RecyclerView.OnScrollListener() {
                         @Override
@@ -2381,10 +2371,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
 
         VSCNode sNode = new VSCNode(submittedComment);
-        VSCNode rNode = nodeMap.get(rootComments.get(0).getComment_id());
         sNode.setNestedLevel(0);
-        sNode.setTailSibling(rNode);
-        rNode.setHeadSibling(sNode);
+        if(!rootComments.isEmpty()){
+            VSCNode rNode = nodeMap.get(rootComments.get(0).getComment_id());
+            sNode.setTailSibling(rNode);
+            rNode.setHeadSibling(sNode);
+        }
         nodeMap.put(submittedComment.getComment_id(), sNode);
         masterList.add(0, submittedComment);
 
@@ -2404,6 +2396,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 if(rootParentID.equals(postID)) {
                     //vsComments.add(0, post);
                     masterList.add(0,post);
+                }
+                else{
+                    setUpTopCard(parentCache.get(rootParentID));
                 }
 
                 //find view by id and attaching adapter for the RecyclerView
