@@ -1,5 +1,7 @@
 package com.vs.bcd.versus.adapter;
 
+import android.animation.ArgbEvaluator;
+import android.animation.ObjectAnimator;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
@@ -98,10 +100,9 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         actionMap = userAction.getActionRecord();
         graphBoxParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, 10);
         graphBoxParams.addRule(RelativeLayout.BELOW, R.id.linlaypoca);
-        Log.d("DEBUG", "Action Map Size: " + Integer.toString(actionMap.size()));
-
-
+        //Log.d("DEBUG", "Action Map Size: " + Integer.toString(actionMap.size()));
     }
+
     @Override
     public int getItemViewType(int position) {
         if (position > masterList.size())
@@ -218,6 +219,15 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 userViewHolder.content.setText(currentComment.getContent());
                 userViewHolder.heartCount.setText( Integer.toString(currentComment.heartsTotal()) );
                 //set CardView onClickListener to go to PostPage fragment with corresponding Comments data (this will be a PostPage without post_card)
+
+                if(currentComment.getIsHigh()){
+                    int colorFrom = ContextCompat.getColor(activity, R.color.vsBlue);
+                    int colorTo = Color.WHITE;
+                    int duration = 1000;
+                    ObjectAnimator.ofObject(userViewHolder.itemView, "backgroundColor", new ArgbEvaluator(), colorFrom, colorTo)
+                            .setDuration(duration)
+                            .start();
+                }
 
                 userViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override

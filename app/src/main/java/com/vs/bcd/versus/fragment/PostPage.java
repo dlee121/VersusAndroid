@@ -161,6 +161,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         fabLP = (RelativeLayout.LayoutParams)postPageFAB.getLayoutParams();
         topCard = rootView.findViewById(R.id.topCard);
         RV = rootView.findViewById(R.id.recycler_view_cs);
+        RV.setLayoutManager(new LinearLayoutManager(activity));
         RVLayoutParams = RV.getLayoutParams();
 
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
@@ -708,7 +709,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         }
 
                         //find view by id and attaching adapter for the RecyclerView
-                        RV.setLayoutManager(new LinearLayoutManager(getActivity()));
+                        //RV.setLayoutManager(new LinearLayoutManager(activity));
 
                         //if true then we got the root comments whose parentID is postID ("rootest roots"), so include the post card for the PostPage view
                         //this if condition also determines the boolean parameter at the end of PostPageAdapter constructor to notify adapter if it should set up Post Card
@@ -2402,7 +2403,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 }
 
                 //find view by id and attaching adapter for the RecyclerView
-                RV.setLayoutManager(new LinearLayoutManager(getActivity()));
+                //RV.setLayoutManager(new LinearLayoutManager(activity));
 
                 //if true then we got the root comments whose parentID is postID ("rootest roots"), so include the post card for the PostPage view
                 //this if condition also determines the boolean parameter at the end of PostPageAdapter constructor to notify adapter if it should set up Post Card
