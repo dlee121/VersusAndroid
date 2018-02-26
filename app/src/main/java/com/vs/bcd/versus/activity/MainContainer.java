@@ -1259,4 +1259,8 @@ public class MainContainer extends AppCompatActivity {
         imm.hideSoftInputFromWindow(toolbarButtonLeft.getWindowToken(), 0);
     }
 
+    public int getPostPageSortType(){
+        return postPage.getSortType();
+    }
+
 }

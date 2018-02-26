@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListAdapter;
@@ -117,6 +118,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private Map<String,AttributeValue> lastEvaluatedKey;
     private PostPage thisPage;
     private boolean exitLoop = false;
+    private Button topcardSortTypeSelector;
     final HashMap<String, VSCNode> nodeMap = new HashMap<>();
     private HashMap<String, VSComment> parentCache = new HashMap<>();
     private boolean atRootLevel = true;
@@ -197,11 +199,11 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 activity.getViewPager().setCurrentItem(4);
             }
         });
-
-        topCard.findViewById(R.id.sort_type_selector_topcard).setOnClickListener(new View.OnClickListener() {
+        topcardSortTypeSelector = topCard.findViewById(R.id.sort_type_selector_topcard);
+        topcardSortTypeSelector.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                selectSortType();
+                selectSortType("c");
             }
         });
 
@@ -300,17 +302,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         postPageFAB.setLayoutParams(fabLP);
         postPageFAB.setClickable(true);
         ppfabActive = true;
-    }
-
-    public void setSortType(int sortType){
-        switch (sortType){
-            case NEW:
-                this.sortType = NEW;
-                break;
-            case POPULAR:
-                this.sortType = POPULAR;
-                break;
-        }
     }
 
     /**
@@ -752,12 +743,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         mythread.start();
     }
 
-
-
-
-
     public void setContent(final Post post){  //downloadImages signifies initial post page set up
-
+        sortType = POPULAR;
         nowLoading = false;
 
         this.post = post;
@@ -856,6 +843,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             hidePostPageFAB();
         }
 
+        setCommentCardSortHint();
+
         CircleImageView circView = (CircleImageView)topCard.findViewById(R.id.profile_image_tc);
         TextView timestamp = (TextView)topCard.findViewById(R.id.timetvtc);
         TextView author = (TextView)topCard.findViewById(R.id.usernametvtc);
@@ -916,12 +905,13 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     //used when expanding into nested levels, so when pageNestedLevel > 0
     public void setCommentsPage(VSComment subjectComment){
         mSwipeRefreshLayout.setRefreshing(true);
+        sortType = POPULAR;
         if(RV != null && RV.getAdapter() != null){
             ((PostPageAdapter)(RV.getAdapter())).clearList();
         }
         setUpTopCard(subjectComment);
 
-        sortType = POPULAR;
+
         commentsQuery(subjectComment.getComment_id(), "u");
 
 
@@ -935,6 +925,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             PPAdapter.clearList();
         }
 
+        sortType = POPULAR;
+
         String tempParentID = topCardContent.getParent_id();
 
         if(tempParentID.equals(postID)){
@@ -944,7 +936,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             setUpTopCard(parentCache.get(tempParentID));
         }
 
-        sortType = POPULAR;
         commentsQuery(tempParentID, "u");
 
 
@@ -1437,7 +1428,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     }
 
-    public void selectSortType(){
+    public void selectSortType(final String pORc){
         final String [] items = new String[] {"Popular", "New"};
         final Integer[] icons = new Integer[] {R.drawable.ic_thumb_up, R.drawable.ic_new_releases}; //TODO: change these icons to actual ones
         ListAdapter adapter = new ArrayAdapterWithIcon(getActivity(), items, icons);
@@ -1459,9 +1450,39 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                 refreshCommentTimestampQuery();
                                 break;
                         }
+                        if(pORc.equals("p")){
+                            setPostCardSortHint();
+                        }
+                        else{
+                            setCommentCardSortHint();
+                        }
                     }
                 }).show();
 
+    }
+
+    public int getSortType(){
+        return sortType;
+    }
+
+    private void setPostCardSortHint(){
+        if(PPAdapter != null){
+            PPAdapter.setSortHint(sortType);
+        }
+    }
+
+    private void setCommentCardSortHint(){
+        switch (sortType){
+            case NEW:
+                topcardSortTypeSelector.setText("NEW");
+                topcardSortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_new_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                break;
+
+            case POPULAR:
+                topcardSortTypeSelector.setText("POPULAR");
+                topcardSortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_thumb_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                break;
+        }
     }
 
 

@@ -87,6 +87,9 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private int DEFAULT = 0;
     private int S3 = 1;
 
+    private final int NEW = 0;
+    private final int POPULAR = 1;
+
 
     //to set imageviews, first fill out the drawable[3] with 0=image layer, 1=tint layer, 2=check mark layer, make LayerDrawable out of the array, then use setImageMask which sets the correct mask layers AND ALSO sets imageview drawable as the LayerDrawable
 
@@ -221,7 +224,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 //set CardView onClickListener to go to PostPage fragment with corresponding Comments data (this will be a PostPage without post_card)
 
                 if(currentComment.getIsHigh()){
-                    int colorFrom = ContextCompat.getColor(activity, R.color.vsBlue);
+                    int colorFrom = Color.GRAY;
                     int colorTo = Color.WHITE;
                     int duration = 1000;
                     ObjectAnimator.ofObject(userViewHolder.itemView, "backgroundColor", new ArgbEvaluator(), colorFrom, colorTo)
@@ -368,9 +371,20 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             postCard.sortTypeSelector.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    activity.getPostPage().selectSortType();
+                    activity.getPostPage().selectSortType("p");
                 }
             });
+
+            switch (activity.getPostPageSortType()){
+                case NEW:
+                    postCard.sortTypeSelector.setText("NEW");
+                    postCard.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_new_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                    break;
+                case POPULAR:
+                    postCard.sortTypeSelector.setText("POPULAR");
+                    postCard.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_thumb_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                    break;
+            }
 
 
             if(post.getRedimg() == S3){
@@ -753,6 +767,19 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         notifyDataSetChanged();
     }
 
-
+    public void setSortHint(int sortTypeNum){
+        if(postCard != null){
+            switch (sortTypeNum){
+                case NEW:
+                    postCard.sortTypeSelector.setText("NEW");
+                    postCard.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_new_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                    break;
+                case POPULAR:
+                    postCard.sortTypeSelector.setText("POPULAR");
+                    postCard.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_thumb_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                    break;
+            }
+        }
+    }
 
 }
