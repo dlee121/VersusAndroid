@@ -227,9 +227,11 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     int colorFrom = Color.GRAY;
                     int colorTo = Color.WHITE;
                     int duration = 1000;
-                    ObjectAnimator.ofObject(userViewHolder.itemView, "backgroundColor", new ArgbEvaluator(), colorFrom, colorTo)
-                            .setDuration(duration)
-                            .start();
+                    ObjectAnimator obAnim = ObjectAnimator.ofObject(userViewHolder.itemView, "backgroundColor", new ArgbEvaluator(), colorFrom, colorTo)
+                            .setDuration(duration);
+                    obAnim.setRepeatCount(1);
+                    obAnim.setStartDelay(500);
+                    obAnim.start();
                 }
 
                 userViewHolder.itemView.setOnClickListener(new View.OnClickListener() {

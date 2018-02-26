@@ -22,6 +22,7 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -136,6 +137,7 @@ public class MainContainer extends AppCompatActivity {
     private ArrayList<NativeAd> nativeAds;
     private InputMethodManager imm;
     private String cftitle = "";
+    private ProgressBar toolbarProgressbar;
 
     private String esHost = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
     private String esRegion = "us-east-1";
@@ -315,6 +317,7 @@ public class MainContainer extends AppCompatActivity {
         actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
         actionBar.setElevation(0);
         titleTxtView = (TextView) mActionBarView.findViewById(R.id.textView);
+        toolbarProgressbar = mActionBarView.findViewById(R.id.toolbar_progressbar);
         toolbarButtonLeft = (ImageButton) mActionBarView.findViewById(R.id.btn_slide);
         toolbarButtonLeft.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -548,6 +551,7 @@ public class MainContainer extends AppCompatActivity {
                         bottomNavigation.setCurrentItem(0, false);
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                        hideToolbarProgressbar();
                         break;
 
                     case 1: //SearchPage
@@ -571,6 +575,7 @@ public class MainContainer extends AppCompatActivity {
                         disableBottomTabs();
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+                        hideToolbarProgressbar();
                         break;
 
                     case 4: //CommentEnterFragment
@@ -1269,6 +1274,14 @@ public class MainContainer extends AppCompatActivity {
                 }
                 break;
         }
+    }
+
+    public void showToolbarProgressbar(){
+        toolbarProgressbar.setVisibility(View.VISIBLE);
+        toolbarTextButton.setVisibility(View.INVISIBLE);
+    }
+    public void hideToolbarProgressbar(){
+        toolbarProgressbar.setVisibility(View.INVISIBLE);
     }
 
 }

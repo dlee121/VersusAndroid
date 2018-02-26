@@ -184,11 +184,11 @@ public class CommentEnterFragment extends Fragment{
 
         final String inputString = cefAdapter.getTextInput();
 
-        //TODO: form validation (although most strings should be acceptable as comments anyway)
-        Runnable runnable = new Runnable() {
-            public void run() {
+        if(inputString != null && inputString.length() > 0){
+            activity.showToolbarProgressbar();
 
-                if(inputString != null && inputString.length() > 0){
+            Runnable runnable = new Runnable() {
+                public void run() {
 
                     final VSComment vsc = new VSComment();
                     vsc.setParent_id(parentID);  //TODO: for root/reply check, which would be more efficient, checking if parent_id == "0" or checking parent_id.length() == 1?
@@ -259,33 +259,30 @@ public class CommentEnterFragment extends Fragment{
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            //hiding progress bar called in commentSubmissionRefresh
                             cefAdapter.clearTextInput();
                         }
                     });
 
                 }
-                else{
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if(mToast != null){
-                                mToast.cancel();
-                            }
-                            if(subjectComment != null){
-                                mToast = Toast.makeText(activity, "Please enter a reply", Toast.LENGTH_SHORT);
-                            }
-                            else{
-                                mToast = Toast.makeText(activity, "Please enter a comment", Toast.LENGTH_SHORT);
-                            }
-                            mToast.show();
-                        }
-                    });
-                }
+            };
+            Thread mythread = new Thread(runnable);
+            mythread.start();
+        }
+        else{
+            if(mToast != null){
+                mToast.cancel();
             }
-        };
-        Thread mythread = new Thread(runnable);
-        mythread.start();
-        //Log.d("VSCOMMENT", "VSComment submitted");
+            if(subjectComment != null){
+                mToast = Toast.makeText(activity, "Please enter a reply", Toast.LENGTH_SHORT);
+            }
+            else{
+                mToast = Toast.makeText(activity, "Please enter a comment", Toast.LENGTH_SHORT);
+            }
+            mToast.show();
+        }
+
+
 
         return inputString != null && inputString.length() > 0;
     }

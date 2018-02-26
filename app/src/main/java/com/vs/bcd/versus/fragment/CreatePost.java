@@ -198,6 +198,8 @@ public class CreatePost extends Fragment {
             return false;
         }
 
+        activity.showToolbarProgressbar();
+
         Runnable runnable = new Runnable() {
             public void run() {
                 final Post post = new Post();
@@ -231,6 +233,7 @@ public class CreatePost extends Fragment {
                             activity.addPostToTop(post, originFragNum);
                         }
                         activity.getPostPage().setContent(post);
+                        activity.hideToolbarProgressbar();
                         activity.getViewPager().setCurrentItem(3);
                         activity.setToolbarTitleTextForCP();
                     }

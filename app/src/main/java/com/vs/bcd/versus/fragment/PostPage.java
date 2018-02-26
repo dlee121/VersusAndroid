@@ -2451,6 +2451,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         }
                     }
                 });
+                activity.hideToolbarProgressbar();
                 activity.getViewPager().setCurrentItem(3);
             }
         });
