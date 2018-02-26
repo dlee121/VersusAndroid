@@ -24,9 +24,7 @@ import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 import com.amazonaws.services.dynamodbv2.model.AttributeAction;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
-import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
 import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
-import com.amazonaws.services.dynamodbv2.model.Condition;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -39,7 +37,6 @@ import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.MedalUpdateRequest;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.SessionManager;
-import com.vs.bcd.versus.model.ThreadCounter;
 import com.vs.bcd.versus.model.UserAction;
 import com.vs.bcd.versus.model.VSCNode;
 import com.vs.bcd.versus.model.VSComment;
@@ -52,10 +49,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Date;
-import java.text.SimpleDateFormat;
 import java.util.TreeMap;
 
 import cz.msebera.android.httpclient.HttpEntity;
@@ -843,7 +837,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             hidePostPageFAB();
         }
 
-        setCommentCardSortHint();
+        setCommentCardSortTypeHint();
 
         CircleImageView circView = (CircleImageView)topCard.findViewById(R.id.profile_image_tc);
         TextView timestamp = (TextView)topCard.findViewById(R.id.timetvtc);
@@ -1451,10 +1445,10 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                 break;
                         }
                         if(pORc.equals("p")){
-                            setPostCardSortHint();
+                            setPostCardSortTypeHint();
                         }
                         else{
-                            setCommentCardSortHint();
+                            setCommentCardSortTypeHint();
                         }
                     }
                 }).show();
@@ -1465,13 +1459,13 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         return sortType;
     }
 
-    private void setPostCardSortHint(){
+    private void setPostCardSortTypeHint(){
         if(PPAdapter != null){
-            PPAdapter.setSortHint(sortType);
+            PPAdapter.setSortTypeHint(sortType);
         }
     }
 
-    private void setCommentCardSortHint(){
+    private void setCommentCardSortTypeHint(){
         switch (sortType){
             case NEW:
                 topcardSortTypeSelector.setText("NEW");

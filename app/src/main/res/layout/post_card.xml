@@ -144,7 +144,6 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/linlaypoca"
             android:layout_alignParentBottom="true"
-            android:layout_alignParentRight="true"
             style="?android:attr/borderlessButtonStyle"
             android:background="#FFD7D7D7"
             android:paddingStart="8dp"

@@ -767,7 +767,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         notifyDataSetChanged();
     }
 
-    public void setSortHint(int sortTypeNum){
+    public void setSortTypeHint(int sortTypeNum){
         if(postCard != null){
             switch (sortTypeNum){
                 case NEW:

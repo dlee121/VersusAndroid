@@ -85,6 +85,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
     private int currCategoryInt = 0;
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
+    private Button sortTypeSelector;
     private int sortType = 0; //0 = New, 1 = Popular
     private final int NEW = 0;
     private final int POPULAR = 1;
@@ -180,7 +181,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
         });
 
 
-        Button sortTypeSelector = (Button) rootView.findViewById(R.id.sort_type_selector);
+        sortTypeSelector = rootView.findViewById(R.id.sort_type_selector);
         sortTypeSelector.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -205,6 +206,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
                                         categoryTimeESQuery(0);
                                         break;
                                 }
+                                setSortTypeHint();
                             }
                         }).show();
             }
@@ -288,7 +290,26 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
         }
     }
 
+    private void setSortTypeHint(){
+        switch (sortType){
+            case NEW:
+                sortTypeSelector.setText("NEW");
+                sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_new_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                break;
+
+            case POPULAR:
+                sortTypeSelector.setText("POPULAR");
+                sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_thumb_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                break;
+        }
+    }
+
     public void categoryTimeESQuery(final int fromIndex) {
+        if(sortType == POPULAR){
+            sortType = NEW; //resets sort type if coming from another category where sort type was set to POPULAR
+            setSortTypeHint();
+        }
+
 
         if(fromIndex == 0){
             mSwipeRefreshLayout.setRefreshing(true);

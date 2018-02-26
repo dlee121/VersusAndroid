@@ -133,7 +133,6 @@
             android:layout_below="@id/replybuttontc"
             android:layout_marginTop="24dp"
             android:layout_marginBottom="8dp"
-            android:layout_alignParentEnd="true"
             style="?android:attr/borderlessButtonStyle"
             android:background="#FFD7D7D7"
             android:paddingStart="8dp"
