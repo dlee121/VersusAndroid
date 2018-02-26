@@ -83,6 +83,11 @@ public class CreatePost extends Fragment {
     private int currentCategorySelection = -1;
     private RequestOptions requestOptions;
 
+    private final int HOME = 0;
+    private final int TRENDING = 1;
+    private final int CATEGORY = 2;
+    private int originFragNum = HOME;
+
     private int DEFAULT = 0;
     private int S3 = 1;
 
@@ -93,21 +98,21 @@ public class CreatePost extends Fragment {
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.create_post, container, false);
 
-        s3 = ((MainContainer)getActivity()).getS3Client();
+        s3 = ((MainContainer) getActivity()).getS3Client();
 
-        ivLeft = (ImageView)rootView.findViewById(R.id.leftImage);
+        ivLeft = (ImageView) rootView.findViewById(R.id.leftImage);
         ivLeft.setDrawingCacheEnabled(true);
-        ivRight = (ImageView)rootView.findViewById(R.id.rightImage);
+        ivRight = (ImageView) rootView.findViewById(R.id.rightImage);
         ivRight.setDrawingCacheEnabled(true);
-        rednameET = (EditText)rootView.findViewById(R.id.redname_in);
-        blacknameET = (EditText)rootView.findViewById(R.id.blackname_in);
-        questionET = (EditText)rootView.findViewById(R.id.question_in);
-        categorySelectionButton = (Button)rootView.findViewById(R.id.go_to_catselect);
+        rednameET = (EditText) rootView.findViewById(R.id.redname_in);
+        blacknameET = (EditText) rootView.findViewById(R.id.blackname_in);
+        questionET = (EditText) rootView.findViewById(R.id.question_in);
+        categorySelectionButton = (Button) rootView.findViewById(R.id.go_to_catselect);
         sessionManager = new SessionManager(getActivity());
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();
-        for (int i = 0; i<((ViewGroup)rootView).getChildCount(); i++){
-            childViews.add(((ViewGroup)rootView).getChildAt(i));
+        for (int i = 0; i < ((ViewGroup) rootView).getChildCount(); i++) {
+            childViews.add(((ViewGroup) rootView).getChildAt(i));
             LPStore.add(childViews.get(i).getLayoutParams());
         }
         childViews.add(ivLeft);
@@ -211,7 +216,6 @@ public class CreatePost extends Fragment {
                 }
 
                 post.setCategory(currentCategorySelection);
-
                 post.setAuthor(sessionManager.getCurrentUsername());
                 post.setRedname(redStr);
                 post.setBlackname(blackStr);
@@ -223,6 +227,9 @@ public class CreatePost extends Fragment {
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        if(originFragNum == HOME || originFragNum == CATEGORY){
+                            activity.addPostToTop(post, originFragNum);
+                        }
                         activity.getPostPage().setContent(post);
                         activity.getViewPager().setCurrentItem(3);
                         activity.setToolbarTitleTextForCP();
@@ -283,6 +290,11 @@ public class CreatePost extends Fragment {
             childViews.get(i).setClickable(false);
             childViews.get(i).setLayoutParams(new LinearLayout.LayoutParams(0,0));
         }
+    }
+
+    public void setOriginFragNum(int originFragNum){
+        resetCatSelection();
+        this.originFragNum = originFragNum;
     }
 
     /**

@@ -135,6 +135,7 @@ public class MainContainer extends AppCompatActivity {
     private DatabaseReference mFirebaseDatabaseReference;
     private ArrayList<NativeAd> nativeAds;
     private InputMethodManager imm;
+    private String cftitle = "";
 
     private String esHost = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
     private String esRegion = "us-east-1";
@@ -158,12 +159,10 @@ public class MainContainer extends AppCompatActivity {
                 case 2: //CreatePost
                     if(!fromCategoryFragment){
                         mViewPager.setCurrentItem(0);
-                        titleTxtView.setText(lastSetTitle);
                         toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                     }
                     else{
                         mViewPager.setCurrentItem(6);
-                        titleTxtView.setText(currentCFTitle);
                     }
                     break;
 
@@ -190,13 +189,11 @@ public class MainContainer extends AppCompatActivity {
 
                 case 4:
                     mViewPager.setCurrentItem(3);
-                    titleTxtView.setText(lastSetTitle);
                     commentEnterFragment.clearTextInput();
                     break;
 
                 case 5: //currently in SelectCategory for CreatePost
                     mViewPager.setCurrentItem(2);   //go back to CreatePost
-                    titleTxtView.setText("Create Post");
                     //TODO: reset fragment instead of leaving it in same state
                     break;
 
@@ -205,13 +202,11 @@ public class MainContainer extends AppCompatActivity {
                     toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                     mViewPager.setCurrentItem(0);
                     categoryFragmentOut();
-                    titleTxtView.setText(lastSetTitle);
                     break;
 
                 case 9: //Me (ProfileTab with user == me)
                     toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                     mViewPager.setCurrentItem(0);
-                    titleTxtView.setText(lastSetTitle);
                     profileTab.clearProfilePage();
                     break;
 
@@ -220,14 +215,12 @@ public class MainContainer extends AppCompatActivity {
                     //Profile page info should be stored so just go back to it
                     profileTab.restoreUI();
                     mViewPager.setCurrentItem(9);
-                    titleTxtView.setText("");
                     enableBottomTabs();
                     break;
 
                 case 11: //currently in MessageRoom fragment
                     toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                     mViewPager.setCurrentItem(0);
-                    titleTxtView.setText(lastSetTitle);
                     messageRoom.cleanUp();
                     break;
 
@@ -235,7 +228,6 @@ public class MainContainer extends AppCompatActivity {
                 default:
                     toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                     mViewPager.setCurrentItem(0);
-                    titleTxtView.setText(lastSetTitle);
                     break;
             }
         }
@@ -333,25 +325,21 @@ public class MainContainer extends AppCompatActivity {
                     case 0: //MainActivity Fragment
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         mViewPager.setCurrentItem(1);
-                        titleTxtView.setText("Search");
                         break;
 
                     case 1: //SearchPage
                         toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                         mViewPager.setCurrentItem(0);
-                        titleTxtView.setText(lastSetTitle);
                         break;
 
                     case 2: //CreatePost
                         imm.hideSoftInputFromWindow(toolbarButtonLeft.getWindowToken(), 0);
                         if(!fromCategoryFragment){
                             mViewPager.setCurrentItem(0);
-                            titleTxtView.setText(lastSetTitle);
                             toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                         }
                         else{
                             mViewPager.setCurrentItem(6);
-                            titleTxtView.setText(currentCFTitle);
                         }
                         break;
 
@@ -376,13 +364,11 @@ public class MainContainer extends AppCompatActivity {
                     case 4: //commentEnterFragment
                         imm.hideSoftInputFromWindow(toolbarButtonLeft.getWindowToken(), 0);
                         mViewPager.setCurrentItem(3);
-                        titleTxtView.setText(lastSetTitle);
                         commentEnterFragment.clearTextInput();
                         break;
 
                     case 5: //category selection screen for CreatePost
                         mViewPager.setCurrentItem(2);   //go back to CreatePost
-                        titleTxtView.setText("Create Post");
                         //TODO: reset fragment instead of leaving it in same state
                         break;
 
@@ -390,7 +376,6 @@ public class MainContainer extends AppCompatActivity {
                         toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                         mViewPager.setCurrentItem(0);
                         categoryFragmentOut();
-                        titleTxtView.setText(lastSetTitle);
                         categoryFragment.clearPosts();
                         break;
                     //In cases 7 and 8, we disable the toolbarButtonLeft (Search/Up button), so no need to program them for now.
@@ -408,7 +393,6 @@ public class MainContainer extends AppCompatActivity {
                     case 9: //Me (ProfileTab with user == me)
                         toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                         mViewPager.setCurrentItem(0);
-                        titleTxtView.setText(lastSetTitle);
                         profileTab.clearProfilePage();
                         break;
 
@@ -417,21 +401,18 @@ public class MainContainer extends AppCompatActivity {
                         //Profile page info should be stored so just go back to it
                         profileTab.restoreUI();
                         mViewPager.setCurrentItem(9);
-                        titleTxtView.setText("");
                         enableBottomTabs();
                         break;
 
                     case 11:
                         toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                         mViewPager.setCurrentItem(0);
-                        titleTxtView.setText(lastSetTitle);
                         messageRoom.cleanUp();
                         break;
 
                     default:
                         toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                         mViewPager.setCurrentItem(0);
-                        titleTxtView.setText(lastSetTitle);
                         break;
                 }
             }
@@ -584,6 +565,7 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 3: //PostPage
+                        titleTxtView.setText("");
                         hideToolbarButtonRight();
                         hideToolbarTextButton();
                         disableBottomTabs();
@@ -602,6 +584,9 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 6: //CategoryFragment
+                        if(cftitle != null && !cftitle.equals("")){
+                            titleTxtView.setText(cftitle);
+                        }
                         hideToolbarButtonRight();
                         hideToolbarTextButton();
                         enableBottomTabs();
@@ -778,6 +763,7 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public void setToolbarTitleForCF(String titleForCF){
+        cftitle = titleForCF;
         titleTxtView.setText(titleForCF);
     }
 
@@ -1261,6 +1247,28 @@ public class MainContainer extends AppCompatActivity {
 
     public int getPostPageSortType(){
         return postPage.getSortType();
+    }
+
+    public void setOriginFragNum(int originFragNum){
+        if(createPost != null){
+            createPost.setOriginFragNum(originFragNum);
+        }
+    }
+
+    public void addPostToTop(Post post, int originFragNum) {
+        switch (originFragNum){
+            case 0: //HOME
+                if(mainActivityFragRef != null){
+                    mainActivityFragRef.addPostToTop(post);
+                }
+                break;
+
+            case 2: //CategoryFragment
+                if(categoryFragment != null){
+                    categoryFragment.addPostToTop(post);
+                }
+                break;
+        }
     }
 
 }

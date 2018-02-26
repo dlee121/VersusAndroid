@@ -21,6 +21,7 @@ import com.vs.bcd.versus.fragment.Tab1Newsfeed;
 import com.vs.bcd.versus.fragment.Tab2Trending;
 import com.vs.bcd.versus.fragment.Tab3Categories;
 import com.vs.bcd.versus.fragment.Tab4Messenger;
+import com.vs.bcd.versus.model.Post;
 
 import java.util.ArrayList;
 
@@ -131,12 +132,12 @@ public class MainActivity extends Fragment {
             }
         });
 
-        fab = (FloatingActionButton) rootView.findViewById(R.id.fab);
+        fab = rootView.findViewById(R.id.fab);
         fabLP = (RelativeLayout.LayoutParams) fab.getLayoutParams();
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mainContainer.getCreatePostFragment().resetCatSelection();
+                mainContainer.setOriginFragNum(mViewPager.getCurrentItem());
                 mainContainer.getViewPager().setCurrentItem(2);
                 mainContainer.getToolbarTitleText().setText("Create Post");
                 mainContainer.getToolbarButtonLeft().setImageResource(R.drawable.ic_left_chevron);
@@ -275,6 +276,10 @@ public class MainActivity extends Fragment {
         return tab4;
     }
 
-
+    public void addPostToTop(Post post){
+        if(tab1 != null){
+            tab1.addPostToTop(post);
+        }
+    }
 
 }

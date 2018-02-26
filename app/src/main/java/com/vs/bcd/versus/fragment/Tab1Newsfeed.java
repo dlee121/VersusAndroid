@@ -169,6 +169,13 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
         Log.d("Refresh", "Now posts has " + Integer.toString(posts.size()) + " items");
     }
 
+    public void addPostToTop(Post post){
+        if(posts != null && myAdapter != null){
+            posts.add(0, post);
+            myAdapter.notifyItemInserted(0);
+        }
+    }
+
 
     public void newsfeedESQuery(final int fromIndex) {
 

@@ -120,7 +120,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
 
         recyclerView.setLayoutManager(new LinearLayoutManager(mHostActivity));
         //this is where the list is passed on to adapter
-        myAdapter = new MyAdapter(posts, mHostActivity, 0);
+        myAdapter = new MyAdapter(posts, mHostActivity, 6);
         recyclerView.setAdapter(myAdapter);
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -173,7 +173,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mHostActivity.getCreatePostFragment().resetCatSelection();
+                mHostActivity.setOriginFragNum(2);
                 mHostActivity.getViewPager().setCurrentItem(2);
                 mHostActivity.getToolbarTitleText().setText("Create Post");
                 mHostActivity.getToolbarButtonLeft().setImageResource(R.drawable.ic_left_chevron);
@@ -301,6 +301,15 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
                 sortTypeSelector.setText("POPULAR");
                 sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_thumb_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
                 break;
+        }
+    }
+
+    public void addPostToTop(Post post){
+        if(posts != null && myAdapter != null){
+            if(post.getCategory() == currCategoryInt){
+                posts.add(0, post);
+                myAdapter.notifyItemInserted(0);
+            }
         }
     }
 
@@ -458,7 +467,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
             String strResponse = httpClient.execute(httpPost, responseHandler);
             if(posts == null){
                 posts = new ArrayList<>();
-                myAdapter = new MyAdapter(posts, mHostActivity, 0);
+                myAdapter = new MyAdapter(posts, mHostActivity, 6);
                 recyclerView.setAdapter(myAdapter);
             }
 
