@@ -10,7 +10,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -25,21 +24,12 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.CEFAdapter;
-import com.vs.bcd.versus.adapter.CommentHistoryAdapter;
-import com.vs.bcd.versus.adapter.PostPageAdapter;
 import com.vs.bcd.versus.model.CEFObject;
 import com.vs.bcd.versus.model.Post;
-import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.VSComment;
 
-import org.w3c.dom.Text;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Locale;
 
 /**
  * Created by dlee on 7/1/17.
@@ -68,6 +58,8 @@ public class CommentEnterFragment extends Fragment{
     private CEFAdapter cefAdapter;
     private ArrayList<CEFObject> cefObjectList;
     private Toast mToast;
+    private String prefix = "";
+    private int pageLevelTarget = 0;
 
     private DatabaseReference mFirebaseDatabaseReference;
 
@@ -102,6 +94,8 @@ public class CommentEnterFragment extends Fragment{
     }
 
     public void setContentReplyToPost(Post post){
+        prefix = "";
+        pageLevelTarget = 0;
         cefObjectList.clear();
         cefObjectList.add(new CEFObject(post));
         cefObjectList.add(new CEFObject()); //add text input card view
@@ -113,13 +107,29 @@ public class CommentEnterFragment extends Fragment{
         parentID = postID;
     }
 
-    public void setContentReplyToComment(VSComment replySubject){
+    public void setContentReplyToComment(VSComment replySubject, int pageLevelIncrement){
+        prefix = "";
+        this.pageLevelTarget = pageLevelIncrement;
         cefObjectList.clear();
         cefObjectList.add(new CEFObject(replySubject));
         cefObjectList.add(new CEFObject()); //add text input card view
         cefAdapter.notifyDataSetChanged();
 
         parentID = replySubject.getComment_id();
+        subjectComment = replySubject;
+        post = null;
+
+        postID = replySubject.getPost_id();
+    }
+
+    public void setContentReplyToComment(VSComment replySubject, int pageLevelIncrement, String parentID, String prefix){
+        this.prefix = prefix;
+        cefObjectList.clear();
+        cefObjectList.add(new CEFObject(replySubject));
+        cefObjectList.add(new CEFObject()); //add text input card view
+        cefAdapter.notifyDataSetChanged();
+
+        this.parentID = parentID;
         subjectComment = replySubject;
         post = null;
 
@@ -194,7 +204,7 @@ public class CommentEnterFragment extends Fragment{
                     vsc.setParent_id(parentID);  //TODO: for root/reply check, which would be more efficient, checking if parent_id == "0" or checking parent_id.length() == 1?
                     vsc.setPost_id(postID);
                     vsc.setAuthor(activity.getUsername());
-                    vsc.setContent(inputString);
+                    vsc.setContent(prefix + inputString);
                     vsc.setIsHigh(true); //sets it to be highlighted
 
                     activity.getMapper().save(vsc);
@@ -252,7 +262,13 @@ public class CommentEnterFragment extends Fragment{
 
                     //update DB User.posts list with the new postID String
 
+
+
                     PostPage postPage = activity.getPostPage();
+                    if(pageLevelTarget > 0){
+                        postPage.setPageLevel(pageLevelTarget);
+                    }
+
                     postPage.commentSubmissionRefresh(vsc);
 
                     //UI refresh. two options, one for setting up with post card and one for setting up with comment top card

@@ -2,7 +2,6 @@ package com.vs.bcd.versus.fragment;
 
 import android.content.Context;
 import android.content.DialogInterface;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -21,18 +20,12 @@ import android.app.AlertDialog;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
-import com.amazonaws.services.dynamodbv2.model.Condition;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.ListPreloader;
 import com.bumptech.glide.integration.recyclerview.RecyclerViewPreloader;
@@ -87,7 +80,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
     private ArrayList<ViewGroup.LayoutParams> LPStore;
     private Button sortTypeSelector;
     private int sortType = 0; //0 = New, 1 = Popular
-    private final int NEW = 0;
+    private final int MOST_RECENT = 0;
     private final int POPULAR = 1;
 
     private int loadThreshold = 8;
@@ -138,7 +131,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
                             Log.d("loadmore", "now loading more");
 
                             switch (sortType){
-                                case NEW:
+                                case MOST_RECENT:
                                     categoryTimeESQuery(currPostsIndex);
                                     break;
                                 case POPULAR:
@@ -185,7 +178,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
         sortTypeSelector.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final String [] items = new String[] {"Popular", "New"};
+                final String [] items = new String[] {"Popular", "Most Recent"};
                 final Integer[] icons = new Integer[] {R.drawable.ic_thumb_up, R.drawable.ic_new_releases}; //TODO: change these icons to actual ones
                 ListAdapter adapter = new ArrayAdapterWithIcon(getActivity(), items, icons);
 
@@ -202,7 +195,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
 
                                     case 1: //Sort by New; category-time-index query.
                                         Log.d("SortType", "sort by time");
-                                        sortType = NEW;
+                                        sortType = MOST_RECENT;
                                         categoryTimeESQuery(0);
                                         break;
                                 }
@@ -256,7 +249,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
     public void onRefresh() {
         clearPosts();
         switch (sortType){
-            case NEW:
+            case MOST_RECENT:
                 categoryTimeESQuery(0);
                 break;
             case POPULAR:
@@ -292,8 +285,8 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
 
     private void setSortTypeHint(){
         switch (sortType){
-            case NEW:
-                sortTypeSelector.setText("NEW");
+            case MOST_RECENT:
+                sortTypeSelector.setText("MOST RECENT");
                 sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_new_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
                 break;
 
@@ -315,7 +308,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
 
     public void categoryTimeESQuery(final int fromIndex) {
         if(sortType == POPULAR){
-            sortType = NEW; //resets sort type if coming from another category where sort type was set to POPULAR
+            sortType = MOST_RECENT; //resets sort type if coming from another category where sort type was set to POPULAR
             setSortTypeHint();
         }
 

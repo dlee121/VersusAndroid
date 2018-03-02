@@ -10,7 +10,6 @@ import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -67,11 +66,10 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private List<VSComment> childrenList = new ArrayList<>();
     private int visibleThreshold = 8;
     private int lastVisibleItem, totalItemCount;
-    private AmazonS3 s3;
     private PostCardViewHolder postCard;
     private Bitmap redBMP = null;
     private Bitmap blackBMP = null;
-    private boolean includesPost;
+    private int pageLevel;
     private UserAction userAction;
     private Map<String, String> actionMap;
     private Drawable[] redLayers = new Drawable[2];
@@ -87,18 +85,17 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private int DEFAULT = 0;
     private int S3 = 1;
 
-    private final int NEW = 0;
+    private final int MOST_RECENT = 0;
     private final int POPULAR = 1;
 
 
     //to set imageviews, first fill out the drawable[3] with 0=image layer, 1=tint layer, 2=check mark layer, make LayerDrawable out of the array, then use setImageMask which sets the correct mask layers AND ALSO sets imageview drawable as the LayerDrawable
 
-    public PostPageAdapter(List<Object> masterList, Post post, MainContainer activity, boolean includesPost) {
-        s3 = activity.getS3Client();
+    public PostPageAdapter(List<Object> masterList, Post post, MainContainer activity, int pageLevel) {
         this.masterList = masterList;
         this.post = post;
         this.activity = activity;
-        this.includesPost = includesPost;
+        this.pageLevel = pageLevel;
         userAction = activity.getPostPage().getUserAction();
         actionMap = userAction.getActionRecord();
         graphBoxParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, 10);
@@ -110,7 +107,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public int getItemViewType(int position) {
         if (position > masterList.size())
             return VIEW_TYPE_LOADING;
-        else if(position  == 0 && includesPost)
+        else if(position  == 0 && masterList.get(0) instanceof Post)
             return VIEW_TYPE_POSTCARD;
         else
             return  VIEW_TYPE_ITEM;
@@ -224,39 +221,60 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 //set CardView onClickListener to go to PostPage fragment with corresponding Comments data (this will be a PostPage without post_card)
 
                 if(currentComment.getIsHigh()){
-                    int colorFrom = Color.GRAY;
+                    int colorFrom = ContextCompat.getColor(activity, R.color.vsBlue_light);
                     int colorTo = Color.WHITE;
                     int duration = 1000;
                     ObjectAnimator obAnim = ObjectAnimator.ofObject(userViewHolder.itemView, "backgroundColor", new ArgbEvaluator(), colorFrom, colorTo)
                             .setDuration(duration);
                     obAnim.setRepeatCount(1);
-                    obAnim.setStartDelay(500);
+                    obAnim.setStartDelay(350);
                     obAnim.start();
+                }
+
+                switch (pageLevel) {
+                    case 0: //root page
+
+
+
+
+
+                        break;
+
+                    case 1: //children page
+
+
+
+
+
+
+                        break;
+
+                    case 2: //grandchildren page
+
+
+
+
+
+
+
+                        break;
+
                 }
 
                 userViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        Log.d("topmedal", Integer.toString(currentComment.getCurrentMedal()));
-                        if(currentComment.getNestedLevel() == 2){
-                            activity.getPostPage().addGrandParentToCache(currentComment.getParent_id()); //pass in parent's id, then the function will get that parent's parent, the grandparent, and add it to the parentCache
+                        Log.d("pageLevel", Integer.toString(pageLevel));
+                        if(pageLevel < 2){ //itemView clicks are handled only for root page and children page
+                            activity.getPostPage().itemViewClickHelper(currentComment);
                         }
-                        activity.getPostPage().addParentToCache(currentComment.getParent_id());
-                        activity.getPostPage().addThisToCache(currentComment.getComment_id());
-                        activity.getPostPage().setCommentsPage(currentComment);
                     }
                 });
 
                 userViewHolder.replyButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        if(currentComment.getNestedLevel() == 2){
-                            activity.getPostPage().addGrandParentToCache(currentComment.getParent_id()); //pass in parent's id, then the function will get that parent's parent, the grandparent, and add it to the parentCache
-                        }
-                        activity.getPostPage().addParentToCache(currentComment.getParent_id());
-                        activity.getPostPage().addThisToCache(currentComment.getComment_id());
-                        activity.getCommentEnterFragment().setContentReplyToComment(currentComment);
-                        activity.getViewPager().setCurrentItem(4);
+                        activity.getPostPage().itemReplyClickHelper(currentComment);
                     }
                 });
 
@@ -314,7 +332,6 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         } else if (holder instanceof PostCardViewHolder) {
             //Log.d("DEBUG", "BIND EVENT");
             postCard = (PostCardViewHolder) holder;
-            TransferUtility transferUtility = new TransferUtility(s3, activity.getApplicationContext());
             postCard.questionTV.setText(post.getQuestion());
             postCard.rednameTV.setText(post.getRedname());
             postCard.blacknameTV.setText(post.getBlackname());
@@ -378,8 +395,8 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             });
 
             switch (activity.getPostPageSortType()){
-                case NEW:
-                    postCard.sortTypeSelector.setText("NEW");
+                case MOST_RECENT:
+                    postCard.sortTypeSelector.setText("MOST RECENT");
                     postCard.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_new_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
                     break;
                 case POPULAR:
@@ -772,8 +789,8 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public void setSortTypeHint(int sortTypeNum){
         if(postCard != null){
             switch (sortTypeNum){
-                case NEW:
-                    postCard.sortTypeSelector.setText("NEW");
+                case MOST_RECENT:
+                    postCard.sortTypeSelector.setText("MOST RECENT");
                     postCard.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_new_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
                     break;
                 case POPULAR:

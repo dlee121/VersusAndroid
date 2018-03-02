@@ -93,7 +93,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private LayoutInflater layoutInflater;
     private VSCNode prevRootLevelNode = null;
     private VSCNode firstRoot = null; //first comment in root level, as in parent_id = "0"
-    private int pageNestedLevel = 0;    //increase / decrease as we get click into and out of comments
     private MainContainer activity;
     private boolean topCardActive = false;
     private RelativeLayout topCard;
@@ -118,7 +117,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private boolean atRootLevel = true;
     private long queryThreadID = 0;
     private int sortType = 1; //0 = New, 1 = Popular
-    private final int NEW = 0;
+    private final int MOST_RECENT = 0;
     private final int POPULAR = 1;
     private boolean nowLoading = false;
     private SwipeRefreshLayout mSwipeRefreshLayout;
@@ -140,11 +139,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private DatabaseReference mFirebaseDatabaseReference;
     private String host, region;
 
+    private int pageLevel = 0;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        activity = (MainContainer)getActivity();
         rootView = inflater.inflate(R.layout.post_page, container, false);
         layoutInflater = inflater;
 
@@ -181,15 +181,15 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             public void onClick(View v) {
                 //TODO: implement a version where we reply to comments and have this function choose between that and root comment version
                 //depending if we're at isRootLevel or not
-                ((MainContainer)getActivity()).getCommentEnterFragment().setContentReplyToPost(post);
-                ((MainContainer)getActivity()).getViewPager().setCurrentItem(4);
+                activity.getCommentEnterFragment().setContentReplyToPost(post);
+                activity.getViewPager().setCurrentItem(4);
             }
         });
 
         topCard.findViewById(R.id.replybuttontc).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                activity.getCommentEnterFragment().setContentReplyToComment(topCardContent);
+                activity.getCommentEnterFragment().setContentReplyToComment(topCardContent, 0);
                 activity.getViewPager().setCurrentItem(4);
             }
         });
@@ -369,7 +369,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         case POPULAR:
                             refreshCommentUpvotesQuery();
                             break;
-                        case NEW:
+                        case MOST_RECENT:
                             refreshCommentTimestampQuery();
                             break;
                         default:
@@ -469,12 +469,16 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
     }
 
-    public void disableChildViews(){
-        for(int i = 0; i<childViews.size(); i++){
+    public void disableChildViews() {
+        for (int i = 0; i < childViews.size(); i++) {
             childViews.get(i).setEnabled(false);
             childViews.get(i).setClickable(false);
-            childViews.get(i).setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+            childViews.get(i).setLayoutParams(new RelativeLayout.LayoutParams(0, 0));
         }
+    }
+
+    public void setPageLevel(int target){
+        pageLevel = target;
     }
 
     /*
@@ -700,11 +704,11 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         //this if condition also determines the boolean parameter at the end of PostPageAdapter constructor to notify adapter if it should set up Post Card
                         if(rootParentID.equals(postID)){
                             atRootLevel = true;
-                            PPAdapter = new PostPageAdapter(masterList, post, activity, true);
+                            PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel);
                         }
                         else{
                             atRootLevel = false;
-                            PPAdapter = new PostPageAdapter(masterList, post, activity, false);
+                            PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel);
                         }
 
                         RV.setAdapter(PPAdapter);
@@ -740,6 +744,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     public void setContent(final Post post){  //downloadImages signifies initial post page set up
         sortType = POPULAR;
         nowLoading = false;
+        pageLevel = 0;
 
         this.post = post;
 
@@ -929,6 +934,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         else{
             setUpTopCard(parentCache.get(tempParentID));
         }
+
+        pageLevel--;
 
         commentsQuery(tempParentID, "u");
 
@@ -1423,7 +1430,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     public void selectSortType(final String pORc){
-        final String [] items = new String[] {"Popular", "New"};
+        final String [] items = new String[] {"Popular", "Most Recent"};
         final Integer[] icons = new Integer[] {R.drawable.ic_thumb_up, R.drawable.ic_new_releases}; //TODO: change these icons to actual ones
         ListAdapter adapter = new ArrayAdapterWithIcon(getActivity(), items, icons);
         new AlertDialog.Builder(getActivity()).setTitle("Sort by")
@@ -1439,7 +1446,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                             case 1: //Sort by New; parent_id-time-index query.
                                 Log.d("SortType", "sort by time");
-                                sortType = NEW;
+                                sortType = MOST_RECENT;
                                 mSwipeRefreshLayout.setRefreshing(true);
                                 refreshCommentTimestampQuery();
                                 break;
@@ -1467,8 +1474,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     private void setCommentCardSortTypeHint(){
         switch (sortType){
-            case NEW:
-                topcardSortTypeSelector.setText("NEW");
+            case MOST_RECENT:
+                topcardSortTypeSelector.setText("MOST RECENT");
                 topcardSortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_new_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
                 break;
 
@@ -2185,14 +2192,13 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
 
-    public void commentSubmissionRefresh(final VSComment submittedComment){
-
-
+    public void commentSubmissionRefresh(VSComment submittedComment){
+        Log.d("pageLevel", "CSR: level: " + Integer.toString(pageLevel));
         final ArrayList<VSComment> rootComments = new ArrayList<>();
         final ArrayList<VSComment> childComments = new ArrayList<>();
         final ArrayList<VSComment> grandchildComments = new ArrayList<>();
         final String rootParentID = submittedComment.getParent_id();
-        sortType = NEW;
+        sortType = MOST_RECENT;
 
 
         final List<Object> masterList = new ArrayList<>();
@@ -2268,7 +2274,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 @Override
                 public void run() {
                     atRootLevel = false;
-                    PPAdapter = new PostPageAdapter(masterList, post, activity, false);
+                    PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel);
                     RV.setAdapter(PPAdapter);
                     activity.setPostInDownload(postID, "done");
                     setUpTopCard(parentCache.get(rootParentID));
@@ -2424,11 +2430,11 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 //this if condition also determines the boolean parameter at the end of PostPageAdapter constructor to notify adapter if it should set up Post Card
                 if(rootParentID.equals(postID)){
                     atRootLevel = true;
-                    PPAdapter = new PostPageAdapter(masterList, post, activity, true);
+                    PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel);
                 }
                 else{
                     atRootLevel = false;
-                    PPAdapter = new PostPageAdapter(masterList, post, activity, false);
+                    PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel);
                 }
 
                 RV.setAdapter(PPAdapter);
@@ -2456,5 +2462,144 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             }
         });
     }
+
+    public void itemViewClickHelper(VSComment clickedComment){
+        int nestedLevel = clickedComment.getNestedLevel();
+        switch (pageLevel) {
+            case 0: //root page
+                if(nestedLevel == 2){ //grandchild comment
+                    addGrandParentToCache(clickedComment.getParent_id()); //pass in parent's id, then the function will get that parent's parent, the grandparent, and add it to the parentCache
+                    addParentToCache(clickedComment.getParent_id());
+                    //addThisToCache(clickedComment.getComment_id());
+                    pageLevel = 2;
+                    setCommentsPage(nodeMap.get(clickedComment.getParent_id()).getNodeContent());
+                }
+                else{ //root comment or child comment
+                    if(nestedLevel == 1){ //child comment
+                        addParentToCache(clickedComment.getParent_id());
+                        pageLevel = 2;
+                    }
+                    else{
+                        pageLevel = 1;
+                    }
+                    addThisToCache(clickedComment.getComment_id());
+                    setCommentsPage(clickedComment);
+                }
+
+                break;
+
+            case 1: //children page, where clicked root comment is the topCard and children comments are at nestedLevel == 0
+                if(clickedComment.getNestedLevel() == 1){ //grandchild comment
+                    addParentToCache(clickedComment.getParent_id());
+                    //addThisToCache(clickedComment.getComment_id());
+                    pageLevel = 2;
+                    setCommentsPage(nodeMap.get(clickedComment.getParent_id()).getNodeContent());
+                }
+                else{ //child comment
+                    //addParentToCache(clickedComment.getParent_id());
+                    addThisToCache(clickedComment.getComment_id());
+                    pageLevel = 2;
+                    setCommentsPage(clickedComment);
+                }
+
+                break;
+
+            //case 2 == grandchildren page, no itemView click events for that level
+        }
+    }
+
+    public void itemReplyClickHelper(VSComment clickedComment){
+        int nestedLevel = clickedComment.getNestedLevel();
+        int pageLevelTarget = 0;
+        switch (pageLevel) {
+            case 0: //root page
+                if(nestedLevel == 2){ //grandchild comment
+                    addGrandParentToCache(clickedComment.getParent_id()); //pass in parent's id, then the function will get that parent's parent, the grandparent, and add it to the parentCache
+                    addParentToCache(clickedComment.getParent_id());
+                    //addThisToCache(clickedComment.getComment_id());
+                    pageLevelTarget = 2;
+                    activity.getCommentEnterFragment().setContentReplyToComment(clickedComment, pageLevelTarget, clickedComment.getParent_id(), "@"+clickedComment.getAuthor()+" ");
+                    activity.getViewPager().setCurrentItem(4);
+                }
+                else{ //root comment or child comment
+                    if(nestedLevel == 1){ //child comment
+                        addParentToCache(clickedComment.getParent_id());
+                        pageLevelTarget = 2;
+                    }
+                    else{
+                        pageLevelTarget = 1;
+                    }
+                    addThisToCache(clickedComment.getComment_id());
+                    activity.getCommentEnterFragment().setContentReplyToComment(clickedComment, pageLevelTarget);
+                    activity.getViewPager().setCurrentItem(4);
+                }
+
+                break;
+
+            case 1: //children page, where clicked root comment is the topCard and children comments are at nestedLevel == 0
+                if(clickedComment.getNestedLevel() == 1){ //grandchild comment
+                    addParentToCache(clickedComment.getParent_id());
+                    //addThisToCache(clickedComment.getComment_id());
+                    pageLevelTarget = 2;
+                    activity.getCommentEnterFragment().setContentReplyToComment(clickedComment, pageLevelTarget, clickedComment.getParent_id(), "@" + clickedComment.getAuthor() + " ");
+                    activity.getViewPager().setCurrentItem(4);
+                }
+                else{ //child comment
+                    //addParentToCache(clickedComment.getParent_id());
+                    addThisToCache(clickedComment.getComment_id());
+                    pageLevelTarget = 2;
+                    activity.getCommentEnterFragment().setContentReplyToComment(clickedComment, pageLevelTarget);
+                    activity.getViewPager().setCurrentItem(4);
+                }
+
+                break;
+
+            case 2:
+                //addParentToCache(clickedComment.getParent_id());
+                pageLevelTarget = 2;
+                activity.getCommentEnterFragment().setContentReplyToComment(clickedComment, pageLevelTarget, clickedComment.getParent_id(), "@" + clickedComment.getAuthor() + " ");
+                activity.getViewPager().setCurrentItem(4);
+
+                break;
+        }
+
+        //topcard reply clicked: upon submission, no pageLevel increment,
+        //  if topcard is root comment, commentSubmissionRefresh as usual
+        //  else topcard is child comment. submitted comment added in-page at bottom if all grandchildren loaded,
+        //                                                                  or db only until scrolled to bottom.
+
+        //FAB clicked in root page: upon submission, no pageLevel increment
+        //use code as is for setup (postID != null)
+
+
+        //root page, root comment reply clicked: upon submission, pageLevel ++
+        //use code as is for setup
+
+        //root page, child comment reply clicked: upon submission, pageLevel += 2
+        //submitted comment added in-page at bottom if all grandchildren loaded,
+        //                                                                  or db only until scrolled to bottom.
+
+        //root page, grandchild comment reply clicked: upon submission, pageLevel += 2, include @ prefix
+        //submitted comment added in-page at bottom if all grandchildren loaded,
+        //                                                                  or db only until scrolled to bottom.
+
+        //children page (topcard is root comment), child comment reply clicked: pageLevel ++
+        //submitted comment added in-page at bottom if all grandchildren loaded,
+        //                                                                  or db only until scrolled to bottom.
+
+        //children page (topcard is root comment), grandchild comment reply clicked: pageLevel ++, include @ prefix
+        //submitted comment added in-page at bottom if all grandchildren loaded,
+        //                                                                  or db only until scrolled to bottom.
+
+        //grandchildren page (topcard is child comment), grandchild comment reply clicked: pageLevel stays same, include @ prefix
+        //submitted comment added in-page at bottom if all grandchildren loaded,
+        //                                                                  or db only until scrolled to bottom.
+
+
+
+
+    }
+
+
 
 }
