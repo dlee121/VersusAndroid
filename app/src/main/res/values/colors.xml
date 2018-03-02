@@ -8,6 +8,7 @@
     <color name="colorAccent">#c8e8ff</color>
     <color name="vsRed">#FF2020</color>
     <color name="vsBlue">#5ED3FF</color>
+    <color name="vsBlue_light">#C1EEFF</color>
     <color name="white">#FFFFFF</color>
     <color name="noticeRed">#F53C55</color>
     <color name="noticeYellow">#FFDD00</color>
