@@ -231,40 +231,10 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     obAnim.start();
                 }
 
-                switch (pageLevel) {
-                    case 0: //root page
-
-
-
-
-
-                        break;
-
-                    case 1: //children page
-
-
-
-
-
-
-                        break;
-
-                    case 2: //grandchildren page
-
-
-
-
-
-
-
-                        break;
-
-                }
-
                 userViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        Log.d("pageLevel", Integer.toString(pageLevel));
+                        //Log.d("pageLevel", Integer.toString(pageLevel));
                         if(pageLevel < 2){ //itemView clicks are handled only for root page and children page
                             activity.getPostPage().itemViewClickHelper(currentComment);
                         }

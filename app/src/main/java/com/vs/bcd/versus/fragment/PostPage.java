@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -112,6 +113,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private PostPage thisPage;
     private boolean exitLoop = false;
     private Button topcardSortTypeSelector;
+    private LinearLayout topcardSortTypeSelectorBackground;
     final HashMap<String, VSCNode> nodeMap = new HashMap<>();
     private HashMap<String, VSComment> parentCache = new HashMap<>();
     private boolean atRootLevel = true;
@@ -200,6 +202,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 selectSortType("c");
             }
         });
+        topcardSortTypeSelectorBackground = topCard.findViewById(R.id.sort_type_selector_background_topcard);
 
         final ImageButton topCardUpvoteButton = (ImageButton)rootView.findViewById(R.id.heartbuttontc);
         final ImageButton topCardDownvoteButton = (ImageButton)rootView.findViewById(R.id.broken_heart_button_tc);
@@ -493,252 +496,358 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     //automatically includes Post Card in the vsComments list for recycler view if rootParentId equals postID,
     // so use it for all PostPage set up cases where we query by upvotes
     private void commentsQuery(final String rootParentID, final String uORt){
+        if(!uORt.equals("g")) { //"g" denotes grandchild-only query for level 2
+            final ArrayList<VSComment> rootComments = new ArrayList<>();
+            final ArrayList<VSComment> childComments = new ArrayList<>();
+            final ArrayList<VSComment> grandchildComments = new ArrayList<>();
+
+            mSwipeRefreshLayout.setRefreshing(true);
+
+            Runnable runnable = new Runnable() {
+                public void run() {
+                    long thisThreadID = Thread.currentThread().getId();
+                    final List<Object> masterList = new ArrayList<>();
+
+                    getRootComments(0, rootComments, rootParentID, uORt);
+
+                    chunkSorter(rootComments);
+
+                    VSCNode prevNode = null;
+
+                    final HashMap<Integer, VSComment> medalUpgradeMap = new HashMap<>();
+                    final HashSet<String> medalWinners = new HashSet<>();
+                    exitLoop = false;
+
+                    if (!rootComments.isEmpty()) {
+                        int currMedalNumber = 3; //starting with 3, which is gold medal
+                        int prevUpvotes = rootComments.get(0).getUpvotes();
+                        VSComment currComment;
+
+                        //set up nodeMap with root comments
+                        for (int i = 0; i < rootComments.size(); i++) {
+                            if (thisThreadID != queryThreadID) {
+                                Log.d("wow", "broke out of old query thread");
+                                return;
+                            }
+                            currComment = rootComments.get(i);
+                            VSCNode cNode = new VSCNode(currComment);
+                            final String commentID = currComment.getComment_id();
+
+                            Log.d("wow", "child query, parentID to query: " + commentID);
 
 
-        final ArrayList<VSComment> rootComments = new ArrayList<>();
-        final ArrayList<VSComment> childComments = new ArrayList<>();
-        final ArrayList<VSComment> grandchildComments = new ArrayList<>();
+                            cNode.setNestedLevel(0);
 
-        mSwipeRefreshLayout.setRefreshing(true);
+                            if (prevNode != null) {
+                                prevNode.setTailSibling(cNode);
+                                cNode.setHeadSibling(prevNode);
+                            }
 
-        Runnable runnable = new Runnable() {
-            public void run() {
-                long thisThreadID = Thread.currentThread().getId();
-                final List<Object> masterList = new ArrayList<>();
+                            nodeMap.put(commentID, cNode);
+                            prevNode = cNode;
 
-                getRootComments(0, rootComments, rootParentID, uORt);
-
-                chunkSorter(rootComments);
-
-                VSCNode prevNode = null;
-
-                final HashMap<Integer, VSComment> medalUpgradeMap = new HashMap<>();
-                final HashSet<String> medalWinners = new HashSet<>();
-                exitLoop = false;
-
-                if(!rootComments.isEmpty()){
-                    int currMedalNumber = 3; //starting with 3, which is gold medal
-                    int prevUpvotes = rootComments.get(0).getUpvotes();
-                    VSComment currComment;
-
-                    //set up nodeMap with root comments
-                    for(int i = 0; i < rootComments.size(); i++){
-                        if(thisThreadID != queryThreadID){
-                            Log.d("wow", "broke out of old query thread");
-                            return;
-                        }
-                        currComment = rootComments.get(i);
-                        VSCNode cNode = new VSCNode(currComment);
-                        final String commentID = currComment.getComment_id();
-
-                        Log.d("wow", "child query, parentID to query: " + commentID);
-
-
-                        cNode.setNestedLevel(0);
-
-                        if(prevNode != null){
-                            prevNode.setTailSibling(cNode);
-                            cNode.setHeadSibling(prevNode);
-                        }
-
-                        nodeMap.put(commentID, cNode);
-                        prevNode = cNode;
-
-                        //medal handling
-                        if(atRootLevel && currMedalNumber > 0){
-                            if(currComment.getUpvotes() >= minUpvotes){ //need to meet upvotes minimum to be cosidered for medals
-                                if(currComment.getUpvotes() < prevUpvotes){
-                                    currMedalNumber--;
-                                    prevUpvotes = currComment.getUpvotes();
-                                }
-                                if(currMedalNumber > 0){
-                                    if(currComment.getTopmedal() < currMedalNumber){ //upgrade event detected
-                                        medalUpgradeMap.put(new Integer(currMedalNumber), currComment);
-                                        medalWinners.add(currComment.getAuthor());
+                            //medal handling
+                            if (atRootLevel && currMedalNumber > 0) {
+                                if (currComment.getUpvotes() >= minUpvotes) { //need to meet upvotes minimum to be cosidered for medals
+                                    if (currComment.getUpvotes() < prevUpvotes) {
+                                        currMedalNumber--;
+                                        prevUpvotes = currComment.getUpvotes();
                                     }
-                                    cNode.setCurrentMedal(currMedalNumber);
-                                }
-                            }
-                            else{ //if current comment doesn't meet minimum upvotes requirement for medals, that means subsequent comments won't either, so no more need to handle medals.
-                                currMedalNumber = 0; //this will stop subsequent medal handling for this query
-                            }
-                        }
-                    }
-                    getChildComments(rootComments, childComments);
-                }
-                else if(!rootParentID.equals(postID)){
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mSwipeRefreshLayout.setRefreshing(false);
-                        }
-                    });
-                    return;
-                }
-
-                if(!medalUpgradeMap.isEmpty()) {
-                    //set update duty
-                    //if no update duty then set update duty true if user authored one of the comments
-                    //update DB is update duty true.
-                    medalsUpdateDB(medalUpgradeMap, medalWinners);
-                }
-
-                if(!childComments.isEmpty()){
-                    //set up nodeMap with child comments
-                    for(int i = 0; i < childComments.size(); i++){
-                        if(thisThreadID != queryThreadID){
-                            Log.d("wow", "broke out of old query thread");
-                            return;
-                        }
-
-                        VSCNode cNode = new VSCNode(childComments.get(i));
-                        final String commentID = cNode.getCommentID();
-
-                        cNode.setNestedLevel(1);
-                        VSCNode parentNode = nodeMap.get(cNode.getParentID());
-                        if(parentNode != null) {
-                            if(!parentNode.hasChild()){
-                                parentNode.setFirstChild(cNode);
-                                cNode.setParent(parentNode);
-                            }
-                            else{
-                                VSCNode sibling = parentNode.getFirstChild();
-                                if(sibling.getUpvotes() == cNode.getUpvotes() && sibling.getVotecount() < cNode.getVotecount()){
-                                    sibling.setParent(null);
-                                    cNode.setParent(parentNode);
-                                    parentNode.setFirstChild(cNode);
-                                    cNode.setTailSibling(sibling);
-                                    sibling.setHeadSibling(cNode);
-                                }
-                                else{
-                                    sibling.setTailSibling(cNode);
-                                    cNode.setHeadSibling(sibling);
+                                    if (currMedalNumber > 0) {
+                                        if (currComment.getTopmedal() < currMedalNumber) { //upgrade event detected
+                                            medalUpgradeMap.put(new Integer(currMedalNumber), currComment);
+                                            medalWinners.add(currComment.getAuthor());
+                                        }
+                                        cNode.setCurrentMedal(currMedalNumber);
+                                    }
+                                } else { //if current comment doesn't meet minimum upvotes requirement for medals, that means subsequent comments won't either, so no more need to handle medals.
+                                    currMedalNumber = 0; //this will stop subsequent medal handling for this query
                                 }
                             }
                         }
-
-                        nodeMap.put(commentID, cNode);
-                    }
-
-                    getChildComments(childComments, grandchildComments);
-                }
-
-                //set up nodeMap with grandchild comments
-                if(!grandchildComments.isEmpty()){
-                    //TODO: run chunkSorter on grandchildComments here
-
-                    for (int i = 0; i < grandchildComments.size(); i++){
-
-                        if(thisThreadID != queryThreadID){
-                            Log.d("wow", "broke out of old query thread");
-                            return;
-                        }
-
-                        VSCNode cNode = new VSCNode(grandchildComments.get(i));
-                        cNode.setNestedLevel(2);
-
-                        VSCNode parentNode = nodeMap.get(cNode.getParentID());
-                        if(parentNode != null) {
-                            if(!parentNode.hasChild()){
-                                parentNode.setFirstChild(cNode);
-                                cNode.setParent(parentNode);
+                        getChildComments(rootComments, childComments);
+                    } else if (!rootParentID.equals(postID)) {
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                mSwipeRefreshLayout.setRefreshing(false);
                             }
-                            else{
-                                VSCNode sibling = parentNode.getFirstChild();
-                                if(sibling.getUpvotes() == cNode.getUpvotes() && sibling.getVotecount() < cNode.getVotecount()){
-                                    sibling.setParent(null);
-                                    cNode.setParent(parentNode);
-                                    parentNode.setFirstChild(cNode);
-                                    cNode.setTailSibling(sibling);
-                                    sibling.setHeadSibling(cNode);
-                                }
-                                else{
-                                    sibling.setTailSibling(cNode);
-                                    cNode.setHeadSibling(sibling);
-                                }
-                            }
-                        }
-
-                        nodeMap.put(cNode.getCommentID(), cNode);
-                    }
-
-                }
-
-
-                //set up comments list
-                VSCNode temp;
-                for(int i = 0; i<rootComments.size(); i++){
-                    if(thisThreadID != queryThreadID){
-                        Log.d("wow", "broke out of old query thread");
+                        });
                         return;
                     }
 
-                    temp = nodeMap.get(rootComments.get(i).getComment_id());
-                    if(temp != null){
-                        setCommentList(temp, masterList);
+                    if (!medalUpgradeMap.isEmpty()) {
+                        //set update duty
+                        //if no update duty then set update duty true if user authored one of the comments
+                        //update DB is update duty true.
+                        medalsUpdateDB(medalUpgradeMap, medalWinners);
                     }
-                }
 
-                //run UI updates on UI Thread
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
+                    if (!childComments.isEmpty()) {
+                        //set up nodeMap with child comments
+                        for (int i = 0; i < childComments.size(); i++) {
+                            if (thisThreadID != queryThreadID) {
+                                Log.d("wow", "broke out of old query thread");
+                                return;
+                            }
 
-                        if(applyActions){
-                            applyUserActions(masterList);
-                        }
-                        else{
-                            Log.d("wow", "applyActions is false");
-                        }
+                            VSCNode cNode = new VSCNode(childComments.get(i));
+                            final String commentID = cNode.getCommentID();
 
-                        //Make sure to do this after applyUserActions because applyUserActions doesn't expect post object in the list
-                        if(rootParentID.equals(postID)) {
-                            //vsComments.add(0, post);
-                            masterList.add(0,post);
-                        }
-
-                        //find view by id and attaching adapter for the RecyclerView
-                        //RV.setLayoutManager(new LinearLayoutManager(activity));
-
-                        //if true then we got the root comments whose parentID is postID ("rootest roots"), so include the post card for the PostPage view
-                        //this if condition also determines the boolean parameter at the end of PostPageAdapter constructor to notify adapter if it should set up Post Card
-                        if(rootParentID.equals(postID)){
-                            atRootLevel = true;
-                            PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel);
-                        }
-                        else{
-                            atRootLevel = false;
-                            PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel);
-                        }
-
-                        RV.setAdapter(PPAdapter);
-                        activity.setPostInDownload(postID, "done");
-                        mSwipeRefreshLayout.setRefreshing(false);
-
-                        RV.addOnScrollListener(new RecyclerView.OnScrollListener() {
-                            @Override
-                            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                                LinearLayoutManager layoutManager=LinearLayoutManager.class.cast(recyclerView.getLayoutManager());
-                                int lastVisible = layoutManager.findLastVisibleItemPosition() - childrenCount;
-
-                                boolean endHasBeenReached = lastVisible + loadThreshold >= currCommentsIndex;  //TODO: increase the loadThreshold as we get more posts, but capping it at 5 is probably sufficient
-                                if (currCommentsIndex > 0 && endHasBeenReached) {
-                                    //you have reached to the bottom of your recycler view
-                                    if(!nowLoading){
-                                        nowLoading = true;
-                                        Log.d("Load", "Now Loadin More");
-                                        loadMoreComments(uORt);
+                            cNode.setNestedLevel(1);
+                            VSCNode parentNode = nodeMap.get(cNode.getParentID());
+                            if (parentNode != null) {
+                                if (!parentNode.hasChild()) {
+                                    parentNode.setFirstChild(cNode);
+                                    cNode.setParent(parentNode);
+                                } else {
+                                    VSCNode sibling = parentNode.getFirstChild();
+                                    if (sibling.getUpvotes() == cNode.getUpvotes() && sibling.getVotecount() < cNode.getVotecount()) {
+                                        sibling.setParent(null);
+                                        cNode.setParent(parentNode);
+                                        parentNode.setFirstChild(cNode);
+                                        cNode.setTailSibling(sibling);
+                                        sibling.setHeadSibling(cNode);
+                                    } else {
+                                        sibling.setTailSibling(cNode);
+                                        cNode.setHeadSibling(sibling);
                                     }
                                 }
                             }
-                        });
+
+                            nodeMap.put(commentID, cNode);
+                        }
+
+                        getChildComments(childComments, grandchildComments);
                     }
-                });
-            }
-        };
-        Thread mythread = new Thread(runnable);
-        queryThreadID = mythread.getId();
-        mythread.start();
+
+                    //set up nodeMap with grandchild comments
+                    if (!grandchildComments.isEmpty()) {
+                        //TODO: run chunkSorter on grandchildComments here
+
+                        for (int i = 0; i < grandchildComments.size(); i++) {
+
+                            if (thisThreadID != queryThreadID) {
+                                Log.d("wow", "broke out of old query thread");
+                                return;
+                            }
+
+                            VSCNode cNode = new VSCNode(grandchildComments.get(i));
+                            cNode.setNestedLevel(2);
+
+                            VSCNode parentNode = nodeMap.get(cNode.getParentID());
+                            if (parentNode != null) {
+                                if (!parentNode.hasChild()) {
+                                    parentNode.setFirstChild(cNode);
+                                    cNode.setParent(parentNode);
+                                } else {
+                                    VSCNode sibling = parentNode.getFirstChild();
+                                    if (sibling.getUpvotes() == cNode.getUpvotes() && sibling.getVotecount() < cNode.getVotecount()) {
+                                        sibling.setParent(null);
+                                        cNode.setParent(parentNode);
+                                        parentNode.setFirstChild(cNode);
+                                        cNode.setTailSibling(sibling);
+                                        sibling.setHeadSibling(cNode);
+                                    } else {
+                                        sibling.setTailSibling(cNode);
+                                        cNode.setHeadSibling(sibling);
+                                    }
+                                }
+                            }
+
+                            nodeMap.put(cNode.getCommentID(), cNode);
+                        }
+
+                    }
+
+
+                    //set up comments list
+                    VSCNode temp;
+                    for (int i = 0; i < rootComments.size(); i++) {
+                        if (thisThreadID != queryThreadID) {
+                            Log.d("wow", "broke out of old query thread");
+                            return;
+                        }
+
+                        temp = nodeMap.get(rootComments.get(i).getComment_id());
+                        if (temp != null) {
+                            setCommentList(temp, masterList);
+                        }
+                    }
+
+                    //run UI updates on UI Thread
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            if (applyActions) {
+                                applyUserActions(masterList);
+                            } else {
+                                Log.d("wow", "applyActions is false");
+                            }
+
+                            //Make sure to do this after applyUserActions because applyUserActions doesn't expect post object in the list
+                            if (rootParentID.equals(postID)) {
+                                //vsComments.add(0, post);
+                                masterList.add(0, post);
+                            }
+
+                            //find view by id and attaching adapter for the RecyclerView
+                            //RV.setLayoutManager(new LinearLayoutManager(activity));
+
+                            //if true then we got the root comments whose parentID is postID ("rootest roots"), so include the post card for the PostPage view
+                            //this if condition also determines the boolean parameter at the end of PostPageAdapter constructor to notify adapter if it should set up Post Card
+                            if (rootParentID.equals(postID)) {
+                                atRootLevel = true;
+                                PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel);
+                            } else {
+                                atRootLevel = false;
+                                PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel);
+                            }
+
+                            RV.setAdapter(PPAdapter);
+                            activity.setPostInDownload(postID, "done");
+                            mSwipeRefreshLayout.setRefreshing(false);
+
+                            RV.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                                @Override
+                                public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                                    LinearLayoutManager layoutManager = LinearLayoutManager.class.cast(recyclerView.getLayoutManager());
+                                    int lastVisible = layoutManager.findLastVisibleItemPosition() - childrenCount;
+
+                                    boolean endHasBeenReached = lastVisible + loadThreshold >= currCommentsIndex;  //TODO: increase the loadThreshold as we get more posts, but capping it at 5 is probably sufficient
+                                    if (currCommentsIndex > 0 && endHasBeenReached) {
+                                        //you have reached to the bottom of your recycler view
+                                        if (!nowLoading) {
+                                            nowLoading = true;
+                                            Log.d("Load", "Now Loadin More");
+                                            loadMoreComments(uORt);
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+            };
+            Thread mythread = new Thread(runnable);
+            queryThreadID = mythread.getId();
+            mythread.start();
+        }
+        else{
+            final ArrayList<VSComment> grootComments = new ArrayList<>(); //grandchildren page's root comments, so grandchildren comments
+
+            mSwipeRefreshLayout.setRefreshing(true);
+
+            Runnable runnable = new Runnable() {
+                public void run() {
+                    long thisThreadID = Thread.currentThread().getId();
+                    final List<Object> masterList = new ArrayList<>();
+
+                    getLevel2Grandchildren(0, grootComments, rootParentID);
+
+                    if(!grootComments.isEmpty()){
+                        VSCNode prevNode = null;
+                        VSComment currComment;
+
+                        //set up nodeMap with root comments
+                        for(int i = 0; i < grootComments.size(); i++){
+                            if(thisThreadID != queryThreadID){
+                                Log.d("wow", "broke out of old query thread");
+                                return;
+                            }
+                            currComment = grootComments.get(i);
+                            VSCNode cNode = new VSCNode(currComment);
+                            final String commentID = currComment.getComment_id();
+
+                            Log.d("wow", "child query, parentID to query: " + commentID);
+
+                            cNode.setNestedLevel(0);
+
+                            if(prevNode != null){
+                                prevNode.setTailSibling(cNode);
+                                cNode.setHeadSibling(prevNode);
+                            }
+
+                            nodeMap.put(commentID, cNode);
+                            prevNode = cNode;
+                        }
+                    }
+                    else {
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                mSwipeRefreshLayout.setRefreshing(false);
+                            }
+                        });
+                        return;
+                    }
+
+                    //set up comments list
+                    VSCNode temp;
+                    for(int i = 0; i<grootComments.size(); i++){
+                        if(thisThreadID != queryThreadID){
+                            Log.d("wow", "broke out of old query thread");
+                            return;
+                        }
+
+                        temp = nodeMap.get(grootComments.get(i).getComment_id());
+                        if(temp != null){
+                            setCommentList(temp, masterList);
+                        }
+                    }
+
+                    //run UI updates on UI Thread
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            if(applyActions){
+                                applyUserActions(masterList);
+                            }
+                            else{
+                                Log.d("wow", "applyActions is false");
+                            }
+
+                            //find view by id and attaching adapter for the RecyclerView
+                            //RV.setLayoutManager(new LinearLayoutManager(activity));
+
+                            //if true then we got the root comments whose parentID is postID ("rootest roots"), so include the post card for the PostPage view
+                            //this if condition also determines the boolean parameter at the end of PostPageAdapter constructor to notify adapter if it should set up Post Card
+                            atRootLevel = false;
+                            PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel);
+
+                            RV.setAdapter(PPAdapter);
+                            mSwipeRefreshLayout.setRefreshing(false);
+
+                            RV.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                                @Override
+                                public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                                    LinearLayoutManager layoutManager=LinearLayoutManager.class.cast(recyclerView.getLayoutManager());
+                                    int lastVisible = layoutManager.findLastVisibleItemPosition() - childrenCount;
+
+                                    boolean endHasBeenReached = lastVisible + loadThreshold >= currCommentsIndex;  //TODO: increase the loadThreshold as we get more posts, but capping it at 5 is probably sufficient
+                                    if (currCommentsIndex > 0 && endHasBeenReached) {
+                                        //you have reached to the bottom of your recycler view
+                                        if(!nowLoading){
+                                            nowLoading = true;
+                                            Log.d("Load", "Now Loadin More");
+                                            loadMoreGComments();
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+            };
+            Thread mythread = new Thread(runnable);
+            queryThreadID = mythread.getId();
+            mythread.start();
+
+        }
+
+
     }
 
     public void setContent(final Post post){  //downloadImages signifies initial post page set up
@@ -844,11 +953,22 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         setCommentCardSortTypeHint();
 
-        CircleImageView circView = (CircleImageView)topCard.findViewById(R.id.profile_image_tc);
-        TextView timestamp = (TextView)topCard.findViewById(R.id.timetvtc);
-        TextView author = (TextView)topCard.findViewById(R.id.usernametvtc);
-        TextView content = (TextView)topCard.findViewById(R.id.usercommenttc);
-        TextView heartCount = (TextView)topCard.findViewById(R.id.heartCounttc);
+        if(pageLevel != 2){
+            topcardSortTypeSelector.setClickable(true);
+            topcardSortTypeSelector.setText("POPULAR");
+            topcardSortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_thumb_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+        }
+        else{
+            topcardSortTypeSelector.setClickable(false);
+            topcardSortTypeSelector.setText("CHRONOLOGICAL");
+            topcardSortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_time, 0, 0, 0);
+        }
+
+        CircleImageView circView = topCard.findViewById(R.id.profile_image_tc);
+        TextView timestamp = topCard.findViewById(R.id.timetvtc);
+        TextView author = topCard.findViewById(R.id.usernametvtc);
+        TextView content = topCard.findViewById(R.id.usercommenttc);
+        TextView heartCount = topCard.findViewById(R.id.heartCounttc);
 
         circView.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -910,14 +1030,19 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
         setUpTopCard(subjectComment);
 
-
-        commentsQuery(subjectComment.getComment_id(), "u");
-
+        if(pageLevel != 2){
+            commentsQuery(subjectComment.getComment_id(), "u");
+        }
+        else{
+            commentsQuery(subjectComment.getComment_id(), "g");
+        }
 
     }
 
     //only called when we're not on pageNestedLevel 0, so when ascending up nested levels towards root level. so not called in root level (in root level we simply exit out of PostPage on UpButton click)
     public void backToParentPage(){
+        pageLevel--;
+
         mSwipeRefreshLayout.setRefreshing(true);
 
         if(PPAdapter != null){
@@ -934,8 +1059,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         else{
             setUpTopCard(parentCache.get(tempParentID));
         }
-
-        pageLevel--;
 
         commentsQuery(tempParentID, "u");
 
@@ -1545,7 +1668,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     }
                     else{
                         nowLoading = true; //no more loading until refresh
-                        lastEvaluatedKey = null;
                         activity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -1657,6 +1779,112 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     }
 
                     if(!rootComments.isEmpty()){
+                        nowLoading = false;
+                    }
+                    else {
+                        nowLoading = true;  //to stop triggering loadMore
+                    }
+
+                    //run UI updates on UI Thread
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            if(applyActions){
+                                applyUserActions(masterList);
+                            }
+                            else{
+                                Log.d("wow", "applyActions is false");
+                            }
+
+                            ((PostPageAdapter)RV.getAdapter()).appendToList(masterList);
+
+                            mSwipeRefreshLayout.setRefreshing(false);
+
+                        }
+                    });
+
+                }catch (Throwable t){
+                    Log.d("commentloading", t.getLocalizedMessage());
+
+                }
+
+            }
+        };
+        Thread mythread = new Thread(runnable);
+        queryThreadID = mythread.getId();
+        mythread.start();
+    }
+
+    private void loadMoreGComments(){
+        Runnable runnable = new Runnable() {
+            public void run() {
+                try{
+
+                    long thisThreadID = Thread.currentThread().getId();
+
+                    final List<Object> masterList = new ArrayList<>();
+
+                    final ArrayList<VSComment> grootComments = new ArrayList<>();
+
+                    String queryParentID = topCardContent.getComment_id();
+
+                    getLevel2Grandchildren(currCommentsIndex, grootComments, queryParentID);
+
+                    VSCNode prevNode = null;
+                    if(!grootComments.isEmpty()){
+                        //set up nodeMap with root comments
+                        for(int i = 0; i < grootComments.size(); i++){
+                            if(thisThreadID != queryThreadID){
+                                Log.d("wow", "broke out of old query thread");
+                                nowLoading = false;
+                                return;
+                            }
+                            VSCNode cNode = new VSCNode(grootComments.get(i));
+                            final String commentID = cNode.getCommentID();
+
+                            Log.d("wow", "child query, parentID to query: " + commentID);
+
+
+                            cNode.setNestedLevel(0);
+
+                            if(prevNode != null){
+                                prevNode.setTailSibling(cNode);
+                                cNode.setHeadSibling(prevNode);
+                            }
+
+                            nodeMap.put(commentID, cNode);
+                            prevNode = cNode;
+                        }
+
+                    }
+                    else{
+                        nowLoading = true; //no more loading until refresh
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                mSwipeRefreshLayout.setRefreshing(false);
+                            }
+                        });
+                        return;
+                    }
+
+                    //set up comments list
+                    VSCNode temp;
+                    for(int i = 0; i<grootComments.size(); i++){
+                        if(thisThreadID != queryThreadID){
+                            Log.d("wow", "broke out of old query thread");
+                            nowLoading = false;
+                            return;
+                        }
+
+                        temp = nodeMap.get(grootComments.get(i).getComment_id());
+                        if(temp != null){
+                            setCommentList(temp, masterList);
+                        }
+                    }
+
+                    if(!grootComments.isEmpty()){
                         nowLoading = false;
                     }
                     else {
@@ -2598,6 +2826,95 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
 
 
+    }
+
+    private void getLevel2Grandchildren(final int fromIndex, ArrayList<VSComment> results, String prIn) {
+
+        if(fromIndex == 0){
+            currCommentsIndex = 0;
+            childrenCount = 0;
+            nowLoading = false;
+        }
+
+        String query = "/vscomment/_search";
+        String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\"t\":{\"order\":\"asc\"}}],\"query\":{\"match\":{\"pr\":\""+prIn+"\"}}}";
+
+        String url = "https://" + host + query;
+
+        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
+        awsHeaders.put("host", host);
+
+        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
+                .regionName(region)
+                .serviceName("es") // es - elastic search. use your service name
+                .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
+                .canonicalURI(query) //end point
+                .queryParametes(null) //query parameters if any
+                .awsHeaders(awsHeaders) //aws header parameters
+                .payload(payload) // payload if any
+                .debug() // turn on the debug mode
+                .build();
+
+        HttpPost httpPost = new HttpPost(url);
+        StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
+        httpPost.setEntity(requestEntity);
+
+		        /* Get header calculated for request */
+        Map<String, String> header = aWSV4Auth.getHeaders();
+        for (Map.Entry<String, String> entrySet : header.entrySet()) {
+            String key = entrySet.getKey();
+            String value = entrySet.getValue();
+
+			    /* Attach header in your request */
+			    /* Simple get request */
+
+            httpPost.addHeader(key, value);
+        }
+
+        /* Create object of CloseableHttpClient */
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+		/* Response handler for after request execution */
+        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
+
+            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+				/* Get status code */
+                int status = response.getStatusLine().getStatusCode();
+                if (status >= 200 && status < 300) {
+					/* Convert response to String */
+                    HttpEntity entity = response.getEntity();
+                    return entity != null ? EntityUtils.toString(entity) : null;
+                } else {
+                    throw new ClientProtocolException("Unexpected response status: " + status);
+                }
+            }
+        };
+
+        try {
+			/* Execute URL and attach after execution response handler */
+            String strResponse = httpClient.execute(httpPost, responseHandler);
+            JSONObject obj = new JSONObject(strResponse);
+            JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
+            //Log.d("idformat", hits.getJSONObject(0).getString("_id"));
+            if(hits.length() == 0){
+                //Log.d("loadmore", "end reached, disabling loadMore");
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mSwipeRefreshLayout.setRefreshing(false);
+                    }
+                });
+                return;
+            }
+            for(int i = 0; i < hits.length(); i++){
+                JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
+                results.add(new VSComment(item));
+                currCommentsIndex++;
+            }
+            //System.out.println("Response: " + strResponse);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
