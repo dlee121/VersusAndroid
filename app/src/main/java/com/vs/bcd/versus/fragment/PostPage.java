@@ -2491,6 +2491,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 final String commentID = currComment.getComment_id();
                 if(commentID.equals(submittedComment.getComment_id())){
                     rootComments.remove(i);
+                    currCommentsIndex--;
                     continue;
                 }
 
@@ -2536,6 +2537,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             cNode.setNestedLevel(0);
             nodeMap.put(submittedComment.getComment_id(), cNode);
             masterList.add(0, submittedComment);
+            currCommentsIndex++;
 
             activity.runOnUiThread(new Runnable() {
                 @Override
@@ -2668,6 +2670,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
         nodeMap.put(submittedComment.getComment_id(), sNode);
         masterList.add(0, submittedComment);
+        currCommentsIndex++;
 
         //run UI updates on UI Thread
         activity.runOnUiThread(new Runnable() {
