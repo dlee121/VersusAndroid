@@ -87,6 +87,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     private final int MOST_RECENT = 0;
     private final int POPULAR = 1;
+    private final int CHRONOLOGICAL = 2;
 
 
     //to set imageviews, first fill out the drawable[3] with 0=image layer, 1=tint layer, 2=check mark layer, make LayerDrawable out of the array, then use setImageMask which sets the correct mask layers AND ALSO sets imageview drawable as the LayerDrawable
@@ -372,6 +373,10 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 case POPULAR:
                     postCard.sortTypeSelector.setText("POPULAR");
                     postCard.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_thumb_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                    break;
+                case CHRONOLOGICAL:
+                    postCard.sortTypeSelector.setText("CHRONOLOGICAL");
+                    postCard.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_chrono_20small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
                     break;
             }
 
@@ -766,6 +771,10 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 case POPULAR:
                     postCard.sortTypeSelector.setText("POPULAR");
                     postCard.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_thumb_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                    break;
+                case CHRONOLOGICAL:
+                    postCard.sortTypeSelector.setText("CHRONOLOGICAL");
+                    postCard.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_chrono_20small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
                     break;
             }
         }

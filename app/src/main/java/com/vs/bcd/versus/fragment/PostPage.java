@@ -121,6 +121,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private int sortType = 1; //0 = New, 1 = Popular
     private final int MOST_RECENT = 0;
     private final int POPULAR = 1;
+    private final int CHRONOLOGICAL = 2;
     private boolean nowLoading = false;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private boolean initialLoadInProgress = false;
@@ -367,17 +368,22 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         });
                     }
 
-
-                    switch (sortType){
-                        case POPULAR:
-                            refreshCommentUpvotesQuery();
-                            break;
-                        case MOST_RECENT:
-                            refreshCommentTimestampQuery();
-                            break;
-                        default:
-                            break;
+                    if(pageLevel != 2){
+                        switch (sortType){
+                            case POPULAR:
+                                refreshCommentUpvotesQuery();
+                                break;
+                            case MOST_RECENT:
+                                refreshCommentTimestampQuery();
+                                break;
+                            default:
+                                break;
+                        }
                     }
+                    else{
+                        refreshCommentGQuery();
+                    }
+
 
                 }catch (Throwable t){
 
@@ -420,7 +426,23 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
 
         nowLoading = false;
+    }
 
+    private void refreshCommentChronologicalQuery(){
+        if(atRootLevel){
+            commentsQuery(postID, "c");
+        }
+        else {
+            commentsQuery(topCardContent.getComment_id(), "c");
+        }
+
+        nowLoading = false;
+    }
+
+
+    private void refreshCommentGQuery(){
+        commentsQuery(topCardContent.getComment_id(), "g");
+        nowLoading = false;
     }
 
     @Override
@@ -953,17 +975,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         setCommentCardSortTypeHint();
 
-        if(pageLevel != 2){
-            topcardSortTypeSelector.setClickable(true);
-            topcardSortTypeSelector.setText("POPULAR");
-            topcardSortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_thumb_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
-        }
-        else{
-            topcardSortTypeSelector.setClickable(false);
-            topcardSortTypeSelector.setText("CHRONOLOGICAL");
-            topcardSortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_time, 0, 0, 0);
-        }
-
         CircleImageView circView = topCard.findViewById(R.id.profile_image_tc);
         TextView timestamp = topCard.findViewById(R.id.timetvtc);
         TextView author = topCard.findViewById(R.id.usernametvtc);
@@ -1024,7 +1035,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     //used when expanding into nested levels, so when pageNestedLevel > 0
     public void setCommentsPage(VSComment subjectComment){
         mSwipeRefreshLayout.setRefreshing(true);
-        sortType = POPULAR;
+        if(pageLevel != 2){
+            sortType = POPULAR;
+        }
+        else{
+            sortType = CHRONOLOGICAL;
+        }
         if(RV != null && RV.getAdapter() != null){
             ((PostPageAdapter)(RV.getAdapter())).clearList();
         }
@@ -1553,25 +1569,30 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     public void selectSortType(final String pORc){
-        final String [] items = new String[] {"Popular", "Most Recent"};
-        final Integer[] icons = new Integer[] {R.drawable.ic_thumb_up, R.drawable.ic_new_releases}; //TODO: change these icons to actual ones
+        final String [] items = new String[] {"Most Recent", "Popular", "Chronological"};
+        final Integer[] icons = new Integer[] {R.drawable.ic_new_releases, R.drawable.ic_thumb_up, R.drawable.ic_chrono}; //TODO: change these icons to actual ones
         ListAdapter adapter = new ArrayAdapterWithIcon(getActivity(), items, icons);
         new AlertDialog.Builder(getActivity()).setTitle("Sort by")
                 .setAdapter(adapter, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int item ) {
                         switch(item){
-                            case 0: //Sort by Popular; parent_id-upvotes-index query.
-                                Log.d("SortType", "sort by upvotes");
+
+                            case MOST_RECENT: //Sort by Most Recent
+                                sortType = MOST_RECENT;
+                                mSwipeRefreshLayout.setRefreshing(true);
+                                refreshCommentTimestampQuery();
+                                break;
+
+                            case POPULAR: //Sort by Popular
                                 sortType = POPULAR;
                                 mSwipeRefreshLayout.setRefreshing(true);
                                 refreshCommentUpvotesQuery();
                                 break;
 
-                            case 1: //Sort by New; parent_id-time-index query.
-                                Log.d("SortType", "sort by time");
-                                sortType = MOST_RECENT;
+                            case 2: //Sort by Chronological
+                                sortType = CHRONOLOGICAL;
                                 mSwipeRefreshLayout.setRefreshing(true);
-                                refreshCommentTimestampQuery();
+                                refreshCommentChronologicalQuery();
                                 break;
                         }
                         if(pORc.equals("p")){
@@ -1606,6 +1627,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 topcardSortTypeSelector.setText("POPULAR");
                 topcardSortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_thumb_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
                 break;
+
+            case CHRONOLOGICAL:
+                topcardSortTypeSelector.setText("CHRONOLOGICAL");
+                topcardSortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_chrono_20small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                break;
+
         }
     }
 
@@ -1817,6 +1844,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     private void loadMoreGComments(){
+        //Log.d("gcomments", "loading more g comments");
         Runnable runnable = new Runnable() {
             public void run() {
                 try{
@@ -1884,12 +1912,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         }
                     }
 
+                    /*
                     if(!grootComments.isEmpty()){
                         nowLoading = false;
                     }
                     else {
                         nowLoading = true;  //to stop triggering loadMore
                     }
+                    */
 
                     //run UI updates on UI Thread
                     activity.runOnUiThread(new Runnable() {
@@ -2102,8 +2132,18 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         Log.d("commentloading", "from: " + Integer.toString(fromIndex));
 
+        String sortBy, ascORdesc;
+        if(uORt.equals("c")){
+            sortBy = "t"; //c stands for chronological, but still uses the t parameter for time, just in ascending order instead of descending order as when uORt is t.
+            ascORdesc = "asc";
+        }
+        else{
+            sortBy = uORt;
+            ascORdesc = "desc";
+        }
+
         String query = "/vscomment/_search";
-        String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\""+uORt+"\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"pr\":\""+prIn+"\"}}}";
+        String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\""+sortBy+"\":{\"order\":\""+ascORdesc+"\"}}],\"query\":{\"match\":{\"pr\":\""+prIn+"\"}}}";
 
         String url = "https://" + host + query;
 

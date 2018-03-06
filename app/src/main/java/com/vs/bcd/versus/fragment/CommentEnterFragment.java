@@ -107,9 +107,9 @@ public class CommentEnterFragment extends Fragment{
         parentID = postID;
     }
 
-    public void setContentReplyToComment(VSComment replySubject, int pageLevelIncrement){
+    public void setContentReplyToComment(VSComment replySubject, int pageLevelTarget){
         prefix = "";
-        this.pageLevelTarget = pageLevelIncrement;
+        this.pageLevelTarget = pageLevelTarget;
         cefObjectList.clear();
         cefObjectList.add(new CEFObject(replySubject));
         cefObjectList.add(new CEFObject()); //add text input card view
