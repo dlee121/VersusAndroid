@@ -368,20 +368,18 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         });
                     }
 
-                    if(pageLevel != 2){
-                        switch (sortType){
-                            case POPULAR:
-                                refreshCommentUpvotesQuery();
-                                break;
-                            case MOST_RECENT:
-                                refreshCommentTimestampQuery();
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                    else{
-                        refreshCommentGQuery();
+                    switch (sortType){
+                        case POPULAR:
+                            refreshCommentUpvotesQuery();
+                            break;
+                        case MOST_RECENT:
+                            refreshCommentTimestampQuery();
+                            break;
+                        case CHRONOLOGICAL:
+                            refreshCommentChronologicalQuery();
+                            break;
+                        default:
+                            break;
                     }
 
 
@@ -440,10 +438,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
 
-    private void refreshCommentGQuery(){
-        commentsQuery(topCardContent.getComment_id(), "g");
-        nowLoading = false;
-    }
 
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
@@ -518,7 +512,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     //automatically includes Post Card in the vsComments list for recycler view if rootParentId equals postID,
     // so use it for all PostPage set up cases where we query by upvotes
     private void commentsQuery(final String rootParentID, final String uORt){
-        if(!uORt.equals("g")) { //"g" denotes grandchild-only query for level 2
+        if(pageLevel != 2) { //"g" denotes grandchild-only query for level 2
             final ArrayList<VSComment> rootComments = new ArrayList<>();
             final ArrayList<VSComment> childComments = new ArrayList<>();
             final ArrayList<VSComment> grandchildComments = new ArrayList<>();
@@ -766,7 +760,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     long thisThreadID = Thread.currentThread().getId();
                     final List<Object> masterList = new ArrayList<>();
 
-                    getLevel2Grandchildren(0, grootComments, rootParentID);
+                    getRootComments(0, grootComments, rootParentID, uORt);
 
                     if(!grootComments.isEmpty()){
                         VSCNode prevNode = null;
@@ -854,7 +848,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                         if(!nowLoading){
                                             nowLoading = true;
                                             Log.d("Load", "Now Loadin More");
-                                            loadMoreGComments();
+                                            loadMoreComments(uORt);
                                         }
                                     }
                                 }
@@ -1046,11 +1040,11 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
         setUpTopCard(subjectComment);
 
-        if(pageLevel != 2){
+        if(pageLevel != 2) {
             commentsQuery(subjectComment.getComment_id(), "u");
         }
         else{
-            commentsQuery(subjectComment.getComment_id(), "g");
+            commentsQuery(subjectComment.getComment_id(), "c");
         }
 
     }
@@ -1639,6 +1633,11 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
 
     private void loadMoreComments(final String uORt){
+        if(pageLevel == 2){
+            loadMoreGComments(uORt); //little faster, for grandchildren page where there are only root comments
+            return;
+        }
+
         Runnable runnable = new Runnable() {
             public void run() {
                 try{
@@ -1843,7 +1842,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         mythread.start();
     }
 
-    private void loadMoreGComments(){
+    private void loadMoreGComments(final String uORt){
         //Log.d("gcomments", "loading more g comments");
         Runnable runnable = new Runnable() {
             public void run() {
@@ -1857,7 +1856,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                     String queryParentID = topCardContent.getComment_id();
 
-                    getLevel2Grandchildren(currCommentsIndex, grootComments, queryParentID);
+                    getRootComments(currCommentsIndex, grootComments, queryParentID, uORt);
 
                     VSCNode prevNode = null;
                     if(!grootComments.isEmpty()){
