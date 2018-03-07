@@ -11,18 +11,8 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/profile_image_cs"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true"
-            android:clickable="true"
-            android:src="@drawable/vs_shadow_w_tag"
-            app:civ_border_color="#FF000000"
-            app:civ_border_width="2dp" />
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF">
 
         <TextView
             android:id="@+id/usernametvcs"
@@ -30,7 +20,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_marginLeft="8dp"
-            android:layout_toRightOf="@+id/profile_image_cs"
+            android:layout_alignParentStart="true"
             android:ellipsize="end"
             android:maxLines="1"
             android:maxWidth="120dp"
@@ -50,18 +40,31 @@
             android:textSize="11sp" />
 
 
-        <TextView
-            android:id="@+id/usercomment"
+
+        <ImageView
+            android:id="@+id/medal_image"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/usernametvcs"
+            android:layout_toRightOf="@id/timetvcs"
+            android:scaleX="0.7"
+            android:scaleY="0.7"
+            android:layout_marginBottom="-13dp"
+            />
+
+
+        <TextView
+            android:id="@+id/usercomment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:layout_alignLeft="@id/usernametvcs"
+            android:layout_alignStart="@id/usernametvcs"
             android:layout_below="@id/usernametvcs"
-            android:layout_marginRight="8dp"
+            android:layout_marginEnd="8dp"
             android:ellipsize="end"
-            android:maxLines="2"
+            android:maxLines="3"
             android:textColor="#FF000000"
-            android:text="comment content up to two lines two lines two lines like like like this. extra gets ellipsized like this!!!"
+            android:text="comment content up to two lines two lines two lines two lines two lines two lines two lines two lines two lines two lines  two lines two lines like like like this. extra gets ellipsized like this!!!"
             android:textSize="14sp" />
 
         <ImageButton
@@ -71,7 +74,7 @@
             android:layout_below="@id/usercomment"
             android:layout_marginLeft="8dp"
             android:layout_marginTop="3dp"
-            android:layout_toRightOf="@id/profile_image_cs"
+            android:layout_alignStart="@id/usernametvcs"
             android:background="@color/white"
             android:minHeight="0dp"
             android:minWidth="0dp"
@@ -127,17 +130,6 @@
             android:textAllCaps="false"
             android:textSize="12sp"
             style="?android:attr/borderlessButtonStyle"/>
-
-        <ImageView
-            android:id="@+id/medal_image"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignBottom="@id/profile_image_cs"
-            android:layout_alignRight="@id/profile_image_cs"
-            android:scaleX="0.7"
-            android:scaleY="0.7"
-            android:layout_marginBottom="-13dp"
-            />
 
 
     </RelativeLayout>

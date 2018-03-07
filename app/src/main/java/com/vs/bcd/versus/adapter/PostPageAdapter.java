@@ -4,6 +4,7 @@ import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
@@ -18,13 +19,12 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
-import com.amazonaws.services.s3.AmazonS3;
 import com.bumptech.glide.Glide;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.R;
@@ -33,6 +33,7 @@ import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.UserAction;
 import com.vs.bcd.versus.model.VSComment;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -79,6 +80,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private LayerDrawable redLayerDrawable;
     private LayerDrawable blackLayerDrawable;
     private RelativeLayout.LayoutParams graphBoxParams = null;
+    private RelativeLayout.LayoutParams sortSelectorLowerLP, sortSelectorOrigLP, sortBackgroundLowerLP, sortBackgroundOrigLP;
 
     private Toast mToast;
 
@@ -99,8 +101,8 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         this.pageLevel = pageLevel;
         userAction = activity.getPostPage().getUserAction();
         actionMap = userAction.getActionRecord();
-        graphBoxParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, 10);
-        graphBoxParams.addRule(RelativeLayout.BELOW, R.id.linlaypoca);
+        graphBoxParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, 20);
+        graphBoxParams.addRule(RelativeLayout.BELOW, R.id.left_percentage);
         //Log.d("DEBUG", "Action Map Size: " + Integer.toString(actionMap.size()));
     }
 
@@ -118,7 +120,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         if (viewType == VIEW_TYPE_ITEM) {
             View view = LayoutInflater.from(activity).inflate(R.layout.comment_group_card, parent, false);
-            return new UserViewHolder(view);
+            return new CommentViewHolder(view);
         } else if (viewType == VIEW_TYPE_LOADING) {
             View view = LayoutInflater.from(activity).inflate(R.layout.item_loading, parent, false);
             Log.d("hey", "this happens?");
@@ -132,7 +134,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
-        if (holder instanceof UserViewHolder) { //holds comments
+        if (holder instanceof CommentViewHolder) { //holds comments
 
             boolean skip = false;
             if(position < 8){
@@ -147,7 +149,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
                 //this is where values are put into the layout, from the VSComment object
 
-                final UserViewHolder userViewHolder = (UserViewHolder) holder;
+                final CommentViewHolder commentViewHolder = (CommentViewHolder) holder;
 
                 final String authorName = currentComment.getAuthor();
 
@@ -155,21 +157,12 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     //TODO: implement UI for comments that user wrote, like edit and delete options
                 }
 
-
-                //set onClickListener for profile pic
-                userViewHolder.circView.setOnClickListener(new View.OnClickListener(){
-                    @Override
-                    public void onClick(View v){
-                        activity.goToProfile(authorName);
-                    }
-                });
-
                 int dpValue = 50; // margin in dips
                 float d = activity.getResources().getDisplayMetrics().density;
                 int margin = (int)(dpValue * d); // margin in pixels
 
 
-                setLeftMargin(userViewHolder.circView, margin * currentComment.getNestedLevel());  //left margin (indentation) of 150dp per nested level
+                setLeftMargin(commentViewHolder.author, margin * currentComment.getNestedLevel());  //left margin (indentation) of 150dp per nested level
                 /*
                 if(currentComment.getComment_id().equals("2ebf9760-d9bf-4785-af68-c3993be8945d")){
                     Log.d("debug", "this is the 2eb comment");
@@ -177,62 +170,62 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 */
                 switch (currentComment.getUservote()){
                     case NOVOTE:
-                        userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
-                        userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+                        commentViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
+                        commentViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
                         break;
                     case UPVOTE:
-                        userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
+                        commentViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
                         break;
                     case DOWNVOTE:
-                        userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
+                        commentViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
                         break;
                     default:
-                        userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
-                        userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+                        commentViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
+                        commentViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
                         break;
                 }
 
-                userViewHolder.author.setText(currentComment.getAuthor());
-                userViewHolder.author.setOnClickListener(new View.OnClickListener() {
+                commentViewHolder.author.setText(currentComment.getAuthor());
+                commentViewHolder.author.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         activity.goToProfile(authorName);
                     }
                 });
 
-                userViewHolder.timestamp.setText(getTimeString(currentComment.getTime()));
+                commentViewHolder.timestamp.setText(getTimeString(currentComment.getTime()));
                 //final int imgOffset = 8;
-                //final TextView timeTV = userViewHolder.timestamp;
+                //final TextView timeTV = commentViewHolder.timestamp;
                 switch (currentComment.getCurrentMedal()){
                     case 0:
                         break; //no medal, default currentMedal value
                     case 1: //bronze
-                        userViewHolder.medalImage.setImageResource(R.drawable.bronzemedal);
+                        commentViewHolder.medalImage.setImageResource(R.drawable.bronzemedal);
                         break;
                     case 2: //silver
-                        userViewHolder.medalImage.setImageResource(R.drawable.silvermedal);
+                        commentViewHolder.medalImage.setImageResource(R.drawable.silvermedal);
                         break;
                     case 3: //gold
-                        userViewHolder.medalImage.setImageResource(R.drawable.goldmedal);
+                        commentViewHolder.medalImage.setImageResource(R.drawable.goldmedal);
                         break;
                 }
 
-                userViewHolder.content.setText(currentComment.getContent());
-                userViewHolder.heartCount.setText( Integer.toString(currentComment.heartsTotal()) );
+                commentViewHolder.content.setText(currentComment.getContent());
+                commentViewHolder.heartCount.setText( Integer.toString(currentComment.heartsTotal()) );
                 //set CardView onClickListener to go to PostPage fragment with corresponding Comments data (this will be a PostPage without post_card)
 
                 if(currentComment.getIsHigh()){
                     int colorFrom = ContextCompat.getColor(activity, R.color.vsBlue_light);
                     int colorTo = Color.WHITE;
                     int duration = 1000;
-                    ObjectAnimator obAnim = ObjectAnimator.ofObject(userViewHolder.itemView, "backgroundColor", new ArgbEvaluator(), colorFrom, colorTo)
+                    ObjectAnimator obAnim = ObjectAnimator.ofObject(commentViewHolder.itemView, "backgroundColor", new ArgbEvaluator(), colorFrom, colorTo)
                             .setDuration(duration);
                     obAnim.setRepeatCount(1);
                     obAnim.setStartDelay(350);
                     obAnim.start();
                 }
 
-                userViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                commentViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         //Log.d("pageLevel", Integer.toString(pageLevel));
@@ -242,60 +235,60 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     }
                 });
 
-                userViewHolder.replyButton.setOnClickListener(new View.OnClickListener() {
+                commentViewHolder.replyButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         activity.getPostPage().itemReplyClickHelper(currentComment);
                     }
                 });
 
-                userViewHolder.upvoteButton.setOnClickListener(new View.OnClickListener() {
+                commentViewHolder.upvoteButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         int userVote = currentComment.getUservote();
                         if(userVote == UPVOTE){
-                            userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
+                            commentViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
                             currentComment.setUservote(NOVOTE);
                             actionMap.put(currentComment.getComment_id(), "N");
                             //actionMap.remove(currentComment.getComment_id());   //instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote if there were a past vote
                         }
                         else if(userVote == DOWNVOTE){
-                            userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
-                            userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
+                            commentViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+                            commentViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
                             currentComment.setUservote(UPVOTE);
                             actionMap.put(currentComment.getComment_id(), "U");
                         }
                         else if(userVote == NOVOTE){
-                            userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
+                            commentViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
                             currentComment.setUservote(UPVOTE);
                             actionMap.put(currentComment.getComment_id(), "U");
                         }
-                        userViewHolder.heartCount.setText( Integer.toString(currentComment.heartsTotal()) ); //refresh heartcount display
+                        commentViewHolder.heartCount.setText( Integer.toString(currentComment.heartsTotal()) ); //refresh heartcount display
                     }
                 });
 
-                userViewHolder.downvoteButton.setOnClickListener(new View.OnClickListener() {
+                commentViewHolder.downvoteButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         int userVote = currentComment.getUservote();
                         if(userVote == DOWNVOTE){
-                            userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+                            commentViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
                             currentComment.setUservote(NOVOTE);
                             actionMap.put(currentComment.getComment_id(), "N");
                             //actionMap.remove(currentComment.getComment_id());   //instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote if there were a past vote
                         }
                         else if(userVote == UPVOTE){
-                            userViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
-                            userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
+                            commentViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
+                            commentViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
                             currentComment.setUservote(DOWNVOTE);
                             actionMap.put(currentComment.getComment_id(), "D");
                         }
                         else if(userVote == NOVOTE){
-                            userViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
+                            commentViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
                             currentComment.setUservote(DOWNVOTE);
                             actionMap.put(currentComment.getComment_id(), "D");
                         }
-                        userViewHolder.heartCount.setText( Integer.toString(currentComment.heartsTotal()) );
+                        commentViewHolder.heartCount.setText( Integer.toString(currentComment.heartsTotal()) );
                     }
                 });
             }
@@ -322,7 +315,6 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             //blackLayers[0] = ContextCompat.getDrawable(activity, R.drawable.default_background);
             blackLayers[0] = blackTint;
             blackLayers[1] = ContextCompat.getDrawable(activity, R.drawable.ic_check_overlay_2);
-
 
             postCard.redimgBox.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -416,76 +408,27 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             case "none":
                 setImageMask(NOMASK, RED);
                 setImageMask(NOMASK, BLK);
+                postCard.rednameTV.setTypeface(null, Typeface.NORMAL);
+                postCard.blacknameTV.setTypeface(null, Typeface.NORMAL);
                 break;
 
             case "RED":
                 setImageMask(TINTCHECK, RED);
                 setImageMask(TINT, BLK);
+                postCard.rednameTV.setTypeface(null, Typeface.BOLD);
+                postCard.blacknameTV.setTypeface(null, Typeface.NORMAL);
                 break;
 
             case "BLK":
                 setImageMask(TINT, RED);
                 setImageMask(TINTCHECK, BLK);
+                postCard.rednameTV.setTypeface(null, Typeface.NORMAL);
+                postCard.blacknameTV.setTypeface(null, Typeface.BOLD);
                 break;
 
             default:
                 return;
         }
-    }
-
-
-    private void downloadImageFromAWS() {
-
-
-    }
-
-    private void setImages(){
-
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                //TODO: set in-app images here, i.e. emojis and clipart, into redBMP and blackBMP
-                //otherise redBMP/blackBMP would be either null, or if marked for image download they would hold the download image as BMP
-
-                //TODO: Create LayerDrawables and construct them here. also have them in MainContainer and set them here.
-
-
-                activity.setBMP(redBMP, blackBMP);
-
-                if(redBMP != null){
-                    redLayers[0] = new BitmapDrawable(activity.getResources(), redBMP);
-                } else{
-                    redLayers[0] = ContextCompat.getDrawable(activity, R.drawable.default_background);
-                }
-
-                if(blackBMP != null){
-                    blackLayers[0] = new BitmapDrawable(activity.getResources(), blackBMP);
-                } else{
-                    blackLayers[0] = ContextCompat.getDrawable(activity, R.drawable.default_background);
-                }
-
-                switch (userAction.getVotedSide()){
-                    case "none":
-                        setImageMask(NOMASK, RED);   //sets mask and also sets the drawable to corresponding imageview
-                        setImageMask(NOMASK, BLK);
-                        //Log.d("vote", "user voted none");
-                        break;
-                    case "RED":
-                        setImageMask(TINTCHECK, RED);
-                        setImageMask(TINT, BLK);
-                        //Log.d("vote", "user voted red");
-                        break;
-                    case "BLK":
-                        setImageMask(TINT, RED);
-                        setImageMask(TINTCHECK, BLK);
-                        //Log.d("vote", "user voted black");
-                        break;
-                    default:
-                        break;
-                }
-
-            }
-        });
     }
 
     public void clearList(){
@@ -498,29 +441,21 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         return masterList == null ? 0 : masterList.size();
     }
 
-    public void setLoaded() {
-        isLoading = false;
-    }
-
     private class PostCardViewHolder extends RecyclerView.ViewHolder {
 
-        public TextView questionTV;
-        public TextView rednameTV;
-        public TextView blacknameTV;
-        public ImageView redIV;
-        public ImageView blkIV;
-        public ImageView redMask;
-        public ImageView blkMask;
+        public TextView questionTV, rednameTV, blacknameTV, leftPercentage, rightPercentage;
+        public ImageView redIV, blkIV, redMask, blkMask;
         public View redgraphView;
         public RelativeLayout graphBox;
         public Button sortTypeSelector;
         public RelativeLayout redimgBox, blkimgBox;
+        public LinearLayout sortTypeBackground;
 
         public PostCardViewHolder (View view){
             super(view);
-            questionTV = (TextView)view.findViewById(R.id.post_page_question);
-            rednameTV = (TextView)view.findViewById(R.id.rednametvpc);
-            blacknameTV = (TextView)view.findViewById(R.id.blacknametvpc);
+            questionTV = view.findViewById(R.id.post_page_question);
+            rednameTV = view.findViewById(R.id.rednametvpc);
+            blacknameTV = view.findViewById(R.id.blacknametvpc);
             redimgBox = view.findViewById(R.id.redimgbox);
             redMask = redimgBox.findViewById(R.id.rediv_mask);
             redIV = redimgBox.findViewById(R.id.rediv);
@@ -528,8 +463,11 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             blkMask = blkimgBox.findViewById(R.id.blkiv_mask);
             blkIV = blkimgBox.findViewById(R.id.blackiv);
             redgraphView = view.findViewById(R.id.redgraphview);
-            graphBox = (RelativeLayout)view.findViewById(R.id.graphbox);
-            sortTypeSelector = (Button)view.findViewById(R.id.sort_type_selector_pc);
+            graphBox = view.findViewById(R.id.graphbox);
+            sortTypeSelector = view.findViewById(R.id.sort_type_selector_pc);
+            sortTypeBackground = view.findViewById(R.id.sort_type_background);
+            leftPercentage = view.findViewById(R.id.left_percentage);
+            rightPercentage = view.findViewById(R.id.right_percentage);
         }
     }
 
@@ -538,23 +476,12 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         public LoadingViewHolder(View view) {
             super(view);
-            progressBar = (ProgressBar) view.findViewById(R.id.progressBar1);
+            progressBar = view.findViewById(R.id.progressBar1);
         }
     }
 
-    private class UserViewHolder extends RecyclerView.ViewHolder {
-        /*
-        public TextView post_id;
-        public TextView timestamp;
-        public TextView author;
-        public TextView comment_id;
-        public TextView parent_id;
-        public TextView content;
-        public TextView upvotes;
-        public TextView downvotes;
-        */
+    private class CommentViewHolder extends RecyclerView.ViewHolder {
 
-        public CircleImageView circView;
         public TextView timestamp;
         public TextView author;
         public TextView content;
@@ -563,17 +490,16 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         public ImageButton upvoteButton, downvoteButton;
         public ImageView medalImage;
 
-        public UserViewHolder(View view) {
+        public CommentViewHolder(View view) {
             super(view);
-            circView = (CircleImageView)view.findViewById(R.id.profile_image_cs);
-            author = (TextView) view.findViewById(R.id.usernametvcs);
-            timestamp = (TextView) view.findViewById(R.id.timetvcs);
-            content = (TextView) view.findViewById(R.id.usercomment);
-            heartCount = (TextView) view.findViewById(R.id.heartCount);
-            replyButton = (Button) view.findViewById(R.id.replybuttoncs);
-            upvoteButton = (ImageButton) view.findViewById(R.id.heartbutton);
-            downvoteButton = (ImageButton) view.findViewById(R.id.broken_heart_button);
-            medalImage = (ImageView) view.findViewById(R.id.medal_image);
+            author = view.findViewById(R.id.usernametvcs);
+            timestamp = view.findViewById(R.id.timetvcs);
+            content = view.findViewById(R.id.usercomment);
+            heartCount = view.findViewById(R.id.heartCount);
+            replyButton = view.findViewById(R.id.replybuttoncs);
+            upvoteButton = view.findViewById(R.id.heartbutton);
+            downvoteButton = view.findViewById(R.id.broken_heart_button);
+            medalImage = view.findViewById(R.id.medal_image);
         }
 
 
@@ -691,16 +617,19 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         redLayers[0].setAlpha(0);
                         redLayers[1].setAlpha(0);
                         hideGraph();
+                        postCard.rednameTV.setTypeface(null, Typeface.NORMAL);
                         break;
                     case TINT:
                         redLayers[0].setAlpha(175);
                         redLayers[1].setAlpha(0);
                         showGraph();
+                        postCard.rednameTV.setTypeface(null, Typeface.NORMAL);;
                         break;
                     case TINTCHECK:
                         redLayers[0].setAlpha(175);
                         redLayers[1].setAlpha(255);
                         showGraph();
+                        postCard.rednameTV.setTypeface(null, Typeface.BOLD);
                         break;
                     default:
                         return;
@@ -715,14 +644,17 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     case NOMASK:
                         blackLayers[0].setAlpha(0);
                         blackLayers[1].setAlpha(0);
+                        postCard.blacknameTV.setTypeface(null, Typeface.NORMAL);
                         break;
                     case TINT:
                         blackLayers[0].setAlpha(175);
                         blackLayers[1].setAlpha(0);
+                        postCard.blacknameTV.setTypeface(null, Typeface.NORMAL);
                         break;
                     case TINTCHECK:
                         blackLayers[0].setAlpha(175);
                         blackLayers[1].setAlpha(255);
+                        postCard.blacknameTV.setTypeface(null, Typeface.BOLD);
                         break;
                     default:
                         return;
@@ -740,20 +672,59 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     private void hideGraph(){
         //Log.d("graph", "hide");
+        postCard.leftPercentage.setVisibility(View.INVISIBLE);
+        postCard.rightPercentage.setVisibility(View.INVISIBLE);
         postCard.graphBox.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT,0));
     }
 
     private void showGraph(){
-        //Log.d("graph", "show");
-        //Log.d("graph", "RED: " + Integer.toString(post.getRedcount()));
-        //Log.d("graph", "BLK: " + Integer.toString(post.getBlackcount()));
-        int redWidth = (int)((activity.getWindowWidth() - 8 ) * ( (float)post.getRedcount() / (float)(post.getRedcount() + post.getBlackcount()) ));   //TODO: the - 8 is for padding. Whenever we update the post_card content padding, also update that integer
+
+        if(postCard != null){
+            sortBackgroundLowerLP = (RelativeLayout.LayoutParams) postCard.sortTypeBackground.getLayoutParams();
+            sortBackgroundLowerLP.addRule(RelativeLayout.BELOW, R.id.graphbox);
+            postCard.sortTypeBackground.setLayoutParams(sortBackgroundLowerLP);
+
+            sortSelectorLowerLP = (RelativeLayout.LayoutParams) postCard.sortTypeSelector.getLayoutParams();
+            sortSelectorLowerLP.addRule(RelativeLayout.BELOW, R.id.graphbox);
+            postCard.sortTypeSelector.setLayoutParams(sortSelectorLowerLP);
+        }
+
+        float leftFloat, rightFloat;
+        leftFloat = (float)post.getRedcount() / (float)(post.getRedcount() + post.getBlackcount());
+
+        int redWidth = (int)(activity.getWindowWidth() * leftFloat);
         RelativeLayout.LayoutParams redgraphParams = new RelativeLayout.LayoutParams(redWidth, RelativeLayout.LayoutParams.MATCH_PARENT);
         redgraphParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
         postCard.redgraphView.setLayoutParams(redgraphParams);
         postCard.redgraphView.setBackground(ContextCompat.getDrawable(activity, R.drawable.redgraph));
-
         postCard.graphBox.setLayoutParams(graphBoxParams);
+
+        String leftPercentageText, rightPercentageText;
+        BigDecimal strippedVal;
+
+        if(leftFloat == 0){
+            leftPercentageText = "0%";
+        }
+        else{
+            strippedVal= new BigDecimal(leftFloat * (float)100.0).setScale(2, BigDecimal.ROUND_HALF_UP).stripTrailingZeros();
+            leftPercentageText = strippedVal.toPlainString() + "%";
+        }
+
+        rightFloat = (float)100.0 - (leftFloat * (float)100.0);
+        if(rightFloat == 0){
+            rightPercentageText = "0%";
+        }
+        else{
+            strippedVal = new BigDecimal(rightFloat).setScale(2, BigDecimal.ROUND_HALF_UP).stripTrailingZeros();
+            rightPercentageText = strippedVal.toPlainString() + "%";
+        }
+
+
+        postCard.leftPercentage.setText(leftPercentageText);
+        postCard.leftPercentage.setVisibility(View.VISIBLE);
+        postCard.rightPercentage.setText(rightPercentageText);
+        postCard.rightPercentage.setVisibility(View.VISIBLE);
+
     }
 
     public void appendToList(List<Object> listInput){

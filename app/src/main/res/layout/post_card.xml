@@ -19,6 +19,8 @@
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:text="Question"
+            android:textSize="18sp"
+            android:textColor="#000000"
             android:textAlignment="center" />
 
         <LinearLayout
@@ -29,43 +31,27 @@
             android:layout_below="@id/post_page_question"
             android:weightSum="11">
 
-            <LinearLayout
+            <RelativeLayout
+                android:id="@+id/redimgbox"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="5"
-                android:weightSum="5"
-                android:orientation="vertical">
+                android:clickable="true">
 
-                <RelativeLayout
-                    android:id="@+id/redimgbox"
+                <ImageView
+                    android:id="@+id/rediv"
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:clickable="true"
-                    android:layout_weight="4">
+                    android:layout_height="match_parent"
+                    android:adjustViewBounds="true"
+                    app:srcCompat="@drawable/default_background" />
 
-                    <ImageView
-                        android:id="@+id/rediv"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:adjustViewBounds="true"
-                        app:srcCompat="@drawable/default_background" />
-
-                    <ImageView
-                        android:id="@+id/rediv_mask"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:adjustViewBounds="true"/>
-
-                </RelativeLayout>
-
-                <TextView
-                    android:id="@+id/rednametvpc"
+                <ImageView
+                    android:id="@+id/rediv_mask"
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:text="redname"
-                    android:layout_weight="1"
-                    android:textAlignment="center" />
-            </LinearLayout>
+                    android:layout_height="match_parent"
+                    android:adjustViewBounds="true"/>
+
+            </RelativeLayout>
 
             <TextView
                 android:id="@+id/vstextpc"
@@ -75,51 +61,127 @@
                 android:layout_weight="1"
                 android:gravity="center"/>
 
-            <LinearLayout
+            <RelativeLayout
+                android:id="@+id/blkimgbox"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="5"
-                android:weightSum="5"
-                android:orientation="vertical">
+                android:clickable="true">
 
-                <RelativeLayout
-                    android:id="@+id/blkimgbox"
+                <ImageView
+                    android:id="@+id/blackiv"
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:clickable="true"
-                    android:layout_weight="4">
+                    android:layout_height="match_parent"
+                    android:adjustViewBounds="true"
+                    app:srcCompat="@drawable/default_background" />
 
-                    <ImageView
-                        android:id="@+id/blackiv"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:adjustViewBounds="true"
-                        app:srcCompat="@drawable/default_background" />
-
-                    <ImageView
-                        android:id="@+id/blkiv_mask"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:adjustViewBounds="true"/>
-
-                </RelativeLayout>
-
-                <TextView
-                    android:id="@+id/blacknametvpc"
+                <ImageView
+                    android:id="@+id/blkiv_mask"
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:text="blackname"
-                    android:layout_weight="1"
-                    android:textAlignment="center" />
-            </LinearLayout>
+                    android:layout_height="match_parent"
+                    android:adjustViewBounds="true"/>
+
+            </RelativeLayout>
 
         </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/names"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_below="@id/linlaypoca"
+            android:weightSum="11">
+            <TextView
+                android:id="@+id/rednametvpc"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="5"
+                android:layout_below="@id/linlaypoca"
+                android:layout_alignParentStart="true"
+                android:text="26char fit 1line for 16 sp"
+                android:textSize="22sp"
+                android:textColor="#000000"
+                android:textAlignment="center"/>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"></LinearLayout>
+
+            <TextView
+                android:id="@+id/blacknametvpc"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="5"
+                android:layout_below="@id/linlaypoca"
+                android:layout_alignParentEnd="true"
+                android:text="blackname"
+                android:textSize="22sp"
+                android:textColor="#000000"
+                android:textAlignment="center"/>
+
+        </LinearLayout>
+
+
+
+
+        <LinearLayout
+            android:id="@+id/sort_type_background"
+            android:layout_width="match_parent"
+            android:layout_height="32dp"
+            android:background="#EEEEEE"
+            android:layout_below="@id/names"
+            android:orientation="horizontal"
+            android:layout_alignParentBottom="true"></LinearLayout>
+
+        <Button
+            android:id="@+id/sort_type_selector_pc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/names"
+            android:layout_alignParentBottom="true"
+            style="?android:attr/borderlessButtonStyle"
+            android:background="#EEEEEE"
+            android:paddingStart="8dp"
+            android:drawablePadding="8dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:drawableLeft="@drawable/ic_gray_thumb_10small"
+            android:drawableRight="@drawable/ic_gray_arrow_dropdown"
+            android:textColor="#FF666666"
+            android:textSize="12sp"
+            android:gravity="center_vertical|left"
+            android:text="POPULAR" />
+
+        <TextView
+            android:id="@+id/left_percentage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/names"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="4dp"
+            android:layout_marginBottom="4dp"
+            android:textColor="#000000"
+            android:text="50%"
+            />
+        <TextView
+            android:id="@+id/right_percentage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/names"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="4dp"
+            android:layout_marginBottom="4dp"
+            android:textColor="#000000"
+            android:text="50%"
+            />
 
         <RelativeLayout
             android:id="@+id/graphbox"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_below="@id/linlaypoca">
+            android:layout_below="@id/left_percentage">
 
             <View
                 android:id="@+id/redgraphview"
@@ -138,31 +200,7 @@
 
         </RelativeLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="32dp"
-            android:background="#EEEEEE"
-            android:layout_below="@id/linlaypoca"
-            android:layout_alignParentBottom="true"></LinearLayout>
 
-        <Button
-            android:id="@+id/sort_type_selector_pc"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/linlaypoca"
-            android:layout_alignParentBottom="true"
-            style="?android:attr/borderlessButtonStyle"
-            android:background="#EEEEEE"
-            android:paddingStart="8dp"
-            android:drawablePadding="8dp"
-            android:minWidth="0dp"
-            android:minHeight="0dp"
-            android:drawableLeft="@drawable/ic_gray_thumb_10small"
-            android:drawableRight="@drawable/ic_gray_arrow_dropdown"
-            android:textColor="#FF666666"
-            android:textSize="12sp"
-            android:gravity="center_vertical|left"
-            android:text="POPULAR" />
 
     </RelativeLayout>
 </android.support.v7.widget.CardView>
