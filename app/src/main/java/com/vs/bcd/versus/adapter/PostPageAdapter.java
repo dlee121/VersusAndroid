@@ -220,20 +220,24 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     public void run() {
                         if(commentViewHolder.content.getLineCount() > 2){
                             commentViewHolder.seeMoreContainer.setLayoutParams(seeMoreContainerLP);
-                            RelativeLayout.LayoutParams heartButtonLP = (RelativeLayout.LayoutParams) commentViewHolder.upvoteButton.getLayoutParams();
-                            heartButtonLP.removeRule(RelativeLayout.BELOW);
-                            heartButtonLP.addRule(RelativeLayout.BELOW, R.id.see_more_container);
+
+                            RelativeLayout.LayoutParams replyButtonLP = (RelativeLayout.LayoutParams) commentViewHolder.replyButton.getLayoutParams();
+                            replyButtonLP.removeRule(RelativeLayout.ALIGN_END);
+                            replyButtonLP.addRule(RelativeLayout.START_OF, R.id.see_more_container);
+                            replyButtonLP.setMarginEnd(activity.getResources().getDimensionPixelSize(R.dimen.reply_button_margin_end));
+                            commentViewHolder.replyButton.setLayoutParams(replyButtonLP);
+
                             commentViewHolder.seeMoreButton.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View view) {
-                                    if(commentViewHolder.seeMoreButton.getText().equals(" See More")){
+                                    if(commentViewHolder.seeMoreButton.getText().equals("See More")){
                                         commentViewHolder.content.setMaxLines(262);
                                         commentViewHolder.seeMoreButton.setText("See Less");
                                         //commentViewHolder.ellipsis.setText("");
                                     }
                                     else{
                                         commentViewHolder.content.setMaxLines(2);
-                                        commentViewHolder.seeMoreButton.setText(" See More");
+                                        commentViewHolder.seeMoreButton.setText("See More");
                                         //commentViewHolder.ellipsis.setText("...");
                                     }
                                 }
@@ -241,9 +245,13 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         }
                         else{
                             commentViewHolder.seeMoreContainer.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, 0));
-                            RelativeLayout.LayoutParams heartButtonLP = (RelativeLayout.LayoutParams) commentViewHolder.upvoteButton.getLayoutParams();
-                            heartButtonLP.removeRule(RelativeLayout.BELOW);
-                            heartButtonLP.addRule(RelativeLayout.BELOW, R.id.usercomment);
+
+                            RelativeLayout.LayoutParams replyButtonLP = (RelativeLayout.LayoutParams) commentViewHolder.replyButton.getLayoutParams();
+                            replyButtonLP.removeRule(RelativeLayout.START_OF);
+                            replyButtonLP.addRule(RelativeLayout.ALIGN_END, R.id.usercomment);
+                            replyButtonLP.setMarginEnd(0);
+                            commentViewHolder.replyButton.setLayoutParams(replyButtonLP);
+
                         }
                     }
                 });
@@ -262,7 +270,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     obAnim.start();
                 }
 
-                commentViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                commentViewHolder.content.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         //Log.d("pageLevel", Integer.toString(pageLevel));
@@ -739,6 +747,11 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         postCard.graphBox.setLayoutParams(graphBoxParams);
 
         String leftPercentageText, rightPercentageText;
+
+        leftPercentageText = Integer.toString((int)(leftFloat * 100)) + "%";
+        rightPercentageText = Integer.toString((int)((1-leftFloat) * 100)) + "%";
+
+        /*
         BigDecimal strippedVal;
 
         if(leftFloat == 0){
@@ -757,7 +770,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             strippedVal = new BigDecimal(rightFloat).setScale(2, BigDecimal.ROUND_HALF_UP).stripTrailingZeros();
             rightPercentageText = strippedVal.toPlainString() + "%";
         }
-
+        */
 
         postCard.leftPercentage.setText(leftPercentageText);
         postCard.leftPercentage.setVisibility(View.VISIBLE);
