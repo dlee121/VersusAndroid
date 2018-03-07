@@ -105,7 +105,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         graphBoxParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, 20);
         graphBoxParams.addRule(RelativeLayout.BELOW, R.id.left_percentage);
         seeMoreContainerLP = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-        seeMoreContainerLP.addRule(RelativeLayout.ALIGN_START, R.id.usercomment);
+        seeMoreContainerLP.addRule(RelativeLayout.ALIGN_END, R.id.usercomment);
         seeMoreContainerLP.addRule(RelativeLayout.BELOW, R.id.usercomment);
         //Log.d("DEBUG", "Action Map Size: " + Integer.toString(actionMap.size()));
     }
@@ -229,12 +229,12 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                                     if(commentViewHolder.seeMoreButton.getText().equals(" See More")){
                                         commentViewHolder.content.setMaxLines(262);
                                         commentViewHolder.seeMoreButton.setText("See Less");
-                                        commentViewHolder.ellipsis.setText("");
+                                        //commentViewHolder.ellipsis.setText("");
                                     }
                                     else{
                                         commentViewHolder.content.setMaxLines(2);
                                         commentViewHolder.seeMoreButton.setText(" See More");
-                                        commentViewHolder.ellipsis.setText("...");
+                                        //commentViewHolder.ellipsis.setText("...");
                                     }
                                 }
                             });
@@ -519,11 +519,12 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     private class CommentViewHolder extends RecyclerView.ViewHolder {
 
-        public TextView timestamp, author, content, heartCount, ellipsis;
+        public TextView timestamp, author, content, heartCount;
         public Button replyButton, seeMoreButton;
         public ImageButton upvoteButton, downvoteButton;
         public ImageView medalImage;
         public LinearLayout seeMoreContainer;
+        //public TextView ellipsis;
 
         public CommentViewHolder(View view) {
             super(view);
@@ -536,7 +537,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             downvoteButton = view.findViewById(R.id.broken_heart_button);
             medalImage = view.findViewById(R.id.medal_image);
             seeMoreContainer = view.findViewById(R.id.see_more_container);
-            ellipsis = seeMoreContainer.findViewById(R.id.comment_ellipsis);
+            //ellipsis = seeMoreContainer.findViewById(R.id.comment_ellipsis);
             seeMoreButton = seeMoreContainer.findViewById(R.id.see_more_button);
         }
 
