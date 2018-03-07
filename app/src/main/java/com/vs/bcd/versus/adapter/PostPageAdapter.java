@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -80,7 +81,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private LayerDrawable redLayerDrawable;
     private LayerDrawable blackLayerDrawable;
     private RelativeLayout.LayoutParams graphBoxParams = null;
-    private RelativeLayout.LayoutParams sortSelectorLowerLP, sortSelectorOrigLP, sortBackgroundLowerLP, sortBackgroundOrigLP;
+    private RelativeLayout.LayoutParams sortSelectorLowerLP, sortBackgroundLowerLP, seeMoreContainerLP;
 
     private Toast mToast;
 
@@ -103,6 +104,9 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         actionMap = userAction.getActionRecord();
         graphBoxParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, 20);
         graphBoxParams.addRule(RelativeLayout.BELOW, R.id.left_percentage);
+        seeMoreContainerLP = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        seeMoreContainerLP.addRule(RelativeLayout.ALIGN_START, R.id.usercomment);
+        seeMoreContainerLP.addRule(RelativeLayout.BELOW, R.id.usercomment);
         //Log.d("DEBUG", "Action Map Size: " + Integer.toString(actionMap.size()));
     }
 
@@ -211,6 +215,39 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 }
 
                 commentViewHolder.content.setText(currentComment.getContent());
+                commentViewHolder.content.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(commentViewHolder.content.getLineCount() > 2){
+                            commentViewHolder.seeMoreContainer.setLayoutParams(seeMoreContainerLP);
+                            RelativeLayout.LayoutParams heartButtonLP = (RelativeLayout.LayoutParams) commentViewHolder.upvoteButton.getLayoutParams();
+                            heartButtonLP.removeRule(RelativeLayout.BELOW);
+                            heartButtonLP.addRule(RelativeLayout.BELOW, R.id.see_more_container);
+                            commentViewHolder.seeMoreButton.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    if(commentViewHolder.seeMoreButton.getText().equals(" See More")){
+                                        commentViewHolder.content.setMaxLines(262);
+                                        commentViewHolder.seeMoreButton.setText("See Less");
+                                        commentViewHolder.ellipsis.setText("");
+                                    }
+                                    else{
+                                        commentViewHolder.content.setMaxLines(2);
+                                        commentViewHolder.seeMoreButton.setText(" See More");
+                                        commentViewHolder.ellipsis.setText("...");
+                                    }
+                                }
+                            });
+                        }
+                        else{
+                            commentViewHolder.seeMoreContainer.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, 0));
+                            RelativeLayout.LayoutParams heartButtonLP = (RelativeLayout.LayoutParams) commentViewHolder.upvoteButton.getLayoutParams();
+                            heartButtonLP.removeRule(RelativeLayout.BELOW);
+                            heartButtonLP.addRule(RelativeLayout.BELOW, R.id.usercomment);
+                        }
+                    }
+                });
+
                 commentViewHolder.heartCount.setText( Integer.toString(currentComment.heartsTotal()) );
                 //set CardView onClickListener to go to PostPage fragment with corresponding Comments data (this will be a PostPage without post_card)
 
@@ -482,13 +519,11 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     private class CommentViewHolder extends RecyclerView.ViewHolder {
 
-        public TextView timestamp;
-        public TextView author;
-        public TextView content;
-        public TextView heartCount; //TODO: perhaps we should show two counts, one for heard and one for broken hearts, instead of summing it up into one heartCount? Or is that not necessary, after all major websites seem to just sum them into one single count.
-        public Button replyButton;
+        public TextView timestamp, author, content, heartCount, ellipsis;
+        public Button replyButton, seeMoreButton;
         public ImageButton upvoteButton, downvoteButton;
         public ImageView medalImage;
+        public LinearLayout seeMoreContainer;
 
         public CommentViewHolder(View view) {
             super(view);
@@ -500,6 +535,9 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             upvoteButton = view.findViewById(R.id.heartbutton);
             downvoteButton = view.findViewById(R.id.broken_heart_button);
             medalImage = view.findViewById(R.id.medal_image);
+            seeMoreContainer = view.findViewById(R.id.see_more_container);
+            ellipsis = seeMoreContainer.findViewById(R.id.comment_ellipsis);
+            seeMoreButton = seeMoreContainer.findViewById(R.id.see_more_button);
         }
 
 

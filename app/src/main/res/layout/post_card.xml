@@ -99,7 +99,7 @@
                 android:layout_weight="5"
                 android:layout_below="@id/linlaypoca"
                 android:layout_alignParentStart="true"
-                android:text="26char fit 1line for 16 sp"
+                android:text="redname"
                 android:textSize="22sp"
                 android:textColor="#000000"
                 android:textAlignment="center"/>
