@@ -31,6 +31,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.ByteArrayInputStream;
@@ -65,9 +66,8 @@ import com.vs.bcd.versus.model.Post;
 
 public class CreatePost extends Fragment {
 
-    private EditText rednameET;
-    private EditText blacknameET;
-    private EditText questionET;
+    private EditText rednameET, blacknameET, questionET;
+    private TextView rednameTV, blacknameTV, questionTV;
     //private CropImageView cropper1;
     //private CropImageView cropper2;
     private ImageView ivLeft, ivRight;
@@ -112,7 +112,7 @@ public class CreatePost extends Fragment {
 
     private KeyListener qListener, rListener, bListener;
 
-    private RelativeLayout.LayoutParams leftClearButtonLP, rightClearButtonLP;
+    private RelativeLayout.LayoutParams leftClearButtonLP, rightClearButtonLP, qETLP, qTVLP, rETLP, rTVLP, bETLP, bTVLP;
 
 
     @Override
@@ -134,9 +134,20 @@ public class CreatePost extends Fragment {
         rightClearButtonLP = (RelativeLayout.LayoutParams) rightClearButton.getLayoutParams();
         hideRightClearButton();
 
-        rednameET = (EditText) rootView.findViewById(R.id.redname_in);
-        blacknameET = (EditText) rootView.findViewById(R.id.blackname_in);
-        questionET = (EditText) rootView.findViewById(R.id.question_in);
+        rednameET = rootView.findViewById(R.id.redname_in);
+        blacknameET = rootView.findViewById(R.id.blackname_in);
+        questionET = rootView.findViewById(R.id.question_in);
+
+        rednameTV = rootView.findViewById(R.id.redname_tv);
+        blacknameTV = rootView.findViewById(R.id.blackname_tv);
+        questionTV = rootView.findViewById(R.id.question_tv);
+
+        qETLP = (RelativeLayout.LayoutParams) questionET.getLayoutParams();
+        qTVLP = (RelativeLayout.LayoutParams) questionTV.getLayoutParams();
+        rETLP = (RelativeLayout.LayoutParams) rednameET.getLayoutParams();
+        rTVLP = (RelativeLayout.LayoutParams) rednameTV.getLayoutParams();
+        bETLP = (RelativeLayout.LayoutParams) blacknameET.getLayoutParams();
+        bTVLP = (RelativeLayout.LayoutParams) blacknameTV.getLayoutParams();
 
         qListener = questionET.getKeyListener();
         rListener = rednameET.getKeyListener();
@@ -210,9 +221,22 @@ public class CreatePost extends Fragment {
     public void setUpEditPage(Post post){
         setOriginFragNum(3);
         postToEdit = post;
-        questionET.setText(post.getQuestion());
-        rednameET.setText(post.getRedname());
-        blacknameET.setText(post.getBlackname());
+
+        questionET.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+        questionET.setFocusable(false);
+        rednameET.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+        rednameET.setFocusable(false);
+        blacknameET.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+        blacknameET.setFocusable(false);
+
+        questionTV.setLayoutParams(qTVLP);
+        rednameTV.setLayoutParams(rTVLP);
+        blacknameTV.setLayoutParams(bTVLP);
+
+        questionTV.setText(post.getQuestion());
+        rednameTV.setText(post.getRedname());
+        blacknameTV.setText(post.getBlackname());
+
         categorySelectionButton.setText(post.getCategoryString());
         currentCategorySelection = post.getCategory();
         if(post.getRedimg()%10 == S3){
@@ -956,9 +980,28 @@ public class CreatePost extends Fragment {
         blackimgSet = DEFAULT;
         ivLeft.setImageResource(R.drawable.ic_add_24dp);
         ivRight.setImageResource(R.drawable.ic_add_24dp);
+
+        questionET.setLayoutParams(qETLP);
+        questionET.setFocusableInTouchMode(true);
+        questionET.setFocusable(true);
+        rednameET.setLayoutParams(rETLP);
+        rednameET.setFocusableInTouchMode(true);
+        rednameET.setFocusable(true);
+        blacknameET.setLayoutParams(bETLP);
+        blacknameET.setFocusableInTouchMode(true);
+        blacknameET.setFocusable(true);
+
+        questionTV.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+        questionTV.setText("");
+        rednameTV.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+        rednameTV.setText("");
+        blacknameTV.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+        blacknameTV.setText("");
+
         rednameET.setText("");
         blacknameET.setText("");
         questionET.setText("");
+
         categorySelectionButton.setText("Select Category");
         leftImgEdited = false;
         leftImgDeleted = false;

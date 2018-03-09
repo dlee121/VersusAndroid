@@ -9,19 +9,32 @@
     android:weightSum="11"
     tools:context="com.vs.bcd.versus.activity.MainContainer">
 
-
-    <EditText
-        android:id="@+id/question_in"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginTop="8dp"
-        android:hint="Question or Topic"
-        android:inputType="textPersonName"
-        android:text=""
-        android:textAlignment="center"
-        android:textColor="@android:color/black"
-        android:nextFocusDown="@+id/redname_in"/>
+        android:layout_marginTop="8dp">
+
+        <EditText
+            android:id="@+id/question_in"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:hint="Question or Topic"
+            android:inputType="textPersonName"
+            android:text=""
+            android:textAlignment="center"
+            android:textColor="@android:color/black"
+            android:nextFocusDown="@+id/redname_in"/>
+
+        <TextView
+            android:id="@+id/question_tv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:textSize="18sp"
+            android:textColor="@android:color/black" />
+
+    </RelativeLayout>
 
     <Button
         android:id="@+id/go_to_catselect"
@@ -44,17 +57,31 @@
             android:weightSum="7"
             android:orientation="vertical">
 
-            <EditText
-                android:id="@id/redname_in"
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="1"
-                android:hint="Name"
-                android:inputType="textPersonName"
-                android:text=""
-                android:textAlignment="center"
-                android:textColor="@android:color/black"
-                android:imeOptions="actionNext"/>
+                android:layout_weight="1">
+
+                <EditText
+                    android:id="@id/redname_in"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:hint="Name"
+                    android:inputType="textPersonName"
+                    android:text=""
+                    android:textAlignment="center"
+                    android:textColor="@android:color/black"
+                    android:imeOptions="actionNext"/>
+
+                <TextView
+                    android:id="@+id/redname_tv"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:textSize="22sp"
+                    android:textColor="@android:color/black" />
+
+            </RelativeLayout>
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -90,16 +117,30 @@
             android:weightSum="7"
             android:orientation="vertical">
 
-            <EditText
-                android:id="@+id/blackname_in"
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="1"
-                android:hint="Name"
-                android:inputType="textPersonName"
-                android:text=""
-                android:textAlignment="center"
-                android:textColor="@android:color/black" />
+                android:layout_weight="1">
+
+                <EditText
+                    android:id="@+id/blackname_in"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:hint="Name"
+                    android:inputType="textPersonName"
+                    android:text=""
+                    android:textAlignment="center"
+                    android:textColor="@android:color/black" />
+
+                <TextView
+                    android:id="@+id/blackname_tv"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:textSize="22sp"
+                    android:textColor="@android:color/black" />
+
+            </RelativeLayout>
 
             <RelativeLayout
                 android:layout_width="match_parent"
