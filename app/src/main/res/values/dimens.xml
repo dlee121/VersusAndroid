@@ -9,4 +9,9 @@
     <dimen name="fab_margin_bottom_nobn">32dp</dimen>
     <dimen name="appbar_padding_top">8dp</dimen>
     <dimen name="reply_button_margin_end">8dp</dimen>
+    <dimen name="overflow_width">160dp</dimen>
+    <dimen name="overflow_height">20dp</dimen>
+    <dimen name="overflow_text_size">14dp</dimen>
+    <dimen name="overflow_row_height">48dp</dimen>
+
 </resources>

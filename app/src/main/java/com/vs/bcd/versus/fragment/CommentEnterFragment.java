@@ -205,7 +205,7 @@ public class CommentEnterFragment extends Fragment{
                     vsc.setPost_id(postID);
                     vsc.setAuthor(activity.getUsername());
                     vsc.setContent(prefix + inputString);
-                    vsc.setIsHigh(true); //sets it to be highlighted
+                    vsc.setIsNew(true); //sets it to be highlighted
 
                     activity.getMapper().save(vsc);
 

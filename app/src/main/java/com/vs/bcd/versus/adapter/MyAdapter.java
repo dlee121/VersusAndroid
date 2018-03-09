@@ -94,7 +94,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
                 return NATIVE_CONTENT_AD;
             default:
                 if(fragmentInt == 0 || fragmentInt == 6){
-                    if(post.getRedimg() == S3 || post.getBlackimg() == S3){
+                    if(post.getRedimg()%10 == S3 || post.getBlackimg()%10 == S3){
                         return VIEW_TYPE_IT;
                     }
                     return VIEW_TYPE_T;
@@ -202,20 +202,20 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
 
 
             try{
-                if(post.getRedimg() == S3){
-                    GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI("versus.pictures", post.getPost_id() + "-left.jpeg"));
+                if(post.getRedimg()%10 == S3){
+                    GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI("versus.pictures", post, 0));
                     GlideApp.with(activity).load(gurlLeft).override(imageWidthPixels, imageHeightPixels).into(txtImgViewHolder.leftIV);
                 }
-                else if(post.getRedimg() == DEFAULT){
+                else if(post.getRedimg()%10 == DEFAULT){
                     //set default image
                     GlideApp.with(activity).load(defaultImage).override(imageWidthPixels, imageHeightPixels).into(txtImgViewHolder.leftIV);
                 }
 
-                if(post.getBlackimg() == S3){
-                    GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI("versus.pictures", post.getPost_id() + "-right.jpeg"));
+                if(post.getBlackimg()%10 == S3){
+                    GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI("versus.pictures", post, 1));
                     GlideApp.with(activity).load(gurlRight).override(imageWidthPixels, imageHeightPixels).into(txtImgViewHolder.rightIV);
                 }
-                else if(post.getBlackimg() == DEFAULT){
+                else if(post.getBlackimg()%10 == DEFAULT){
                     //set default image
                     GlideApp.with(activity).load(defaultImage).override(imageWidthPixels, imageHeightPixels).into(txtImgViewHolder.rightIV);
                 }
@@ -647,7 +647,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
     @NonNull
     public List<Post> getPreloadItems(int position) {
         Post post = posts.get(position);
-        if (post.getRedimg() == S3 || post.getBlackimg() == S3) {
+        if (post.getRedimg()%10 == S3 || post.getBlackimg()%10 == S3) {
             return Collections.singletonList(post);
         }
         return Collections.emptyList();
@@ -658,19 +658,19 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
     public RequestBuilder getPreloadRequestBuilder(Post post) {
         //Log.d("hihihihoy", "doing work");
         try{
-            if(post.getRedimg() == S3){
-                if(post.getBlackimg() == S3){
-                    GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI("versus.pictures", post.getPost_id() + "-left.jpeg"));
-                    GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI("versus.pictures", post.getPost_id() + "-right.jpeg"));
+            if(post.getRedimg()%10 == S3){
+                if(post.getBlackimg()%10 == S3){
+                    GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI("versus.pictures", post, 0));
+                    GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI("versus.pictures", post, 1));
                     return GlideApp.with(activity).load(gurlLeft).override(imageWidthPixels, imageHeightPixels).load(gurlRight).override(imageWidthPixels, imageHeightPixels);
                 }
                 else{
-                    GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI("versus.pictures", post.getPost_id() + "-left.jpeg"));
+                    GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI("versus.pictures", post, 0));
                     return GlideApp.with(activity).load(gurlLeft).override(imageWidthPixels, imageHeightPixels);
                 }
             }
-            else if(post.getBlackimg() == S3){
-                GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI("versus.pictures", post.getPost_id() + "-right.jpeg"));
+            else if(post.getBlackimg()%10 == S3){
+                GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI("versus.pictures", post, 1));
                 return GlideApp.with(activity).load(gurlRight).override(imageWidthPixels, imageHeightPixels);
             }
         }

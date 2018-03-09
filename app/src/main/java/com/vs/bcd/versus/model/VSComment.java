@@ -36,7 +36,7 @@ public class VSComment {
     private final int DOWNVOTE = 2;
     private int currentMedal = 0;   //current medal to display for UI
 
-    private boolean isHigh = false;
+    private boolean isNew = false;
 
     private String r;
     private String b;
@@ -176,11 +176,11 @@ public class VSComment {
     }
 
     @DynamoDBIgnore
-    public boolean getIsHigh(){
-        return isHigh;
+    public boolean getIsNew(){
+        return isNew;
     }
-    public void setIsHigh(boolean isHigh){
-        this.isHigh = isHigh;
+    public void setIsNew(boolean isNew){
+        this.isNew = isNew;
     }
 
 

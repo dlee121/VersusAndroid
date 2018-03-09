@@ -1,6 +1,8 @@
 package com.vs.bcd.versus.activity;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -20,8 +22,11 @@ import android.view.View;
 
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ListAdapter;
+import android.widget.ListPopupWindow;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -52,6 +57,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
 import com.vs.bcd.versus.fragment.CategoryFragment;
 import com.vs.bcd.versus.fragment.CommentEnterFragment;
 import com.vs.bcd.versus.fragment.CreateMessage;
@@ -138,12 +144,18 @@ public class MainContainer extends AppCompatActivity {
     private InputMethodManager imm;
     private String cftitle = "";
     private ProgressBar toolbarProgressbar;
+    private ListPopupWindow listPopupWindow;
+    private boolean inEditPost = false;
 
     private String esHost = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
     private String esRegion = "us-east-1";
 
     @Override
     public void onBackPressed(){
+        if(listPopupWindow != null && listPopupWindow.isShowing()){
+            listPopupWindow.dismiss();
+            return;
+        }
         meClicked = false;
         int mainContainerCurrentItem = mViewPager.getCurrentItem();
         int mainActivityCurrentItem = getMainFrag().getViewPager().getCurrentItem();
@@ -159,13 +171,20 @@ public class MainContainer extends AppCompatActivity {
 
             switch(mainContainerCurrentItem){
                 case 2: //CreatePost
-                    if(!fromCategoryFragment){
-                        mViewPager.setCurrentItem(0);
-                        toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                    if(inEditPost){
+                        mViewPager.setCurrentItem(3);
+                        inEditPost = false;
                     }
                     else{
-                        mViewPager.setCurrentItem(6);
+                        if(!fromCategoryFragment){
+                            mViewPager.setCurrentItem(0);
+                            toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                        }
+                        else{
+                            mViewPager.setCurrentItem(6);
+                        }
                     }
+
                     break;
 
                 case 3:  //PostPage
@@ -178,6 +197,7 @@ public class MainContainer extends AppCompatActivity {
                         //Log.d("debug", "is root");
                         postPage.writeActionsToDB();
                         //postPage.clearList();
+                        Log.d("MyAdapterInt", Integer.toString(myAdapterFragInt));
                         if(myAdapterFragInt == 9 && postParentProfileUsername != null){
                             goToProfile(postParentProfileUsername);
                         }
@@ -337,13 +357,21 @@ public class MainContainer extends AppCompatActivity {
 
                     case 2: //CreatePost
                         imm.hideSoftInputFromWindow(toolbarButtonLeft.getWindowToken(), 0);
-                        if(!fromCategoryFragment){
-                            mViewPager.setCurrentItem(0);
-                            toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+
+                        if(inEditPost){
+                            mViewPager.setCurrentItem(3);
+                            inEditPost = false;
                         }
                         else{
-                            mViewPager.setCurrentItem(6);
+                            if(!fromCategoryFragment){
+                                mViewPager.setCurrentItem(0);
+                                toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                            }
+                            else{
+                                mViewPager.setCurrentItem(6);
+                            }
                         }
+
                         break;
 
                     case 3: //PostPage
@@ -425,7 +453,17 @@ public class MainContainer extends AppCompatActivity {
         toolbarButtonRight.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mViewPager.setCurrentItem(10);
+                int currPage = mViewPager.getCurrentItem();
+                switch (currPage){
+
+                    case 3: //PostPage
+                        showListPopupWindow(getCurrentPost().getAuthor().equals(currUsername));
+                        break;
+
+                    case 9:    //Me
+                        mViewPager.setCurrentItem(10);
+                        break;
+                }
             }
         });
 
@@ -570,7 +608,7 @@ public class MainContainer extends AppCompatActivity {
 
                     case 3: //PostPage
                         titleTxtView.setText("");
-                        hideToolbarButtonRight();
+                        showOverflowMenu();
                         hideToolbarTextButton();
                         disableBottomTabs();
                         showToolbarButtonLeft();
@@ -919,6 +957,10 @@ public class MainContainer extends AppCompatActivity {
         mViewPager.setCurrentItem(3);
     }
 
+    public void setMyAdapterFragInt(int fragInt){
+        myAdapterFragInt = fragInt;
+    }
+
     public class FadePageTransformer implements ViewPager.PageTransformer {
         public void transformPage(View view, float position) {
             view.setTranslationX(view.getWidth() * -position);
@@ -1112,8 +1154,84 @@ public class MainContainer extends AppCompatActivity {
         toolbarButtonRight.setEnabled(true);
         toolbarButtonRight.setLayoutParams(toolbarButtonRightLP);
         toolbarButtonRight.setImageResource(R.drawable.ic_settings_white_24dp);
-
     }
+
+    private  void showOverflowMenu(){
+        toolbarButtonRight.setEnabled(true);
+        toolbarButtonRight.setLayoutParams(toolbarButtonRightLP);
+        toolbarButtonRight.setImageResource(R.drawable.ic_overflow_vertical);
+    }
+
+    private void showListPopupWindow(final boolean isAuthor){
+        final String [] items;
+        final Integer[] icons;
+
+        if(isAuthor){
+            items = new String[] {"Edit", "Delete"};
+            icons = new Integer[] {R.drawable.ic_edit, R.drawable.ic_delete};
+        }
+        else{
+            items = new String[] {"Report"};
+            icons = new Integer[] {R.drawable.ic_flag};
+        }
+        int width = getResources().getDimensionPixelSize(R.dimen.overflow_width);
+
+
+        ListAdapter adapter = new ArrayAdapterWithIcon(this, items, icons);
+
+        listPopupWindow = new ListPopupWindow(this);
+        listPopupWindow.setAnchorView(toolbarButtonRight);
+        listPopupWindow.setAdapter(adapter);
+        listPopupWindow.setWidth(width);
+
+        listPopupWindow.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                if(isAuthor){
+                    switch(position){
+
+                        case 0: //Edit
+                            titleTxtView.setText("Edit Post");
+                            inEditPost = true;
+                            createPost.setUpEditPage(postPage.getCurrentPost());
+                            mViewPager.setCurrentItem(2);
+                            break;
+
+                        case 1: //Delete
+
+
+                            break;
+                    }
+
+                }
+                else{
+                    //for now there's only one option for whe not author of the post, Report
+
+
+
+                    /*
+                    switch(position){
+
+                        case 1:
+
+
+                            break;
+
+                        case 2:
+
+                            break;
+                    }
+                    */
+                }
+
+                listPopupWindow.dismiss();
+            }
+        });
+        listPopupWindow.show();
+    }
+
     private void hideToolbarButtonRight(){
         toolbarButtonRight.setEnabled(false);
         toolbarButtonRight.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
@@ -1233,9 +1351,30 @@ public class MainContainer extends AppCompatActivity {
         return esRegion;
     }
 
-    public URL getImgURI(String bucket, String key) throws URISyntaxException{
+    public URL getImgURI(String bucket, Post post, int lORr) throws URISyntaxException{
+        //lORr == 0 means left, lORr == 1 means right
         long expirationTime = System.currentTimeMillis() + 86400000; //24 hours from current time
-        return s3.generatePresignedUrl(bucket, key, new Date(expirationTime));
+        String urlString;
+        if(lORr == 0){ //left
+            int editVersion = post.getRedimg()/10;
+            if(editVersion > 0){//this image has edit version number
+                urlString = post.getPost_id() + "-left" + Integer.toString(editVersion) + ".jpeg";
+            }
+            else{
+                urlString = post.getPost_id() + "-left.jpeg";
+            }
+        }
+        else{
+            int editVersion = post.getBlackimg()/10;
+            if(editVersion > 0){//this image has edit version number
+                urlString = post.getPost_id() + "-right" + Integer.toString(editVersion) + ".jpeg";
+            }
+            else{
+                urlString = post.getPost_id() + "-right.jpeg";
+            }
+        }
+
+        return s3.generatePresignedUrl(bucket, urlString, new Date(expirationTime));
     }
 
     public int getImageWidthPixels(){

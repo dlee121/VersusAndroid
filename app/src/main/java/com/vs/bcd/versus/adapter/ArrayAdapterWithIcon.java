@@ -6,8 +6,12 @@ import android.os.Build;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.vs.bcd.versus.R;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,14 +24,17 @@ import java.util.List;
 public class ArrayAdapterWithIcon extends ArrayAdapter<String> {
 
     private List<Integer> images;
+    private Context context;
 
     public ArrayAdapterWithIcon(Context context, List<String> items, List<Integer> images) {
         super(context, android.R.layout.select_dialog_item, items);
+        this.context = context;
         this.images = images;
     }
 
     public ArrayAdapterWithIcon(Context context, String[] items, Integer[] images) {
         super(context, android.R.layout.select_dialog_item, items);
+        this.context = context;
         this.images = Arrays.asList(images);
     }
 
@@ -46,7 +53,13 @@ public class ArrayAdapterWithIcon extends ArrayAdapter<String> {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         View view = super.getView(position, convertView, parent);
-        TextView textView = (TextView) view.findViewById(android.R.id.text1);
+
+        int height = context.getResources().getDimensionPixelSize(R.dimen.overflow_row_height); //8dp
+        AbsListView.LayoutParams layoutParams = new AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT, height);
+        view.setLayoutParams(layoutParams);
+
+        TextView textView = view.findViewById(android.R.id.text1);
+        textView.setTextSize(18);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             textView.setCompoundDrawablesRelativeWithIntrinsicBounds(images.get(position), 0, 0, 0);

@@ -19,7 +19,9 @@ import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.support.media.ExifInterface;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.system.ErrnoException;
+import android.text.method.KeyListener;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -39,8 +41,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
+import com.amazonaws.services.dynamodbv2.model.AttributeAction;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
+import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -48,6 +55,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.model.GlideUrlCustom;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.model.Post;
@@ -86,12 +94,24 @@ public class CreatePost extends Fragment {
     private final int HOME = 0;
     private final int TRENDING = 1;
     private final int CATEGORY = 2;
+    private final int POSTPAGE = 3; //for edit post
     private int originFragNum = HOME;
 
     private int DEFAULT = 0;
     private int S3 = 1;
 
     private Toast mToast;
+
+    private boolean leftImgEdited = false;
+    private boolean leftImgDeleted = false;
+    private boolean rightImgEdited = false;
+    private boolean rightImgDeleted = false;
+    private Post postToEdit;
+
+    private int imagesAdded = 0; //0 = none, 1 = left, 2 = right, 3 = both.
+
+    private KeyListener qListener, rListener, bListener;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -107,6 +127,11 @@ public class CreatePost extends Fragment {
         rednameET = (EditText) rootView.findViewById(R.id.redname_in);
         blacknameET = (EditText) rootView.findViewById(R.id.blackname_in);
         questionET = (EditText) rootView.findViewById(R.id.question_in);
+
+        qListener = questionET.getKeyListener();
+        rListener = rednameET.getKeyListener();
+        bListener = blacknameET.getKeyListener();
+
         categorySelectionButton = (Button) rootView.findViewById(R.id.go_to_catselect);
         sessionManager = new SessionManager(getActivity());
         childViews = new ArrayList<>();
@@ -162,6 +187,32 @@ public class CreatePost extends Fragment {
         activity = (MainContainer) context;
     }
 
+    public void setUpEditPage(Post post){
+        setOriginFragNum(3);
+        postToEdit = post;
+        questionET.setText(post.getQuestion());
+        rednameET.setText(post.getRedname());
+        blacknameET.setText(post.getBlackname());
+        categorySelectionButton.setText(post.getCategoryString());
+        currentCategorySelection = post.getCategory();
+        if(post.getRedimg()%10 == S3){
+            try{
+                GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI("versus.pictures", post, 0));
+                Glide.with(activity).load(gurlLeft).into(ivLeft);
+            } catch (Exception e) {
+                ivLeft.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
+            }
+        }
+        if(post.getBlackimg()%10 == S3){
+            try{
+                GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI("versus.pictures", post, 1));
+                Glide.with(activity).load(gurlRight).into(ivRight);
+            } catch (Exception e) {
+                ivRight.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
+            }
+        }
+    }
+
     public boolean createButtonPressed(){
         if(currentCategorySelection == -1){
             if(mToast != null){
@@ -200,50 +251,164 @@ public class CreatePost extends Fragment {
 
         activity.showToolbarProgressbar();
 
-        Runnable runnable = new Runnable() {
-            public void run() {
-                final Post post = new Post();
+        if(originFragNum == POSTPAGE && postToEdit != null){
 
-                //ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                try {
-                    if(redimgSet == S3){
-                        uploadImageToAWS(ivLeft.getDrawingCache(), post.getPost_id(), "left");
+            Runnable runnable = new Runnable() {
+                public void run() {
+                    boolean postEdited = false;
+                    boolean waitForImageUpload = false;
+
+                    HashMap<String, AttributeValue> keyMap = new HashMap<>();
+                    keyMap.put("i", new AttributeValue().withS(postToEdit.getPost_id()));   //sort key
+
+                    HashMap<String, AttributeValueUpdate> updates = new HashMap<>();
+
+                    if(postToEdit.getCategory() != (currentCategorySelection)){
+                        postEdited = true;
+                        AttributeValueUpdate c = new AttributeValueUpdate()
+                                .withValue(new AttributeValue().withN(Integer.toString(currentCategorySelection)))
+                                .withAction(AttributeAction.PUT);
+                        updates.put("c", c);
+                        postToEdit.setCategory(currentCategorySelection);
                     }
-                    if(blackimgSet == S3){
-                        uploadImageToAWS(ivRight.getDrawingCache(), post.getPost_id(), "right");
+                    if(leftImgDeleted){
+                        postEdited = true;
+                        AttributeValueUpdate ri = new AttributeValueUpdate()
+                                .withValue(new AttributeValue().withN(Integer.toString(DEFAULT)))
+                                .withAction(AttributeAction.PUT);
+                        updates.put("ri", ri);
+                        postToEdit.setRedimg(DEFAULT);
+                    }
+                    if(leftImgEdited){
+                        waitForImageUpload = true;
+                        postEdited = true;
+                        int newRedimg = (postToEdit.getRedimg()/10 + 1) * 10 + S3;
+                        AttributeValueUpdate ri = new AttributeValueUpdate()
+                                .withValue(new AttributeValue().withN(Integer.toString(newRedimg)))
+                                .withAction(AttributeAction.PUT);
+                        updates.put("ri", ri);
+                        postToEdit.setRedimg(newRedimg);
+                    }
+                    if(rightImgDeleted){
+                        postEdited = true;
+                        AttributeValueUpdate bi = new AttributeValueUpdate()
+                                .withValue(new AttributeValue().withN(Integer.toString(DEFAULT)))
+                                .withAction(AttributeAction.PUT);
+                        updates.put("bi", bi);
+                        postToEdit.setBlackimg(DEFAULT);
+                    }
+                    if(rightImgEdited){
+                        waitForImageUpload = true;
+                        postEdited = true;
+                        int newBlackimg = (postToEdit.getBlackimg()/10 + 1) * 10 + S3;
+                        AttributeValueUpdate bi = new AttributeValueUpdate()
+                                .withValue(new AttributeValue().withN(Integer.toString(newBlackimg)))
+                                .withAction(AttributeAction.PUT);
+                        updates.put("bi", bi);
+                        postToEdit.setBlackimg(newBlackimg);
                     }
 
-                } catch (Exception e) {
-                    Log.e(getClass().getSimpleName(), "Error writing bitmap", e);
-                }
-
-                post.setCategory(currentCategorySelection);
-                post.setAuthor(sessionManager.getCurrentUsername());
-                post.setRedname(redStr);
-                post.setBlackname(blackStr);
-                post.setQuestion(questiongStr);
-                post.setRedimg(redimgSet);
-                post.setBlackimg(blackimgSet);
-                activity.getMapper().save(post);
-
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if(originFragNum == HOME || originFragNum == CATEGORY){
-                            activity.addPostToTop(post, originFragNum);
+                    //ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                    try {
+                        if(leftImgEdited){
+                            uploadImageToAWS(ivLeft.getDrawingCache(), postToEdit.getPost_id(), "left" + Integer.toString(postToEdit.getRedimg()/10));
                         }
-                        activity.getPostPage().setContent(post);
-                        activity.hideToolbarProgressbar();
-                        activity.getViewPager().setCurrentItem(3);
-                        activity.setToolbarTitleTextForCP();
-                    }
-                });
-            }
-        };
-        Thread mythread = new Thread(runnable);
-        mythread.start();
+                        if(rightImgEdited){
+                            uploadImageToAWS(ivRight.getDrawingCache(), postToEdit.getPost_id(), "right" + Integer.toString(postToEdit.getBlackimg()/10));
+                        }
 
-        return true;
+                    } catch (Exception e) {
+                        Log.e(getClass().getSimpleName(), "Error writing bitmap", e);
+                    }
+
+                    if(postEdited){
+                        UpdateItemRequest request = new UpdateItemRequest()
+                                .withTableName("post")
+                                .withKey(keyMap)
+                                .withAttributeUpdates(updates);
+                        activity.getDDBClient().updateItem(request);
+                    }
+
+                    if(!waitForImageUpload){
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                activity.getPostPage().setContent(postToEdit);
+                                activity.hideToolbarProgressbar();
+                                activity.getViewPager().setCurrentItem(3);
+                                activity.setToolbarTitleTextForCP();
+                            }
+                        });
+                    }
+
+                }
+            };
+            Thread mythread = new Thread(runnable);
+            mythread.start();
+
+            return true;
+        }
+
+        else{
+            Runnable runnable = new Runnable() {
+                public void run() {
+                    final Post post = new Post();
+                    boolean waitForImageUpload = false;
+                    postToEdit = post;
+
+                    //ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                    try {
+                        if(redimgSet == S3){
+                            waitForImageUpload = true;
+                            uploadImageToAWS(ivLeft.getDrawingCache(), post.getPost_id(), "left");
+                        }
+                        if(blackimgSet == S3){
+                            waitForImageUpload = true;
+                            uploadImageToAWS(ivRight.getDrawingCache(), post.getPost_id(), "right");
+                        }
+
+                    } catch (Exception e) {
+                        Log.e(getClass().getSimpleName(), "Error writing bitmap", e);
+                    }
+
+                    post.setCategory(currentCategorySelection);
+                    post.setAuthor(sessionManager.getCurrentUsername());
+                    post.setRedname(redStr);
+                    post.setBlackname(blackStr);
+                    post.setQuestion(questiongStr);
+                    post.setRedimg(redimgSet);
+                    post.setBlackimg(blackimgSet);
+                    activity.getMapper().save(post);
+
+
+
+                    if(!waitForImageUpload){
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if(originFragNum == HOME || originFragNum == CATEGORY){
+                                    activity.addPostToTop(post, originFragNum);
+                                }
+                                if(originFragNum == HOME || originFragNum == TRENDING){
+                                    activity.setMyAdapterFragInt(0);
+                                }
+                                else if(originFragNum == CATEGORY){
+                                    activity.setMyAdapterFragInt(6);
+                                }
+                                activity.getPostPage().setContent(post);
+                                activity.hideToolbarProgressbar();
+                                activity.getViewPager().setCurrentItem(3);
+                                activity.setToolbarTitleTextForCP();
+                            }
+                        });
+                    }
+                }
+            };
+            Thread mythread = new Thread(runnable);
+            mythread.start();
+
+            return true;
+        }
     }
 
 
@@ -296,6 +461,19 @@ public class CreatePost extends Fragment {
     }
 
     public void setOriginFragNum(int originFragNum){
+        if(originFragNum != POSTPAGE){
+            if(questionET.getKeyListener() == null){
+                questionET.setKeyListener(qListener);
+                rednameET.setKeyListener(rListener);
+                blacknameET.setKeyListener(bListener);
+            }
+        }
+        else{
+            questionET.setKeyListener(null);
+            rednameET.setKeyListener(null);
+            blacknameET.setKeyListener(null);
+        }
+
         resetCatSelection();
         this.originFragNum = originFragNum;
     }
@@ -356,7 +534,7 @@ public class CreatePost extends Fragment {
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            if(side.equals("left")){
+                            if(side.substring(0,4).equals("left")){
                                 ivLeft.setDrawingCacheEnabled(false);
                                 ivLeft.setDrawingCacheEnabled(true);
                             }
@@ -391,7 +569,53 @@ public class CreatePost extends Fragment {
             @Override
             protected void onPostExecute(String result)
             {
+                Log.d("sideAndFN", side + ": " + Integer.toString(originFragNum));
+                switch (imagesAdded){
 
+                    case 3: //both images are present
+                        if(!side.substring(0,4).equals("left")){
+                            activity.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if(originFragNum == HOME || originFragNum == CATEGORY){
+                                        activity.addPostToTop(postToEdit, originFragNum);
+                                    }
+                                    if(originFragNum == HOME || originFragNum == TRENDING){
+                                        activity.setMyAdapterFragInt(0);
+                                    }
+                                    else if(originFragNum == CATEGORY){
+                                        activity.setMyAdapterFragInt(6);
+                                    }
+                                    activity.getPostPage().setContent(postToEdit);
+                                    activity.hideToolbarProgressbar();
+                                    activity.getViewPager().setCurrentItem(3);
+                                    activity.setToolbarTitleTextForCP();
+                                }
+                            });
+                        }
+                        break;
+
+                    default:
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if(originFragNum == HOME || originFragNum == CATEGORY){
+                                    activity.addPostToTop(postToEdit, originFragNum);
+                                }
+                                if(originFragNum == HOME || originFragNum == TRENDING){
+                                    activity.setMyAdapterFragInt(0);
+                                }
+                                else if(originFragNum == CATEGORY){
+                                    activity.setMyAdapterFragInt(6);
+                                }
+                                activity.getPostPage().setContent(postToEdit);
+                                activity.hideToolbarProgressbar();
+                                activity.getViewPager().setCurrentItem(3);
+                                activity.setToolbarTitleTextForCP();
+                            }
+                        });
+                        break;
+                }
             }
         };
         _Task.execute((String[]) null);
@@ -453,12 +677,32 @@ public class CreatePost extends Fragment {
                     //cropper1.setImageUriAsync(imageUri);
                     Glide.with(this).load(imageUri).apply(requestOptions).into(ivLeft);
                     redimgSet = S3;
+                    leftImgEdited = true;
+                    leftImgDeleted = false;
+                    switch (imagesAdded){
+                        case 0: //none
+                            imagesAdded = 1;
+                            break;
+                        case 2: //right image is present
+                            imagesAdded = 3;
+                            break;
+                    }
                 }
 
                 else {
                     //cropper2.setImageUriAsync(imageUri);
                     Glide.with(this).load(imageUri).apply(requestOptions).into(ivRight);
                     blackimgSet = S3;
+                    rightImgEdited = true;
+                    rightImgDeleted = false;
+                    switch (imagesAdded){
+                        case 0: //none
+                            imagesAdded = 2;
+                            break;
+                        case 1: //left image is present
+                            imagesAdded = 3;
+                            break;
+                    }
                 }
 
                 Log.d("cropper", "Cropper Number: " + Integer.toString(cropperNumber) + ", URI: " + imageUri.toString());
@@ -474,10 +718,31 @@ public class CreatePost extends Fragment {
                 //cropper1.setImageUriAsync(mCropImageUri);
                 Glide.with(this).load(mCropImageUri).apply(requestOptions).into(ivLeft);
                 redimgSet = S3;
+                leftImgEdited = true;
+                leftImgDeleted = false;
+                switch (imagesAdded){
+                    case 0: //none
+                        imagesAdded = 1;
+                        break;
+                    case 2: //right image is present
+                        imagesAdded = 3;
+                        break;
+                }
+
             }
             else{
                 Glide.with(this).load(mCropImageUri).apply(requestOptions).into(ivRight);
                 blackimgSet = S3;
+                rightImgEdited = true;
+                rightImgDeleted = false;
+                switch (imagesAdded){
+                    case 0: //none
+                        imagesAdded = 2;
+                        break;
+                    case 1: //left image is present
+                        imagesAdded = 3;
+                        break;
+                }
             }
 
 
@@ -598,6 +863,12 @@ public class CreatePost extends Fragment {
         blacknameET.setText("");
         questionET.setText("");
         categorySelectionButton.setText("Select Category");
+        leftImgEdited = false;
+        leftImgDeleted = false;
+        rightImgEdited = false;
+        rightImgDeleted = false;
+        postToEdit = null;
+        imagesAdded = 0;
         activity.getPostPage().clearList();
     }
 

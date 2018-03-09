@@ -5,7 +5,6 @@ import android.animation.ObjectAnimator;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.ShapeDrawable;
@@ -16,7 +15,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -34,7 +32,6 @@ import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.UserAction;
 import com.vs.bcd.versus.model.VSComment;
 
-import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -42,8 +39,6 @@ import java.util.List;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
-
-import de.hdodenhof.circleimageview.CircleImageView;
 
 
 public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -259,7 +254,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 commentViewHolder.heartCount.setText( Integer.toString(currentComment.heartsTotal()) );
                 //set CardView onClickListener to go to PostPage fragment with corresponding Comments data (this will be a PostPage without post_card)
 
-                if(currentComment.getIsHigh()){
+                if(currentComment.getIsNew()){
                     int colorFrom = ContextCompat.getColor(activity, R.color.vsBlue_light);
                     int colorTo = Color.WHITE;
                     int duration = 1000;
@@ -268,6 +263,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     obAnim.setRepeatCount(1);
                     obAnim.setStartDelay(350);
                     obAnim.start();
+                    currentComment.setIsNew(false);
                 }
 
                 commentViewHolder.content.setOnClickListener(new View.OnClickListener() {
@@ -418,9 +414,9 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             }
 
 
-            if(post.getRedimg() == S3){
+            if(post.getRedimg()%10 == S3){
                 try{
-                    GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI("versus.pictures", post.getPost_id() + "-left.jpeg"));
+                    GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI("versus.pictures", post, 0));
                     Glide.with(activity).load(gurlLeft).into(postCard.redIV);
                 } catch (Exception e){
                     postCard.redIV.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
@@ -430,9 +426,9 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 postCard.redIV.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
             }
 
-            if(post.getBlackimg() == S3){
+            if(post.getBlackimg()%10 == S3){
                 try{
-                    GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI("versus.pictures", post.getPost_id() + "-right.jpeg"));
+                    GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI("versus.pictures", post, 1));
                     Glide.with(activity).load(gurlRight).into(postCard.blkIV);
                 } catch (Exception e){
                     postCard.blkIV.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
