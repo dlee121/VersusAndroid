@@ -9,8 +9,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -27,11 +25,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import java.io.ByteArrayInputStream;
@@ -90,6 +89,7 @@ public class CreatePost extends Fragment {
     private MainContainer activity;
     private int currentCategorySelection = -1;
     private RequestOptions requestOptions;
+    private ImageButton leftClearButton, rightClearButton;
 
     private final int HOME = 0;
     private final int TRENDING = 1;
@@ -112,6 +112,8 @@ public class CreatePost extends Fragment {
 
     private KeyListener qListener, rListener, bListener;
 
+    private RelativeLayout.LayoutParams leftClearButtonLP, rightClearButtonLP;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -120,10 +122,18 @@ public class CreatePost extends Fragment {
 
         s3 = ((MainContainer) getActivity()).getS3Client();
 
-        ivLeft = (ImageView) rootView.findViewById(R.id.leftImage);
+        ivLeft = rootView.findViewById(R.id.leftImage);
         ivLeft.setDrawingCacheEnabled(true);
-        ivRight = (ImageView) rootView.findViewById(R.id.rightImage);
+        leftClearButton = rootView.findViewById(R.id.left_image_clear);
+        leftClearButtonLP = (RelativeLayout.LayoutParams) leftClearButton.getLayoutParams();
+        hideLeftClearButton();
+
+        ivRight = rootView.findViewById(R.id.rightImage);
         ivRight.setDrawingCacheEnabled(true);
+        rightClearButton = rootView.findViewById(R.id.right_image_clear);
+        rightClearButtonLP = (RelativeLayout.LayoutParams) rightClearButton.getLayoutParams();
+        hideRightClearButton();
+
         rednameET = (EditText) rootView.findViewById(R.id.redname_in);
         blacknameET = (EditText) rootView.findViewById(R.id.blackname_in);
         questionET = (EditText) rootView.findViewById(R.id.question_in);
@@ -140,10 +150,6 @@ public class CreatePost extends Fragment {
             childViews.add(((ViewGroup) rootView).getChildAt(i));
             LPStore.add(childViews.get(i).getLayoutParams());
         }
-        childViews.add(ivLeft);
-        LPStore.add(ivLeft.getLayoutParams());
-        childViews.add(ivRight);
-        LPStore.add(ivRight.getLayoutParams());
 
         requestOptions = new RequestOptions();
         requestOptions.skipMemoryCache(true);
@@ -159,12 +165,26 @@ public class CreatePost extends Fragment {
             }
         });
 
+        leftClearButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                clearLeftImage();
+            }
+        });
+
         ivRight.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 activity.closeSoftKeyboard();
                 cropperNumber = 2;
                 onLoadImageClick();
+            }
+        });
+
+        rightClearButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                clearRightImage();
             }
         });
 
@@ -196,6 +216,7 @@ public class CreatePost extends Fragment {
         categorySelectionButton.setText(post.getCategoryString());
         currentCategorySelection = post.getCategory();
         if(post.getRedimg()%10 == S3){
+            showLeftClearButton();
             try{
                 GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI("versus.pictures", post, 0));
                 Glide.with(activity).load(gurlLeft).into(ivLeft);
@@ -204,6 +225,7 @@ public class CreatePost extends Fragment {
             }
         }
         if(post.getBlackimg()%10 == S3){
+            showRightClearButton();
             try{
                 GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI("versus.pictures", post, 1));
                 Glide.with(activity).load(gurlRight).into(ivRight);
@@ -278,6 +300,8 @@ public class CreatePost extends Fragment {
                                 .withAction(AttributeAction.PUT);
                         updates.put("ri", ri);
                         postToEdit.setRedimg(DEFAULT);
+
+                        //TODO: delete the left image in S3
                     }
                     if(leftImgEdited){
                         waitForImageUpload = true;
@@ -296,6 +320,9 @@ public class CreatePost extends Fragment {
                                 .withAction(AttributeAction.PUT);
                         updates.put("bi", bi);
                         postToEdit.setBlackimg(DEFAULT);
+
+                        //TODO: delete the right image in S3
+
                     }
                     if(rightImgEdited){
                         waitForImageUpload = true;
@@ -379,8 +406,6 @@ public class CreatePost extends Fragment {
                     post.setRedimg(redimgSet);
                     post.setBlackimg(blackimgSet);
                     activity.getMapper().save(post);
-
-
 
                     if(!waitForImageUpload){
                         activity.runOnUiThread(new Runnable() {
@@ -569,7 +594,6 @@ public class CreatePost extends Fragment {
             @Override
             protected void onPostExecute(String result)
             {
-                Log.d("sideAndFN", side + ": " + Integer.toString(originFragNum));
                 switch (imagesAdded){
 
                     case 3: //both images are present
@@ -687,6 +711,7 @@ public class CreatePost extends Fragment {
                             imagesAdded = 3;
                             break;
                     }
+                    showLeftClearButton();
                 }
 
                 else {
@@ -703,6 +728,7 @@ public class CreatePost extends Fragment {
                             imagesAdded = 3;
                             break;
                     }
+                    showRightClearButton();
                 }
 
                 Log.d("cropper", "Cropper Number: " + Integer.toString(cropperNumber) + ", URI: " + imageUri.toString());
@@ -728,6 +754,7 @@ public class CreatePost extends Fragment {
                         imagesAdded = 3;
                         break;
                 }
+                showLeftClearButton();
 
             }
             else{
@@ -735,7 +762,7 @@ public class CreatePost extends Fragment {
                 blackimgSet = S3;
                 rightImgEdited = true;
                 rightImgDeleted = false;
-                switch (imagesAdded){
+                switch (imagesAdded) {
                     case 0: //none
                         imagesAdded = 2;
                         break;
@@ -743,6 +770,7 @@ public class CreatePost extends Fragment {
                         imagesAdded = 3;
                         break;
                 }
+                showRightClearButton();
             }
 
 
@@ -869,12 +897,74 @@ public class CreatePost extends Fragment {
         rightImgDeleted = false;
         postToEdit = null;
         imagesAdded = 0;
+        hideLeftClearButton();
+        hideRightClearButton();
         activity.getPostPage().clearList();
     }
 
     public void setCatSelection(String catName, int catSelection){
         categorySelectionButton.setText(catName);
         currentCategorySelection = catSelection;
+    }
+
+    private void hideLeftClearButton(){
+        leftClearButton.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+        leftClearButton.setEnabled(false);
+    }
+
+    private void hideRightClearButton(){
+        rightClearButton.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+        rightClearButton.setEnabled(false);
+    }
+
+    private void showLeftClearButton(){
+        leftClearButton.setEnabled(true);
+        leftClearButton.setLayoutParams(leftClearButtonLP);
+    }
+
+    private void showRightClearButton(){
+        rightClearButton.setEnabled(true);
+        rightClearButton.setLayoutParams(rightClearButtonLP);
+    }
+
+    private void clearLeftImage(){
+        hideLeftClearButton();
+        switch (imagesAdded) {
+            case 1: //left image is present
+                imagesAdded = 0;
+                break;
+            case 3: //both images are present
+                imagesAdded = 2;
+                break;
+        }
+
+        redimgSet = DEFAULT;
+        leftImgEdited = false;
+        leftImgDeleted = true;
+
+        ivLeft.setDrawingCacheEnabled(false);
+        ivLeft.setDrawingCacheEnabled(true);
+        ivLeft.setImageResource(R.drawable.ic_add_24dp);
+    }
+
+    private void clearRightImage() {
+        hideRightClearButton();
+        switch (imagesAdded) {
+            case 2: //right image is present
+                imagesAdded = 0;
+                break;
+            case 3: //both images are present
+                imagesAdded = 1;
+                break;
+        }
+
+        blackimgSet = DEFAULT;
+        rightImgEdited = false;
+        rightImgDeleted = true;
+
+        ivRight.setDrawingCacheEnabled(false);
+        ivRight.setDrawingCacheEnabled(true);
+        ivRight.setImageResource(R.drawable.ic_add_24dp);
     }
 
 }

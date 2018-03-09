@@ -56,19 +56,31 @@
                 android:textColor="@android:color/black"
                 android:imeOptions="actionNext"/>
 
-            <ImageView
-                android:id="@+id/leftImage"
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_marginBottom="4dp"
                 android:layout_marginLeft="4dp"
                 android:layout_marginRight="2dp"
                 android:layout_marginTop="4dp"
-                android:layout_weight="5"
-                android:clickable="true"
-                android:scaleType="fitXY"
-                app:srcCompat="@drawable/ic_add_24dp" />
+                android:layout_weight="5">
+                <ImageView
+                    android:id="@+id/leftImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clickable="true"
+                    android:scaleType="fitXY"
+                    app:srcCompat="@drawable/ic_add_24dp" />
 
+                <ImageButton
+                    android:id="@+id/left_image_clear"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignTop="@id/leftImage"
+                    android:layout_alignRight="@id/leftImage"
+                    android:background="@color/white"
+                    android:src="@drawable/ic_x_button"/>
+            </RelativeLayout>
         </LinearLayout>
 
         <LinearLayout
@@ -89,19 +101,31 @@
                 android:textAlignment="center"
                 android:textColor="@android:color/black" />
 
-            <ImageView
-                android:id="@+id/rightImage"
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_marginBottom="4dp"
                 android:layout_marginLeft="2dp"
                 android:layout_marginRight="4dp"
                 android:layout_marginTop="4dp"
-                android:layout_weight="5"
-                android:clickable="true"
-                android:scaleType="fitXY"
-                app:srcCompat="@drawable/ic_add_24dp" />
+                android:layout_weight="5">
+                <ImageView
+                    android:id="@+id/rightImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clickable="true"
+                    android:scaleType="fitXY"
+                    app:srcCompat="@drawable/ic_add_24dp" />
 
+                <ImageButton
+                    android:id="@+id/right_image_clear"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignTop="@id/rightImage"
+                    android:layout_alignRight="@id/rightImage"
+                    android:background="@color/white"
+                    android:src="@drawable/ic_x_button"/>
+            </RelativeLayout>
         </LinearLayout>
 
     </LinearLayout>
