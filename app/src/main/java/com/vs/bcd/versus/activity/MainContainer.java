@@ -36,6 +36,10 @@ import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.amazonaws.services.dynamodbv2.model.AttributeAction;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
+import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
@@ -101,6 +105,7 @@ public class MainContainer extends AppCompatActivity {
     private TextView titleTxtView;
     private String lastSetTitle = "";
     private MainActivity mainActivityFragRef;
+    private SearchPage searchPage;
     private CreatePost createPost;
     private PostPage postPage;
     private CategoryFragment categoryFragment;
@@ -146,6 +151,7 @@ public class MainContainer extends AppCompatActivity {
     private ProgressBar toolbarProgressbar;
     private ListPopupWindow listPopupWindow;
     private boolean inEditPost = false;
+    private int clickedPostIndex = 0;
 
     private String esHost = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
     private String esRegion = "us-east-1";
@@ -855,7 +861,7 @@ public class MainContainer extends AppCompatActivity {
                     mainActivityFragRef = new MainActivity();
                     return mainActivityFragRef;
                 case 1:
-                    SearchPage searchPage = new SearchPage();
+                    searchPage = new SearchPage();
                     return searchPage;
                 case 2:
                     createPost = new CreatePost();
@@ -944,7 +950,7 @@ public class MainContainer extends AppCompatActivity {
     }
 
     //pass post information from MyAdapter CardView click handler, through this helper method, to PostPage fragment
-    public void postClicked(Post post, int fragmentInt){
+    public void postClicked(Post post, int fragmentInt, int index){
         String temp = postInDownload.get(post.getPost_id());
         if(temp == null || !temp.equals("in progress")){
             postInDownload.put(post.getPost_id(), "in progress");
@@ -955,6 +961,7 @@ public class MainContainer extends AppCompatActivity {
         myAdapterFragInt = fragmentInt;
         postParentProfileUsername = post.getAuthor();
         mViewPager.setCurrentItem(3);
+        clickedPostIndex = index;
     }
 
     public void setMyAdapterFragInt(int fragInt){
@@ -1200,8 +1207,7 @@ public class MainContainer extends AppCompatActivity {
                             break;
 
                         case 1: //Delete
-
-
+                            deletePost();
                             break;
                     }
 
@@ -1210,26 +1216,102 @@ public class MainContainer extends AppCompatActivity {
                     //for now there's only one option for whe not author of the post, Report
 
 
-
-                    /*
-                    switch(position){
-
-                        case 1:
-
-
-                            break;
-
-                        case 2:
-
-                            break;
-                    }
-                    */
                 }
 
                 listPopupWindow.dismiss();
             }
         });
         listPopupWindow.show();
+    }
+
+    private void deletePost(){
+        final Post postToDelete = getCurrentPost();
+
+        Runnable runnable = new Runnable() {
+            public void run() {
+
+                if(postToDelete.getRedimg()%10 != 0){ //this post has a left-side image
+                    int editVersion = postToDelete.getRedimg()/10;
+                    final String objectKey;
+                    if(editVersion > 0){//this image has edit version number
+                        objectKey = postToDelete.getPost_id() + "-left" + Integer.toString(editVersion) + ".jpeg";
+                    }
+                    else{
+                        objectKey = postToDelete.getPost_id() + "-left.jpeg";
+                    }
+                    getS3Client().deleteObject("versus.pictures", objectKey);
+                }
+
+                if(postToDelete.getBlackimg()%10 != 0){ //this post has a right-side image
+                    int editVersion = postToDelete.getBlackimg()/10;
+                    final String objectKey;
+                    if(editVersion > 0){//this image has edit version number
+                        objectKey = postToDelete.getPost_id() + "-right" + Integer.toString(editVersion) + ".jpeg";
+                    }
+                    else{
+                        objectKey = postToDelete.getPost_id() + "-right.jpeg";
+                    }
+                    getS3Client().deleteObject("versus.pictures", objectKey);
+                }
+
+                if(postPage.getCurrentCommentCount() == 0){
+                    mapper.delete(postToDelete);
+                }
+                else{
+                    HashMap<String, AttributeValue> keyMap = new HashMap<>();
+                    keyMap.put("i", new AttributeValue().withS(postToDelete.getPost_id()));
+                    HashMap<String, AttributeValueUpdate> updates = new HashMap<>();
+                    AttributeValueUpdate newA = new AttributeValueUpdate()
+                            .withValue(new AttributeValue().withS("[deleted]"))
+                            .withAction(AttributeAction.PUT);
+                    updates.put("a", newA);
+
+                    UpdateItemRequest request = new UpdateItemRequest()
+                            .withTableName("post")
+                            .withKey(keyMap)
+                            .withAttributeUpdates(updates);
+                    ddbClient.updateItem(request);
+                }
+                //move out to previous page (Me(if from history)/Home/Search/Trending/Category)
+                //delete the deleted post from the ArrayList in appropriate fragment, decrement currPostsIndex by 1, and then notifyDataSetChanged
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        switch (myAdapterFragInt){
+                            case 0: //MainActivity
+                                if(mainActivityFragRef.getViewPager().getCurrentItem() == 0){ //Home
+                                    mainActivityFragRef.getTab1().removePostFromList(clickedPostIndex, postToDelete.getPost_id());
+                                }
+                                else{ //Trending
+                                    mainActivityFragRef.getTab2().removePostFromList(clickedPostIndex, postToDelete.getPost_id());
+                                }
+                                mViewPager.setCurrentItem(0);
+                                break;
+                            case 1: //Search
+                                searchPage.removePostFromList(clickedPostIndex, postToDelete.getRedname());
+                                mViewPager.setCurrentItem(1);
+                                break;
+                            case 6: //Category Fragment
+                                categoryFragment.removePostFromList(clickedPostIndex, postToDelete.getPost_id());
+                                mViewPager.setCurrentItem(6);
+                                break;
+                            case 9: //Profile page
+                                profileTab.getPostsHistoryFragment().removePostFromList(clickedPostIndex, postToDelete.getRedname());
+                                mViewPager.setCurrentItem(9);
+                                break;
+                            default:
+                                mViewPager.setCurrentItem(9);
+                                break;
+                        }
+
+                    }
+                });
+            }
+        };
+        Thread mythread = new Thread(runnable);
+        mythread.start();
+
+
     }
 
     private void hideToolbarButtonRight(){

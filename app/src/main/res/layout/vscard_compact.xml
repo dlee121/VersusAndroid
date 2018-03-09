@@ -10,14 +10,54 @@
     app:cardCornerRadius="0dp">
 
     <RelativeLayout
+        android:id="@+id/compact_card_content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
+        <RelativeLayout
+            android:id="@+id/cc_author_container"
+            android:layout_width="match_parent"
+            android:layout_height="30dp">
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/profile_image_cc"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:src="@drawable/vs_shadow_w_tag"
+                android:layout_marginStart="8dp"
+                app:civ_border_color="#FF000000"
+                app:civ_border_width="2dp"
+                android:layout_alignParentStart="true"/>
+
+            <TextView
+                android:id="@+id/cc_author_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginStart="8dp"
+                android:gravity="center"
+                android:layout_toEndOf="@id/profile_image_cc"
+                android:text="author"/>
+
+            <TextView
+                android:id="@+id/time_cc"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="8dp"
+                android:text="2m"
+                android:textColor="#FF000000"
+                android:textSize="12sp" />
+
+        </RelativeLayout>
 
         <TextView
             android:id="@+id/question_vc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
+            android:layout_below="@id/cc_author_container"
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
             android:layout_marginTop="2dp"
@@ -75,9 +115,9 @@
             android:id="@+id/time_vc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
+            android:layout_alignTop="@id/question_vc"
             android:layout_alignParentEnd="true"
-            android:layout_marginTop="2dp"
+            android:layout_marginEnd="8dp"
             android:text="2m"
             android:textColor="#FF000000"
             android:textSize="12sp" />
@@ -89,6 +129,7 @@
             android:layout_below="@id/question_vc"
             android:layout_alignParentEnd="true"
             android:layout_marginTop="2dp"
+            android:layout_marginEnd="8dp"
             android:text="20K votes"
             android:textAlignment="center"
             android:textColor="#FF000000"

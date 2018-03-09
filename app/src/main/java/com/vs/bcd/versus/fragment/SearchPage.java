@@ -193,7 +193,7 @@ public class SearchPage extends Fragment {
                     return;
                 }
                 Log.d("SEARCHINPUT", searchInput.trim());
-                String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"_source\":[\"bn\",\"bc\",\"q\",\"t\",\"rn\",\"rc\"],\"query\":{\"multi_match\":{\"query\": \"" + searchInput.trim() +
+                String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"_source\":[\"bn\",\"bc\",\"q\",\"t\",\"rn\",\"rc\",\"a\",\"i\"],\"query\":{\"multi_match\":{\"query\": \"" + searchInput.trim() +
                         "\",\"fields\": [\"rn\", \"bn\", \"q\"],\"type\": \"most_fields\"}}}";
 
                 String url = "https://" + host + query;
@@ -286,6 +286,16 @@ public class SearchPage extends Fragment {
             e.printStackTrace();
         }
     }
+
+    public void removePostFromList(int index, String redName){
+        if(postSearchResults != null && searchResultsPostsAdapter != null){
+            if(postSearchResults.get(index).getRedname().equals(redName)){
+                postSearchResults.remove(index);
+                searchResultsPostsAdapter.notifyItemRemoved(index);
+            }
+        }
+    }
+
     //TODO: also implement request cancelling where cancel() is called on the Request, in case user exists search before current search completes, so as to not trigger handler unnecessarily, although it may not matter and may actually work better that way to not cancel...think about that too, not cancelling.
 }
 

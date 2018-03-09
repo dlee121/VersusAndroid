@@ -2840,34 +2840,10 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         //FAB clicked in root page: upon submission, no pageLevel increment
         //use code as is for setup (postID != null)
+    }
 
-
-        //root page, root comment reply clicked: upon submission, pageLevel ++
-        //use code as is for setup
-
-        //root page, child comment reply clicked: upon submission, pageLevel += 2
-        //submitted comment added in-page at bottom if all grandchildren loaded,
-        //                                                                  or db only until scrolled to bottom.
-
-        //root page, grandchild comment reply clicked: upon submission, pageLevel += 2, include @ prefix
-        //submitted comment added in-page at bottom if all grandchildren loaded,
-        //                                                                  or db only until scrolled to bottom.
-
-        //children page (topcard is root comment), child comment reply clicked: pageLevel ++
-        //submitted comment added in-page at bottom if all grandchildren loaded,
-        //                                                                  or db only until scrolled to bottom.
-
-        //children page (topcard is root comment), grandchild comment reply clicked: pageLevel ++, include @ prefix
-        //submitted comment added in-page at bottom if all grandchildren loaded,
-        //                                                                  or db only until scrolled to bottom.
-
-        //grandchildren page (topcard is child comment), grandchild comment reply clicked: pageLevel stays same, include @ prefix
-        //submitted comment added in-page at bottom if all grandchildren loaded,
-        //                                                                  or db only until scrolled to bottom.
-
-
-
-
+    public int getCurrentCommentCount(){
+        return currCommentsIndex;
     }
 
 }

@@ -176,6 +176,15 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
         }
     }
 
+    public void removePostFromList(int index, String postID){
+        if(posts != null && myAdapter != null){
+            if(posts.get(index).getPost_id().equals(postID)){
+                posts.remove(index);
+                myAdapter.notifyItemRemoved(index);
+            }
+        }
+    }
+
 
     public void newsfeedESQuery(final int fromIndex) {
 

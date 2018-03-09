@@ -688,6 +688,10 @@ public class ProfileTab extends Fragment {
 
     }
 
+    public PostsHistory getPostsHistoryFragment(){
+        return postsTab;
+    }
+
 
 }
 

@@ -305,7 +305,7 @@ public class CreatePost extends Fragment {
                     boolean waitForImageUpload = false;
 
                     HashMap<String, AttributeValue> keyMap = new HashMap<>();
-                    keyMap.put("i", new AttributeValue().withS(postToEdit.getPost_id()));   //sort key
+                    keyMap.put("i", new AttributeValue().withS(postToEdit.getPost_id()));
 
                     HashMap<String, AttributeValueUpdate> updates = new HashMap<>();
 

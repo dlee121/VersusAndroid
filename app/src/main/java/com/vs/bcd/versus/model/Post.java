@@ -278,6 +278,8 @@ public class Post {
             redcount = postObj.getInt("rc");
             blackname  = postObj.getString("bn");
             blackcount = postObj.getInt("bc");
+            author = postObj.getString("a");
+            post_id = postObj.getString("i");
         }
     }
 

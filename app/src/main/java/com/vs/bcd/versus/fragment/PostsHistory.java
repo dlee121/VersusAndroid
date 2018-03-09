@@ -55,11 +55,9 @@ public class PostsHistory extends Fragment implements SwipeRefreshLayout.OnRefre
     private View rootView;
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
-    private ArrayList<Post> postSearchResults;
     private static MainContainer activity;
     private EditText searchET;
     private RecyclerView recyclerView;
-    private MyAdapter searchResultsPostsAdapter;
     private int retrievalSize = 20;
     private int loadThreshold = 2;
     private boolean nowLoading = false;
@@ -151,7 +149,7 @@ public class PostsHistory extends Fragment implements SwipeRefreshLayout.OnRefre
                 }
 
                 String query = "/post/_search";
-                String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\""+ptORt+"\":{\"order\":\"desc\"}}],\"_source\":[\"bn\",\"bc\",\"q\",\"t\",\"rn\",\"rc\"],\"query\":{\"match\":{\"a\":\""+profileUsername+"\"}}}";
+                String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\""+ptORt+"\":{\"order\":\"desc\"}}],\"_source\":[\"bn\",\"bc\",\"q\",\"t\",\"rn\",\"rc\",\"a\",\"i\"],\"query\":{\"match\":{\"a\":\""+profileUsername+"\"}}}";
 
                 String url = "https://" + host + query;
 
@@ -253,6 +251,15 @@ public class PostsHistory extends Fragment implements SwipeRefreshLayout.OnRefre
         if(this.profileUsername != null && !this.profileUsername.equals(profileUsername)){
             this.profileUsername = profileUsername;
             getUserPosts(0, "pt");
+        }
+    }
+
+    public void removePostFromList(int index, String redName){
+        if(posts != null && myAdapter != null){
+            if(posts.get(index).getRedname().equals(redName)){
+                posts.remove(index);
+                myAdapter.notifyItemRemoved(index);
+            }
         }
     }
 

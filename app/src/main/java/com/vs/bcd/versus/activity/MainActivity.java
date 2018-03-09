@@ -272,6 +272,14 @@ public class MainActivity extends Fragment {
         fab.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
     }
 
+    public Tab1Newsfeed getTab1(){
+        return tab1;
+    }
+
+    public Tab2Trending getTab2(){
+        return tab2;
+    }
+
     public Tab4Messenger getTab4Messenger(){
         return tab4;
     }

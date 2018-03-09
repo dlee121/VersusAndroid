@@ -14,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.ListPreloader;
@@ -24,19 +25,33 @@ import com.google.android.gms.ads.formats.NativeAppInstallAdView;
 import com.google.android.gms.ads.formats.NativeContentAd;
 import com.google.android.gms.ads.formats.NativeContentAdView;
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
+import com.loopj.android.http.HttpGet;
 import com.vs.bcd.versus.activity.MainContainer;
+import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.GlideApp;
 import com.vs.bcd.versus.model.GlideUrlCustom;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.R;
 
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 
+import cz.msebera.android.httpclient.HttpEntity;
+import cz.msebera.android.httpclient.HttpResponse;
+import cz.msebera.android.httpclient.client.ClientProtocolException;
+import cz.msebera.android.httpclient.client.ResponseHandler;
+import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
+import cz.msebera.android.httpclient.impl.client.HttpClients;
+import cz.msebera.android.httpclient.util.EntityUtils;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 
@@ -175,7 +190,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
                     //if(((MainContainer)activity).getMainFrag().getUILifeStatus())
 
                     if(activity.showPost()){
-                        activity.postClicked(posts.get(position), fragmentInt);
+                        activity.postClicked(posts.get(position), fragmentInt, position);
                     }
                 }
             });
@@ -185,7 +200,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
                     //if(((MainContainer)activity).getMainFrag().getUILifeStatus())
 
                     if(activity.showPost()){
-                        activity.postClicked(posts.get(position), fragmentInt);
+                        activity.postClicked(posts.get(position), fragmentInt, position);
                     }
                 }
             });
@@ -195,7 +210,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
                     //if(((MainContainer)activity).getMainFrag().getUILifeStatus())
 
                     if(activity.showPost()){
-                        activity.postClicked(posts.get(position), fragmentInt);
+                        activity.postClicked(posts.get(position), fragmentInt, position);
                     }
                 }
             });
@@ -274,7 +289,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
                     //if(((MainContainer)activity).getMainFrag().getUILifeStatus())
 
                     if(activity.showPost()){
-                        activity.postClicked(posts.get(position), fragmentInt);
+                        activity.postClicked(posts.get(position), fragmentInt, position);
                     }
                 }
             });
@@ -356,13 +371,125 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
             Post compactPost = posts.get(position);
 
             CompactViewHolder compactViewHolder = (CompactViewHolder) holder;
+
+            if(fragmentInt == 1){ //Search item, so show author
+                compactViewHolder.author.setText(compactPost.getAuthor());
+                compactViewHolder.timeTop.setText(getFormattedTime(compactPost.getTime()));
+                compactViewHolder.time.setText("");
+                //TODO: set up profile pic and set onclick listener for author and profile pic to go to their profile page
+            }
+            else{ //Post History item, so no need to show author
+                compactViewHolder.authorContainer.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+                RelativeLayout.LayoutParams questionLP = (RelativeLayout.LayoutParams) compactViewHolder.question.getLayoutParams();
+                questionLP.removeRule(RelativeLayout.BELOW);
+                questionLP.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
+                compactViewHolder.question.setLayoutParams(questionLP);
+                compactViewHolder.time.setText(getFormattedTime(compactPost.getTime()));
+            }
+
             compactViewHolder.question.setText(compactPost.getQuestion());
             compactViewHolder.rname.setText(compactPost.getRedname());
             compactViewHolder.bname.setText(compactPost.getBlackname());
             compactViewHolder.votecount.setText(Integer.toString(compactPost.getVotecount()));
-            compactViewHolder.time.setText(getFormattedTime(compactPost.getTime()));
+
+
+            compactViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(activity.showPost()){
+
+                        Runnable runnable = new Runnable() {
+                            public void run() {
+                                final Post clickedPost = supplementCompactPost(posts.get(position).getPost_id());
+                                if(clickedPost == null){
+                                    //TODO: Toast saying "Something went wrong"
+                                }
+                                else{
+                                    activity.runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            activity.postClicked(clickedPost, fragmentInt, position);
+                                        }
+                                    });
+                                }
+                            }
+                        };
+                        Thread mythread = new Thread(runnable);
+                        mythread.start();
+                    }
+                }
+            });
 
         }
+    }
+
+    private Post supplementCompactPost(String postID){
+        String host = activity.getESHost();
+        String query = "/post/post_type/"+postID;
+        String url = "https://" + host + query;
+
+        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
+        awsHeaders.put("host", host);
+
+        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
+                .regionName(activity.getESRegion())
+                .serviceName("es") // es - elastic search. use your service name
+                .httpMethodName("GET") //GET, PUT, POST, DELETE, etc...
+                .canonicalURI(query) //end point
+                .queryParametes(null) //query parameters if any
+                .awsHeaders(awsHeaders) //aws header parameters
+                .debug() // turn on the debug mode
+                .build();
+
+        HttpGet httpGet = new HttpGet(url);
+
+		        /* Get header calculated for request */
+        Map<String, String> header = aWSV4Auth.getHeaders();
+        for (Map.Entry<String, String> entrySet : header.entrySet()) {
+            String key = entrySet.getKey();
+            String value = entrySet.getValue();
+
+			    /* Attach header in your request */
+			    /* Simple get request */
+
+            httpGet.addHeader(key, value);
+        }
+
+        /* Create object of CloseableHttpClient */
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+		/* Response handler for after request execution */
+        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
+
+            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+				/* Get status code */
+                int status = response.getStatusLine().getStatusCode();
+                if (status >= 200 && status < 300) {
+					/* Convert response to String */
+                    HttpEntity entity = response.getEntity();
+                    return entity != null ? EntityUtils.toString(entity) : null;
+                } else {
+                    throw new ClientProtocolException("Unexpected response status: " + status);
+                }
+            }
+        };
+
+        try {
+			/* Execute URL and attach after execution response handler */
+
+            String strResponse = httpClient.execute(httpGet, responseHandler);
+
+            JSONObject obj = new JSONObject(strResponse);
+            JSONObject item = obj.getJSONObject("_source");
+            return new Post(item, false);
+
+            //System.out.println("Response: " + strResponse);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //if the ES GET fails, then return old topCardContent
+        return null;
     }
 
     @Override
@@ -440,10 +567,16 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
     }
 
     private class CompactViewHolder extends RecyclerView.ViewHolder{
-        private TextView question, votecount, rname, bname, time;
+        private TextView author, question, votecount, rname, bname, time, timeTop;
+        private RelativeLayout authorContainer;
+        private CircleImageView profileImg;
 
         public CompactViewHolder(View view){
             super(view);
+            authorContainer = view.findViewById(R.id.cc_author_container);
+            profileImg = authorContainer.findViewById(R.id.profile_image_cc);
+            author = authorContainer.findViewById(R.id.cc_author_tv);
+            timeTop = authorContainer.findViewById(R.id.time_cc);
             question = view.findViewById(R.id.question_vc);
             votecount = view.findViewById(R.id.votes_vc);
             rname = view.findViewById(R.id.red_vc);
