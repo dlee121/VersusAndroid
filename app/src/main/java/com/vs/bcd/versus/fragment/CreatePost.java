@@ -294,16 +294,34 @@ public class CreatePost extends Fragment {
                         postToEdit.setCategory(currentCategorySelection);
                     }
                     if(leftImgDeleted){
+                        int editVersion = postToEdit.getRedimg()/10;
+                        int newImg = editVersion * 10 + DEFAULT;
                         postEdited = true;
                         AttributeValueUpdate ri = new AttributeValueUpdate()
-                                .withValue(new AttributeValue().withN(Integer.toString(DEFAULT)))
+                                .withValue(new AttributeValue().withN(Integer.toString(newImg)))
                                 .withAction(AttributeAction.PUT);
                         updates.put("ri", ri);
-                        postToEdit.setRedimg(DEFAULT);
+                        postToEdit.setRedimg(newImg);
 
-                        //TODO: delete the left image in S3
+                        final String objectKey;
+                        if(editVersion > 0){//this image has edit version number
+                            objectKey = postToEdit.getPost_id() + "-left" + Integer.toString(editVersion) + ".jpeg";
+                        }
+                        else{
+                            objectKey = postToEdit.getPost_id() + "-left.jpeg";
+                        }
+
+                        Runnable runnable = new Runnable() {
+                            public void run() {
+                                activity.getS3Client().deleteObject("versus.pictures", objectKey);
+                            }
+                        };
+                        Thread mythread = new Thread(runnable);
+                        mythread.start();
                     }
                     if(leftImgEdited){
+                        int oldEditVersion = postToEdit.getRedimg()/10;
+
                         waitForImageUpload = true;
                         postEdited = true;
                         int newRedimg = (postToEdit.getRedimg()/10 + 1) * 10 + S3;
@@ -312,19 +330,54 @@ public class CreatePost extends Fragment {
                                 .withAction(AttributeAction.PUT);
                         updates.put("ri", ri);
                         postToEdit.setRedimg(newRedimg);
+
+                        final String objectKey;
+                        if(oldEditVersion > 0){//this image has edit version number
+                            objectKey = postToEdit.getPost_id() + "-left" + Integer.toString(oldEditVersion) + ".jpeg";
+                        }
+                        else{
+                            objectKey = postToEdit.getPost_id() + "-left.jpeg";
+                        }
+
+                        Runnable runnable = new Runnable() {
+                            public void run() {
+                                activity.getS3Client().deleteObject("versus.pictures", objectKey);
+                            }
+                        };
+                        Thread mythread = new Thread(runnable);
+                        mythread.start();
+
+
                     }
                     if(rightImgDeleted){
+                        int editVersion = postToEdit.getBlackimg()/10;
+                        int newImg = editVersion * 10 + DEFAULT;
                         postEdited = true;
                         AttributeValueUpdate bi = new AttributeValueUpdate()
-                                .withValue(new AttributeValue().withN(Integer.toString(DEFAULT)))
+                                .withValue(new AttributeValue().withN(Integer.toString(newImg)))
                                 .withAction(AttributeAction.PUT);
                         updates.put("bi", bi);
-                        postToEdit.setBlackimg(DEFAULT);
+                        postToEdit.setBlackimg(newImg);
 
-                        //TODO: delete the right image in S3
+                        final String objectKey;
+                        if(editVersion > 0){//this image has edit version number
+                            objectKey = postToEdit.getPost_id() + "-right" + Integer.toString(editVersion) + ".jpeg";
+                        }
+                        else{
+                            objectKey = postToEdit.getPost_id() + "-right.jpeg";
+                        }
 
+                        Runnable runnable = new Runnable() {
+                            public void run() {
+                                activity.getS3Client().deleteObject("versus.pictures", objectKey);
+                            }
+                        };
+                        Thread mythread = new Thread(runnable);
+                        mythread.start();
                     }
                     if(rightImgEdited){
+                        int oldEditVersion = postToEdit.getBlackimg()/10;
+
                         waitForImageUpload = true;
                         postEdited = true;
                         int newBlackimg = (postToEdit.getBlackimg()/10 + 1) * 10 + S3;
@@ -333,6 +386,22 @@ public class CreatePost extends Fragment {
                                 .withAction(AttributeAction.PUT);
                         updates.put("bi", bi);
                         postToEdit.setBlackimg(newBlackimg);
+
+                        final String objectKey;
+                        if(oldEditVersion > 0){//this image has edit version number
+                            objectKey = postToEdit.getPost_id() + "-right" + Integer.toString(oldEditVersion) + ".jpeg";
+                        }
+                        else{
+                            objectKey = postToEdit.getPost_id() + "-right.jpeg";
+                        }
+
+                        Runnable runnable = new Runnable() {
+                            public void run() {
+                                activity.getS3Client().deleteObject("versus.pictures", objectKey);
+                            }
+                        };
+                        Thread mythread = new Thread(runnable);
+                        mythread.start();
                     }
 
                     //ByteArrayOutputStream bos = new ByteArrayOutputStream();
