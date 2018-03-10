@@ -195,6 +195,11 @@ public class MainContainer extends AppCompatActivity {
 
                 case 3:  //PostPage
                     //Log.d("debug", "is 1");
+                    if(postPage.overflowMenuIsOpen()){
+                        postPage.closeOverflowMenu();
+                        return;
+                    }
+
                     if(!postPage.isRootLevel()){
                         //Log.d("debug", "is not root");
                         postPage.backToParentPage();

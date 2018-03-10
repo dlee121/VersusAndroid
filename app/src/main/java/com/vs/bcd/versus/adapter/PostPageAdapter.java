@@ -15,10 +15,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListAdapter;
+import android.widget.ListPopupWindow;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -79,6 +82,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private RelativeLayout.LayoutParams sortSelectorLowerLP, sortBackgroundLowerLP, seeMoreContainerLP;
 
     private Toast mToast;
+    private ListPopupWindow listPopupWindow;
 
     private int DEFAULT = 0;
     private int S3 = 1;
@@ -189,6 +193,14 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     @Override
                     public void onClick(View view) {
                         activity.goToProfile(authorName);
+                    }
+                });
+
+
+                commentViewHolder.overflowMenu.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        showListPopupWindow(activity.getUsername().equals(currentComment.getAuthor()), commentViewHolder.overflowMenu);
                     }
                 });
 
@@ -525,14 +537,16 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         public TextView timestamp, author, content, heartCount;
         public Button replyButton, seeMoreButton;
-        public ImageButton upvoteButton, downvoteButton;
+        public ImageButton upvoteButton, downvoteButton, overflowMenu;
         public ImageView medalImage;
         public LinearLayout seeMoreContainer;
+
         //public TextView ellipsis;
 
         public CommentViewHolder(View view) {
             super(view);
             author = view.findViewById(R.id.usernametvcs);
+            overflowMenu = view.findViewById(R.id.comment_overflow_menu);
             timestamp = view.findViewById(R.id.timetvcs);
             content = view.findViewById(R.id.usercomment);
             heartCount = view.findViewById(R.id.heartCount);
@@ -796,6 +810,64 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     postCard.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_chrono_20small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
                     break;
             }
+        }
+    }
+
+    private void showListPopupWindow(final boolean isAuthor, ImageButton anchorPoint){
+        final String [] items;
+        final Integer[] icons;
+
+        if(isAuthor){
+            items = new String[] {"Delete"};
+            icons = new Integer[] {R.drawable.ic_delete};
+        }
+        else{
+            items = new String[] {"Report"};
+            icons = new Integer[] {R.drawable.ic_flag};
+        }
+        int width = activity.getResources().getDimensionPixelSize(R.dimen.overflow_width);
+
+
+        ListAdapter adapter = new ArrayAdapterWithIcon(activity, items, icons);
+
+        listPopupWindow = new ListPopupWindow(activity);
+        listPopupWindow.setAnchorView(anchorPoint);
+        listPopupWindow.setAdapter(adapter);
+        listPopupWindow.setWidth(width);
+
+        listPopupWindow.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                if(isAuthor){
+                    //for now there's only one option for when author of the comment, Delete
+
+                }
+                else{
+                    //for now there's only one option for when not author of the comment, Report
+
+
+                }
+
+                listPopupWindow.dismiss();
+            }
+        });
+        listPopupWindow.show();
+    }
+
+    public boolean overflowMenuIsOpen(){
+        if(listPopupWindow == null){
+            return false;
+        }
+        else{
+            return listPopupWindow.isShowing();
+        }
+    }
+
+    public void closeOverflowMenu(){
+        if(listPopupWindow != null){
+            listPopupWindow.dismiss();
         }
     }
 

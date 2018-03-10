@@ -2846,4 +2846,19 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         return currCommentsIndex;
     }
 
+    public boolean overflowMenuIsOpen(){
+        if(PPAdapter != null){
+            return PPAdapter.overflowMenuIsOpen();
+        }
+        else{
+            return false;
+        }
+    }
+
+    public void closeOverflowMenu(){
+        if(PPAdapter != null) {
+            PPAdapter.closeOverflowMenu();
+        }
+    }
+
 }

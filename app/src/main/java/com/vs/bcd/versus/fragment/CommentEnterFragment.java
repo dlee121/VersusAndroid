@@ -141,14 +141,16 @@ public class CommentEnterFragment extends Fragment{
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
             Log.d("VISIBLE", "SEARCH VISIBLE");
-            if(rootView != null)
+            if(rootView != null){
                 activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
                 enableChildViews();
+            }
         }
         else {
             Log.d("VISIBLE", "SEARCH POST GONE");
-            if (rootView != null)
+            if (rootView != null){
                 disableChildViews();
+            }
         }
     }
 
@@ -309,5 +311,4 @@ public class CommentEnterFragment extends Fragment{
         }
     }
 }
-
 
