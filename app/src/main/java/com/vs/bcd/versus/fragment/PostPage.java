@@ -563,7 +563,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             prevNode = cNode;
 
                             //medal handling
-                            if (atRootLevel && currMedalNumber > 0) {
+                            if (atRootLevel && currMedalNumber > 0 && !currComment.getAuthor().equals("[deleted]")) {
                                 if (currComment.getUpvotes() >= minUpvotes) { //need to meet upvotes minimum to be cosidered for medals
                                     if (currComment.getUpvotes() < prevUpvotes) {
                                         currMedalNumber--;
@@ -2073,15 +2073,19 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     private void sendCommentUpvoteNotification(VSComment content){
-        String payloadContent = sanitizeContentForURL(content.getContent());
-        String commentAuthorPath = getUsernameHash(content.getAuthor()) + "/" + content.getAuthor() + "/n/u/" + content.getParent_id() + ":" +content.getComment_id() + ":" + payloadContent;
-        mFirebaseDatabaseReference.child(commentAuthorPath).push().setValue(System.currentTimeMillis()/1000);
+        if(!content.getAuthor().equals("[deleted]")){
+            String payloadContent = sanitizeContentForURL(content.getContent());
+            String commentAuthorPath = getUsernameHash(content.getAuthor()) + "/" + content.getAuthor() + "/n/u/" + content.getParent_id() + ":" +content.getComment_id() + ":" + payloadContent;
+            mFirebaseDatabaseReference.child(commentAuthorPath).push().setValue(System.currentTimeMillis()/1000);
+        }
     }
 
     private void sendPostVoteNotification(){
-        String nKey = postID+":"+sanitizeContentForURL(post.getRedname())+":"+sanitizeContentForURL(post.getBlackname())+":"+sanitizeContentForURL(post.getQuestion());
-        String postAuthorPath = getUsernameHash(post.getAuthor()) + "/" + post.getAuthor() + "/n/v/" + nKey;
-        mFirebaseDatabaseReference.child(postAuthorPath).push().setValue(System.currentTimeMillis()/1000);
+        if(!post.getAuthor().equals("[deleted]")){
+            String nKey = postID+":"+sanitizeContentForURL(post.getRedname())+":"+sanitizeContentForURL(post.getBlackname())+":"+sanitizeContentForURL(post.getQuestion());
+            String postAuthorPath = getUsernameHash(post.getAuthor()) + "/" + post.getAuthor() + "/n/v/" + nKey;
+            mFirebaseDatabaseReference.child(postAuthorPath).push().setValue(System.currentTimeMillis()/1000);
+        }
     }
 
     private String getUsernameHash(String usernameIn){
@@ -2508,7 +2512,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 prevNode = cNode;
 
                 //medal handling
-                if(atRootLevel && currMedalNumber > 0){
+                if(atRootLevel && currMedalNumber > 0 && !currComment.getAuthor().equals("[deleted]")){
                     if(currComment.getUpvotes() >= minUpvotes){ //need to meet upvotes minimum to be cosidered for medals
                         if(currComment.getUpvotes() < prevUpvotes){
                             currMedalNumber--;

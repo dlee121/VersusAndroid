@@ -27,6 +27,10 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.amazonaws.services.dynamodbv2.model.AttributeAction;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
+import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.bumptech.glide.Glide;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.R;
@@ -38,6 +42,7 @@ import com.vs.bcd.versus.model.VSComment;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Date;
 import java.util.Locale;
@@ -156,13 +161,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
                 final String authorName = currentComment.getAuthor();
 
-                if(activity.getSessionManager().getCurrentUsername().equals(currentComment)){
-                    //TODO: implement UI for comments that user wrote, like edit and delete options
-                }
-
-                int dpValue = 50; // margin in dips
-                float d = activity.getResources().getDisplayMetrics().density;
-                int margin = (int)(dpValue * d); // margin in pixels
+                int margin = activity.getResources().getDimensionPixelSize(R.dimen.comment_margin); // margin in pixels
 
 
                 setLeftMargin(commentViewHolder.author, margin * currentComment.getNestedLevel());  //left margin (indentation) of 150dp per nested level
@@ -189,18 +188,20 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 }
 
                 commentViewHolder.author.setText(currentComment.getAuthor());
-                commentViewHolder.author.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        activity.goToProfile(authorName);
-                    }
-                });
+                if(!currentComment.getAuthor().equals("[deleted]")){
+                    commentViewHolder.author.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            activity.goToProfile(authorName);
+                        }
+                    });
+                }
 
 
                 commentViewHolder.overflowMenu.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        showListPopupWindow(activity.getUsername().equals(currentComment.getAuthor()), commentViewHolder.overflowMenu);
+                        showListPopupWindow(activity.getUsername().equals(currentComment.getAuthor()), commentViewHolder.overflowMenu, position);
                     }
                 });
 
@@ -352,6 +353,16 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             postCard.questionTV.setText(post.getQuestion());
             postCard.rednameTV.setText(post.getRedname());
             postCard.blacknameTV.setText(post.getBlackname());
+
+
+            //TODO: set up author box like in MyAdapter post_card, and add OnClickListener if username != [deleted]
+            if(!post.getAuthor().equals("[deleted]")){
+                //TODO: onClickListener for author username and profile picture (to go to their profile page) goes here
+
+                /////////////
+
+
+            }
 
             redTint = new ShapeDrawable (new RectShape());
             redTint.setIntrinsicWidth (postCard.redIV.getWidth());
@@ -813,7 +824,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
     }
 
-    private void showListPopupWindow(final boolean isAuthor, ImageButton anchorPoint){
+    private void showListPopupWindow(final boolean isAuthor, ImageButton anchorPoint, final int index){
         final String [] items;
         final Integer[] icons;
 
@@ -842,6 +853,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
                 if(isAuthor){
                     //for now there's only one option for when author of the comment, Delete
+                    deleteComment(index);
 
                 }
                 else{
@@ -854,6 +866,48 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             }
         });
         listPopupWindow.show();
+    }
+
+    private void deleteComment(final int index){
+
+        Runnable runnable = new Runnable() {
+            public void run() {
+                //sets author of the comment to "[deleted]"
+                final VSComment commentToEdit = ((VSComment) masterList.get(index));
+
+                HashMap<String, AttributeValue> keyMap = new HashMap<>();
+                keyMap.put("i", new AttributeValue().withS(commentToEdit.getComment_id()));
+                HashMap<String, AttributeValueUpdate> updates = new HashMap<>();
+
+                AttributeValueUpdate newA = new AttributeValueUpdate()
+                        .withValue(new AttributeValue().withS("[deleted]"))
+                        .withAction(AttributeAction.PUT);
+                updates.put("a", newA);
+
+                AttributeValueUpdate newM = new AttributeValueUpdate()
+                        .withValue(new AttributeValue().withN(Integer.toString(0)))
+                        .withAction(AttributeAction.PUT);
+                updates.put("m", newM);
+
+                UpdateItemRequest request = new UpdateItemRequest()
+                        .withTableName("vscomment")
+                        .withKey(keyMap)
+                        .withAttributeUpdates(updates);
+                activity.getDDBClient().updateItem(request);
+
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        commentToEdit.setAuthor("[deleted]");
+                        masterList.set(index, commentToEdit);
+                        notifyItemChanged(index);
+                    }
+                });
+            }
+        };
+        Thread mythread = new Thread(runnable);
+        mythread.start();
+
     }
 
     public boolean overflowMenuIsOpen(){

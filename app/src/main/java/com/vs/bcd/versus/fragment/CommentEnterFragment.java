@@ -212,12 +212,12 @@ public class CommentEnterFragment extends Fragment{
                     activity.getMapper().save(vsc);
 
                     //send appropriate notification
-                    if(post != null){    //if root comment
+                    if(post != null && !post.getAuthor().equals("[deleted]")){    //if root comment
                         String nKey = postID+":"+sanitizeContentForURL(post.getRedname())+":"+sanitizeContentForURL(post.getBlackname())+":"+sanitizeContentForURL(post.getQuestion());
                         String postAuthorPath = getUsernameHash(post.getAuthor()) + "/" + post.getAuthor() + "/n/r/" + nKey;
                         mFirebaseDatabaseReference.child(postAuthorPath).push().setValue(System.currentTimeMillis()/1000);  //set value = timestamp as seconds from epoch
                     }
-                    else if(subjectComment != null){   //else this is a reply to a comment
+                    else if(subjectComment != null && !subjectComment.getAuthor().equals("[deleted]")){   //else this is a reply to a comment
                         String payloadContent = sanitizeContentForURL(subjectComment.getContent());
 
                         String subjectAuthorPath = getUsernameHash(subjectComment.getAuthor()) + "/" + subjectComment.getAuthor() + "/n/c/"

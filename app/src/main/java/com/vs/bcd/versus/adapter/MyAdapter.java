@@ -161,19 +161,23 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
             }
 
             final String authorName = post.getAuthor();
+            txtImgViewHolder.author.setText(authorName);
+
             //set onClickListener for profile pic
             txtImgViewHolder.circView.setOnClickListener(new View.OnClickListener(){
                 @Override
                 public void onClick(View v){
-                    activity.goToProfile(authorName);
+                    if(!authorName.equals("[deleted]")){
+                        activity.goToProfile(authorName);
+                    }
                 }
             });
-
-            txtImgViewHolder.author.setText(authorName);
             txtImgViewHolder.author.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    activity.goToProfile(authorName);
+                    if(!authorName.equals("[deleted]")){
+                        activity.goToProfile(authorName);
+                    }
                 }
             });
 
@@ -259,19 +263,25 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
             }
 
             final String authorName = post.getAuthor();
+            txtOnlyViewHolder.author.setText(authorName);
+
+
             //set onClickListener for profile pic
             txtOnlyViewHolder.circView.setOnClickListener(new View.OnClickListener(){
                 @Override
                 public void onClick(View v){
-                    activity.goToProfile(authorName);
+                    if(!authorName.equals("[deleted]")){
+                        activity.goToProfile(authorName);
+                    }
                 }
             });
 
-            txtOnlyViewHolder.author.setText(authorName);
             txtOnlyViewHolder.author.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    activity.goToProfile(authorName);
+                    if(!authorName.equals("[deleted]")){
+                        activity.goToProfile(authorName);
+                    }
                 }
             });
 
@@ -376,7 +386,10 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
                 compactViewHolder.author.setText(compactPost.getAuthor());
                 compactViewHolder.timeTop.setText(getFormattedTime(compactPost.getTime()));
                 compactViewHolder.time.setText("");
-                //TODO: set up profile pic and set onclick listener for author and profile pic to go to their profile page
+                if(!compactPost.getAuthor().equals("[deleted]")){
+                    //TODO: set up profile pic and set onclick listener for author and profile pic to go to their profile page
+
+                }
             }
             else{ //Post History item, so no need to show author
                 compactViewHolder.authorContainer.setLayoutParams(new RelativeLayout.LayoutParams(0,0));

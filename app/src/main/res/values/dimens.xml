@@ -13,5 +13,6 @@
     <dimen name="overflow_height">20dp</dimen>
     <dimen name="overflow_text_size">14dp</dimen>
     <dimen name="overflow_row_height">48dp</dimen>
+    <dimen name="comment_margin">50dp</dimen>
 
 </resources>
