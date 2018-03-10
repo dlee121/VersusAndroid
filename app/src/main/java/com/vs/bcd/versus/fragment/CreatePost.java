@@ -222,10 +222,13 @@ public class CreatePost extends Fragment {
         setOriginFragNum(3);
         postToEdit = post;
 
+        questionET.setText(".");
         questionET.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
         questionET.setFocusable(false);
+        rednameET.setText(".");
         rednameET.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
         rednameET.setFocusable(false);
+        blacknameET.setText(".");
         blacknameET.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
         blacknameET.setFocusable(false);
 

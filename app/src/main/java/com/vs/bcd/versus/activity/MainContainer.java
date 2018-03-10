@@ -1265,6 +1265,14 @@ public class MainContainer extends AppCompatActivity {
                             .withValue(new AttributeValue().withS("[deleted]"))
                             .withAction(AttributeAction.PUT);
                     updates.put("a", newA);
+                    AttributeValueUpdate newRI = new AttributeValueUpdate()
+                            .withValue(new AttributeValue().withN(Integer.toString(0)))
+                            .withAction(AttributeAction.PUT);
+                    updates.put("ri", newRI);
+                    AttributeValueUpdate newBI = new AttributeValueUpdate()
+                            .withValue(new AttributeValue().withN(Integer.toString(0)))
+                            .withAction(AttributeAction.PUT);
+                    updates.put("bi", newBI);
 
                     UpdateItemRequest request = new UpdateItemRequest()
                             .withTableName("post")
