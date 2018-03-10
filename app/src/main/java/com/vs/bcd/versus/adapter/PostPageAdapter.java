@@ -48,6 +48,8 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
 
 public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -350,19 +352,30 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         } else if (holder instanceof PostCardViewHolder) {
             //Log.d("DEBUG", "BIND EVENT");
             postCard = (PostCardViewHolder) holder;
+            postCard.author.setText(post.getAuthor());
+            postCard.votecount.setText(Integer.toString(post.getVotecount()) + " votes");
             postCard.questionTV.setText(post.getQuestion());
             postCard.rednameTV.setText(post.getRedname());
             postCard.blacknameTV.setText(post.getBlackname());
 
+            postCard.author.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(!post.getAuthor().equals("[deleted]")){
+                        activity.goToProfile(post.getAuthor());
+                    }
+                }
+            });
 
-            //TODO: set up author box like in MyAdapter post_card, and add OnClickListener if username != [deleted]
-            if(!post.getAuthor().equals("[deleted]")){
-                //TODO: onClickListener for author username and profile picture (to go to their profile page) goes here
+            postCard.profileImg.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(!post.getAuthor().equals("[deleted]")){
+                        activity.goToProfile(post.getAuthor());
+                    }
+                }
+            });
 
-                /////////////
-
-
-            }
 
             redTint = new ShapeDrawable (new RectShape());
             redTint.setIntrinsicWidth (postCard.redIV.getWidth());
@@ -507,16 +520,21 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     private class PostCardViewHolder extends RecyclerView.ViewHolder {
 
-        public TextView questionTV, rednameTV, blacknameTV, leftPercentage, rightPercentage;
+        public TextView questionTV, rednameTV, blacknameTV, leftPercentage, rightPercentage, author, votecount;
         public ImageView redIV, blkIV, redMask, blkMask;
         public View redgraphView;
         public RelativeLayout graphBox;
         public Button sortTypeSelector;
         public RelativeLayout redimgBox, blkimgBox;
         public LinearLayout sortTypeBackground;
+        public CircleImageView profileImg;
+
 
         public PostCardViewHolder (View view){
             super(view);
+            author = view.findViewById(R.id.author_pc);
+            votecount = view.findViewById(R.id.votecount_pc);
+            profileImg = view.findViewById(R.id.profile_image_pc);
             questionTV = view.findViewById(R.id.post_page_question);
             rednameTV = view.findViewById(R.id.rednametvpc);
             blacknameTV = view.findViewById(R.id.blacknametvpc);

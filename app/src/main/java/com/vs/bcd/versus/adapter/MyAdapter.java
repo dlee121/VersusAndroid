@@ -378,7 +378,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
         }
 
         else { //the only remaining possibility; the vscard_compact for Search and Post History
-            Post compactPost = posts.get(position);
+            final Post compactPost = posts.get(position);
 
             CompactViewHolder compactViewHolder = (CompactViewHolder) holder;
 
@@ -386,10 +386,26 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
                 compactViewHolder.author.setText(compactPost.getAuthor());
                 compactViewHolder.timeTop.setText(getFormattedTime(compactPost.getTime()));
                 compactViewHolder.time.setText("");
-                if(!compactPost.getAuthor().equals("[deleted]")){
-                    //TODO: set up profile pic and set onclick listener for author and profile pic to go to their profile page
 
-                }
+
+
+                compactViewHolder.author.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if(!compactPost.getAuthor().equals("[deleted]")){
+                            activity.goToProfile(compactPost.getAuthor());
+                        }
+                    }
+                });
+
+                compactViewHolder.profileImg.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if(!compactPost.getAuthor().equals("[deleted]")){
+                            activity.goToProfile(compactPost.getAuthor());
+                        }
+                    }
+                });
             }
             else{ //Post History item, so no need to show author
                 compactViewHolder.authorContainer.setLayoutParams(new RelativeLayout.LayoutParams(0,0));

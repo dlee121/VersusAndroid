@@ -15,8 +15,8 @@
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/profile_image_t"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
             android:layout_marginTop="8dp"
             android:clickable="true"
             android:focusable="true"
@@ -33,19 +33,18 @@
             android:maxLines="1"
             android:gravity="center|start"
             android:layout_width="wrap_content"
-            android:layout_height="50dp"
+            android:layout_height="35dp"
             android:layout_marginTop="8dp"
             android:text="Username"
             android:textSize="18sp"
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
-            android:layout_toEndOf="@id/profile_image_t"
-            android:layout_toStartOf="@+id/votecount_t"/>
+            android:layout_toEndOf="@id/profile_image_t"/>
 
         <TextView
-            android:id="@id/votecount_t"
+            android:id="@+id/votecount_t"
             android:layout_width="130dp"
-            android:layout_height="50dp"
+            android:layout_height="35dp"
             android:layout_alignParentEnd="true"
             android:layout_alignParentTop="true"
             android:layout_marginEnd="8dp"
@@ -61,8 +60,8 @@
             android:id="@+id/horizdivider1_t"
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
             android:background="@android:color/darker_gray"
             android:layout_below="@id/author_t"/>
 
