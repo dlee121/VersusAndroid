@@ -210,7 +210,7 @@ public class MainContainer extends AppCompatActivity {
                         //postPage.clearList();
                         Log.d("MyAdapterInt", Integer.toString(myAdapterFragInt));
                         if(myAdapterFragInt == 9 && postParentProfileUsername != null){
-                            goToProfile(postParentProfileUsername);
+                            goToProfile(postParentProfileUsername, false);
                         }
                         else{
                             mViewPager.setCurrentItem(myAdapterFragInt);
@@ -393,7 +393,7 @@ public class MainContainer extends AppCompatActivity {
                             postPage.writeActionsToDB();
                             //postPage.clearList();
                             if(myAdapterFragInt == 9 && postParentProfileUsername != null){
-                                goToProfile(postParentProfileUsername);
+                                goToProfile(postParentProfileUsername, false);
                             }
                             else{
                                 mViewPager.setCurrentItem(myAdapterFragInt);
@@ -1133,14 +1133,16 @@ public class MainContainer extends AppCompatActivity {
         }
     }
 
-    public void goToProfile(String username){
+    public void goToProfile(String username, boolean resetTabSelection){
         if(username.equals(sessionManager.getCurrentUsername())){
             meClicked = true;
             profileTab.setUpProfile(username, true);
             mViewPager.setCurrentItem(9);
         }
         else{
-            profileTab.openProfileWithCommentsTabSelected();
+            if(resetTabSelection){
+                profileTab.openProfileWithCommentsTabSelected();
+            }
             meClicked = false;
             profileTab.setUpProfile(username, false);
             mViewPager.setCurrentItem(9);

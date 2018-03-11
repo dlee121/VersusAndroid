@@ -986,7 +986,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             @Override
             public void onClick(View view) {
                 if(!authorUsername.equals("[deleted]")){
-                    activity.goToProfile(authorUsername);
+                    activity.goToProfile(authorUsername, true);
                 }
             }
         });

@@ -168,7 +168,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
                 @Override
                 public void onClick(View v){
                     if(!authorName.equals("[deleted]")){
-                        activity.goToProfile(authorName);
+                        activity.goToProfile(authorName, true);
                     }
                 }
             });
@@ -176,7 +176,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
                 @Override
                 public void onClick(View view) {
                     if(!authorName.equals("[deleted]")){
-                        activity.goToProfile(authorName);
+                        activity.goToProfile(authorName, true);
                     }
                 }
             });
@@ -271,7 +271,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
                 @Override
                 public void onClick(View v){
                     if(!authorName.equals("[deleted]")){
-                        activity.goToProfile(authorName);
+                        activity.goToProfile(authorName, true);
                     }
                 }
             });
@@ -280,7 +280,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
                 @Override
                 public void onClick(View view) {
                     if(!authorName.equals("[deleted]")){
-                        activity.goToProfile(authorName);
+                        activity.goToProfile(authorName, true);
                     }
                 }
             });
@@ -393,7 +393,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
                     @Override
                     public void onClick(View view) {
                         if(!compactPost.getAuthor().equals("[deleted]")){
-                            activity.goToProfile(compactPost.getAuthor());
+                            activity.goToProfile(compactPost.getAuthor(), true);
                         }
                     }
                 });
@@ -402,7 +402,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
                     @Override
                     public void onClick(View view) {
                         if(!compactPost.getAuthor().equals("[deleted]")){
-                            activity.goToProfile(compactPost.getAuthor());
+                            activity.goToProfile(compactPost.getAuthor(), true);
                         }
                     }
                 });

@@ -194,7 +194,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     commentViewHolder.author.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            activity.goToProfile(authorName);
+                            activity.goToProfile(authorName, true);
                         }
                     });
                 }
@@ -362,7 +362,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 @Override
                 public void onClick(View view) {
                     if(!post.getAuthor().equals("[deleted]")){
-                        activity.goToProfile(post.getAuthor());
+                        activity.goToProfile(post.getAuthor(), true);
                     }
                 }
             });
@@ -371,7 +371,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 @Override
                 public void onClick(View view) {
                     if(!post.getAuthor().equals("[deleted]")){
-                        activity.goToProfile(post.getAuthor());
+                        activity.goToProfile(post.getAuthor(), true);
                     }
                 }
             });
