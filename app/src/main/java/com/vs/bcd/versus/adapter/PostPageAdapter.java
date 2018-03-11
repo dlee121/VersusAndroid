@@ -591,12 +591,6 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     }
 
-    //TODO: update function intent to launch profile page once profile page is available. For now, it leads to StartScreen.
-    public void profileClicked(View view){
-        if(((MainContainer)activity).getMainFrag().getUILifeStatus()){
-            //TODO: implement this for when profile picture is clicked on CommentCard and TopCard
-        }
-    }
 
     public void setLeftMargin (View v, int margin) {
         if (v.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {

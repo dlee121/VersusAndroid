@@ -288,7 +288,7 @@ public class SearchPage extends Fragment {
     }
 
     public void removePostFromList(int index, String redName){
-        if(postSearchResults != null && searchResultsPostsAdapter != null){
+        if(postSearchResults != null && searchResultsPostsAdapter != null && index >= 0){
             if(postSearchResults.get(index).getRedname().equals(redName)){
                 postSearchResults.remove(index);
                 searchResultsPostsAdapter.notifyItemRemoved(index);

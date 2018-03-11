@@ -1518,4 +1518,11 @@ public class MainContainer extends AppCompatActivity {
         toolbarProgressbar.setVisibility(View.INVISIBLE);
     }
 
+    public void commentHistoryClickHelper(String postAuthor){
+        toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+        myAdapterFragInt = 9; //profile page
+        postParentProfileUsername = postAuthor;
+        clickedPostIndex = -1;
+    }
+
 }

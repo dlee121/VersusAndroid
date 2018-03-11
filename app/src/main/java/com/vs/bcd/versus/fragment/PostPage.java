@@ -20,6 +20,7 @@ import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 import com.amazonaws.services.dynamodbv2.model.AttributeAction;
@@ -46,10 +47,14 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -143,6 +148,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private String host, region;
 
     private int pageLevel = 0;
+
+    private Toast mToast;
 
 
     @Override
@@ -969,20 +976,22 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         setCommentCardSortTypeHint();
 
-        CircleImageView circView = topCard.findViewById(R.id.profile_image_tc);
         TextView timestamp = topCard.findViewById(R.id.timetvtc);
         TextView author = topCard.findViewById(R.id.usernametvtc);
         TextView content = topCard.findViewById(R.id.usercommenttc);
         TextView heartCount = topCard.findViewById(R.id.heartCounttc);
 
-        circView.setOnClickListener(new View.OnClickListener(){
+        final String authorUsername = clickedComment.getAuthor();
+        author.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v){
-                PPAdapter.profileClicked(v);
+            public void onClick(View view) {
+                if(!authorUsername.equals("[deleted]")){
+                    activity.goToProfile(authorUsername);
+                }
             }
         });
 
-        timestamp.setText(PPAdapter.getTimeString(clickedComment.getTime()));
+        timestamp.setText(getTimeString(clickedComment.getTime()));
         author.setText(clickedComment.getAuthor());
         content.setText(clickedComment.getContent());
         heartCount.setText(Integer.toString(clickedComment.heartsTotal()));
@@ -2862,6 +2871,266 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     public void closeOverflowMenu(){
         if(PPAdapter != null) {
             PPAdapter.closeOverflowMenu();
+        }
+    }
+
+    public void childOrGrandchildHistoryItemClicked(final VSComment clickedComment){
+        pageLevel  = 2;
+        clearList();
+        if(PPAdapter != null) {
+            PPAdapter.clearList();
+        }
+        parentCache.put(clickedComment.getComment_id(), clickedComment);
+
+        Runnable runnable = new Runnable() {
+            public void run() {
+                final Post subjectPost = getPost(clickedComment.getPost_id());
+
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        activity.commentHistoryClickHelper(subjectPost.getAuthor());
+                    }
+                });
+
+                sortType = POPULAR;
+                nowLoading = false;
+
+                post = subjectPost;
+
+                postID = post.getPost_id();
+
+                postTopic = post.getQuestion();
+                postX = post.getRedname();
+                postY = post.getBlackname();
+                origRedCount = post.getRedcount();
+                origBlackCount = post.getBlackcount();
+                redIncrementedLast = false;
+                blackIncrementedLast = false;
+
+                parentCache.clear();
+
+                initialLoadInProgress = true;
+
+                if(userAction == null || !userAction.getPostID().equals(postID)){
+                    userAction = activity.getMapper().load(UserAction.class, sessionManager.getCurrentUsername(), postID);   //TODO: catch exception for this query
+                    //Log.d("DB", "download attempt for UserAction");
+                }
+                applyActions = true;
+                if(userAction == null){
+                    userAction = new UserAction(sessionManager.getCurrentUsername(), postID);
+                    applyActions = false;
+                }
+                lastSubmittedVote = userAction.getVotedSide();
+                actionMap = userAction.getActionRecord();
+                deepCopyToActionHistoryMap(actionMap);
+
+                //first get parent and add it to cache
+                final VSComment parentComment = getComment(clickedComment.getParent_id());
+                if(parentComment == null) {
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(mToast != null){
+                                mToast.cancel();
+                            }
+                            mToast = Toast.makeText(activity, "Something went wrong", Toast.LENGTH_SHORT);
+                            mToast.show();
+                        }
+                    });
+                    return;
+                }
+                parentCache.put(parentComment.getComment_id(), parentComment);
+
+                if(!parentComment.getParent_id().equals(parentComment.getPost_id())) {
+                    //turns out the parent is also child, so get the grandparent and add it to cache
+                    VSComment grandParentComment = getComment(parentComment.getParent_id());
+                    if (grandParentComment == null) {
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (mToast != null) {
+                                    mToast.cancel();
+                                }
+                                mToast = Toast.makeText(activity, "Something went wrong", Toast.LENGTH_SHORT);
+                                mToast.show();
+                            }
+                        });
+                        return;
+                    }
+                    parentCache.put(grandParentComment.getComment_id(), grandParentComment);
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            setCommentsPage(parentComment);
+                            activity.getViewPager().setCurrentItem(3);
+                        }
+                    });
+
+                }
+                else {
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            setCommentsPage(clickedComment);
+                            activity.getViewPager().setCurrentItem(3);
+                        }
+                    });
+                }
+
+            }
+        };
+        final Thread mythread = new Thread(runnable);
+        mythread.start();
+
+    }
+
+    public void rootCommentHistoryItemClicked(final VSComment clickedRootComment){
+        clearList();
+        if(PPAdapter != null) {
+            PPAdapter.clearList();
+        }
+
+        Runnable runnable = new Runnable() {
+            public void run() {
+                final Post subjectPost = getPost(clickedRootComment.getPost_id());
+
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        activity.commentHistoryClickHelper(subjectPost.getAuthor());
+                    }
+                });
+
+                sortType = POPULAR;
+                nowLoading = false;
+                pageLevel = 1;
+
+                post = subjectPost;
+
+                postID = post.getPost_id();
+
+                postTopic = post.getQuestion();
+                postX = post.getRedname();
+                postY = post.getBlackname();
+                origRedCount = post.getRedcount();
+                origBlackCount = post.getBlackcount();
+                redIncrementedLast = false;
+                blackIncrementedLast = false;
+
+                parentCache.clear();
+
+                initialLoadInProgress = true;
+
+                if(userAction == null || !userAction.getPostID().equals(postID)){
+                    userAction = activity.getMapper().load(UserAction.class, sessionManager.getCurrentUsername(), postID);   //TODO: catch exception for this query
+                    //Log.d("DB", "download attempt for UserAction");
+                }
+                applyActions = true;
+                if(userAction == null){
+                    userAction = new UserAction(sessionManager.getCurrentUsername(), postID);
+                    applyActions = false;
+                }
+                lastSubmittedVote = userAction.getVotedSide();
+                actionMap = userAction.getActionRecord();
+                deepCopyToActionHistoryMap(actionMap);
+
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        setCommentsPage(clickedRootComment);
+                        activity.getViewPager().setCurrentItem(3);
+                    }
+                });
+            }
+        };
+        Thread mythread = new Thread(runnable);
+        mythread.start();
+    }
+
+    private String getTimeString(String timeStamp){
+        int timeFormat = 0;
+
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
+        Date myDate = null;
+        try {
+            myDate = df.parse(timeStamp);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        //TODO: test all possible cases to make sure date format conversion works correctly, for seconds, for all time format constants (secs, mins, ... , years), singulars / plurals
+        long timediff = ((new Date()).getTime() - myDate.getTime()) / 1000;  //time elapsed since post creation, in seconds
+
+        //time format constants: 0 = seconds, 1 = minutes, 2 = hours, 3 = days , 4 = weeks, 5 = months, 6 = years
+        if(timediff >= 60) {  //if 60 seconds or more, convert to minutes
+            timediff /= 60;
+            timeFormat = 1;
+            if(timediff >= 60) { //if 60 minutes or more, convert to hours
+                timediff /= 60;
+                timeFormat = 2;
+                if(timediff >= 24) { //if 24 hours or more, convert to days
+                    timediff /= 24;
+                    timeFormat = 3;
+
+                    if(timediff >= 365) { //if 365 days or more, convert to years
+                        timediff /= 365;
+                        timeFormat = 6;
+                    }
+
+                    else if (timeFormat < 6 && timediff >= 30) { //if 30 days or more and not yet converted to years, convert to months
+                        timediff /= 30;
+                        timeFormat = 5;
+                    }
+
+                    else if(timeFormat < 5 && timediff >= 7) { //if 7 days or more and not yet converted to months or years, convert to weeks
+                        timediff /= 7;
+                        timeFormat = 4;
+                    }
+
+                }
+            }
+        }
+
+
+        if(timediff > 1) //if timediff is not a singular value
+            timeFormat += 7;
+
+        switch (timeFormat) {
+            //plural
+            case 7:
+                return String.valueOf(timediff) + " seconds ago";
+            case 8:
+                return String.valueOf(timediff) + " minutes ago";
+            case 9:
+                return String.valueOf(timediff) + " hours ago";
+            case 10:
+                return String.valueOf(timediff) + " days ago";
+            case 11:
+                return String.valueOf(timediff) + " weeks ago";
+            case 12:
+                return String.valueOf(timediff) + " months ago";
+            case 13:
+                return String.valueOf(timediff) + " years ago";
+
+            //singular
+            case 0:
+                return String.valueOf(timediff) + " second ago";
+            case 1:
+                return String.valueOf(timediff) + " minute ago";
+            case 2:
+                return String.valueOf(timediff) + " hour ago";
+            case 3:
+                return String.valueOf(timediff) + " day ago";
+            case 4:
+                return String.valueOf(timediff) + " week ago";
+            case 5:
+                return String.valueOf(timediff) + " month ago";
+            case 6:
+                return String.valueOf(timediff) + " year ago";
+
+            default:
+                return "";
         }
     }
 

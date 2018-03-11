@@ -255,7 +255,7 @@ public class PostsHistory extends Fragment implements SwipeRefreshLayout.OnRefre
     }
 
     public void removePostFromList(int index, String redName){
-        if(posts != null && myAdapter != null){
+        if(posts != null && myAdapter != null && index >= 0){
             if(posts.get(index).getRedname().equals(redName)){
                 posts.remove(index);
                 myAdapter.notifyItemRemoved(index);

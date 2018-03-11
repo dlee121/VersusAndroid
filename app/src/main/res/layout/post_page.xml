@@ -12,24 +12,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/profile_image_tc"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentTop="true"
-            android:clickable="true"
-            android:src="@drawable/vs_shadow_w_tag"
-            app:civ_border_color="#FF000000"
-            app:civ_border_width="2dp" />
-
         <TextView
             android:id="@+id/usernametvtc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
+            android:layout_alignParentStart="true"
             android:layout_marginStart="8dp"
-            android:layout_toEndOf="@+id/profile_image_tc"
             android:ellipsize="end"
             android:maxLines="1"
             android:maxWidth="120dp"
@@ -69,7 +58,7 @@
             android:layout_below="@id/usercommenttc"
             android:layout_marginLeft="8dp"
             android:layout_marginTop="3dp"
-            android:layout_toEndOf="@id/profile_image_tc"
+            android:layout_alignStart="@id/usernametvtc"
             android:background="@color/white"
             android:minHeight="0dp"
             android:minWidth="0dp"

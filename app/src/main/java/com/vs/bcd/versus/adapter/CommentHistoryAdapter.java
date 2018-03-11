@@ -25,10 +25,10 @@ import java.util.Locale;
 
 
 public class CommentHistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    private Activity activity;
+    private MainContainer activity;
     private List<VSComment> comments;
 
-    public CommentHistoryAdapter(List<VSComment> comments, Activity activity) {
+    public CommentHistoryAdapter(List<VSComment> comments, MainContainer activity) {
         this.comments = comments;
         this.activity = activity;
     }
@@ -68,6 +68,20 @@ public class CommentHistoryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
                 commentHistoryViewHolder.medalView.setImageResource(R.drawable.goldmedal);
                 break;
         }
+
+        commentHistoryViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(itemComment.getParent_id().equals(itemComment.getPost_id())){ //clicked item is root comment
+                    activity.getPostPage().rootCommentHistoryItemClicked(itemComment);
+                }
+                else{
+                    activity.getPostPage().childOrGrandchildHistoryItemClicked(itemComment);
+                }
+            }
+        });
+
+
     }
 
     @Override
@@ -89,11 +103,11 @@ public class CommentHistoryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
             super(view);
             redTv = view.findViewById(R.id.red_chi);
             blueTv = view.findViewById(R.id.blue_chi);
-            timeTV = (TextView) view.findViewById(R.id.time_chi);
+            timeTV = view.findViewById(R.id.time_chi);
             upvotes = view.findViewById(R.id.upvotes_chi);
             downvotes = view.findViewById(R.id.downvotes_chi);
-            medalView = (ImageView) view.findViewById(R.id.medal_chi);
-            content = (TextView) view.findViewById(R.id.usercomment_history);
+            medalView = view.findViewById(R.id.medal_chi);
+            content = view.findViewById(R.id.usercomment_history);
         }
     }
 
