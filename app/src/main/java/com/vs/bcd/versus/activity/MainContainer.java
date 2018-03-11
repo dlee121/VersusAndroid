@@ -1140,6 +1140,7 @@ public class MainContainer extends AppCompatActivity {
             mViewPager.setCurrentItem(9);
         }
         else{
+            profileTab.openProfileWithCommentsTabSelected();
             meClicked = false;
             profileTab.setUpProfile(username, false);
             mViewPager.setCurrentItem(9);

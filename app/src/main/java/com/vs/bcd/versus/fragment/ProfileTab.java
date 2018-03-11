@@ -307,13 +307,23 @@ public class ProfileTab extends Fragment {
         }
     }
 
+    public void openProfileWithCommentsTabSelected(){
+        commentsORposts = COMMENTS;
+        mViewPager.setCurrentItem(0);
+    }
+
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
             if(rootView != null){
-                commentsORposts = COMMENTS;
-                mViewPager.setCurrentItem(0);
+                if(commentsORposts == POSTS){
+                    mViewPager.setCurrentItem(1);
+                }
+                else{
+                    commentsORposts = COMMENTS;
+                    mViewPager.setCurrentItem(0);
+                }
                 enableChildViews();
             }
         }
@@ -671,6 +681,9 @@ public class ProfileTab extends Fragment {
         silverTV.setText("");
         bronzeTV.setText("");
         pointsTV.setText("");
+        if(profileUsername != null && !profileUsername.equals(activity.getUsername())){
+            commentsORposts = COMMENTS;
+        }
     }
 
     private void sendFollowNotification(String fUsername){
