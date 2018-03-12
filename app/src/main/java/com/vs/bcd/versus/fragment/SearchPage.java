@@ -288,7 +288,7 @@ public class SearchPage extends Fragment {
     }
 
     public void removePostFromList(int index, String redName){
-        if(postSearchResults != null && searchResultsPostsAdapter != null && index >= 0){
+        if(postSearchResults != null && !postSearchResults.isEmpty() && searchResultsPostsAdapter != null && index >= 0){
             if(postSearchResults.get(index).getRedname().equals(redName)){
                 Post deletedPost = postSearchResults.get(index);
                 deletedPost.setAuthor("[deleted]");

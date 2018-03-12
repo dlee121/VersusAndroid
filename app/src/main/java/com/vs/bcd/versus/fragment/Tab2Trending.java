@@ -310,7 +310,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
     }
 
     public void removePostFromList(int index, String postID){
-        if(posts != null && myAdapter != null && index >= 0){
+        if(posts != null && !posts.isEmpty() && myAdapter != null && index >= 0){
             if(posts.get(index).getPost_id().equals(postID)){
                 Post deletedPost = posts.get(index);
                 deletedPost.setAuthor("[deleted]");

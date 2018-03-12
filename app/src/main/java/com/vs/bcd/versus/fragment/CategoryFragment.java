@@ -528,7 +528,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
     }
 
     public void removePostFromList(int index, String postID){
-        if(posts != null && myAdapter != null && index >= 0){
+        if(posts != null && !posts.isEmpty() && myAdapter != null && index >= 0){
             if(posts.get(index).getPost_id().equals(postID)){
                 if(sortType == POPULAR){
                     Post deletedPost = posts.get(index);
