@@ -1,4 +1,4 @@
-package com.vs.bcd.versus.activity;
+package com.vs.bcd.versus.fragment;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -17,6 +17,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.activity.SignUp;
 import com.vs.bcd.versus.model.FormValidator;
 import com.vs.bcd.versus.model.User;
 
@@ -63,11 +64,29 @@ public class WhatsYourUsername extends Fragment {
             public void validate(TextView textView, String text) {
                 usernameLength = text.trim().length();
                 if(usernameLength > 0){
-                    ignoreAsync = false;
-                    etWarning.setTextColor(Color.GRAY);
-                    etWarning.setText("Checking username...");
-                    showProgressBar();
-                    checkUsername(text.trim(), ++usernameVersion);
+                    char[] chars = text.trim().toCharArray();
+                    boolean invalidCharacterPresent = false;
+                    //iterate over characters
+                    for (int i = 0; i < chars.length; i++) {
+                        char c = chars[i];
+                        //check if the character is alphanumeric
+                        if (!Character.isLetterOrDigit(c)) {
+                            if(c != '.' && c != '-' && c != '_' && c != '~' && c != '%'){
+                                invalidCharacterPresent = true;
+                            }
+                        }
+                    }
+                    if(invalidCharacterPresent){
+                        etWarning.setTextColor(ContextCompat.getColor(activity,R.color.noticeRed));
+                        etWarning.setText("Can only contain letters, numbers, and the following special characters: '-', '_', '.', '~', and '%'");
+                    }
+                    else {
+                        ignoreAsync = false;
+                        etWarning.setTextColor(Color.GRAY);
+                        etWarning.setText("Checking username...");
+                        showProgressBar();
+                        checkUsername(text.trim(), ++usernameVersion);
+                    }
                 }
                 else{
                     ignoreAsync = true;

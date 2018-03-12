@@ -166,7 +166,7 @@ public class User {
 
     public User(String input){
 
-        String[] userData = input.split("%");
+        String[] userData = input.split("/");
         firstName = userData[0];
         lastName = userData[1];
         bday = userData[2];

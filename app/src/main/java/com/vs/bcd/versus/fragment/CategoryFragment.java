@@ -66,20 +66,14 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
     private MainContainer mHostActivity;
     private SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
     private boolean nowLoading = false;
-    private HashMap<Integer, Map<String,AttributeValue>> lastEvaluatedKeysMap = new HashMap<>();
-    private Map<String,AttributeValue> lastEvaluatedKey;
     private RecyclerView recyclerView;
-    private int retrievalLimit = 10;    //TODO: play with this number through testing with usecases. for best UX while minimizing cost.
     private SwipeRefreshLayout mSwipeRefreshLayout;
-    //the two booleans below are two-way dependency thing where, if xml loads first, we trigger initial loading animation in setUserVisibleHint (which is triggered when tab becomes visible)
-    //and if setUserVisibleHint(true) is triggered before xml loads, then we mark that initial loading in progress and trigger initial loading animation during xml loading in onCreateView
     private boolean initialLoadInProgress = false;
-    private boolean xmlLoaded = false;
     private int currCategoryInt = 0;
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
     private Button sortTypeSelector;
-    private int sortType = 0; //0 = New, 1 = Popular
+    private int sortType = 0; //0 = Most Recent, 1 = Popular
     private final int MOST_RECENT = 0;
     private final int POPULAR = 1;
 
@@ -157,10 +151,9 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
         mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_container_catfrag);
         mSwipeRefreshLayout.setOnRefreshListener(this);
 
-        if(initialLoadInProgress){
+        if(initialLoadInProgress) {
             mSwipeRefreshLayout.setRefreshing(true);
         }
-        xmlLoaded = true;
 
         FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fabcf);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -531,7 +524,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
     }
 
     public void removePostFromList(int index, String postID){
-        if(posts != null && myAdapter != null && index >= 0){
+        if(posts != null && myAdapter != null && index >= 0 && sortType == MOST_RECENT){
             if(posts.get(index).getPost_id().equals(postID)){
                 posts.remove(index);
                 myAdapter.notifyItemRemoved(index);

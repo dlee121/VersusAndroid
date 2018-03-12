@@ -1,4 +1,4 @@
-package com.vs.bcd.versus.activity;
+package com.vs.bcd.versus.fragment;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -18,6 +18,7 @@ import android.widget.TextView;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.activity.SignUp;
 import com.vs.bcd.versus.model.FormValidator;
 import com.vs.bcd.versus.model.SessionManager;
 

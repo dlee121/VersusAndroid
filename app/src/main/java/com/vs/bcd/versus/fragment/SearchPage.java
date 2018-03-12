@@ -287,15 +287,6 @@ public class SearchPage extends Fragment {
         }
     }
 
-    public void removePostFromList(int index, String redName){
-        if(postSearchResults != null && searchResultsPostsAdapter != null && index >= 0){
-            if(postSearchResults.get(index).getRedname().equals(redName)){
-                postSearchResults.remove(index);
-                searchResultsPostsAdapter.notifyItemRemoved(index);
-            }
-        }
-    }
-
     //TODO: also implement request cancelling where cancel() is called on the Request, in case user exists search before current search completes, so as to not trigger handler unnecessarily, although it may not matter and may actually work better that way to not cancel...think about that too, not cancelling.
 }
 

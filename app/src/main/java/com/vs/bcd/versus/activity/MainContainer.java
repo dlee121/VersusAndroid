@@ -1304,7 +1304,6 @@ public class MainContainer extends AppCompatActivity {
                                 mViewPager.setCurrentItem(0);
                                 break;
                             case 1: //Search
-                                searchPage.removePostFromList(clickedPostIndex, postToDelete.getRedname());
                                 mViewPager.setCurrentItem(1);
                                 break;
                             case 6: //Category Fragment
@@ -1521,10 +1520,10 @@ public class MainContainer extends AppCompatActivity {
         toolbarProgressbar.setVisibility(View.INVISIBLE);
     }
 
-    public void commentHistoryClickHelper(String postAuthor){
+    public void commentHistoryClickHelper(String commentAuthor){
         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
         myAdapterFragInt = 9; //profile page
-        postParentProfileUsername = postAuthor;
+        postParentProfileUsername = commentAuthor;
         clickedPostIndex = -1;
     }
 

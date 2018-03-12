@@ -1,4 +1,4 @@
-package com.vs.bcd.versus.activity;
+package com.vs.bcd.versus.fragment;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import com.vs.bcd.versus.R;
 
+import com.vs.bcd.versus.activity.SignUp;
 import com.vs.bcd.versus.model.FormValidator;
 
 import java.util.ArrayList;

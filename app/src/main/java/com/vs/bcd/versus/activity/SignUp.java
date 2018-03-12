@@ -25,6 +25,10 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.fragment.WhatsYourBirthday;
+import com.vs.bcd.versus.fragment.WhatsYourName;
+import com.vs.bcd.versus.fragment.WhatsYourPassword;
+import com.vs.bcd.versus.fragment.WhatsYourUsername;
 import com.vs.bcd.versus.model.ViewPagerCustomDuration;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.User;
@@ -217,7 +221,7 @@ public class SignUp extends AppCompatActivity {
     }
 
     public String getUserString(){
-        return first + "%" + second + "%" + third + "%" + fourth + "%" + biebs;
+        return first + "/" + second + "/" + third + "/" + fourth + "/" + biebs;
     }
 
     public void signUpUser(){

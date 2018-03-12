@@ -1,4 +1,4 @@
-package com.vs.bcd.versus.activity;
+package com.vs.bcd.versus.fragment;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -15,6 +15,7 @@ import android.widget.DatePicker;
 import android.widget.RelativeLayout;
 
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.activity.SignUp;
 
 import java.util.ArrayList;
 import java.util.Calendar;

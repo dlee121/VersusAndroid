@@ -2889,7 +2889,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        activity.commentHistoryClickHelper(subjectPost.getAuthor());
+                        activity.commentHistoryClickHelper(clickedComment.getAuthor());
                     }
                 });
 
@@ -2998,7 +2998,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        activity.commentHistoryClickHelper(subjectPost.getAuthor());
+                        activity.commentHistoryClickHelper(clickedRootComment.getAuthor());
                     }
                 });
 
