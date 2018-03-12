@@ -450,19 +450,33 @@ public class CreatePost extends Fragment {
                                 .withKey(keyMap)
                                 .withAttributeUpdates(updates);
                         activity.getDDBClient().updateItem(request);
-                    }
 
-                    if(!waitForImageUpload){
+                        if(!waitForImageUpload){
+                            activity.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    activity.getPostPage().setContent(postToEdit);
+                                    activity.hideToolbarProgressbar();
+                                    activity.getViewPager().setCurrentItem(3);
+                                    activity.setToolbarTitleTextForCP();
+                                }
+                            });
+                        }
+                    }
+                    else{
                         activity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                activity.getPostPage().setContent(postToEdit);
+                                Log.d("postEdit", "nothing edited");
                                 activity.hideToolbarProgressbar();
                                 activity.getViewPager().setCurrentItem(3);
                                 activity.setToolbarTitleTextForCP();
                             }
                         });
+
                     }
+
+
 
                 }
             };
@@ -721,6 +735,9 @@ public class CreatePost extends Fragment {
                             public void run() {
                                 if(originFragNum == HOME || originFragNum == CATEGORY){
                                     activity.addPostToTop(postToEdit, originFragNum);
+                                }
+                                else if(originFragNum == POSTPAGE){
+                                    activity.updateEditedPost(postToEdit);
                                 }
                                 if(originFragNum == HOME || originFragNum == TRENDING){
                                     activity.setMyAdapterFragInt(0);

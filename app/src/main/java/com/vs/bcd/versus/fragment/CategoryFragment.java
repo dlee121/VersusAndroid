@@ -544,5 +544,15 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
         }
     }
 
+    public void editedPostRefresh(int index, Post editedPost){
+        if(!posts.isEmpty() && posts.get(index) != null && index >= 0){
+            if(posts.get(index).getPost_id().equals(editedPost.getPost_id())){
+                posts.set(index, editedPost);
+                myAdapter.notifyItemChanged(index);
+            }
+        }
+
+    }
+
 
 }

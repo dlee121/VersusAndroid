@@ -72,6 +72,8 @@ import com.vs.bcd.versus.fragment.PostPage;
 import com.vs.bcd.versus.fragment.ProfileTab;
 import com.vs.bcd.versus.fragment.SelectCategory;
 import com.vs.bcd.versus.fragment.SettingsFragment;
+import com.vs.bcd.versus.fragment.Tab1Newsfeed;
+import com.vs.bcd.versus.fragment.Tab2Trending;
 import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.RNumAndUList;
@@ -1508,6 +1510,30 @@ public class MainContainer extends AppCompatActivity {
             case 2: //CategoryFragment
                 if(categoryFragment != null){
                     categoryFragment.addPostToTop(post);
+                }
+                break;
+        }
+    }
+
+    public void updateEditedPost(Post editedPost){
+        switch (myAdapterFragInt){
+            case 0: //Home
+                Tab1Newsfeed tab1 = mainActivityFragRef.getTab1();
+                if (tab1 != null) {
+                    tab1.editedPostRefresh(clickedPostIndex, editedPost);
+                }
+                break;
+
+            case 1: //Trending
+                Tab2Trending tab2 = mainActivityFragRef.getTab2();
+                if (tab2 != null) {
+                    tab2.editedPostRefresh(clickedPostIndex, editedPost);
+                }
+                break;
+
+            case 6: //Category
+                if(categoryFragment != null){
+                    categoryFragment.editedPostRefresh(clickedPostIndex, editedPost);
                 }
                 break;
         }

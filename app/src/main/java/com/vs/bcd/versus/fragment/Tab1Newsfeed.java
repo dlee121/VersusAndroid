@@ -341,6 +341,16 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
         }
     }
 
+    public void editedPostRefresh(int index, Post editedPost){
+        if(!posts.isEmpty() && posts.get(index) != null && index >= 0){
+            if(posts.get(index).getPost_id().equals(editedPost.getPost_id())){
+                posts.set(index, editedPost);
+                myAdapter.notifyItemChanged(index);
+            }
+        }
+
+    }
+
     public boolean postsLoaded() {
         return posts != null && !posts.isEmpty();
     }
