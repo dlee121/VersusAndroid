@@ -103,7 +103,7 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
                         if (!nowLoading) {
                             nowLoading = true;
                             Log.d("loadmore", "now loading more");
-                            getUserComments(currCommentsIndex, "u");
+                            getUserComments(currCommentsIndex, "t");
                         }
                     }
                 }
@@ -120,7 +120,7 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
 
     @Override
     public void onRefresh() {
-        getUserComments(0, "u");
+        getUserComments(0, "t");
     }
 
     @Override
@@ -216,6 +216,7 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
                     int hitsLength = hits.length();
                     if(hitsLength == 0) {
                         Log.d("loadmore", "end reached, disabling loadMore");
+                        nowLoading = true;
                         activity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -286,6 +287,7 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
                         public void run() {
                             commentsAdapter.notifyDataSetChanged();
                             mSwipeRefreshLayout.setRefreshing(false);
+                            nowLoading = false;
                         }
                     });
                     //System.out.println("Response: " + strResponse);
@@ -456,7 +458,7 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
     public void setProfileUsername(String profileUsername){
         if(this.profileUsername != null && !this.profileUsername.equals(profileUsername)){
             this.profileUsername = profileUsername;
-            getUserComments(0, "u");
+            getUserComments(0, "t");
         }
     }
 

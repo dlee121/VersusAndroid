@@ -214,6 +214,7 @@ public class PostsHistory extends Fragment implements SwipeRefreshLayout.OnRefre
                     //Log.d("idformat", hits.getJSONObject(0).getString("_id"));
                     if(hits.length() == 0){
                         Log.d("loadmore", "end reached, disabling loadMore");
+                        nowLoading = true;
                         activity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -232,6 +233,7 @@ public class PostsHistory extends Fragment implements SwipeRefreshLayout.OnRefre
                         public void run() {
                             myAdapter.notifyDataSetChanged();
                             mSwipeRefreshLayout.setRefreshing(false);
+                            nowLoading = false;
                         }
                     });
                     //System.out.println("Response: " + strResponse);
