@@ -1299,15 +1299,16 @@ public class MainContainer extends AppCompatActivity {
                                     mainActivityFragRef.getTab1().removePostFromList(clickedPostIndex, postToDelete.getPost_id());
                                 }
                                 else{ //Trending
-                                    mainActivityFragRef.getTab2().removePostFromList(clickedPostIndex, postToDelete.getPost_id());
+                                    mainActivityFragRef.getTab2().removePostFromList(clickedPostIndex, postToDelete.getPost_id()); //updates author name to [deleted] in the UI
                                 }
                                 mViewPager.setCurrentItem(0);
                                 break;
                             case 1: //Search
+                                searchPage.removePostFromList(clickedPostIndex, postToDelete.getRedname()); //updates author name to [deleted] in the UI
                                 mViewPager.setCurrentItem(1);
                                 break;
                             case 6: //Category Fragment
-                                categoryFragment.removePostFromList(clickedPostIndex, postToDelete.getPost_id());
+                                categoryFragment.removePostFromList(clickedPostIndex, postToDelete.getPost_id()); //won't remove if sorted by Most Recent
                                 mViewPager.setCurrentItem(6);
                                 break;
                             case 9: //Profile page
