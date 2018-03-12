@@ -207,7 +207,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                 //TODO: get accesskey and secretkey
 
                 String query = "/post/_search";
-                String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\"t\":{\"order\":\"desc\"}}],\"query\":{\"bool\":{\"must_not\":{\"term\":{\"a\":\"[deleted]\"}}}}}";
+                String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\"t\":{\"order\":\"desc\"}}],\"query\":{\"bool\":{\"must_not\":{\"match\":{\"a\":\"[deleted]\"}}}}}";
 
                 String url = "https://" + host + query;
 

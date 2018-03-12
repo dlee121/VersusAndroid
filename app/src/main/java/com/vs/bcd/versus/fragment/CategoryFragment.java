@@ -325,7 +325,11 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
                 //TODO: get accesskey and secretkey
 
                 String query = "/_search";
-                String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\"t\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"c\":"+Integer.toString(currCategoryInt)+"}}}";
+                //String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\"t\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"c\":"+Integer.toString(currCategoryInt)+"}}}";
+                String payload =
+                        "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\"t\":{\"order\":\"desc\"}}],\"query\":{\"bool\":{\"must\":{\"match\":{\"c\":"+Integer.toString(currCategoryInt)+"}},\"must_not\":{\"match\":{\"a\":\"[deleted\"}}}}}";
+
+
 
                 String url = "https://" + host + query;
 
