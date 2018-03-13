@@ -107,7 +107,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private RelativeLayout.LayoutParams fabLP;
     private VSComment topCardContent = null;
     private UserAction userAction;
-    private boolean applyActions = true;
     private boolean redIncrementedLast, blackIncrementedLast;
     private Map<String, String> actionMap;
     private Map<String, String> actionHistoryMap; //used to store previous user action on a comment, if any, for comparing with current user action, e.g. if user chose upvote and previously chose downvote, then we need to do both increment upvote and decrement downvote
@@ -121,6 +120,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private LinearLayout topcardSortTypeSelectorBackground;
     final HashMap<String, VSCNode> nodeMap = new HashMap<>();
     private HashMap<String, VSComment> parentCache = new HashMap<>();
+    private HashMap<String, String> freshlyVotedComments = new HashMap<>();
     private boolean atRootLevel = true;
     private long queryThreadID = 0;
     private int sortType = 1; //0 = New, 1 = Popular
@@ -619,11 +619,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         @Override
                         public void run() {
 
-                            if (applyActions) {
-                                applyUserActions(masterList);
-                            } else {
-                                Log.d("wow", "applyActions is false");
-                            }
+                            applyUserActions(masterList);
 
                             //Make sure to do this after applyUserActions because applyUserActions doesn't expect post object in the list
                             if (rootParentID.equals(postID)) {
@@ -737,12 +733,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         @Override
                         public void run() {
 
-                            if(applyActions){
-                                applyUserActions(masterList);
-                            }
-                            else {
-                                Log.d("wow", "applyActions is false");
-                            }
+                            applyUserActions(masterList);
 
                             if(topCardContent != null){
                                 masterList.add(0, new TopCardObject(topCardContent));
@@ -823,10 +814,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     userAction = activity.getMapper().load(UserAction.class, sessionManager.getCurrentUsername(), postID);   //TODO: catch exception for this query
                     //Log.d("DB", "download attempt for UserAction");
                 }
-                applyActions = true;
+
                 if(userAction == null){
                     userAction = new UserAction(sessionManager.getCurrentUsername(), postID);
-                    applyActions = false;
                 }
                 lastSubmittedVote = userAction.getVotedSide();
                 actionMap = userAction.getActionRecord();
@@ -869,7 +859,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             mList.add((tempGCNode.getTailSibling()).getNodeContent());
                         }
                     }
-
                 }
             }
         }
@@ -964,14 +953,22 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     //this is only used after downloading for initial uservote setup
     public void applyUserActions(List<Object> commentsList){
         VSCNode temp;
+        if(actionMap.isEmpty()){
+            return;
+        }
+        boolean skipFreshVoteAdjustment = false;
+        if(freshlyVotedComments.isEmpty()){
+            skipFreshVoteAdjustment = true;
+        }
 
         for(int i = 0; i<commentsList.size(); i++){
             temp = nodeMap.get(((VSComment)commentsList.get(i)).getComment_id());
 
-            if(temp == null){
+            if(temp == null) {
                 Log.d("DEBUG", "This is unexpected, this is a bug. PostPage.java line 801");
                 return;
             }
+
 
             String currentValue = actionMap.get(temp.getCommentID());
             String historyValue = actionHistoryMap.get(temp.getCommentID());
@@ -1017,6 +1014,40 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             }
                         }
                         break;
+                }
+            }
+            if(!skipFreshVoteAdjustment){
+                VSComment currentComment = temp.getNodeContent();
+                String freshVote = freshlyVotedComments.get(currentComment.getComment_id());
+                if(freshVote != null){
+                    switch (freshVote){
+                        case "up":
+                            currentComment.setUpvotes(currentComment.getUpvotes() + 1);
+                            break;
+
+                        case "um":
+                            currentComment.setUpvotes(currentComment.getUpvotes() - 1);
+                            break;
+
+                        case "dp":
+                            currentComment.setDownvotes(currentComment.getDownvotes() + 1);
+                            break;
+
+                        case "dm":
+                            currentComment.setDownvotes(currentComment.getDownvotes() - 1);
+                            break;
+
+                        case "updm":
+                            currentComment.setUpvotes(currentComment.getUpvotes() + 1);
+                            currentComment.setDownvotes(currentComment.getDownvotes() - 1);
+                            break;
+
+                        case "umdp":
+                            currentComment.setUpvotes(currentComment.getUpvotes() - 1);
+                            currentComment.setDownvotes(currentComment.getDownvotes() + 1);
+                            break;
+                    }
+                    freshlyVotedComments.remove(currentComment.getComment_id());
                 }
             }
 
@@ -1693,12 +1724,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         @Override
                         public void run() {
 
-                            if(applyActions){
-                                applyUserActions(masterList);
-                            }
-                            else{
-                                Log.d("wow", "applyActions is false");
-                            }
+                            applyUserActions(masterList);
 
                             ((PostPageAdapter)RV.getAdapter()).appendToList(masterList);
 
@@ -1802,12 +1828,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         @Override
                         public void run() {
 
-                            if(applyActions){
-                                applyUserActions(masterList);
-                            }
-                            else{
-                                Log.d("wow", "applyActions is false");
-                            }
+                            applyUserActions(masterList);
 
                             ((PostPageAdapter)RV.getAdapter()).appendToList(masterList);
 
@@ -2341,6 +2362,66 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
 
     public void commentSubmissionRefresh(VSComment submittedComment){
+        //first handle writing user actions to db and refreshing post card or top card
+        nowLoading = false;
+        dbWriteComplete = false;
+        writeActionsToDB();
+        try{
+            long end = System.currentTimeMillis() + 8*1000; // 8 seconds * 1000 ms/sec
+
+            while(!dbWriteComplete && System.currentTimeMillis() < end){
+
+            }
+            if(!dbWriteComplete){
+                Log.d("PostPageRefresh", "user actions dbWrite timeout");
+                dbWriteComplete = true;
+            }
+            else{
+                Log.d("PostPageRefresh", "user actions dbWrite successful");
+            }
+
+            //update post card if atRootLevel, else update top card
+            if(atRootLevel){
+                post = getPost(postID);
+                postTopic = post.getQuestion();
+                postX = post.getRedname();
+                postY = post.getBlackname();
+                origRedCount = post.getRedcount();
+                origBlackCount = post.getBlackcount();
+                redIncrementedLast = false;
+                blackIncrementedLast = false;
+            }
+            else{
+                final VSComment updatedTopCardContent = getComment(topCardContent.getComment_id());
+                nodeMap.get(topCardContent.getComment_id()).setNodeContent(updatedTopCardContent);
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        String actionEntry = actionMap.get(updatedTopCardContent.getComment_id());
+                        if(actionEntry != null){
+                            switch (actionEntry){
+                                case "U":
+                                    updatedTopCardContent.initialSetUservote(UPVOTE);
+                                    break;
+
+                                case "D":
+                                    updatedTopCardContent.initialSetUservote(DOWNVOTE);
+                                    break;
+                                //we ignore case "N" because uservote is 0 by default so we don't need to set it here
+                            }
+                        }
+                        parentCache.put(updatedTopCardContent.getComment_id(), updatedTopCardContent);
+                        setUpTopCard(parentCache.get(updatedTopCardContent.getComment_id()));
+                    }
+                });
+            }
+
+
+        }catch (Throwable t){
+
+        }
+        //finished handle writing user actions to db and refreshing post card or top card
+
         Log.d("pageLevel", "CSR: level: " + Integer.toString(pageLevel));
         final ArrayList<VSComment> rootComments = new ArrayList<>();
         final ArrayList<VSComment> childComments = new ArrayList<>();
@@ -2568,12 +2649,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             @Override
             public void run() {
 
-                if(applyActions){
-                    applyUserActions(masterList);
-                }
-                else{
-                    Log.d("wow", "applyActions is false");
-                }
+                applyUserActions(masterList);
 
                 //Make sure to do this after applyUserActions because applyUserActions doesn't expect post object in the list
                 if(rootParentID.equals(postID)) {
@@ -2794,10 +2870,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     userAction = activity.getMapper().load(UserAction.class, sessionManager.getCurrentUsername(), postID);   //TODO: catch exception for this query
                     //Log.d("DB", "download attempt for UserAction");
                 }
-                applyActions = true;
+
                 if(userAction == null){
                     userAction = new UserAction(sessionManager.getCurrentUsername(), postID);
-                    applyActions = false;
                 }
                 lastSubmittedVote = userAction.getVotedSide();
                 actionMap = userAction.getActionRecord();
@@ -2904,10 +2979,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     userAction = activity.getMapper().load(UserAction.class, sessionManager.getCurrentUsername(), postID);   //TODO: catch exception for this query
                     //Log.d("DB", "download attempt for UserAction");
                 }
-                applyActions = true;
+
                 if(userAction == null){
                     userAction = new UserAction(sessionManager.getCurrentUsername(), postID);
-                    applyActions = false;
                 }
                 lastSubmittedVote = userAction.getVotedSide();
                 actionMap = userAction.getActionRecord();
@@ -3010,6 +3084,10 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             default:
                 return "";
         }
+    }
+
+    public void addFreshlyVotedComment(String commentID, String voteType){
+        freshlyVotedComments.put(commentID, voteType);
     }
 
 }

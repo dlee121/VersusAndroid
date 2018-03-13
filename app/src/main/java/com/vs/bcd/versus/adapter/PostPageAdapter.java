@@ -316,6 +316,8 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                             commentViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
                             currentComment.setUservote(NOVOTE);
                             actionMap.put(currentComment.getComment_id(), "N");
+
+                            activity.getPostPage().addFreshlyVotedComment(currentComment.getComment_id(), "um");
                             //actionMap.remove(currentComment.getComment_id());   //instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote if there were a past vote
                         }
                         else if(userVote == DOWNVOTE){
@@ -323,11 +325,13 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                             commentViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
                             currentComment.setUservote(UPVOTE);
                             actionMap.put(currentComment.getComment_id(), "U");
+                            activity.getPostPage().addFreshlyVotedComment(currentComment.getComment_id(), "updm");
                         }
                         else if(userVote == NOVOTE){
                             commentViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
                             currentComment.setUservote(UPVOTE);
                             actionMap.put(currentComment.getComment_id(), "U");
+                            activity.getPostPage().addFreshlyVotedComment(currentComment.getComment_id(), "up");
                         }
                         commentViewHolder.upvotes.setText( Integer.toString(currentComment.getUpvotes()) );
                         commentViewHolder.downvotes.setText( Integer.toString(currentComment.getDownvotes()) );
@@ -342,6 +346,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                             commentViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
                             currentComment.setUservote(NOVOTE);
                             actionMap.put(currentComment.getComment_id(), "N");
+                            activity.getPostPage().addFreshlyVotedComment(currentComment.getComment_id(), "dm");
                             //actionMap.remove(currentComment.getComment_id());   //instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote if there were a past vote
                         }
                         else if(userVote == UPVOTE){
@@ -349,11 +354,13 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                             commentViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
                             currentComment.setUservote(DOWNVOTE);
                             actionMap.put(currentComment.getComment_id(), "D");
+                            activity.getPostPage().addFreshlyVotedComment(currentComment.getComment_id(), "umdp");
                         }
                         else if(userVote == NOVOTE){
                             commentViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
                             currentComment.setUservote(DOWNVOTE);
                             actionMap.put(currentComment.getComment_id(), "D");
+                            activity.getPostPage().addFreshlyVotedComment(currentComment.getComment_id(), "dp");
                         }
                         commentViewHolder.upvotes.setText( Integer.toString(currentComment.getUpvotes()) );
                         commentViewHolder.downvotes.setText( Integer.toString(currentComment.getDownvotes()) );
@@ -574,6 +581,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         topCardViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
                         topCardObject.setUservote(NOVOTE);
                         actionMap.put(topCardObject.getComment_id(), "N");
+                        activity.getPostPage().addFreshlyVotedComment(topCardObject.getComment_id(), "um");
                         //actionMap.remove(currentComment.getComment_id());   //instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote if there were a past vote
                     }
                     else if(userVote == DOWNVOTE){
@@ -581,11 +589,13 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         topCardViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
                         topCardObject.setUservote(UPVOTE);
                         actionMap.put(topCardObject.getComment_id(), "U");
+                        activity.getPostPage().addFreshlyVotedComment(topCardObject.getComment_id(), "updm");
                     }
                     else if(userVote == NOVOTE){
                         topCardViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
                         topCardObject.setUservote(UPVOTE);
                         actionMap.put(topCardObject.getComment_id(), "U");
+                        activity.getPostPage().addFreshlyVotedComment(topCardObject.getComment_id(), "up");
                     }
 
                     topCardViewHolder.upvotesCount.setText(Integer.toString(topCardObject.getUpvotes()));
@@ -601,6 +611,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         topCardViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
                         topCardObject.setUservote(NOVOTE);
                         actionMap.put(topCardObject.getComment_id(), "N");
+                        activity.getPostPage().addFreshlyVotedComment(topCardObject.getComment_id(), "dm");
                         //actionMap.remove(currentComment.getComment_id());   //instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote if there were a past vote
                     }
                     else if(userVote == UPVOTE){
@@ -608,11 +619,13 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         topCardViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
                         topCardObject.setUservote(DOWNVOTE);
                         actionMap.put(topCardObject.getComment_id(), "D");
+                        activity.getPostPage().addFreshlyVotedComment(topCardObject.getComment_id(), "umdp");
                     }
                     else if(userVote == NOVOTE){
                         topCardViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
                         topCardObject.setUservote(DOWNVOTE);
                         actionMap.put(topCardObject.getComment_id(), "D");
+                        activity.getPostPage().addFreshlyVotedComment(topCardObject.getComment_id(), "dp");
                     }
 
                     topCardViewHolder.upvotesCount.setText(Integer.toString(topCardObject.getUpvotes()));
