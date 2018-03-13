@@ -12,6 +12,7 @@ import android.graphics.drawable.shapes.RectShape;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -100,6 +101,8 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private final int MOST_RECENT = 0;
     private final int POPULAR = 1;
     private final int CHRONOLOGICAL = 2;
+
+    private boolean lockButtons = false;
 
 
     //to set imageviews, first fill out the drawable[3] with 0=image layer, 1=tint layer, 2=check mark layer, make LayerDrawable out of the array, then use setImageMask which sets the correct mask layers AND ALSO sets imageview drawable as the LayerDrawable
@@ -212,7 +215,9 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 commentViewHolder.overflowMenu.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
+                    if(!lockButtons){
                         showListPopupWindow(activity.getUsername().equals(currentComment.getAuthor()), commentViewHolder.overflowMenu, position);
+                    }
                     }
                 });
 
@@ -296,7 +301,9 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     public void onClick(View view) {
                         //Log.d("pageLevel", Integer.toString(pageLevel));
                         if(pageLevel < 2){ //itemView clicks are handled only for root page and children page
-                            activity.getPostPage().itemViewClickHelper(currentComment);
+                            if(!lockButtons){
+                                activity.getPostPage().itemViewClickHelper(currentComment);
+                            }
                         }
                     }
                 });
@@ -311,59 +318,58 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 commentViewHolder.upvoteButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        int userVote = currentComment.getUservote();
-                        if(userVote == UPVOTE){
-                            commentViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
-                            currentComment.setUservote(NOVOTE);
-                            actionMap.put(currentComment.getComment_id(), "N");
-
-                            activity.getPostPage().addFreshlyVotedComment(currentComment.getComment_id(), "um");
-                            //actionMap.remove(currentComment.getComment_id());   //instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote if there were a past vote
+                        if(!lockButtons){
+                            int userVote = currentComment.getUservote();
+                            if(userVote == UPVOTE){
+                                commentViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
+                                currentComment.setUservote(NOVOTE);
+                                actionMap.put(currentComment.getComment_id(), "N");
+                                //actionMap.remove(currentComment.getComment_id());   //instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote if there were a past vote
+                            }
+                            else if(userVote == DOWNVOTE){
+                                commentViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+                                commentViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
+                                currentComment.setUservote(UPVOTE);
+                                actionMap.put(currentComment.getComment_id(), "U");
+                            }
+                            else if(userVote == NOVOTE){
+                                commentViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
+                                currentComment.setUservote(UPVOTE);
+                                actionMap.put(currentComment.getComment_id(), "U");
+                            }
+                            activity.getPostPage().addFreshlyVotedComment(currentComment.getComment_id(), new Pair<>(new Integer(currentComment.getUpvotes()), new Integer(currentComment.getDownvotes())));
+                            commentViewHolder.upvotes.setText( Integer.toString(currentComment.getUpvotes()) );
+                            commentViewHolder.downvotes.setText( Integer.toString(currentComment.getDownvotes()) );
                         }
-                        else if(userVote == DOWNVOTE){
-                            commentViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
-                            commentViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
-                            currentComment.setUservote(UPVOTE);
-                            actionMap.put(currentComment.getComment_id(), "U");
-                            activity.getPostPage().addFreshlyVotedComment(currentComment.getComment_id(), "updm");
-                        }
-                        else if(userVote == NOVOTE){
-                            commentViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
-                            currentComment.setUservote(UPVOTE);
-                            actionMap.put(currentComment.getComment_id(), "U");
-                            activity.getPostPage().addFreshlyVotedComment(currentComment.getComment_id(), "up");
-                        }
-                        commentViewHolder.upvotes.setText( Integer.toString(currentComment.getUpvotes()) );
-                        commentViewHolder.downvotes.setText( Integer.toString(currentComment.getDownvotes()) );
                     }
                 });
 
                 commentViewHolder.downvoteButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        int userVote = currentComment.getUservote();
-                        if(userVote == DOWNVOTE){
-                            commentViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
-                            currentComment.setUservote(NOVOTE);
-                            actionMap.put(currentComment.getComment_id(), "N");
-                            activity.getPostPage().addFreshlyVotedComment(currentComment.getComment_id(), "dm");
-                            //actionMap.remove(currentComment.getComment_id());   //instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote if there were a past vote
+                        if(!lockButtons){
+                            int userVote = currentComment.getUservote();
+                            if(userVote == DOWNVOTE){
+                                commentViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+                                currentComment.setUservote(NOVOTE);
+                                actionMap.put(currentComment.getComment_id(), "N");
+                                //actionMap.remove(currentComment.getComment_id());   //instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote if there were a past vote
+                            }
+                            else if(userVote == UPVOTE){
+                                commentViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
+                                commentViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
+                                currentComment.setUservote(DOWNVOTE);
+                                actionMap.put(currentComment.getComment_id(), "D");
+                            }
+                            else if(userVote == NOVOTE){
+                                commentViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
+                                currentComment.setUservote(DOWNVOTE);
+                                actionMap.put(currentComment.getComment_id(), "D");
+                            }
+                            activity.getPostPage().addFreshlyVotedComment(currentComment.getComment_id(), new Pair<>(new Integer(currentComment.getUpvotes()), new Integer(currentComment.getDownvotes())));
+                            commentViewHolder.upvotes.setText( Integer.toString(currentComment.getUpvotes()) );
+                            commentViewHolder.downvotes.setText( Integer.toString(currentComment.getDownvotes()) );
                         }
-                        else if(userVote == UPVOTE){
-                            commentViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
-                            commentViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
-                            currentComment.setUservote(DOWNVOTE);
-                            actionMap.put(currentComment.getComment_id(), "D");
-                            activity.getPostPage().addFreshlyVotedComment(currentComment.getComment_id(), "umdp");
-                        }
-                        else if(userVote == NOVOTE){
-                            commentViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
-                            currentComment.setUservote(DOWNVOTE);
-                            actionMap.put(currentComment.getComment_id(), "D");
-                            activity.getPostPage().addFreshlyVotedComment(currentComment.getComment_id(), "dp");
-                        }
-                        commentViewHolder.upvotes.setText( Integer.toString(currentComment.getUpvotes()) );
-                        commentViewHolder.downvotes.setText( Integer.toString(currentComment.getDownvotes()) );
                     }
                 });
             }
@@ -415,16 +421,18 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             postCard.redimgBox.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (!userAction.getVotedSide().equals("RED")) {
-                        activity.getPostPage().redVotePressed();
-                        setImageMask(TINTCHECK, RED);
-                        setImageMask(TINT, BLK);
+                    if(!lockButtons){
+                        if (!userAction.getVotedSide().equals("RED")) {
+                            activity.getPostPage().redVotePressed();
+                            setImageMask(TINTCHECK, RED);
+                            setImageMask(TINT, BLK);
 
-                        if (mToast != null) {
-                            mToast.cancel();
+                            if (mToast != null) {
+                                mToast.cancel();
+                            }
+                            mToast = Toast.makeText(activity, "Vote Submitted", Toast.LENGTH_SHORT);
+                            mToast.show();
                         }
-                        mToast = Toast.makeText(activity, "Vote Submitted", Toast.LENGTH_SHORT);
-                        mToast.show();
                     }
                 }
             });
@@ -432,16 +440,18 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             postCard.blkimgBox.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (!userAction.getVotedSide().equals("BLK")) {
-                        activity.getPostPage().blackVotePressed();
-                        setImageMask(TINTCHECK, BLK);
-                        setImageMask(TINT, RED);
+                    if(!lockButtons){
+                        if (!userAction.getVotedSide().equals("BLK")) {
+                            activity.getPostPage().blackVotePressed();
+                            setImageMask(TINTCHECK, BLK);
+                            setImageMask(TINT, RED);
 
-                        if (mToast != null) {
-                            mToast.cancel();
+                            if (mToast != null) {
+                                mToast.cancel();
+                            }
+                            mToast = Toast.makeText(activity, "Vote Submitted", Toast.LENGTH_SHORT);
+                            mToast.show();
                         }
-                        mToast = Toast.makeText(activity, "Vote Submitted", Toast.LENGTH_SHORT);
-                        mToast.show();
                     }
                 }
             });
@@ -449,7 +459,9 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             postCard.sortTypeSelector.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    activity.getPostPage().selectSortType("p");
+                    if(!lockButtons){
+                        activity.getPostPage().selectSortType("p");
+                    }
                 }
             });
 
@@ -545,7 +557,9 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             topCardViewHolder.overflowMenu.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    showListPopupWindow(activity.getUsername().equals(authorName), topCardViewHolder.overflowMenu, position);
+                    if(!lockButtons){
+                        showListPopupWindow(activity.getUsername().equals(authorName), topCardViewHolder.overflowMenu, position);
+                    }
                 }
             });
 
@@ -576,60 +590,58 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             topCardViewHolder.upvoteButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    int userVote = topCardObject.getUservote();
-                    if(userVote == UPVOTE){
-                        topCardViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
-                        topCardObject.setUservote(NOVOTE);
-                        actionMap.put(topCardObject.getComment_id(), "N");
-                        activity.getPostPage().addFreshlyVotedComment(topCardObject.getComment_id(), "um");
-                        //actionMap.remove(currentComment.getComment_id());   //instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote if there were a past vote
+                    if(!lockButtons){
+                        int userVote = topCardObject.getUservote();
+                        if(userVote == UPVOTE){
+                            topCardViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
+                            topCardObject.setUservote(NOVOTE);
+                            actionMap.put(topCardObject.getComment_id(), "N");
+                            //actionMap.remove(currentComment.getComment_id());   //instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote if there were a past vote
+                        }
+                        else if(userVote == DOWNVOTE){
+                            topCardViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+                            topCardViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
+                            topCardObject.setUservote(UPVOTE);
+                            actionMap.put(topCardObject.getComment_id(), "U");
+                        }
+                        else if(userVote == NOVOTE){
+                            topCardViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
+                            topCardObject.setUservote(UPVOTE);
+                            actionMap.put(topCardObject.getComment_id(), "U");
+                        }
+                        activity.getPostPage().addFreshlyVotedComment(topCardObject.getComment_id(), new Pair<>(new Integer(topCardObject.getUpvotes()), new Integer(topCardObject.getDownvotes())));
+                        topCardViewHolder.upvotesCount.setText(Integer.toString(topCardObject.getUpvotes()));
+                        topCardViewHolder.downvotesCount.setText(Integer.toString(topCardObject.getDownvotes()));
                     }
-                    else if(userVote == DOWNVOTE){
-                        topCardViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
-                        topCardViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
-                        topCardObject.setUservote(UPVOTE);
-                        actionMap.put(topCardObject.getComment_id(), "U");
-                        activity.getPostPage().addFreshlyVotedComment(topCardObject.getComment_id(), "updm");
-                    }
-                    else if(userVote == NOVOTE){
-                        topCardViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
-                        topCardObject.setUservote(UPVOTE);
-                        actionMap.put(topCardObject.getComment_id(), "U");
-                        activity.getPostPage().addFreshlyVotedComment(topCardObject.getComment_id(), "up");
-                    }
-
-                    topCardViewHolder.upvotesCount.setText(Integer.toString(topCardObject.getUpvotes()));
-                    topCardViewHolder.downvotesCount.setText(Integer.toString(topCardObject.getDownvotes()));
                 }
             });
 
             topCardViewHolder.downvoteButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    int userVote = topCardObject.getUservote();
-                    if(userVote == DOWNVOTE){
-                        topCardViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
-                        topCardObject.setUservote(NOVOTE);
-                        actionMap.put(topCardObject.getComment_id(), "N");
-                        activity.getPostPage().addFreshlyVotedComment(topCardObject.getComment_id(), "dm");
-                        //actionMap.remove(currentComment.getComment_id());   //instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote if there were a past vote
+                    if(!lockButtons){
+                        int userVote = topCardObject.getUservote();
+                        if(userVote == DOWNVOTE){
+                            topCardViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+                            topCardObject.setUservote(NOVOTE);
+                            actionMap.put(topCardObject.getComment_id(), "N");
+                            //actionMap.remove(currentComment.getComment_id());   //instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote if there were a past vote
+                        }
+                        else if(userVote == UPVOTE){
+                            topCardViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
+                            topCardViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
+                            topCardObject.setUservote(DOWNVOTE);
+                            actionMap.put(topCardObject.getComment_id(), "D");
+                        }
+                        else if(userVote == NOVOTE){
+                            topCardViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
+                            topCardObject.setUservote(DOWNVOTE);
+                            actionMap.put(topCardObject.getComment_id(), "D");
+                        }
+                        activity.getPostPage().addFreshlyVotedComment(topCardObject.getComment_id(), new Pair<>(new Integer(topCardObject.getUpvotes()), new Integer(topCardObject.getDownvotes())));
+                        topCardViewHolder.upvotesCount.setText(Integer.toString(topCardObject.getUpvotes()));
+                        topCardViewHolder.downvotesCount.setText(Integer.toString(topCardObject.getDownvotes()));
                     }
-                    else if(userVote == UPVOTE){
-                        topCardViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
-                        topCardViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
-                        topCardObject.setUservote(DOWNVOTE);
-                        actionMap.put(topCardObject.getComment_id(), "D");
-                        activity.getPostPage().addFreshlyVotedComment(topCardObject.getComment_id(), "umdp");
-                    }
-                    else if(userVote == NOVOTE){
-                        topCardViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
-                        topCardObject.setUservote(DOWNVOTE);
-                        actionMap.put(topCardObject.getComment_id(), "D");
-                        activity.getPostPage().addFreshlyVotedComment(topCardObject.getComment_id(), "dp");
-                    }
-
-                    topCardViewHolder.upvotesCount.setText(Integer.toString(topCardObject.getUpvotes()));
-                    topCardViewHolder.downvotesCount.setText(Integer.toString(topCardObject.getDownvotes()));
                 }
             });
 
@@ -637,11 +649,17 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             topCardViewHolder.sortButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    activity.getPostPage().selectSortType("c");
+                    if(!lockButtons){
+                        activity.getPostPage().selectSortType("c");
+                    }
                 }
             });
 
         }
+    }
+
+    public void setLockButtons(boolean setting){
+        lockButtons = setting;
     }
 
     public void setTopCardSortTypeHint(int sortType){

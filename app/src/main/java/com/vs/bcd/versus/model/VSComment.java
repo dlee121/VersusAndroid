@@ -232,9 +232,6 @@ public class VSComment {
         }
         this.uservote = uservote;
     }
-    public void directlySetUservote(int uservote){
-        this.uservote = uservote;
-    }
     public void initialSetUservote(int uservote){
         this.uservote = uservote;
     }

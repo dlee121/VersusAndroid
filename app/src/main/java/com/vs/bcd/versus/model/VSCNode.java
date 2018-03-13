@@ -1,5 +1,7 @@
 package com.vs.bcd.versus.model;
 
+import android.util.Pair;
+
 /**
  * Created by dlee on 6/12/17.
  */
@@ -145,6 +147,11 @@ public class VSCNode {
 
     public String getTimestamp(){
         return nodeContent.getTime();
+    }
+
+    public void setUpvotesAndDownvotes(Pair<Integer, Integer> votes){
+        nodeContent.setUpvotes(votes.first);
+        nodeContent.setDownvotes(votes.second);
     }
 
 }

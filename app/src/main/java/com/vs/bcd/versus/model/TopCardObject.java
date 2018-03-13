@@ -23,7 +23,7 @@ public class TopCardObject extends VSComment{
         setTopmedal(vsComment.getTopmedal());
         setUpvotes(vsComment.getUpvotes());
         setDownvotes(vsComment.getDownvotes());
-        directlySetUservote(vsComment.getUservote());
+        initialSetUservote(vsComment.getUservote());
     }
 
 }

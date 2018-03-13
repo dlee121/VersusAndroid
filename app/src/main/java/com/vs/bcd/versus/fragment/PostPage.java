@@ -10,6 +10,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -120,7 +121,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private LinearLayout topcardSortTypeSelectorBackground;
     final HashMap<String, VSCNode> nodeMap = new HashMap<>();
     private HashMap<String, VSComment> parentCache = new HashMap<>();
-    private HashMap<String, String> freshlyVotedComments = new HashMap<>();
+    private HashMap<String, Pair<Integer, Integer>> freshlyVotedComments = new HashMap<>();
     private boolean atRootLevel = true;
     private long queryThreadID = 0;
     private int sortType = 1; //0 = New, 1 = Popular
@@ -239,7 +240,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
      */
     @Override
     public void onRefresh() {
-
+        PPAdapter.setLockButtons(true);
         nowLoading = false;
 
         dbWriteComplete = false;
@@ -781,6 +782,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     public void setContent(final Post post){  //downloadImages signifies initial post page set up
+        freshlyVotedComments.clear();
         sortType = POPULAR;
         nowLoading = false;
         pageLevel = 0;
@@ -820,7 +822,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 }
                 lastSubmittedVote = userAction.getVotedSide();
                 actionMap = userAction.getActionRecord();
-                deepCopyToActionHistoryMap(actionMap);
+                deepCopyToActionHistoryMap();
 
                 commentsQuery(postID, "u");
             }
@@ -953,105 +955,77 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     //this is only used after downloading for initial uservote setup
     public void applyUserActions(List<Object> commentsList){
         VSCNode temp;
-        if(actionMap.isEmpty()){
-            return;
-        }
-        boolean skipFreshVoteAdjustment = false;
-        if(freshlyVotedComments.isEmpty()){
-            skipFreshVoteAdjustment = true;
-        }
+        if(!actionMap.isEmpty()){
+            for(int i = 0; i<commentsList.size(); i++){
+                temp = nodeMap.get(((VSComment)commentsList.get(i)).getComment_id());
 
-        for(int i = 0; i<commentsList.size(); i++){
-            temp = nodeMap.get(((VSComment)commentsList.get(i)).getComment_id());
-
-            if(temp == null) {
-                Log.d("DEBUG", "This is unexpected, this is a bug. PostPage.java line 801");
-                return;
-            }
-
-
-            String currentValue = actionMap.get(temp.getCommentID());
-            String historyValue = actionHistoryMap.get(temp.getCommentID());
-            if(currentValue != null){
-                switch(currentValue){
-                    //we record and handle "N" case which is when user initially voted and then clicked it again to cancel the vote,
-                    //keep the N until we decrement past vote
-                    // and then it is removed from actionmap after the decrement for DB is performed
-                    case "U":
-                        if(historyValue == null){
-                            temp.updateUservote(UPVOTE);
-                        }
-                        else{
-                            if(historyValue.equals("U")){
-                                temp.getNodeContent().initialSetUservote(UPVOTE);
-                            }
-                            else{
-                                temp.updateUservoteAndDecrement(UPVOTE);
-                            }
-                        }
-                        break;
-                    case "D":
-                        if(historyValue == null){
-                            temp.updateUservote(DOWNVOTE);
-                        }
-                        else{
-                            if(historyValue.equals("D")){
-                                temp.getNodeContent().initialSetUservote(DOWNVOTE);
-                            }
-                            else{
-                                temp.updateUservoteAndDecrement(DOWNVOTE);
-                            }
-                        }
-                        break;
-                    case "N":   //"N" doesn't get written to DB because we remove it before uploading actionMap through UserAction object
-                        //so this is going to be a current session action that needs to be manually applied
-                        if(historyValue != null){
-                            if(historyValue.equals("U")){
-                                temp.getNodeContent().decrementAndSetN(UPVOTE);
-                            }
-                            else {  //since DB doesn't store "N", we can safely assume this is "D"
-                                temp.getNodeContent().decrementAndSetN(DOWNVOTE);
-                            }
-                        }
-                        break;
+                if(temp == null) {
+                    Log.d("DEBUG", "This is unexpected, this is a bug. PostPage.java line 801");
+                    return;
                 }
-            }
-            if(!skipFreshVoteAdjustment){
-                VSComment currentComment = temp.getNodeContent();
-                String freshVote = freshlyVotedComments.get(currentComment.getComment_id());
-                if(freshVote != null){
-                    switch (freshVote){
-                        case "up":
-                            currentComment.setUpvotes(currentComment.getUpvotes() + 1);
-                            break;
 
-                        case "um":
-                            currentComment.setUpvotes(currentComment.getUpvotes() - 1);
+                String currentValue = actionMap.get(temp.getCommentID());
+                String historyValue = actionHistoryMap.get(temp.getCommentID());
+                if(currentValue != null){
+                    switch(currentValue){
+                        //we record and handle "N" case which is when user initially voted and then clicked it again to cancel the vote,
+                        //keep the N until we decrement past vote
+                        // and then it is removed from actionmap after the decrement for DB is performed
+                        case "U":
+                            if(historyValue == null){
+                                temp.updateUservote(UPVOTE);
+                                Log.d("history", "history value is always null");
+                            }
+                            else{
+                                if(historyValue.equals("U")){
+                                    temp.getNodeContent().initialSetUservote(UPVOTE);
+                                }
+                                else{
+                                    temp.updateUservoteAndDecrement(UPVOTE);
+                                }
+                            }
                             break;
-
-                        case "dp":
-                            currentComment.setDownvotes(currentComment.getDownvotes() + 1);
+                        case "D":
+                            if(historyValue == null){
+                                temp.updateUservote(DOWNVOTE);
+                            }
+                            else{
+                                if(historyValue.equals("D")){
+                                    temp.getNodeContent().initialSetUservote(DOWNVOTE);
+                                }
+                                else{
+                                    temp.updateUservoteAndDecrement(DOWNVOTE);
+                                }
+                            }
                             break;
-
-                        case "dm":
-                            currentComment.setDownvotes(currentComment.getDownvotes() - 1);
-                            break;
-
-                        case "updm":
-                            currentComment.setUpvotes(currentComment.getUpvotes() + 1);
-                            currentComment.setDownvotes(currentComment.getDownvotes() - 1);
-                            break;
-
-                        case "umdp":
-                            currentComment.setUpvotes(currentComment.getUpvotes() - 1);
-                            currentComment.setDownvotes(currentComment.getDownvotes() + 1);
+                        case "N":   //"N" doesn't get written to DB because we remove it before uploading actionMap through UserAction object
+                            //so this is going to be a current session action that needs to be manually applied
+                            if(historyValue != null){
+                                if(historyValue.equals("U")){
+                                    temp.getNodeContent().decrementAndSetN(UPVOTE);
+                                }
+                                else {  //since DB doesn't store "N", we can safely assume this is "D"
+                                    temp.getNodeContent().decrementAndSetN(DOWNVOTE);
+                                }
+                            }
                             break;
                     }
-                    freshlyVotedComments.remove(currentComment.getComment_id());
                 }
             }
-
         }
+
+        //overrides downloaded values of upvotes and downvotes for comments that were recently voted on, to prevent bugs related to discrepancy between local and database values
+        for (HashMap.Entry<String, Pair<Integer, Integer>> entry : freshlyVotedComments.entrySet()) {
+            String commentID = entry.getKey();
+            Pair<Integer, Integer> votes = entry.getValue();
+
+            Log.d("freshComment", "Applying fresh votes: "+votes.first.toString() + " and " + votes.second.toString());
+            VSCNode currentNode = nodeMap.get(commentID);
+            if(currentNode != null) {
+                currentNode.setUpvotesAndDownvotes(votes);
+            }
+        }
+        freshlyVotedComments.clear();
     }
 
     //TODO:this is where we do user action synchronization I believe it would be called
@@ -1352,7 +1326,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         return postID;
     }
 
-    private void deepCopyToActionHistoryMap(Map<String, String> actionRecord){
+    private void deepCopyToActionHistoryMap(){
         actionHistoryMap = new HashMap<>();
         for(Map.Entry<String, String> entry : actionMap.entrySet()){
             if(entry.getValue().equals("N")){
@@ -2829,6 +2803,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     public void childOrGrandchildHistoryItemClicked(final VSComment clickedComment){
+        freshlyVotedComments.clear();
         pageLevel  = 2;
         clearList();
         if(PPAdapter != null) {
@@ -2876,7 +2851,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 }
                 lastSubmittedVote = userAction.getVotedSide();
                 actionMap = userAction.getActionRecord();
-                deepCopyToActionHistoryMap(actionMap);
+                deepCopyToActionHistoryMap();
 
                 //first get parent and add it to cache
                 final VSComment parentComment = getComment(clickedComment.getParent_id());
@@ -2939,6 +2914,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     public void rootCommentHistoryItemClicked(final VSComment clickedRootComment){
+        freshlyVotedComments.clear();
         clearList();
         if(PPAdapter != null) {
             PPAdapter.clearList();
@@ -2985,7 +2961,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 }
                 lastSubmittedVote = userAction.getVotedSide();
                 actionMap = userAction.getActionRecord();
-                deepCopyToActionHistoryMap(actionMap);
+                deepCopyToActionHistoryMap();
 
                 activity.runOnUiThread(new Runnable() {
                     @Override
@@ -3086,8 +3062,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
     }
 
-    public void addFreshlyVotedComment(String commentID, String voteType){
-        freshlyVotedComments.put(commentID, voteType);
+    public void addFreshlyVotedComment(String commentID, Pair<Integer, Integer> votes){
+        Log.d("freshCommentVoteStatus", "Upvotes: " + votes.first.toString() + ", Downvotes: " + votes.second.toString());
+        freshlyVotedComments.put(commentID, votes);
     }
 
 }
