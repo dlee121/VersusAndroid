@@ -127,7 +127,6 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/usercommenttc"
             android:layout_marginTop="5dp"
-            android:layout_marginEnd="8dp"
             android:layout_toEndOf="@id/broken_heart_button_tc"
             android:text="12345"
             android:textAlignment="center"

@@ -275,7 +275,8 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     }
                 });
 
-                commentViewHolder.heartCount.setText( Integer.toString(currentComment.heartsTotal()) );
+                commentViewHolder.upvotes.setText( Integer.toString(currentComment.getUpvotes()) );
+                commentViewHolder.downvotes.setText( Integer.toString(currentComment.getDownvotes()) );
                 //set CardView onClickListener to go to PostPage fragment with corresponding Comments data (this will be a PostPage without post_card)
 
                 if(currentComment.getIsNew()){
@@ -328,7 +329,8 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                             currentComment.setUservote(UPVOTE);
                             actionMap.put(currentComment.getComment_id(), "U");
                         }
-                        commentViewHolder.heartCount.setText( Integer.toString(currentComment.heartsTotal()) ); //refresh heartcount display
+                        commentViewHolder.upvotes.setText( Integer.toString(currentComment.getUpvotes()) );
+                        commentViewHolder.downvotes.setText( Integer.toString(currentComment.getDownvotes()) );
                     }
                 });
 
@@ -353,7 +355,8 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                             currentComment.setUservote(DOWNVOTE);
                             actionMap.put(currentComment.getComment_id(), "D");
                         }
-                        commentViewHolder.heartCount.setText( Integer.toString(currentComment.heartsTotal()) );
+                        commentViewHolder.upvotes.setText( Integer.toString(currentComment.getUpvotes()) );
+                        commentViewHolder.downvotes.setText( Integer.toString(currentComment.getDownvotes()) );
                     }
                 });
             }
@@ -489,19 +492,16 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
             switch (activity.getPostPage().getSortType()){
                 case MOST_RECENT:
-                    Log.d("MICKEY", "MOST RECENT");
                     topCardViewHolder.sortButton.setText("MOST RECENT");
                     topCardViewHolder.sortButton.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_new_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
                     break;
 
                 case POPULAR:
-                    Log.d("MICKEY", "POPULAR");
                     topCardViewHolder.sortButton.setText("POPULAR");
                     topCardViewHolder.sortButton.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_thumb_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
                     break;
 
                 case CHRONOLOGICAL:
-                    Log.d("MICKEY", "CHRONOLOGICAL");
                     topCardViewHolder.sortButton.setText("CHRONOLOGICAL");
                     topCardViewHolder.sortButton.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_chrono_20small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
                     break;
@@ -760,7 +760,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     private class CommentViewHolder extends RecyclerView.ViewHolder {
 
-        public TextView timestamp, author, content, heartCount;
+        public TextView timestamp, author, content, upvotes, downvotes;
         public Button replyButton, seeMoreButton;
         public ImageButton upvoteButton, downvoteButton, overflowMenu;
         public ImageView medalImage;
@@ -774,7 +774,8 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             overflowMenu = view.findViewById(R.id.comment_overflow_menu);
             timestamp = view.findViewById(R.id.timetvcs);
             content = view.findViewById(R.id.usercomment);
-            heartCount = view.findViewById(R.id.heartCount);
+            upvotes = view.findViewById(R.id.upvotes_cc);
+            downvotes = view.findViewById(R.id.downvotes_cc);
             replyButton = view.findViewById(R.id.replybuttoncs);
             upvoteButton = view.findViewById(R.id.heartbutton);
             downvoteButton = view.findViewById(R.id.broken_heart_button);

@@ -138,7 +138,7 @@
             app:srcCompat="@drawable/ic_heart"/>
 
         <TextView
-            android:id="@+id/heartCount"
+            android:id="@+id/upvotes_cc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignTop="@id/heartbutton"
@@ -154,7 +154,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignTop="@id/heartbutton"
-            android:layout_toRightOf="@id/heartCount"
+            android:layout_toRightOf="@id/upvotes_cc"
             android:background="@null"
             android:paddingStart="8dp"
             android:paddingTop="4dp"
@@ -165,6 +165,18 @@
             android:scaleX="1.5"
             android:scaleY="1.5"
             app:srcCompat="@drawable/ic_heart_broken"/>
+
+        <TextView
+            android:id="@+id/downvotes_cc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@id/heartbutton"
+            android:layout_marginTop="2dp"
+            android:paddingTop="3dp"
+            android:layout_toRightOf="@id/broken_heart_button"
+            android:text="12345"
+            android:textAlignment="center"
+            android:textSize="12sp" />
 
         <Button
             android:id="@+id/replybuttoncs"

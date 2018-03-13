@@ -393,7 +393,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 RVLayoutParams.height = 0;
                 RVLayoutParams.width = 0;
                 RV.setLayoutParams(RVLayoutParams);
-                topCardActive = false;
             }
         }
     }
@@ -895,7 +894,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     public void hideTopCard(){
-        topCardActive = false;
         topCardContent = null;
         showPostPageFAB();
         atRootLevel = true;
