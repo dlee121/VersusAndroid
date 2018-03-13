@@ -62,7 +62,6 @@
             android:layout_toRightOf="@id/timetvcs"
             android:scaleX="0.7"
             android:scaleY="0.7"
-            android:layout_marginBottom="-13dp"
             />
 
 

@@ -39,6 +39,7 @@ import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.MedalUpdateRequest;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.SessionManager;
+import com.vs.bcd.versus.model.TopCardObject;
 import com.vs.bcd.versus.model.UserAction;
 import com.vs.bcd.versus.model.VSCNode;
 import com.vs.bcd.versus.model.VSComment;
@@ -101,7 +102,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private VSCNode firstRoot = null; //first comment in root level, as in parent_id = "0"
     private MainContainer activity;
     private boolean topCardActive = false;
-    private RelativeLayout topCard;
     private boolean ppfabActive = true;
     private FloatingActionButton postPageFAB;
     private RelativeLayout.LayoutParams fabLP;
@@ -148,6 +148,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private String host, region;
 
     private int pageLevel = 0;
+    private int topCardSortType = POPULAR;
 
     private Toast mToast;
 
@@ -165,7 +166,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         mRelativeLayout =  rootView.findViewById(R.id.post_page_layout);
         postPageFAB = rootView.findViewById(R.id.postpage_fab);
         fabLP = (RelativeLayout.LayoutParams)postPageFAB.getLayoutParams();
-        topCard = rootView.findViewById(R.id.topCard);
         RV = rootView.findViewById(R.id.recycler_view_cs);
         RV.setLayoutManager(new LinearLayoutManager(activity));
         RVLayoutParams = RV.getLayoutParams();
@@ -193,81 +193,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 //depending if we're at isRootLevel or not
                 activity.getCommentEnterFragment().setContentReplyToPost(post);
                 activity.getViewPager().setCurrentItem(4);
-            }
-        });
-
-        topCard.findViewById(R.id.replybuttontc).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                activity.getCommentEnterFragment().setContentReplyToComment(topCardContent, 0);
-                activity.getViewPager().setCurrentItem(4);
-            }
-        });
-        topcardSortTypeSelector = topCard.findViewById(R.id.sort_type_selector_topcard);
-        topcardSortTypeSelector.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                selectSortType("c");
-            }
-        });
-        topcardSortTypeSelectorBackground = topCard.findViewById(R.id.sort_type_selector_background_topcard);
-
-        final ImageButton topCardUpvoteButton = (ImageButton)rootView.findViewById(R.id.heartbuttontc);
-        final ImageButton topCardDownvoteButton = (ImageButton)rootView.findViewById(R.id.broken_heart_button_tc);
-        final TextView topCardHeartCount = (TextView)rootView.findViewById(R.id.heartCounttc);
-
-        topCardUpvoteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(topCardContent != null){
-                    int userVote = topCardContent.getUservote();
-                    if(userVote == UPVOTE){
-                        topCardUpvoteButton.setImageResource(R.drawable.ic_heart);
-                        topCardContent.setUservote(NOVOTE);
-                        actionMap.put(topCardContent.getComment_id(), "N");
-                        //actionMap.remove(currentComment.getComment_id());   //instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote if there were a past vote
-                    }
-                    else if(userVote == DOWNVOTE){
-                        topCardDownvoteButton.setImageResource(R.drawable.ic_heart_broken);
-                        topCardUpvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
-                        topCardContent.setUservote(UPVOTE);
-                        actionMap.put(topCardContent.getComment_id(), "U");
-                    }
-                    else if(userVote == NOVOTE){
-                        topCardUpvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
-                        topCardContent.setUservote(UPVOTE);
-                        actionMap.put(topCardContent.getComment_id(), "U");
-                    }
-                    Log.d("topcardrefresh", "topCardContent hearts total: " + Integer.toString(parentCache.get(topCardContent.getComment_id()).heartsTotal()));
-                    topCardHeartCount.setText( Integer.toString(topCardContent.heartsTotal()) );
-                }
-            }
-        });
-
-        topCardDownvoteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(topCardContent != null){
-                    int userVote = topCardContent.getUservote();
-                    if(userVote == DOWNVOTE){
-                        topCardDownvoteButton.setImageResource(R.drawable.ic_heart_broken);
-                        topCardContent.setUservote(NOVOTE);
-                        actionMap.put(topCardContent.getComment_id(), "N");
-                        //actionMap.remove(currentComment.getComment_id());   //instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote if there were a past vote
-                    }
-                    else if(userVote == UPVOTE){
-                        topCardUpvoteButton.setImageResource(R.drawable.ic_heart);
-                        topCardDownvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
-                        topCardContent.setUservote(DOWNVOTE);
-                        actionMap.put(topCardContent.getComment_id(), "D");
-                    }
-                    else if(userVote == NOVOTE){
-                        topCardDownvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
-                        topCardContent.setUservote(DOWNVOTE);
-                        actionMap.put(topCardContent.getComment_id(), "D");
-                    }
-                    topCardHeartCount.setText( Integer.toString(topCardContent.heartsTotal()) );
-                }
             }
         });
 
@@ -589,14 +514,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             }
                         }
                         getChildComments(rootComments, childComments);
-                    } else if (!rootParentID.equals(postID)) {
-                        activity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                mSwipeRefreshLayout.setRefreshing(false);
-                            }
-                        });
-                        return;
                     }
 
                     if (!medalUpgradeMap.isEmpty()) {
@@ -714,6 +631,11 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                 //vsComments.add(0, post);
                                 masterList.add(0, post);
                             }
+                            else{
+                                if(topCardContent != null){
+                                    masterList.add(0, new TopCardObject(topCardContent));
+                                }
+                            }
 
                             //find view by id and attaching adapter for the RecyclerView
                             //RV.setLayoutManager(new LinearLayoutManager(activity));
@@ -796,15 +718,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             prevNode = cNode;
                         }
                     }
-                    else {
-                        activity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                mSwipeRefreshLayout.setRefreshing(false);
-                            }
-                        });
-                        return;
-                    }
 
                     //set up comments list
                     VSCNode temp;
@@ -828,8 +741,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             if(applyActions){
                                 applyUserActions(masterList);
                             }
-                            else{
+                            else {
                                 Log.d("wow", "applyActions is false");
+                            }
+
+                            if(topCardContent != null){
+                                masterList.add(0, new TopCardObject(topCardContent));
                             }
 
                             //find view by id and attaching adapter for the RecyclerView
@@ -963,8 +880,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         return PPAdapter;
     }
 
-    //used to set up the card view at the top to show the clicked comment which won't scroll with the recycler view
-    //topcard always exists, it's just hidden when not needed. this shows it if it's not already shown and we want it to be shown
+    //now this is more of a legacy function to keep other functions working,
+    // the real TopCard setup happens in query functions where we add a TopCard Object into the masterList that goes into PostPageAdapter
     public void setUpTopCard(VSComment clickedComment){
 
         topCardContent = clickedComment;
@@ -975,62 +892,11 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
 
         setCommentCardSortTypeHint();
-
-        TextView timestamp = topCard.findViewById(R.id.timetvtc);
-        TextView author = topCard.findViewById(R.id.usernametvtc);
-        TextView content = topCard.findViewById(R.id.usercommenttc);
-        TextView heartCount = topCard.findViewById(R.id.heartCounttc);
-
-        final String authorUsername = clickedComment.getAuthor();
-        author.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(!authorUsername.equals("[deleted]")){
-                    activity.goToProfile(authorUsername, true);
-                }
-            }
-        });
-
-        timestamp.setText(getTimeString(clickedComment.getTime()));
-        author.setText(clickedComment.getAuthor());
-        content.setText(clickedComment.getContent());
-        heartCount.setText(Integer.toString(clickedComment.heartsTotal()));
-
-        switch (clickedComment.getUservote()){
-            case 0: //NOVOTE
-                ((ImageButton)topCard.findViewById(R.id.heartbuttontc)).setImageResource(R.drawable.ic_heart);
-                ((ImageButton)topCard.findViewById(R.id.broken_heart_button_tc)).setImageResource(R.drawable.ic_heart_broken);
-                break;
-
-            case 1: //UPVOTE
-                ((ImageButton)topCard.findViewById(R.id.heartbuttontc)).setImageResource(R.drawable.ic_heart_highlighted);
-                ((ImageButton)topCard.findViewById(R.id.broken_heart_button_tc)).setImageResource(R.drawable.ic_heart_broken);
-                break;
-
-            case 2: //DOWNVOTE
-                ((ImageButton)topCard.findViewById(R.id.heartbuttontc)).setImageResource(R.drawable.ic_heart);
-                ((ImageButton)topCard.findViewById(R.id.broken_heart_button_tc)).setImageResource(R.drawable.ic_heart_broken_highlighted);
-                break;
-            default:
-                break;
-        }
-
-        if(!topCardActive){
-            topCard.setEnabled(true);
-            RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-            topCard.findViewById(R.id.replybuttontc).setEnabled(true);
-            //lp.bottomMargin = 154;
-            topCard.setLayoutParams(lp);
-            topCardActive = true;
-        }
     }
 
     public void hideTopCard(){
         topCardActive = false;
         topCardContent = null;
-        topCard.findViewById(R.id.replybuttontc).setEnabled(false);
-        topCard.setEnabled(false);
-        topCard.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
         showPostPageFAB();
         atRootLevel = true;
     }
@@ -1620,6 +1486,10 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     private void setCommentCardSortTypeHint(){
+        if(PPAdapter != null){
+            PPAdapter.setTopCardSortTypeHint(sortType);
+        }
+        /*
         switch (sortType){
             case MOST_RECENT:
                 topcardSortTypeSelector.setText("MOST RECENT");
@@ -1637,8 +1507,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 break;
 
         }
+        */
     }
-
 
 
     private void loadMoreComments(final String uORt){
@@ -2546,11 +2416,17 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
         else if(!rootParentID.equals(postID)){
 
+
+
             VSCNode cNode = new VSCNode(submittedComment);
             cNode.setNestedLevel(0);
             nodeMap.put(submittedComment.getComment_id(), cNode);
             masterList.add(0, submittedComment);
             currCommentsIndex++;
+
+            if(topCardContent != null){
+                masterList.add(0, new TopCardObject(topCardContent));
+            }
 
             activity.runOnUiThread(new Runnable() {
                 @Override
@@ -2684,6 +2560,10 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         nodeMap.put(submittedComment.getComment_id(), sNode);
         masterList.add(0, submittedComment);
         currCommentsIndex++;
+
+        if(topCardContent != null){
+            masterList.add(0, new TopCardObject(topCardContent));
+        }
 
         //run UI updates on UI Thread
         activity.runOnUiThread(new Runnable() {

@@ -36,6 +36,7 @@ import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.model.GlideUrlCustom;
 import com.vs.bcd.versus.model.Post;
+import com.vs.bcd.versus.model.TopCardObject;
 import com.vs.bcd.versus.model.UserAction;
 import com.vs.bcd.versus.model.VSComment;
 
@@ -66,6 +67,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private final int VIEW_TYPE_ITEM = 0;
     private final int VIEW_TYPE_LOADING = 1;
     private final int VIEW_TYPE_POSTCARD = 2;
+    private final int VIEW_TYPE_TOPCARD = 3;
     private boolean isLoading;
     private MainContainer activity;
     private Post post;
@@ -90,6 +92,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     private Toast mToast;
     private ListPopupWindow listPopupWindow;
+    private Button topCardSortButton;
 
     private int DEFAULT = 0;
     private int S3 = 1;
@@ -118,12 +121,15 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     @Override
     public int getItemViewType(int position) {
-        if (position > masterList.size())
-            return VIEW_TYPE_LOADING;
-        else if(position  == 0 && masterList.get(0) instanceof Post)
-            return VIEW_TYPE_POSTCARD;
-        else
-            return  VIEW_TYPE_ITEM;
+        if(position  == 0){
+            if(masterList.get(0) instanceof Post){
+                return VIEW_TYPE_POSTCARD;
+            }
+            return VIEW_TYPE_TOPCARD;
+        }
+        else {
+            return VIEW_TYPE_ITEM;
+        }
     }
 
     @Override
@@ -138,6 +144,9 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         } else if (viewType == VIEW_TYPE_POSTCARD) {
             View view = LayoutInflater.from(activity).inflate(R.layout.post_card, parent, false);
             return  new PostCardViewHolder(view);
+        } else if(viewType == VIEW_TYPE_TOPCARD){
+            View view = LayoutInflater.from(activity).inflate(R.layout.top_card, parent, false);
+            return new TopCardViewHolder(view);
         }
         return null;
     }
@@ -361,7 +370,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             postCard.author.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if(!post.getAuthor().equals("[deleted]")){
+                    if (!post.getAuthor().equals("[deleted]")) {
                         activity.goToProfile(post.getAuthor(), true);
                     }
                 }
@@ -370,16 +379,16 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             postCard.profileImg.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if(!post.getAuthor().equals("[deleted]")){
+                    if (!post.getAuthor().equals("[deleted]")) {
                         activity.goToProfile(post.getAuthor(), true);
                     }
                 }
             });
 
 
-            redTint = new ShapeDrawable (new RectShape());
-            redTint.setIntrinsicWidth (postCard.redIV.getWidth());
-            redTint.setIntrinsicHeight (postCard.redIV.getHeight());
+            redTint = new ShapeDrawable(new RectShape());
+            redTint.setIntrinsicWidth(postCard.redIV.getWidth());
+            redTint.setIntrinsicHeight(postCard.redIV.getHeight());
             redTint.getPaint().setColor(Color.argb(175, 165, 35, 57));
             //redLayers[0] = ContextCompat.getDrawable(activity, R.drawable.default_background);
             redLayers[0] = redTint;
@@ -396,12 +405,12 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             postCard.redimgBox.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if(!userAction.getVotedSide().equals("RED")){
+                    if (!userAction.getVotedSide().equals("RED")) {
                         activity.getPostPage().redVotePressed();
                         setImageMask(TINTCHECK, RED);
                         setImageMask(TINT, BLK);
 
-                        if(mToast != null){
+                        if (mToast != null) {
                             mToast.cancel();
                         }
                         mToast = Toast.makeText(activity, "Vote Submitted", Toast.LENGTH_SHORT);
@@ -413,12 +422,12 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             postCard.blkimgBox.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if(!userAction.getVotedSide().equals("BLK")){
+                    if (!userAction.getVotedSide().equals("BLK")) {
                         activity.getPostPage().blackVotePressed();
                         setImageMask(TINTCHECK, BLK);
                         setImageMask(TINT, RED);
 
-                        if(mToast != null){
+                        if (mToast != null) {
                             mToast.cancel();
                         }
                         mToast = Toast.makeText(activity, "Vote Submitted", Toast.LENGTH_SHORT);
@@ -434,7 +443,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 }
             });
 
-            switch (activity.getPostPageSortType()){
+            switch (activity.getPostPageSortType()) {
                 case MOST_RECENT:
                     postCard.sortTypeSelector.setText("MOST RECENT");
                     postCard.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_new_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
@@ -450,36 +459,199 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             }
 
 
-            if(post.getRedimg()%10 == S3){
-                try{
+            if (post.getRedimg() % 10 == S3) {
+                try {
                     GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI("versus.pictures", post, 0));
                     Glide.with(activity).load(gurlLeft).into(postCard.redIV);
-                } catch (Exception e){
+                } catch (Exception e) {
                     postCard.redIV.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
                 }
-            }
-            else{
+            } else {
                 postCard.redIV.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
             }
 
-            if(post.getBlackimg()%10 == S3){
-                try{
+            if (post.getBlackimg() % 10 == S3) {
+                try {
                     GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI("versus.pictures", post, 1));
                     Glide.with(activity).load(gurlRight).into(postCard.blkIV);
-                } catch (Exception e){
+                } catch (Exception e) {
                     postCard.blkIV.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
                 }
-            }
-            else{
+            } else {
                 postCard.blkIV.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
             }
             setInitialMask();
 
-        } else if (holder instanceof LoadingViewHolder) { //TODO: handle loading view to be implemented soon
-            LoadingViewHolder loadingViewHolder = (LoadingViewHolder) holder;
-            loadingViewHolder.progressBar.setIndeterminate(true);
+        } else if(holder instanceof TopCardViewHolder){
+
+            final TopCardObject topCardObject = (TopCardObject) masterList.get(position);
+            final TopCardViewHolder topCardViewHolder = (TopCardViewHolder) holder;
+
+            switch (activity.getPostPage().getSortType()){
+                case MOST_RECENT:
+                    Log.d("MICKEY", "MOST RECENT");
+                    topCardViewHolder.sortButton.setText("MOST RECENT");
+                    topCardViewHolder.sortButton.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_new_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                    break;
+
+                case POPULAR:
+                    Log.d("MICKEY", "POPULAR");
+                    topCardViewHolder.sortButton.setText("POPULAR");
+                    topCardViewHolder.sortButton.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_thumb_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                    break;
+
+                case CHRONOLOGICAL:
+                    Log.d("MICKEY", "CHRONOLOGICAL");
+                    topCardViewHolder.sortButton.setText("CHRONOLOGICAL");
+                    topCardViewHolder.sortButton.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_chrono_20small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                    break;
+            }
+
+            switch (topCardObject.getUservote()){
+                case NOVOTE:
+                    topCardViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
+                    topCardViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+                    break;
+                case UPVOTE:
+                    topCardViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
+                    break;
+                case DOWNVOTE:
+                    topCardViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
+                    break;
+                default:
+                    topCardViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
+                    topCardViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+                    break;
+            }
+
+            topCardViewHolder.author.setText(topCardObject.getAuthor());
+            final String authorName = topCardObject.getAuthor();
+            if(!authorName.equals("[deleted]")){
+                topCardViewHolder.author.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        activity.goToProfile(authorName, true);
+                    }
+                });
+            }
+
+            topCardViewHolder.overflowMenu.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    showListPopupWindow(activity.getUsername().equals(authorName), topCardViewHolder.overflowMenu, position);
+                }
+            });
+
+            topCardViewHolder.timestamp.setText(getTimeString(topCardObject.getTime()));
+
+            switch (topCardObject.getCurrentMedal()){
+                case 0:
+                    break; //no medal, default currentMedal value
+                case 1: //bronze
+                    topCardViewHolder.medalImage.setImageResource(R.drawable.bronzemedal);
+                    break;
+                case 2: //silver
+                    topCardViewHolder.medalImage.setImageResource(R.drawable.silvermedal);
+                    break;
+                case 3: //gold
+                    topCardViewHolder.medalImage.setImageResource(R.drawable.goldmedal);
+                    break;
+            }
+
+            topCardViewHolder.content.setText(topCardObject.getContent());
+
+            topCardViewHolder.upvotesCount.setText(Integer.toString(topCardObject.getUpvotes()));
+            topCardViewHolder.downvotesCount.setText(Integer.toString(topCardObject.getDownvotes()));
+
+            topCardViewHolder.upvotesCount.setText(Integer.toString(topCardObject.getUpvotes()));
+            topCardViewHolder.downvotesCount.setText(Integer.toString(topCardObject.getDownvotes()));
+
+            topCardViewHolder.upvoteButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int userVote = topCardObject.getUservote();
+                    if(userVote == UPVOTE){
+                        topCardViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
+                        topCardObject.setUservote(NOVOTE);
+                        actionMap.put(topCardObject.getComment_id(), "N");
+                        //actionMap.remove(currentComment.getComment_id());   //instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote if there were a past vote
+                    }
+                    else if(userVote == DOWNVOTE){
+                        topCardViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+                        topCardViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
+                        topCardObject.setUservote(UPVOTE);
+                        actionMap.put(topCardObject.getComment_id(), "U");
+                    }
+                    else if(userVote == NOVOTE){
+                        topCardViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
+                        topCardObject.setUservote(UPVOTE);
+                        actionMap.put(topCardObject.getComment_id(), "U");
+                    }
+
+                    topCardViewHolder.upvotesCount.setText(Integer.toString(topCardObject.getUpvotes()));
+                    topCardViewHolder.downvotesCount.setText(Integer.toString(topCardObject.getDownvotes()));
+                }
+            });
+
+            topCardViewHolder.downvoteButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int userVote = topCardObject.getUservote();
+                    if(userVote == DOWNVOTE){
+                        topCardViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+                        topCardObject.setUservote(NOVOTE);
+                        actionMap.put(topCardObject.getComment_id(), "N");
+                        //actionMap.remove(currentComment.getComment_id());   //instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote if there were a past vote
+                    }
+                    else if(userVote == UPVOTE){
+                        topCardViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
+                        topCardViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
+                        topCardObject.setUservote(DOWNVOTE);
+                        actionMap.put(topCardObject.getComment_id(), "D");
+                    }
+                    else if(userVote == NOVOTE){
+                        topCardViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
+                        topCardObject.setUservote(DOWNVOTE);
+                        actionMap.put(topCardObject.getComment_id(), "D");
+                    }
+
+                    topCardViewHolder.upvotesCount.setText(Integer.toString(topCardObject.getUpvotes()));
+                    topCardViewHolder.downvotesCount.setText(Integer.toString(topCardObject.getDownvotes()));
+                }
+            });
+
+            topCardSortButton = topCardViewHolder.sortButton;
+            topCardViewHolder.sortButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    activity.getPostPage().selectSortType("c");
+                }
+            });
+
         }
     }
+
+    public void setTopCardSortTypeHint(int sortType){
+        if(topCardSortButton != null){
+            switch (sortType){
+                case MOST_RECENT:
+                    topCardSortButton.setText("MOST RECENT");
+                    topCardSortButton.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_new_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                    break;
+
+                case POPULAR:
+                    topCardSortButton.setText("POPULAR");
+                    topCardSortButton.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_thumb_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                    break;
+
+                case CHRONOLOGICAL:
+                    topCardSortButton.setText("CHRONOLOGICAL");
+                    topCardSortButton.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_chrono_20small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                    break;
+            }
+        }
+    }
+
     private void setInitialMask(){
         switch (userAction.getVotedSide()){
             case "none":
@@ -560,6 +732,30 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             super(view);
             progressBar = view.findViewById(R.id.progressBar1);
         }
+    }
+
+    private class TopCardViewHolder extends RecyclerView.ViewHolder {
+
+        public TextView timestamp, author, content, upvotesCount, downvotesCount;
+        public ImageButton upvoteButton, downvoteButton, overflowMenu;
+        public ImageView medalImage;
+        public Button sortButton;
+
+        public TopCardViewHolder(View view) {
+            super(view);
+            author = view.findViewById(R.id.usernametvtc);
+            overflowMenu = view.findViewById(R.id.topcard_overflow_menu);
+            timestamp = view.findViewById(R.id.timetvtc);
+            content = view.findViewById(R.id.usercommenttc);
+            upvotesCount = view.findViewById(R.id.upvotes_tc);
+            upvoteButton = view.findViewById(R.id.heartbuttontc);
+            downvotesCount = view.findViewById(R.id.downvotes_tc);
+            downvoteButton = view.findViewById(R.id.broken_heart_button_tc);
+            medalImage = view.findViewById(R.id.medal_image_tc);
+            sortButton = view.findViewById(R.id.sort_type_selector_topcard);
+        }
+
+
     }
 
     private class CommentViewHolder extends RecyclerView.ViewHolder {
