@@ -1018,8 +1018,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         for (HashMap.Entry<String, Pair<Integer, Integer>> entry : freshlyVotedComments.entrySet()) {
             String commentID = entry.getKey();
             Pair<Integer, Integer> votes = entry.getValue();
-
-            Log.d("freshComment", "Applying fresh votes: "+votes.first.toString() + " and " + votes.second.toString());
             VSCNode currentNode = nodeMap.get(commentID);
             if(currentNode != null) {
                 currentNode.setUpvotesAndDownvotes(votes);
@@ -2467,9 +2465,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 getChildComments(rootComments, childComments);
             }
         }
-        else if(!rootParentID.equals(postID)){
-
-
+        else if(pageLevel > 0){
 
             VSCNode cNode = new VSCNode(submittedComment);
             cNode.setNestedLevel(0);
@@ -2477,9 +2473,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             masterList.add(0, submittedComment);
             currCommentsIndex++;
 
-            if(topCardContent != null){
-                masterList.add(0, new TopCardObject(topCardContent));
-            }
+            masterList.add(0, new TopCardObject(parentCache.get(rootParentID)));
 
             activity.runOnUiThread(new Runnable() {
                 @Override
@@ -2611,11 +2605,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             rNode.setHeadSibling(sNode);
         }
         nodeMap.put(submittedComment.getComment_id(), sNode);
+
         masterList.add(0, submittedComment);
         currCommentsIndex++;
 
-        if(topCardContent != null){
-            masterList.add(0, new TopCardObject(topCardContent));
+        if(pageLevel > 0){
+            masterList.add(0, new TopCardObject(parentCache.get(rootParentID)));
         }
 
         //run UI updates on UI Thread
@@ -2626,7 +2621,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 applyUserActions(masterList);
 
                 //Make sure to do this after applyUserActions because applyUserActions doesn't expect post object in the list
-                if(rootParentID.equals(postID)) {
+                if(pageLevel == 0) {
                     //vsComments.add(0, post);
                     masterList.add(0,post);
                 }
@@ -3063,7 +3058,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     public void addFreshlyVotedComment(String commentID, Pair<Integer, Integer> votes){
-        Log.d("freshCommentVoteStatus", "Upvotes: " + votes.first.toString() + ", Downvotes: " + votes.second.toString());
+        //Log.d("freshCommentVoteStatus", "Upvotes: " + votes.first.toString() + ", Downvotes: " + votes.second.toString());
         freshlyVotedComments.put(commentID, votes);
     }
 
