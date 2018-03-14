@@ -645,6 +645,13 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 }
             });
 
+            topCardViewHolder.replyButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    activity.getPostPage().itemReplyClickHelper(topCardObject);
+                }
+            });
+
             topCardSortButton = topCardViewHolder.sortButton;
             topCardViewHolder.sortButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -770,7 +777,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         public TextView timestamp, author, content, upvotesCount, downvotesCount;
         public ImageButton upvoteButton, downvoteButton, overflowMenu;
         public ImageView medalImage;
-        public Button sortButton;
+        public Button sortButton, replyButton;
 
         public TopCardViewHolder(View view) {
             super(view);
@@ -783,6 +790,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             downvotesCount = view.findViewById(R.id.downvotes_tc);
             downvoteButton = view.findViewById(R.id.broken_heart_button_tc);
             medalImage = view.findViewById(R.id.medal_image_tc);
+            replyButton = view.findViewById(R.id.replybuttontc);
             sortButton = view.findViewById(R.id.sort_type_selector_topcard);
         }
 

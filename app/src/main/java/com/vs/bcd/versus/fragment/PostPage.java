@@ -405,17 +405,15 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     public void enableChildViews(){
+        if(topCardContent != null){//for re-entry from CommentEnterFragment. Without this setUpTopCard, enableChildViews hides top card from view
+            setUpTopCard(topCardContent);
+        }
         for(int i = 0; i<childViews.size(); i++){
             if( !(childViews.get(i) instanceof FloatingActionButton && ppfabActive == false) ){
 
                 childViews.get(i).setEnabled(true);
                 childViews.get(i).setClickable(true);
-                if(childViews.get(i).getId() == R.id.topCard && topCardContent != null){//for re-entry from CommentEnterFragment. Without this setUpTopCard, enableChildViews hides top card from view
-                    setUpTopCard(topCardContent);
-                }
-                else{
-                    childViews.get(i).setLayoutParams(LPStore.get(i));
-                }
+                childViews.get(i).setLayoutParams(LPStore.get(i));
             }
         }
     }
