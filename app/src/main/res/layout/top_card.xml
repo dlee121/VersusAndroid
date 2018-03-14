@@ -6,9 +6,9 @@
     android:layout_height="wrap_content"
     android:layout_marginTop="0dp"
     android:layout_marginBottom="8dp"
-    card_view:contentPaddingLeft="4dp"
+    card_view:contentPaddingLeft="0dp"
     card_view:contentPaddingTop="4dp"
-    card_view:contentPaddingRight="4dp"
+    card_view:contentPaddingRight="0dp"
     card_view:contentPaddingBottom="0dp"
     card_view:cardElevation="0dp"
     app:cardCornerRadius="0dp">
