@@ -74,6 +74,10 @@ public class CEFAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         else if(holder instanceof CEFTextInputViewHolder){
             CEFTextInputViewHolder cefTextInputViewHolder = (CEFTextInputViewHolder) holder;
             textInput = cefTextInputViewHolder.cefTextInput;
+            String text = cefObjects.get(position).getText();
+            if(text != null && !text.equals("")){
+                textInput.setText(text);
+            }
         }
     }
 

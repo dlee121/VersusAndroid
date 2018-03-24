@@ -8,6 +8,7 @@ public class CEFObject {
     private int cefObjectType; //0 = post, 1 = comment, 2 = text input box
     private String question, rname, bname;
     private String username, content;
+    private String text;
 
     public CEFObject(Post post){
         cefObjectType = 0;
@@ -24,6 +25,11 @@ public class CEFObject {
 
     public CEFObject(){
         cefObjectType = 2;
+        this.text = "";
+    }
+    public CEFObject(String text){
+        cefObjectType = 2;
+        this.text = text;
     }
 
     public int getCefObjectType(){
@@ -47,5 +53,9 @@ public class CEFObject {
 
     public String getContent() {
         return content;
+    }
+
+    public String getText(){
+        return text;
     }
 }

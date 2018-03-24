@@ -447,7 +447,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             final ArrayList<VSComment> childComments = new ArrayList<>();
             final ArrayList<VSComment> grandchildComments = new ArrayList<>();
 
-            mSwipeRefreshLayout.setRefreshing(true);
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mSwipeRefreshLayout.setRefreshing(true);
+                }
+            });
 
             Runnable runnable = new Runnable() {
                 public void run() {
@@ -676,7 +681,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         else{
             final ArrayList<VSComment> grootComments = new ArrayList<>(); //grandchildren page's root comments, so grandchildren comments
 
-            mSwipeRefreshLayout.setRefreshing(true);
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mSwipeRefreshLayout.setRefreshing(true);
+                }
+            });
 
             Runnable runnable = new Runnable() {
                 public void run() {
@@ -2499,6 +2509,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             }
                         }
                     });
+                    activity.hideToolbarProgressbar();
                     activity.getViewPager().setCurrentItem(3);
                 }
             });
@@ -3058,6 +3069,15 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     public void addFreshlyVotedComment(String commentID, Pair<Integer, Integer> votes){
         //Log.d("freshCommentVoteStatus", "Upvotes: " + votes.first.toString() + ", Downvotes: " + votes.second.toString());
         freshlyVotedComments.put(commentID, votes);
+    }
+
+    public void editCommentLocal(int index, String text, String commentID){
+        if(nodeMap.get(commentID) != null){
+            Log.d("editComment", "node content updated");
+            nodeMap.get(commentID).getNodeContent().setContent(text);
+        }
+        PPAdapter.editCommentLocal(index, text, commentID);
+        Log.d("editComment", "adapter content updated");
     }
 
 }

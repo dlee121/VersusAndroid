@@ -63,6 +63,10 @@ public class CommentEnterFragment extends Fragment{
 
     private DatabaseReference mFirebaseDatabaseReference;
 
+    private boolean edit_mode = false;
+    private int editIndex = 0;
+    private String preEditText, editCommentID;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -94,6 +98,7 @@ public class CommentEnterFragment extends Fragment{
     }
 
     public void setContentReplyToPost(Post post){
+        edit_mode = false;
         prefix = "";
         pageLevelTarget = 0;
         cefObjectList.clear();
@@ -108,6 +113,7 @@ public class CommentEnterFragment extends Fragment{
     }
 
     public void setContentReplyToComment(VSComment replySubject, int pageLevelTarget){
+        edit_mode = false;
         prefix = "";
         this.pageLevelTarget = pageLevelTarget;
         cefObjectList.clear();
@@ -123,6 +129,7 @@ public class CommentEnterFragment extends Fragment{
     }
 
     public void setContentReplyToComment(VSComment replySubject, int pageLevelIncrement, String parentID, String prefix){
+        edit_mode = false;
         this.prefix = prefix;
         cefObjectList.clear();
         cefObjectList.add(new CEFObject(replySubject));
@@ -134,6 +141,19 @@ public class CommentEnterFragment extends Fragment{
         post = null;
 
         postID = replySubject.getPost_id();
+    }
+
+    public void setContentEditComment(int index, String text, String commentID){
+        edit_mode = true;
+        editIndex = index;
+        editCommentID = commentID;
+        cefObjectList.clear();
+        cefObjectList.add(new CEFObject(text)); //add text input card view
+        cefAdapter.notifyDataSetChanged();
+        preEditText = text;
+
+        subjectComment = null;
+        post = null;
     }
 
     @Override
@@ -201,87 +221,119 @@ public class CommentEnterFragment extends Fragment{
 
             Runnable runnable = new Runnable() {
                 public void run() {
+                    if(edit_mode){
 
-                    final VSComment vsc = new VSComment();
-                    vsc.setParent_id(parentID);  //TODO: for root/reply check, which would be more efficient, checking if parent_id == "0" or checking parent_id.length() == 1?
-                    vsc.setPost_id(postID);
-                    vsc.setAuthor(activity.getUsername());
-                    vsc.setContent(prefix + inputString);
-                    vsc.setIsNew(true); //sets it to be highlighted
+                        //update comment content through ddb update request
+                        HashMap<String, AttributeValue> keyMap = new HashMap<>();
+                        keyMap.put("i", new AttributeValue().withS(editCommentID));
 
-                    activity.getMapper().save(vsc);
+                        HashMap<String, AttributeValueUpdate> updates = new HashMap<>();
 
-                    //send appropriate notification
-                    if(post != null && !post.getAuthor().equals("[deleted]")){    //if root comment
-                        String nKey = postID+":"+sanitizeContentForURL(post.getRedname())+":"+sanitizeContentForURL(post.getBlackname())+":"+sanitizeContentForURL(post.getQuestion());
-                        String postAuthorPath = getUsernameHash(post.getAuthor()) + "/" + post.getAuthor() + "/n/r/" + nKey;
-                        mFirebaseDatabaseReference.child(postAuthorPath).push().setValue(System.currentTimeMillis()/1000);  //set value = timestamp as seconds from epoch
-                    }
-                    else if(subjectComment != null && !subjectComment.getAuthor().equals("[deleted]")){   //else this is a reply to a comment
-                        String payloadContent = sanitizeContentForURL(subjectComment.getContent());
+                        AttributeValueUpdate ct = new AttributeValueUpdate()
+                                .withValue(new AttributeValue().withS(inputString))
+                                .withAction(AttributeAction.PUT);
+                        updates.put("ct", ct);
 
-                        String subjectAuthorPath = getUsernameHash(subjectComment.getAuthor()) + "/" + subjectComment.getAuthor() + "/n/c/"
-                                + subjectComment.getParent_id() + ":" + subjectComment.getComment_id() + ":" + payloadContent;
-                        mFirebaseDatabaseReference.child(subjectAuthorPath).push().setValue(System.currentTimeMillis()/1000);
+                        UpdateItemRequest request = new UpdateItemRequest()
+                                .withTableName("vscomment")
+                                .withKey(keyMap)
+                                .withAttributeUpdates(updates);
+                        activity.getDDBClient().updateItem(request);
 
-                    }
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                //update content in local copy of the comment, first in nodemap, then in masterlist
+                                activity.getPostPage().editCommentLocal(editIndex, inputString, editCommentID);
+                                cefAdapter.clearTextInput();
+                                activity.getViewPager().setCurrentItem(3);
+                                activity.hideToolbarProgressbar();
+                            }
+                        });
 
-                    //increment commentcount
-                    HashMap<String, AttributeValue> keyMap = new HashMap<>();
-                    keyMap.put("i", new AttributeValue().withS(postID));   //sort key
-
-                    HashMap<String, AttributeValueUpdate> updates = new HashMap<>();
-
-                    //update pt and increment ps
-                    int currPt = (int)((System.currentTimeMillis()/1000)/60);
-                    AttributeValueUpdate ptu = new AttributeValueUpdate()
-                            .withValue(new AttributeValue().withN(Integer.toString(currPt)))
-                            .withAction(AttributeAction.PUT);
-                    updates.put("pt", ptu);
-
-                    int timeDiff;
-                    if(post == null){
-                        timeDiff = currPt - activity.getCurrentPost().getPt();
                     }
                     else{
-                        timeDiff = currPt - post.getPt();
-                    }
-                    if(timeDiff <= 0){ //if timeDiff is negative due to some bug or if timeDiff is zero, we just make it equal 1.
-                        timeDiff = 1;
-                    }
 
-                    double psIncrement = commentPSI/timeDiff;
-                    AttributeValueUpdate psu = new AttributeValueUpdate()
-                            .withValue(new AttributeValue().withN(Double.toString(psIncrement)))
-                            .withAction(AttributeAction.ADD);
-                    updates.put("ps", psu);
+                        final VSComment vsc = new VSComment();
+                        vsc.setParent_id(parentID);  //TODO: for root/reply check, which would be more efficient, checking if parent_id == "0" or checking parent_id.length() == 1?
+                        vsc.setPost_id(postID);
+                        vsc.setAuthor(activity.getUsername());
+                        vsc.setContent(prefix + inputString);
+                        vsc.setIsNew(true); //sets it to be highlighted
 
-                    UpdateItemRequest request = new UpdateItemRequest()
-                            .withTableName("post")
-                            .withKey(keyMap)
-                            .withAttributeUpdates(updates);
-                    activity.getDDBClient().updateItem(request);
+                        activity.getMapper().save(vsc);
 
-                    //update DB User.posts list with the new postID String
-
-
-
-                    PostPage postPage = activity.getPostPage();
-                    if(pageLevelTarget > 0){
-                        postPage.setPageLevel(pageLevelTarget);
-                    }
-
-                    postPage.commentSubmissionRefresh(vsc);
-
-                    //UI refresh. two options, one for setting up with post card and one for setting up with comment top card
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            //hiding progress bar called in commentSubmissionRefresh
-                            cefAdapter.clearTextInput();
+                        //send appropriate notification
+                        if(post != null && !post.getAuthor().equals("[deleted]")){    //if root comment
+                            String nKey = postID+":"+sanitizeContentForURL(post.getRedname())+":"+sanitizeContentForURL(post.getBlackname())+":"+sanitizeContentForURL(post.getQuestion());
+                            String postAuthorPath = getUsernameHash(post.getAuthor()) + "/" + post.getAuthor() + "/n/r/" + nKey;
+                            mFirebaseDatabaseReference.child(postAuthorPath).push().setValue(System.currentTimeMillis()/1000);  //set value = timestamp as seconds from epoch
                         }
-                    });
+                        else if(subjectComment != null && !subjectComment.getAuthor().equals("[deleted]")){   //else this is a reply to a comment
+                            String payloadContent = sanitizeContentForURL(subjectComment.getContent());
 
+                            String subjectAuthorPath = getUsernameHash(subjectComment.getAuthor()) + "/" + subjectComment.getAuthor() + "/n/c/"
+                                    + subjectComment.getParent_id() + ":" + subjectComment.getComment_id() + ":" + payloadContent;
+                            mFirebaseDatabaseReference.child(subjectAuthorPath).push().setValue(System.currentTimeMillis()/1000);
+
+                        }
+
+                        //increment commentcount
+                        HashMap<String, AttributeValue> keyMap = new HashMap<>();
+                        keyMap.put("i", new AttributeValue().withS(postID));   //sort key
+
+                        HashMap<String, AttributeValueUpdate> updates = new HashMap<>();
+
+                        //update pt and increment ps
+                        int currPt = (int)((System.currentTimeMillis()/1000)/60);
+                        AttributeValueUpdate ptu = new AttributeValueUpdate()
+                                .withValue(new AttributeValue().withN(Integer.toString(currPt)))
+                                .withAction(AttributeAction.PUT);
+                        updates.put("pt", ptu);
+
+                        int timeDiff;
+                        if(post == null){
+                            timeDiff = currPt - activity.getCurrentPost().getPt();
+                        }
+                        else{
+                            timeDiff = currPt - post.getPt();
+                        }
+                        if(timeDiff <= 0){ //if timeDiff is negative due to some bug or if timeDiff is zero, we just make it equal 1.
+                            timeDiff = 1;
+                        }
+
+                        double psIncrement = commentPSI/timeDiff;
+                        AttributeValueUpdate psu = new AttributeValueUpdate()
+                                .withValue(new AttributeValue().withN(Double.toString(psIncrement)))
+                                .withAction(AttributeAction.ADD);
+                        updates.put("ps", psu);
+
+                        UpdateItemRequest request = new UpdateItemRequest()
+                                .withTableName("post")
+                                .withKey(keyMap)
+                                .withAttributeUpdates(updates);
+                        activity.getDDBClient().updateItem(request);
+
+                        //update DB User.posts list with the new postID String
+
+
+
+                        PostPage postPage = activity.getPostPage();
+                        if(pageLevelTarget > 0){
+                            postPage.setPageLevel(pageLevelTarget);
+                        }
+
+                        postPage.commentSubmissionRefresh(vsc);
+
+                        //UI refresh. two options, one for setting up with post card and one for setting up with comment top card
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                //hiding progress bar called in commentSubmissionRefresh
+                                cefAdapter.clearTextInput();
+                            }
+                        });
+                    }
                 }
             };
             Thread mythread = new Thread(runnable);

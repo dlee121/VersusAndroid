@@ -1076,12 +1076,32 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private void showListPopupWindow(final boolean isAuthor, ImageButton anchorPoint, final int index){
         final String [] items;
         final Integer[] icons;
+        boolean yesEdit = false;
+        final boolean editAvailable;
 
         if(isAuthor){
-            items = new String[] {"Delete"};
-            icons = new Integer[] {R.drawable.ic_delete};
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
+            try {
+                yesEdit = (System.currentTimeMillis() - df.parse(((VSComment)masterList.get(index)).getTime()).getTime() <= 300000);
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            editAvailable = yesEdit;
+
+
+            if(editAvailable){
+                items = new String[]{"Edit", "Delete"};
+                icons = new Integer[]{R.drawable.ic_edit, R.drawable.ic_delete};
+            }
+            else{
+                items = new String[]{"Delete"};
+                icons = new Integer[]{R.drawable.ic_delete};
+            }
+
         }
         else{
+            editAvailable = false;
             items = new String[] {"Report"};
             icons = new Integer[] {R.drawable.ic_flag};
         }
@@ -1101,8 +1121,19 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
                 if(isAuthor){
-                    //for now there's only one option for when author of the comment, Delete
-                    deleteComment(index);
+                    if(editAvailable) {
+                        switch (position) {
+                            case 0:
+                                editComment(index);
+                                break;
+                            case 1:
+                                deleteComment(index);
+                                break;
+                        }
+                    }
+                    else{ //in this case, delete is the only option for now
+                        deleteComment(index);
+                    }
 
                 }
                 else{
@@ -1115,6 +1146,38 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             }
         });
         listPopupWindow.show();
+    }
+
+    private void editComment(final int index){
+        boolean yesEdit = false;
+
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
+        try {
+            yesEdit = (System.currentTimeMillis() - df.parse(((VSComment)masterList.get(index)).getTime()).getTime() <= 300000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if(yesEdit){
+            //TODO: set up EditComment page with CommentEnterFragment, similar to how we set up EditPost page with CreatePost fragment.
+            //TODO: then move into it.
+            activity.getCommentEnterFragment().setContentEditComment(index, ((VSComment) masterList.get(index)).getContent(), ((VSComment) masterList.get(index)).getComment_id());
+            activity.getViewPager().setCurrentItem(4);
+        }
+        else{
+            Toast.makeText(activity, "Too late to edit.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void editCommentLocal(int index, String text, String commentID){
+        if(index >= 0 && index < masterList.size()){
+            Object commentToEdit = masterList.get(index);
+            if(!(commentToEdit instanceof  Post)){
+                ((VSComment)commentToEdit).setContent(text);
+                ((VSComment)commentToEdit).setIsNew(true);
+                masterList.set(index, commentToEdit);
+                notifyItemChanged(index);
+            }
+        }
     }
 
     private void deleteComment(final int index){
