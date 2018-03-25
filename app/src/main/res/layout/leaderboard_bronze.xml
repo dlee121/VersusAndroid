@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="18dp">
+    android:layout_marginStart="18dp"
+    android:layout_marginBottom="18dp">
 
     <RelativeLayout
         android:id="@+id/profile_container_bm"
@@ -31,29 +32,90 @@
             app:srcCompat="@drawable/ic_crown_bronze"/>
     </RelativeLayout>
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="53dp"
-        android:layout_toEndOf="@id/profile_container_bm"
+        android:layout_height="63dp"
         android:layout_marginStart="18dp"
-        android:gravity="start|center"
-        android:orientation="vertical">
-
+        android:layout_toEndOf="@id/profile_container_bm">
         <TextView
             android:id="@+id/bm_username"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
             android:textSize="12sp"
             android:textStyle="bold"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
             android:text="WWWWWWWWWWWWWWWWWWWW" />
 
         <TextView
             android:id="@+id/bm_points"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
             android:textSize="12sp"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/bm_username"
             android:text="420 influence" />
 
-    </LinearLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:layout_below="@id/bm_points"
+            android:layout_centerHorizontal="true"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/bmc_goldmedal_count"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:textSize="12sp"
+                android:text="999"/>
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:srcCompat="@drawable/ic_gold_medal"/>
+
+            <TextView
+                android:id="@+id/bmc_silvermedal_count"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginStart="4dp"
+                android:gravity="center"
+                android:textSize="12sp"
+                android:text="999"/>
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:srcCompat="@drawable/ic_silver_medal"/>
+
+            <TextView
+                android:id="@+id/bmc_bronzemedal_count"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginStart="4dp"
+                android:gravity="center"
+                android:textSize="12sp"
+                android:text="999"/>
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:srcCompat="@drawable/ic_bronze_medal"/>
+
+        </LinearLayout>
+
+
+
+
+
+    </RelativeLayout>
+
+
+
 
 </RelativeLayout>

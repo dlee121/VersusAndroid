@@ -115,6 +115,49 @@ public class LeaderboardTab extends Fragment {
         }
     }
 
+    private void getMedalCount(String username, final int index){
+        //so in the adapter, if medal counts are -1, then we put a progress bar instead of a medal display case.
+        //then when this function finishes and gets the medal count,
+        // then we first update the gold/silver/bronze leader's medal count and notifyItemChanged(index),
+        // which will call onBindViewHolder on that item and it'll see medal count is not -1 anymore and will display the proper counts in medal display case
+        //   ^^but does it though? maybe we gotta call a function to disable the progressbar and bring out the display case
+
+
+        String userPath = getUsernameHash(username) + "/" + username + "/";
+        String medalPath = userPath+"w";
+        mFirebaseDatabaseReference.child(medalPath).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                LeaderboardEntry entry = leaders.get(index);
+                int g = 0;
+                int s = 0;
+                int b = 0;
+
+                if(dataSnapshot.hasChild("g")){
+                    g = dataSnapshot.child("g").getValue(Integer.class);
+                }
+
+                if(dataSnapshot.hasChild("s")){
+                    s = dataSnapshot.child("s").getValue(Integer.class);
+                }
+
+                if(dataSnapshot.hasChild("b")){
+                    b = dataSnapshot.child("b").getValue(Integer.class);
+                }
+
+                entry.setMedalCount(g, s, b);
+
+                leaders.set(index, entry);
+                mLeaderboardAdapter.notifyItemChanged(index);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // ...
+            }
+        });
+    }
+
 
     private void setUpLeaderboard(){
         if(System.currentTimeMillis() < lastRefreshTime + 30 * 1000){   //if it's been less than 30 seconds since last leaderboard refresh, return instead of querying
@@ -126,9 +169,35 @@ public class LeaderboardTab extends Fragment {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.hasChildren()) {
+                    int index = 0;
                     leaders.clear();
                     for(DataSnapshot item : dataSnapshot.getChildren()){
-                        leaders.add(new LeaderboardEntry(item.getKey(), item.getValue(Integer.class)));
+                        Log.d("dataSnapShotCCCheck", "Count: " + Integer.toString(((int)dataSnapshot.getChildrenCount())));
+
+                        //since we only get 100 children, we can safely cast dataSnapshot.getChildrenCount(), which returns a long, into int
+                        switch (((int)dataSnapshot.getChildrenCount()) - 1 - index){ //since the list is actually in ascending order, we count from the tail-end
+                            case 0:
+                                getMedalCount(item.getKey(), index);
+                                leaders.add(new LeaderboardEntry(item.getKey(), item.getValue(Integer.class), -1, -1, -1));
+                                break;
+
+                            case 1:
+                                getMedalCount(item.getKey(), index);
+                                leaders.add(new LeaderboardEntry(item.getKey(), item.getValue(Integer.class), -1, -1, -1));
+                                break;
+
+                            case 2:
+                                getMedalCount(item.getKey(), index);
+                                leaders.add(new LeaderboardEntry(item.getKey(), item.getValue(Integer.class), -1, -1, -1));
+                                break;
+
+                            default:
+                                leaders.add(new LeaderboardEntry(item.getKey(), item.getValue(Integer.class)));
+                                break;
+                        }
+
+                        index++;
+
                         //Log.d("leaderboard", Integer.toString(i) + "\t"+item.getKey()+"\t"+Integer.toString(item.getValue(Integer.class)));
                     }
                     mLeaderboardAdapter.notifyDataSetChanged();
@@ -141,6 +210,19 @@ public class LeaderboardTab extends Fragment {
 
             }
         });
+    }
+
+    private String getUsernameHash(String usernameIn){
+        int usernameHash;
+        if(usernameIn.length() < 5){
+            usernameHash = usernameIn.hashCode();
+        }
+        else{
+            String hashIn = "" + usernameIn.charAt(0) + usernameIn.charAt(usernameIn.length() - 2) + usernameIn.charAt(1) + usernameIn.charAt(usernameIn.length() - 1);
+            usernameHash = hashIn.hashCode();
+        }
+
+        return Integer.toString(usernameHash);
     }
 
 }

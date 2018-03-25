@@ -7,10 +7,25 @@ package com.vs.bcd.versus.model;
 public class LeaderboardEntry {
     private String username;
     private int points;
+    private int g,s,b; //medal counts for top 3
 
     public LeaderboardEntry(String username, int points){
         this.username = username;
         this.points = points;
+    }
+
+    public LeaderboardEntry(String username, int points, int g, int s, int b){
+        this.username = username;
+        this.points = points;
+        this.g = g;
+        this.s = s;
+        this.b = b;
+    }
+
+    public void setMedalCount(int g, int s, int b){
+        this.g = g;
+        this.s = s;
+        this.b = b;
     }
 
     public String getUsername(){
@@ -29,4 +44,15 @@ public class LeaderboardEntry {
         this.points = points;
     }
 
+    public int getG(){
+        return g;
+    }
+
+    public int getS(){
+        return s;
+    }
+
+    public int getB(){
+        return b;
+    }
 }

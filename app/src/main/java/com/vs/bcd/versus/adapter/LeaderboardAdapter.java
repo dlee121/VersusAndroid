@@ -83,7 +83,6 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
             leaderViewHolder.username.setText(leaderboardEntry.getUsername());
             leaderViewHolder.points.setText(Integer.toString(leaderboardEntry.getPoints())+" influence");
-
         }
         else if(holder instanceof GoldViewHolder){
             LeaderboardEntry leaderboardEntry = leaders.get(position);
@@ -91,6 +90,27 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
             goldViewHolder.username.setText(leaderboardEntry.getUsername());
             goldViewHolder.points.setText(Integer.toString(leaderboardEntry.getPoints())+" influence");
+
+            if(leaderboardEntry.getG() > 0){
+                goldViewHolder.gcount.setText(Integer.toString(leaderboardEntry.getG()));
+            }
+            else{
+                goldViewHolder.gcount.setText("0");
+            }
+
+            if(leaderboardEntry.getS() > 0){
+                goldViewHolder.scount.setText(Integer.toString(leaderboardEntry.getS()));
+            }
+            else{
+                goldViewHolder.scount.setText("0");
+            }
+
+            if(leaderboardEntry.getB() > 0){
+                goldViewHolder.bcount.setText(Integer.toString(leaderboardEntry.getB()));
+            }
+            else{
+                goldViewHolder.bcount.setText("0");
+            }
 
         }
         else if(holder instanceof SilverViewHolder){
@@ -100,6 +120,27 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             silverViewHolder.username.setText(leaderboardEntry.getUsername());
             silverViewHolder.points.setText(Integer.toString(leaderboardEntry.getPoints())+" influence");
 
+            if(leaderboardEntry.getG() > 0){
+                silverViewHolder.gcount.setText(Integer.toString(leaderboardEntry.getG()));
+            }
+            else{
+                silverViewHolder.gcount.setText("0");
+            }
+
+            if(leaderboardEntry.getS() > 0){
+                silverViewHolder.scount.setText(Integer.toString(leaderboardEntry.getS()));
+            }
+            else{
+                silverViewHolder.scount.setText("0");
+            }
+
+            if(leaderboardEntry.getB() > 0){
+                silverViewHolder.bcount.setText(Integer.toString(leaderboardEntry.getB()));
+            }
+            else{
+                silverViewHolder.bcount.setText("0");
+            }
+
         }
         else if(holder instanceof BronzeViewHolder){
             LeaderboardEntry leaderboardEntry = leaders.get(position);
@@ -107,6 +148,27 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
             bronzeViewHolder.username.setText(leaderboardEntry.getUsername());
             bronzeViewHolder.points.setText(Integer.toString(leaderboardEntry.getPoints())+" influence");
+
+            if(leaderboardEntry.getG() > 0){
+                bronzeViewHolder.gcount.setText(Integer.toString(leaderboardEntry.getG()));
+            }
+            else{
+                bronzeViewHolder.gcount.setText("0");
+            }
+
+            if(leaderboardEntry.getS() > 0){
+                bronzeViewHolder.scount.setText(Integer.toString(leaderboardEntry.getS()));
+            }
+            else{
+                bronzeViewHolder.scount.setText("0");
+            }
+
+            if(leaderboardEntry.getB() > 0){
+                bronzeViewHolder.bcount.setText(Integer.toString(leaderboardEntry.getB()));
+            }
+            else{
+                bronzeViewHolder.bcount.setText("0");
+            }
 
         }
 
@@ -131,34 +193,43 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
     private class GoldViewHolder extends RecyclerView.ViewHolder {
 
-        public TextView username, points;
+        public TextView username, points, gcount, scount, bcount;
 
         public GoldViewHolder(View view){
             super(view);
             username = view.findViewById(R.id.gm_username);
             points = view.findViewById(R.id.gm_points);
+            gcount = view.findViewById(R.id.gmc_goldmedal_count);
+            scount = view.findViewById(R.id.gmc_silvermedal_count);
+            bcount = view.findViewById(R.id.gmc_bronzemedal_count);
         }
     }
 
     private class SilverViewHolder extends RecyclerView.ViewHolder {
 
-        public TextView username, points;
+        public TextView username, points, gcount, scount, bcount;
 
         public SilverViewHolder(View view){
             super(view);
             username = view.findViewById(R.id.sm_username);
             points = view.findViewById(R.id.sm_points);
+            gcount = view.findViewById(R.id.smc_goldmedal_count);
+            scount = view.findViewById(R.id.smc_silvermedal_count);
+            bcount = view.findViewById(R.id.smc_bronzemedal_count);
         }
     }
 
     private class BronzeViewHolder extends RecyclerView.ViewHolder {
 
-        public TextView username, points;
+        public TextView username, points, gcount, scount, bcount;
 
         public BronzeViewHolder(View view){
             super(view);
             username = view.findViewById(R.id.bm_username);
             points = view.findViewById(R.id.bm_points);
+            gcount = view.findViewById(R.id.bmc_goldmedal_count);
+            scount = view.findViewById(R.id.bmc_silvermedal_count);
+            bcount = view.findViewById(R.id.bmc_bronzemedal_count);
         }
     }
 }
