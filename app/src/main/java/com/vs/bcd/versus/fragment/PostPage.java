@@ -1831,11 +1831,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     private void medalsUpdateDB(final HashMap<Integer, VSComment> upgradeMap, HashSet<String> newMedalists){
 
+        /*
+        //****** not using "timecode" anymore ******
         //user gets updateDuty if user.timecode matches the one given at query time, or if user authored the post, or if user won a medal in this upgrade event
         //so if none of those conditions are met then exit the function with a return.
         if( ! (activity.getUserTimecode() == (int)(System.currentTimeMillis()%10) || activity.getUsername().equals(post.getAuthor()) || newMedalists.contains(activity.getUsername())) ){
             return;
         }
+        */
 
         Runnable runnable = new Runnable() {
             public void run() {
@@ -1854,11 +1857,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                         //avc = comment topmedal update
                         AttributeValueUpdate avc;
-
-                        HashMap<String, AttributeValue> vscommentKeyMap = new HashMap<>();
-
-                        vscommentKeyMap.put("parent_id", new AttributeValue().withS(entry.getValue().getParent_id()));
-                        vscommentKeyMap.put("comment_id", new AttributeValue().withS(entry.getValue().getComment_id()));
 
                         String mUsername = entry.getValue().getAuthor();
                         int usernameHash;

@@ -40,7 +40,6 @@ public class SessionManager {
     public static final String KEY_LASTNAME = "pref_lastname";
     public static final String KEY_PHONE = "pref_phone";
     public static final String KEY_USERNAME = "pref_username";
-    public static final String KEY_TIMECODE = "pref_timecode";
     public static final String KEY_FW = "pref_fw";  //following
     public static final String KEY_FC = "pref_fc";  //follower count
     public static final String KEY_MKEY = "pref_mkey";
@@ -72,7 +71,6 @@ public class SessionManager {
         editor.putString(KEY_PASSWORD, user.getPassword());
         editor.putString(KEY_PHONE, user.getPhone());
         editor.putString(KEY_USERNAME, user.getUsername());
-        editor.putInt(KEY_TIMECODE, user.getTimecode());
         editor.putInt(KEY_FC, user.getFc());
         editor.putString(KEY_MKEY, user.getMkey());
         editor.putString(KEY_PURL, user.getPurl());
@@ -122,10 +120,6 @@ public class SessionManager {
 
     public String getBday(){
         return pref.getString(KEY_BDAY, null);
-    }
-
-    public int getUserTimecode(){
-        return pref.getInt(KEY_TIMECODE, -1);
     }
 
     public HashSet<String> getFollowingHashSet(){

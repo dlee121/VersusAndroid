@@ -21,11 +21,6 @@ public class User {
     private String password;
     private String email = "n/a"; //default value, since dynamodb doesn't want empty strings either email or phone may be unspecified by user
     private String phone = "n/a";
-    private int timecode;
-    private int points;
-    private int num_g;  //number of gold medals this user has
-    private int num_s;  //number of silver medals this user has
-    private int num_b;  //number of bronze medals this user has
     private List<String> fw; //list of username of users this user is following (following list)
     private int fc;   //number of followers this user has (follower count)
     private String mkey; //pw for messenger auth
@@ -88,46 +83,6 @@ public class User {
         this.phone = phone;
     }
 
-    @DynamoDBIndexRangeKey(globalSecondaryIndexName = "timecode-points-index", attributeName = "points")
-    public int getPoints(){
-        return points;
-    }
-    public void setPoints(int points){
-        this.points = points;
-    }
-
-    @DynamoDBIndexHashKey(globalSecondaryIndexName = "timecode-points-index", attributeName = "timecode")
-    public int getTimecode(){
-        return timecode;
-    }
-    public void setTimecode(int timecode){
-        this.timecode = timecode;
-    }
-
-    @DynamoDBAttribute(attributeName = "num_g")
-    public int getNum_g(){
-        return num_g;
-    }
-    public void setNum_g(int num_g){
-        this.num_g = num_g;
-    }
-
-    @DynamoDBAttribute(attributeName = "num_s")
-    public int getNum_s(){
-        return num_s;
-    }
-    public void setNum_s(int num_s){
-        this.num_s = num_s;
-    }
-
-    @DynamoDBAttribute(attributeName = "num_b")
-    public int getNum_b(){
-        return num_b;
-    }
-    public void setNum_b(int num_b){
-        this.num_b = num_b;
-    }
-
     @DynamoDBAttribute(attributeName = "fw")
     public List<String> getFw(){
         return fw;
@@ -172,11 +127,6 @@ public class User {
         bday = userData[2];
         username = userData[3];
         password = userData[4];
-        timecode = (int)(System.currentTimeMillis()%10); //possible outputs: 0,1,2,3,4,5,6,7,8,9 based on current millisecond from epoch
-        points = 0;
-        num_g = 0;
-        num_s = 0;
-        num_b = 0;
         fw = new ArrayList<>();
         fc = 0;
         mkey = UUID.randomUUID().toString().substring(0, 5);

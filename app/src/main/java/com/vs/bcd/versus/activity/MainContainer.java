@@ -289,7 +289,7 @@ public class MainContainer extends AppCompatActivity {
         mapper = new DynamoDBMapper(ddbClient);
         s3 = new AmazonS3Client(credentialsProvider);
 
-        userTimecode = sessionManager.getUserTimecode();
+        //userTimecode = sessionManager.getUserTimecode();
         localFns = sessionManager.getFollowingHashSet();
         currUsername = sessionManager.getCurrentUsername();
         userMKey = sessionManager.getMKey();
