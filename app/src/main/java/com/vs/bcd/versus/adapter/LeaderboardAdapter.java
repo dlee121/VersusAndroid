@@ -83,6 +83,7 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
             leaderViewHolder.username.setText(leaderboardEntry.getUsername());
             leaderViewHolder.points.setText(Integer.toString(leaderboardEntry.getPoints())+" influence");
+            leaderViewHolder.rank.setText(Integer.toString(leaders.size()-position));
         }
         else if(holder instanceof GoldViewHolder){
             LeaderboardEntry leaderboardEntry = leaders.get(position);
@@ -183,11 +184,13 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
         public TextView username;   //maybe switch to circular colorful icons
         public TextView points;
+        public TextView rank;
 
         public LeaderViewHolder(View view) {
             super(view);
             username = (TextView) view.findViewById(R.id.lb_username);
             points = (TextView) view.findViewById(R.id.lb_points);
+            rank = view.findViewById(R.id.rank);
         }
     }
 

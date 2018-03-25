@@ -3,14 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginStart="8dp"
     android:layout_marginTop="8dp"
-    android:layout_marginBottom="18dp">
+    android:layout_marginBottom="9dp">
 
     <RelativeLayout
         android:id="@+id/profile_container_gm"
         android:layout_width="wrap_content"
-        android:layout_height="79dp">
+        android:layout_height="79dp"
+        android:layout_marginStart="8dp">
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/profile_image_gm"
             android:layout_width="60dp"
@@ -110,13 +110,13 @@
 
         </LinearLayout>
 
-
-
-
-
     </RelativeLayout>
 
-
-
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/profile_container_gm"
+        android:layout_marginTop="9dp"
+        android:background="#D3D3D3" />
 
 </RelativeLayout>
