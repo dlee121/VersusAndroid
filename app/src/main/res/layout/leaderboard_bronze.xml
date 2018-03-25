@@ -6,12 +6,11 @@
     android:layout_margin="18dp">
 
     <RelativeLayout
-        android:id="@+id/profile_container_lb"
+        android:id="@+id/profile_container_bm"
         android:layout_width="44dp"
-        android:layout_height="40dp">
-
+        android:layout_height="52dp">
         <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/profile_image_lb"
+            android:id="@+id/profile_image_bm"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_marginTop="4dp"
@@ -21,38 +20,41 @@
             app:civ_border_color="#FF000000"
             android:layout_alignParentBottom="true"
             app:civ_border_width="2dp" />
+        <ImageView
+            android:layout_width="44dp"
+            android:layout_height="30dp"
+            android:layout_alignTop="@id/profile_image_bm"
+            android:layout_marginTop="-12dp"
+            android:scaleType="fitXY"
+            android:layout_centerHorizontal="true"
+            android:alpha="1"
+            app:srcCompat="@drawable/ic_crown_bronze"/>
     </RelativeLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="52dp"
-        android:layout_toEndOf="@id/profile_container_lb"
+        android:layout_toEndOf="@id/profile_container_bm"
         android:gravity="left|center"
         android:orientation="vertical">
+
         <TextView
-            android:id="@+id/lb_username"
+            android:id="@+id/bm_username"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:textSize="12sp"
             android:textStyle="bold"
             android:text="WWWWWWWWWWWWWWWWWWWW" />
+
         <TextView
-            android:id="@+id/lb_points"
+            android:id="@+id/bm_points"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:textAlignment="center"
             android:textSize="12sp"
             android:text="420 influence" />
 
     </LinearLayout>
-
-
-
-
-
-
-
 
 </RelativeLayout>

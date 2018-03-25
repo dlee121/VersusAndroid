@@ -3,17 +3,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="18dp">
+    android:layout_margin="8dp">
 
     <RelativeLayout
-        android:id="@+id/profile_container_lb"
-        android:layout_width="44dp"
-        android:layout_height="40dp">
-
+        android:id="@+id/profile_container_gm"
+        android:layout_width="wrap_content"
+        android:layout_height="78dp">
         <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/profile_image_lb"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:id="@+id/profile_image_gm"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
             android:layout_marginTop="4dp"
             android:layout_centerHorizontal="true"
             android:clickable="true"
@@ -21,38 +20,42 @@
             app:civ_border_color="#FF000000"
             android:layout_alignParentBottom="true"
             app:civ_border_width="2dp" />
+        <ImageView
+            android:layout_width="66dp"
+            android:layout_height="46dp"
+            android:layout_alignTop="@id/profile_image_gm"
+            android:layout_marginTop="-18dp"
+            android:scaleType="fitXY"
+            android:layout_centerHorizontal="true"
+            android:alpha="1"
+            app:srcCompat="@drawable/ic_crown_gold"/>
     </RelativeLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:layout_toEndOf="@id/profile_container_lb"
+        android:layout_height="78dp"
+        android:layout_toEndOf="@id/profile_container_gm"
         android:gravity="left|center"
         android:orientation="vertical">
+
         <TextView
-            android:id="@+id/lb_username"
+            android:id="@+id/gm_username"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
             android:textSize="12sp"
             android:textStyle="bold"
+            android:layout_marginStart="8dp"
             android:text="WWWWWWWWWWWWWWWWWWWW" />
+
         <TextView
-            android:id="@+id/lb_points"
+            android:id="@+id/gm_points"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:textAlignment="center"
             android:textSize="12sp"
+            android:layout_marginStart="8dp"
             android:text="420 influence" />
 
     </LinearLayout>
-
-
-
-
-
-
 
 
 </RelativeLayout>
