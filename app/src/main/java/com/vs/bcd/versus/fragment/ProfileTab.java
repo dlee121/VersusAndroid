@@ -7,24 +7,19 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBQueryExpression;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
-import com.amazonaws.services.dynamodbv2.model.Condition;
 import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
 import com.amazonaws.services.dynamodbv2.model.GetItemResult;
 import com.google.firebase.database.DataSnapshot;
@@ -33,34 +28,11 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.vs.bcd.versus.R;
-import com.vs.bcd.versus.activity.MainActivity;
 import com.vs.bcd.versus.activity.MainContainer;
-import com.vs.bcd.versus.adapter.CommentHistoryAdapter;
-import com.vs.bcd.versus.adapter.MyAdapter;
-import com.vs.bcd.versus.model.AWSV4Auth;
-import com.vs.bcd.versus.model.Post;
-import com.vs.bcd.versus.model.VSComment;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
-
-import cz.msebera.android.httpclient.HttpEntity;
-import cz.msebera.android.httpclient.HttpResponse;
-import cz.msebera.android.httpclient.client.ClientProtocolException;
-import cz.msebera.android.httpclient.client.ResponseHandler;
-import cz.msebera.android.httpclient.client.methods.HttpPost;
-import cz.msebera.android.httpclient.entity.ContentType;
-import cz.msebera.android.httpclient.entity.StringEntity;
-import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
-import cz.msebera.android.httpclient.impl.client.HttpClients;
-import cz.msebera.android.httpclient.util.EntityUtils;
 
 /**
  * Created by dlee on 4/29/17.
@@ -72,10 +44,12 @@ public class ProfileTab extends Fragment {
     private TextView usernameTV, goldTV, silverTV, bronzeTV, pointsTV, followingTextTV, followerCountTV, followingCountTV;
     private ImageView checkmark;
     private Button followButton;
+    private ImageButton messageButton;
     private ProgressBar progressBar;
     private TabLayout tabLayout;
     private RelativeLayout.LayoutParams mainCaseLP, followCaseLP, medalCaseLP, progressbarLP, swipeLayoutLP, tabsLP, viewpagerLP;
     private RelativeLayout.LayoutParams followingtextLP, followbuttonLP, checkmarkLP;
+    private LinearLayout.LayoutParams messageButtonLP;
     private View rootView;
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
@@ -158,6 +132,9 @@ public class ProfileTab extends Fragment {
         checkmark = rootView.findViewById(R.id.followingtext_checkmark);
         checkmarkLP = (RelativeLayout.LayoutParams) checkmark.getLayoutParams();
 
+        messageButton = rootView.findViewById(R.id.profile_message_button);
+        messageButtonLP = (LinearLayout.LayoutParams) messageButton.getLayoutParams();
+
         followButton = rootView.findViewById(R.id.followbutton);
         followbuttonLP = (RelativeLayout.LayoutParams) followButton.getLayoutParams();
         followButton.setOnClickListener(new View.OnClickListener() {
@@ -233,7 +210,7 @@ public class ProfileTab extends Fragment {
             //this is setting up the profile page for the logged-in user, as in "Me" page
             //disable toolbarButtonLeft
             //use projection attribute to reduce network traffic; get posts list and comments list from SharedPref
-                //so only grab: num_g, num_s, num_b, points
+            //so only grab: num_g, num_s, num_b, points
 
             Log.d("ptab", "setting up my profile");
 
@@ -262,7 +239,7 @@ public class ProfileTab extends Fragment {
             //this is setting up the profile page for another user that the logged-in user clicked on
             //enable toolbarButtonLeft and set it to "x" or "<" and set it to go back to the page that user came from
             //use projection attribute to exclude private info.
-                //so only grab: comments list, posts list, first name, last name, num_g, num_s, num_b, points
+            //so only grab: comments list, posts list, first name, last name, num_g, num_s, num_b, points
             Log.d("ptab", "setting up another user's profile");
 
             Log.d("ptab", "setting up my profile");
@@ -371,6 +348,11 @@ public class ProfileTab extends Fragment {
         checkmark.setVisibility(View.VISIBLE);
         checkmark.setLayoutParams(checkmarkLP);
 
+        messageButton.setEnabled(true);
+        messageButton.setClickable(true);
+        messageButton.setVisibility(View.VISIBLE);
+        messageButton.setLayoutParams(messageButtonLP);
+
         followButton.setEnabled(false);
         followButton.setClickable(false);
         followButton.setVisibility(View.INVISIBLE);
@@ -390,6 +372,11 @@ public class ProfileTab extends Fragment {
         followButton.setClickable(true);
         followButton.setVisibility(View.VISIBLE);
         followButton.setLayoutParams(followbuttonLP);
+
+        messageButton.setEnabled(true);
+        messageButton.setClickable(true);
+        messageButton.setVisibility(View.VISIBLE);
+        messageButton.setLayoutParams(messageButtonLP);
     }
 
     private void hideFollowUI(){
@@ -401,6 +388,11 @@ public class ProfileTab extends Fragment {
         followButton.setClickable(false);
         followButton.setVisibility(View.INVISIBLE);
         followButton.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+
+        messageButton.setEnabled(false);
+        messageButton.setClickable(false);
+        messageButton.setVisibility(View.INVISIBLE);
+        messageButton.setLayoutParams(new LinearLayout.LayoutParams(0,0));
 
         checkmark.setEnabled(false);
         checkmark.setVisibility(View.INVISIBLE);
