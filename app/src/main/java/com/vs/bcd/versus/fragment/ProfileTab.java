@@ -15,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -69,12 +70,12 @@ public class ProfileTab extends Fragment {
 
     private MainContainer activity;
     private TextView usernameTV, goldTV, silverTV, bronzeTV, pointsTV, followingTextTV, followerCountTV, followingCountTV;
+    private ImageView checkmark;
     private Button followButton;
     private ProgressBar progressBar;
-    private LinearLayout mainCase, followCase, medalCase;
     private TabLayout tabLayout;
     private RelativeLayout.LayoutParams mainCaseLP, followCaseLP, medalCaseLP, progressbarLP, swipeLayoutLP, tabsLP, viewpagerLP;
-    private LinearLayout.LayoutParams followingtextLP, followbuttonLP;
+    private RelativeLayout.LayoutParams followingtextLP, followbuttonLP, checkmarkLP;
     private View rootView;
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
@@ -142,28 +143,23 @@ public class ProfileTab extends Fragment {
             }
         });
 
-        mainCase = (LinearLayout) rootView.findViewById(R.id.maincase);
-        followCase = (LinearLayout) rootView.findViewById(R.id.follow_case);
-        medalCase = (LinearLayout) rootView.findViewById(R.id.medal_case);
-
-        mainCaseLP = (RelativeLayout.LayoutParams) mainCase.getLayoutParams();
-        followCaseLP = (RelativeLayout.LayoutParams) followCase.getLayoutParams();
-        medalCaseLP = (RelativeLayout.LayoutParams) medalCase.getLayoutParams();
-
         usernameTV = rootView.findViewById(R.id.username_pt);
-        goldTV = rootView.findViewById(R.id.gmedal_pt);
-        silverTV = rootView.findViewById(R.id.smedal_pt);
-        bronzeTV = rootView.findViewById(R.id.bmedal_pt);
+        goldTV = rootView.findViewById(R.id.pmc_goldmedal_count);
+        silverTV = rootView.findViewById(R.id.pmc_silvermedal_count);
+        bronzeTV = rootView.findViewById(R.id.pmc_bronzemedal_count);
         pointsTV = rootView.findViewById(R.id.points_pt);
 
         followerCountTV = rootView.findViewById(R.id.num_followers);
         followingCountTV = rootView.findViewById(R.id.num_following);
 
         followingTextTV = rootView.findViewById(R.id.followingtext);
-        followingtextLP = (LinearLayout.LayoutParams) followingTextTV.getLayoutParams();
+        followingtextLP = (RelativeLayout.LayoutParams) followingTextTV.getLayoutParams();
+
+        checkmark = rootView.findViewById(R.id.followingtext_checkmark);
+        checkmarkLP = (RelativeLayout.LayoutParams) checkmark.getLayoutParams();
 
         followButton = rootView.findViewById(R.id.followbutton);
-        followbuttonLP = (LinearLayout.LayoutParams) followButton.getLayoutParams();
+        followbuttonLP = (RelativeLayout.LayoutParams) followButton.getLayoutParams();
         followButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -371,16 +367,24 @@ public class ProfileTab extends Fragment {
         followingTextTV.setVisibility(View.VISIBLE);
         followingTextTV.setLayoutParams(followingtextLP);
 
+        checkmark.setEnabled(true);
+        checkmark.setVisibility(View.VISIBLE);
+        checkmark.setLayoutParams(checkmarkLP);
+
         followButton.setEnabled(false);
         followButton.setClickable(false);
         followButton.setVisibility(View.INVISIBLE);
-        followButton.setLayoutParams(new LinearLayout.LayoutParams(0,0));
+        followButton.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
     }
 
     private void showFollowButton(){
         followingTextTV.setEnabled(false);
         followingTextTV.setVisibility(View.INVISIBLE);
-        followingTextTV.setLayoutParams(new LinearLayout.LayoutParams(0,0));
+        followingTextTV.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+
+        checkmark.setEnabled(false);
+        checkmark.setVisibility(View.INVISIBLE);
+        checkmark.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
 
         followButton.setEnabled(true);
         followButton.setClickable(true);
@@ -391,12 +395,16 @@ public class ProfileTab extends Fragment {
     private void hideFollowUI(){
         followingTextTV.setEnabled(false);
         followingTextTV.setVisibility(View.INVISIBLE);
-        followingTextTV.setLayoutParams(new LinearLayout.LayoutParams(0,0));
+        followingTextTV.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
 
         followButton.setEnabled(false);
         followButton.setClickable(false);
         followButton.setVisibility(View.INVISIBLE);
-        followButton.setLayoutParams(new LinearLayout.LayoutParams(0,0));
+        followButton.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+
+        checkmark.setEnabled(false);
+        checkmark.setVisibility(View.INVISIBLE);
+        checkmark.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
     }
 
     private void followThisUser(){
@@ -470,7 +478,6 @@ public class ProfileTab extends Fragment {
                             }
                         });
 
-
                 //update the followed user's follower list in Firebase
                 int usernameHash;
                 if(profileUsername.length() < 5){
@@ -536,7 +543,8 @@ public class ProfileTab extends Fragment {
                         for (Map.Entry<String, AttributeValue> entry : resultMap.entrySet()) {
                             String attrName = entry.getKey();
                             if(attrName.equals("points")){
-                                pointsTV.setText(entry.getValue().getN());
+                                String strIn = entry.getValue().getN() + " influence";
+                                pointsTV.setText(strIn);
                             }
                         }
 
@@ -651,11 +659,11 @@ public class ProfileTab extends Fragment {
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         String strIn;
                         if(dataSnapshot.getValue() != null){
-                            strIn = dataSnapshot.getValue(Integer.class).toString() + " points";
+                            strIn = dataSnapshot.getValue(Integer.class).toString() + " influence";
                             pointsTV.setText(strIn);
                         }
                         else{
-                            strIn = Integer.toString(0) + " points";
+                            strIn = Integer.toString(0) + " influence";
                             pointsTV.setText(strIn);
                         }
                     }
