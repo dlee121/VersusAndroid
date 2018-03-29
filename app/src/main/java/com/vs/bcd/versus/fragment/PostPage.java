@@ -29,8 +29,12 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
 import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.MutableData;
+import com.google.firebase.database.Transaction;
 import com.loopj.android.http.HttpGet;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
@@ -122,6 +126,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     final HashMap<String, VSCNode> nodeMap = new HashMap<>();
     private HashMap<String, VSComment> parentCache = new HashMap<>();
     private HashMap<String, Pair<Integer, Integer>> freshlyVotedComments = new HashMap<>();
+    private String freshlyVotedCommentsListPostID = "";
     private boolean atRootLevel = true;
     private long queryThreadID = 0;
     private int sortType = 1; //0 = New, 1 = Popular
@@ -790,14 +795,16 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     public void setContent(final Post post){  //downloadImages signifies initial post page set up
-        freshlyVotedComments.clear();
+        this.post = post;
+        postID = post.getPost_id();
+
+        if(freshlyVotedComments != null && !(freshlyVotedCommentsListPostID.equals(postID))){ //only clearing if this case is true prevents upvotes/downvotes counter error if user votes on a comment, immediately exits and then re-enters the post
+            freshlyVotedComments.clear();
+        }
+
         sortType = POPULAR;
         nowLoading = false;
         pageLevel = 0;
-
-        this.post = post;
-
-        postID = post.getPost_id();
 
         postTopic = post.getQuestion();
         postX = post.getRedname();
@@ -1047,14 +1054,17 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     VSCNode tempNode;
                     boolean updateForNRemoval = false;
 
-                    for (Map.Entry<String, String> entry : actionMap.entrySet()) {  //first record of user action on this comment
+                    for (Map.Entry<String, String> entry : actionMap.entrySet()) {
                         actionHistoryEntryValue = actionHistoryMap.get(entry.getKey());
 
-                        if (actionHistoryEntryValue == null) {
+                        if (actionHistoryEntryValue == null) { //first record of user action on this comment, or if vote record's been cleared (like cancel a downvote)
+
+                            tempNode = nodeMap.get(entry.getKey());
+                            String author = tempNode.getNodeContent().getAuthor();
+
                             //just increment
                             HashMap<String, AttributeValue> keyMap =
                                     new HashMap<>();
-                            tempNode = nodeMap.get(entry.getKey());
                             keyMap.put("i", new AttributeValue().withS(entry.getKey()));
 
                             HashMap<String, AttributeValueUpdate> updates =
@@ -1079,7 +1089,32 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     //update activityHistoryMap
                                     actionHistoryMap.put(entry.getKey(), entry.getValue());
 
-                                    sendCommentUpvoteNotification(tempNode.getNodeContent());
+                                    if(!(author.equals("[deleted]"))){
+                                        //increment influence points on Firebase
+                                        mFirebaseDatabaseReference.child(getUsernameHash(author)+"/"+author+"/p").runTransaction(new Transaction.Handler() {
+                                            @Override
+                                            public Transaction.Result doTransaction(MutableData mutableData) {
+                                                Integer value = mutableData.getValue(Integer.class);
+                                                if (value == null) {
+                                                    mutableData.setValue(1);
+                                                }
+                                                else {
+                                                    mutableData.setValue(value + 1);
+                                                }
+
+                                                return Transaction.success(mutableData);
+                                            }
+
+                                            @Override
+                                            public void onComplete(DatabaseError databaseError, boolean b,
+                                                                   DataSnapshot dataSnapshot) {
+                                                Log.d("Firebase", "transaction:onComplete:" + databaseError);
+                                            }
+                                        });
+
+                                        sendCommentUpvoteNotification(tempNode.getNodeContent());
+                                    }
+
                                     break;
 
                                 case "D":
@@ -1096,6 +1131,32 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                                     activity.getDDBClient().updateItem(request);
 
+                                    if(tempNode.getDownvotes() < 10 * tempNode.getUpvotes() && !(author.equals("[deleted]"))){ //as long as downvotes are less than 10*upvotes, we increase user's influence
+
+                                        //increment influence points on Firebase
+                                        mFirebaseDatabaseReference.child(getUsernameHash(author)+"/"+author+"/p").runTransaction(new Transaction.Handler() {
+                                            @Override
+                                            public Transaction.Result doTransaction(MutableData mutableData) {
+                                                Integer value = mutableData.getValue(Integer.class);
+                                                if (value == null) {
+                                                    mutableData.setValue(1);
+                                                }
+                                                else {
+                                                    mutableData.setValue(value + 1);
+                                                }
+
+                                                return Transaction.success(mutableData);
+                                            }
+
+                                            @Override
+                                            public void onComplete(DatabaseError databaseError, boolean b,
+                                                                   DataSnapshot dataSnapshot) {
+                                                Log.d("Firebase", "transaction:onComplete:" + databaseError);
+                                            }
+                                        });
+
+                                    }
+
                                     //update activityHistoryMap
                                     actionHistoryMap.put(entry.getKey(), entry.getValue());
                                     break;
@@ -1106,15 +1167,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             }
 
                         }
-                    /*
-                    else if(!actionHistoryEntryValue.equals("N")){
-                        Log.d("debug", "so this happens");
-                    }
-                    */
-                        else if (!actionHistoryEntryValue.equals(entry.getValue())) {   //modifying exisiting record of user action on this comment
-                            if (actionHistoryEntryValue.equals("N")) {
-                                Log.d("DB update", "this is the source of error. we don't decrement opposite in this case");
-                            }
+
+                        else if (!actionHistoryEntryValue.equals(entry.getValue())) {   //modifying existing record of user action on this comment
+
                             //increment current and decrement past
                             HashMap<String, AttributeValue> keyMap =
                                     new HashMap<>();
@@ -1181,7 +1236,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                                 .withValue(new AttributeValue().withN("-1"))
                                                 .withAction(AttributeAction.ADD);
                                         updates.put("u", avd);
-                                    } else {   //it's either "U" or "D", because if it was "N" (the only other option) then it wouldn't arrive to this switch case since history and current are equal //TODO: test if that's true
+                                    } else {   //it's either "U" or "D", because if it was "N" (the only other option) then it wouldn't arrive to this switch case since history and current are equal
                                         Log.d("DB update", "downvote decrement");
                                         avd = new AttributeValueUpdate()
                                                 .withValue(new AttributeValue().withN("-1"))
@@ -1195,10 +1250,35 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                             .withAttributeUpdates(updates);
 
                                     activity.getDDBClient().updateItem(request);
+
                                     actionHistoryMap.remove(entry.getKey());
                                     updateForNRemoval = true;
                                     markedForRemoval.add(entry.getKey()); //mark this comment's entry in actionMap for removal. we mark it and do it after this for-loop to avoid ConcurrentModificationException
                                     //we remove the "N" record because it only serves as marker for decrement, now decrement is getting executed so we're removing the marker, essentially resetting record on that comment
+
+                                    //decrement influence points on Firebase to prevent duplicate point increment to same comment from same user
+                                    String author = tempNode.getNodeContent().getAuthor();
+                                    mFirebaseDatabaseReference.child(getUsernameHash(author)+"/"+author+"/p").runTransaction(new Transaction.Handler() {
+                                        @Override
+                                        public Transaction.Result doTransaction(MutableData mutableData) {
+                                            Integer value = mutableData.getValue(Integer.class);
+                                            if (value == null || value <= 0) {
+                                                mutableData.setValue(0);
+                                            }
+                                            else {
+                                                mutableData.setValue(value - 1);
+                                            }
+
+                                            return Transaction.success(mutableData);
+                                        }
+
+                                        @Override
+                                        public void onComplete(DatabaseError databaseError, boolean b,
+                                                               DataSnapshot dataSnapshot) {
+                                            Log.d("Firebase", "transaction:onComplete:" + databaseError);
+                                        }
+                                    });
+
                                     break;
 
                                 default:
@@ -3067,6 +3147,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     public void addFreshlyVotedComment(String commentID, Pair<Integer, Integer> votes){
         //Log.d("freshCommentVoteStatus", "Upvotes: " + votes.first.toString() + ", Downvotes: " + votes.second.toString());
         freshlyVotedComments.put(commentID, votes);
+        freshlyVotedCommentsListPostID = postID;
     }
 
     public void editCommentLocal(int index, String text, String commentID){

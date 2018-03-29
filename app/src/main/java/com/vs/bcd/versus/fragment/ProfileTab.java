@@ -431,24 +431,24 @@ public class ProfileTab extends Fragment {
                 }
                 String hPath = Integer.toString(usernameHash) + "/" + profileUsername + "/h";
                 mFirebaseDatabaseReference.child(hPath).child(activity.getUsername())
-                        .setValue(true, new DatabaseReference.CompletionListener() {
-                            @Override
-                            public void onComplete(DatabaseError databaseError,
-                                                   DatabaseReference databaseReference) {
-                                if (databaseError == null) {
-                                    activity.runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            sendFollowNotification(profileUsername);
-                                            showFollowingText();
-                                            updateProfileInfo();
-                                        }
-                                    });
-                                } else {
-                                    Log.w("MESSENGER", "Unable to update followers list in Firebase.");
-                                }
+                    .setValue(true, new DatabaseReference.CompletionListener() {
+                        @Override
+                        public void onComplete(DatabaseError databaseError,
+                                               DatabaseReference databaseReference) {
+                            if (databaseError == null) {
+                                activity.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        sendFollowNotification(profileUsername);
+                                        showFollowingText();
+                                        updateProfileInfo();
+                                    }
+                                });
+                            } else {
+                                Log.w("MESSENGER", "Unable to update followers list in Firebase.");
                             }
-                        });
+                        }
+                    });
 
                 //remove old entry in g list now that we have it in h list
                 String gPath = Integer.toString(usernameHash) + "/" + profileUsername + "/g";

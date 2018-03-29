@@ -34,6 +34,7 @@
             android:layout_marginLeft="8dp"
             android:layout_below="@id/usercomment_history"
             android:text="red"
+            android:textStyle="bold"
             android:textSize="12sp" />
 
         <TextView
@@ -67,6 +68,7 @@
             android:layout_below="@id/usercomment_history"
             android:layout_toEndOf="@id/s_chi"
             android:text="blue"
+            android:textStyle="bold"
             android:textSize="12sp" />
 
         <TextView

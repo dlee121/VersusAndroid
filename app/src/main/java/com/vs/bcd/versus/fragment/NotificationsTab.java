@@ -684,7 +684,9 @@ public class NotificationsTab extends Fragment {
                         notificationItems.remove(fNotification);
                         notificationItems.add(fNotification);
                     }
-                    mNotificationsAdapter.notifyDataSetChanged();
+                    if(mNotificationsAdapter != null){
+                        mNotificationsAdapter.notifyDataSetChanged();
+                    }
                     checkAndSetTopButton();
                 }
             }
@@ -759,7 +761,7 @@ public class NotificationsTab extends Fragment {
             public void onChildAdded(DataSnapshot dataSnapshot, String prevChildKey) {
                 String[] args = dataSnapshot.getValue(String.class).split(":",2);
                 String medalType = args[0];
-                long timeValue = Long.parseLong(args[1]) / 1000;
+                long timeValue = Long.parseLong(args[1]);
 
                 medalComments.put(dataSnapshot.getKey(), medalType);
 

@@ -64,6 +64,7 @@
             android:ellipsize="end"
             android:maxLines="2"
             android:text="question"
+            android:textStyle="bold"
             android:textColor="#FF000000"
             android:textSize="12sp" />
 
