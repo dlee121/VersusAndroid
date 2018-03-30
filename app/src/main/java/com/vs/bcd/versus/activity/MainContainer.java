@@ -156,6 +156,9 @@ public class MainContainer extends AppCompatActivity {
     private ListPopupWindow listPopupWindow;
     private boolean inEditPost = false;
     private int clickedPostIndex = 0;
+    private boolean clickCoverUp = false;
+    private View mActionBarView;
+
 
     private String esHost = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
     private String esRegion = "us-east-1";
@@ -164,6 +167,7 @@ public class MainContainer extends AppCompatActivity {
     public void onBackPressed(){
         if(listPopupWindow != null && listPopupWindow.isShowing()){
             listPopupWindow.dismiss();
+            enableClicksForListPopupWindowClose();
             return;
         }
         meClicked = false;
@@ -201,6 +205,7 @@ public class MainContainer extends AppCompatActivity {
                     //Log.d("debug", "is 1");
                     if(postPage.overflowMenuIsOpen()){
                         postPage.closeOverflowMenu();
+                        enableClicksForListPopupWindowClose();
                         return;
                     }
 
@@ -349,7 +354,7 @@ public class MainContainer extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayShowHomeEnabled(false);
         //displaying custom ActionBar
-        View mActionBarView = getLayoutInflater().inflate(R.layout.custom_action_bar, null);
+        mActionBarView = getLayoutInflater().inflate(R.layout.custom_action_bar, null);
         actionBar.setCustomView(mActionBarView);
         actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
         actionBar.setElevation(0);
@@ -406,6 +411,10 @@ public class MainContainer extends AppCompatActivity {
                             }
                             xBmp = null;
                             yBmp = null;
+                        }
+
+                        if(clickCoverUp){
+                            enableClicksForListPopupWindowClose();
                         }
                         break;
 
@@ -1102,25 +1111,39 @@ public class MainContainer extends AppCompatActivity {
 
     //disables click events in PostPage when ListPopupWindow is open
     public void disableClicksForListPopupWindowOpen(){
+        Log.d("yoyoyo", "hyoi");
+        clickCoverUp = true;
         clickCover.setEnabled(true);
         clickCover.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         clickCover.setClickable(true);
+
+        toolbarButtonRight.setClickable(false);
+
         clickCover.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.d("yoyoyo", "yeyeye");
                 getPostPage().getPPAdapter().closeOverflowMenu();
                 enableClicksForListPopupWindowClose();
             }
         });
-
+        mActionBarView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getPostPage().getPPAdapter().closeOverflowMenu();
+                enableClicksForListPopupWindowClose();
+            }
+        });
     }
 
     //enable click events in PostPage when ListPopupWindow is closed
     public void enableClicksForListPopupWindowClose(){
+        Log.d("yoyoyo", "fahi");
+        clickCoverUp = false;
         clickCover.setLayoutParams(new RelativeLayout.LayoutParams(0, 0));
         clickCover.setClickable(false);
         clickCover.setOnClickListener(null);
+        mActionBarView.setOnClickListener(null);
+        toolbarButtonRight.setClickable(true);
     }
 
     public boolean showPost(){
@@ -1200,7 +1223,7 @@ public class MainContainer extends AppCompatActivity {
         toolbarButtonRight.setImageResource(R.drawable.ic_settings_white_24dp);
     }
 
-    private  void showOverflowMenu(){
+    private  void showOverflowMenu() {
         toolbarButtonRight.setEnabled(true);
         toolbarButtonRight.setLayoutParams(toolbarButtonRightLP);
         toolbarButtonRight.setImageResource(R.drawable.ic_overflow_vertical);
@@ -1227,6 +1250,7 @@ public class MainContainer extends AppCompatActivity {
         listPopupWindow.setAnchorView(toolbarButtonRight);
         listPopupWindow.setAdapter(adapter);
         listPopupWindow.setWidth(width);
+        disableClicksForListPopupWindowOpen();
 
         listPopupWindow.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
@@ -1256,6 +1280,7 @@ public class MainContainer extends AppCompatActivity {
                 }
 
                 listPopupWindow.dismiss();
+                enableClicksForListPopupWindowClose();
             }
         });
         listPopupWindow.show();

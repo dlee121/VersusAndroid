@@ -1142,6 +1142,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
                 }
 
+                activity.enableClicksForListPopupWindowClose();
                 listPopupWindow.dismiss();
             }
         });
