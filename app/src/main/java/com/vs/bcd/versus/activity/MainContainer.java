@@ -20,6 +20,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -151,6 +152,7 @@ public class MainContainer extends AppCompatActivity {
     private InputMethodManager imm;
     private String cftitle = "";
     private ProgressBar toolbarProgressbar;
+    private RelativeLayout clickCover;
     private ListPopupWindow listPopupWindow;
     private boolean inEditPost = false;
     private int clickedPostIndex = 0;
@@ -333,6 +335,8 @@ public class MainContainer extends AppCompatActivity {
 
         vpContainer = (RelativeLayout) findViewById(R.id.vpcontainer);
         vpContainerLP = (RelativeLayout.LayoutParams) vpContainer.getLayoutParams();
+
+        clickCover = findViewById(R.id.click_cover);
 
         windowSize = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(windowSize);
@@ -1094,6 +1098,29 @@ public class MainContainer extends AppCompatActivity {
         categories.add(new CategoryObject("Travel", R.drawable.goldmedal, 21));
         categories.add(new CategoryObject("TV Shows", R.drawable.goldmedal, 22));
         categories.add(new CategoryObject("Weapons", R.drawable.goldmedal, 23));
+    }
+
+    //disables click events in PostPage when ListPopupWindow is open
+    public void disableClicksForListPopupWindowOpen(){
+        clickCover.setEnabled(true);
+        clickCover.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        clickCover.setClickable(true);
+        clickCover.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.d("yoyoyo", "yeyeye");
+                getPostPage().getPPAdapter().closeOverflowMenu();
+                enableClicksForListPopupWindowClose();
+            }
+        });
+
+    }
+
+    //enable click events in PostPage when ListPopupWindow is closed
+    public void enableClicksForListPopupWindowClose(){
+        clickCover.setLayoutParams(new RelativeLayout.LayoutParams(0, 0));
+        clickCover.setClickable(false);
+        clickCover.setOnClickListener(null);
     }
 
     public boolean showPost(){

@@ -1146,6 +1146,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             }
         });
         listPopupWindow.show();
+        activity.disableClicksForListPopupWindowOpen();
     }
 
     private void editComment(final int index){
@@ -1232,7 +1233,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     }
 
     public void closeOverflowMenu(){
-        if(listPopupWindow != null){
+        if(listPopupWindow != null && listPopupWindow.isShowing()){
             listPopupWindow.dismiss();
         }
     }
