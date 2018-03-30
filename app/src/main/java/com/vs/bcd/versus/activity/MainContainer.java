@@ -1111,7 +1111,6 @@ public class MainContainer extends AppCompatActivity {
 
     //disables click events in PostPage when ListPopupWindow is open
     public void disableClicksForListPopupWindowOpen(){
-        Log.d("yoyoyo", "hyoi");
         clickCoverUp = true;
         clickCover.setEnabled(true);
         clickCover.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
@@ -1137,7 +1136,6 @@ public class MainContainer extends AppCompatActivity {
 
     //enable click events in PostPage when ListPopupWindow is closed
     public void enableClicksForListPopupWindowClose(){
-        Log.d("yoyoyo", "fahi");
         clickCoverUp = false;
         clickCover.setLayoutParams(new RelativeLayout.LayoutParams(0, 0));
         clickCover.setClickable(false);

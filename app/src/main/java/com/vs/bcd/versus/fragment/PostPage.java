@@ -1131,7 +1131,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                                     activity.getDDBClient().updateItem(request);
 
-                                    if(tempNode.getDownvotes() < 10 * tempNode.getUpvotes() && !(author.equals("[deleted]"))){ //as long as downvotes are less than 10*upvotes, we increase user's influence
+                                    boolean incrementInfluence = (tempNode.getUpvotes() == 0 && tempNode.getDownvotes() + 1 <= 10) || (tempNode.getUpvotes() * 10 >= tempNode.getDownvotes() + 1);
+                                    
+                                    if(incrementInfluence && !(author.equals("[deleted]"))){ //as long as downvotes are less than 10*upvotes, we increase user's influence
 
                                         //increment influence points on Firebase
                                         mFirebaseDatabaseReference.child(getUsernameHash(author)+"/"+author+"/p").runTransaction(new Transaction.Handler() {
@@ -1184,8 +1186,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             switch (entry.getValue()) {
 
                                 case "U":
-                                    Log.d("DB update", "upvote increment");
-                                    Log.d("DB update", "downvote decrement");
                                     avu = new AttributeValueUpdate()
                                             .withValue(new AttributeValue().withN("1"))
                                             .withAction(AttributeAction.ADD);
@@ -1207,8 +1207,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     break;
 
                                 case "D":
-                                    Log.d("DB update", "downvote increment");
-                                    Log.d("DB update", "upvote decrement");
                                     avu = new AttributeValueUpdate()
                                             .withValue(new AttributeValue().withN("1"))
                                             .withAction(AttributeAction.ADD);
@@ -1254,30 +1252,32 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     actionHistoryMap.remove(entry.getKey());
                                     updateForNRemoval = true;
                                     markedForRemoval.add(entry.getKey()); //mark this comment's entry in actionMap for removal. we mark it and do it after this for-loop to avoid ConcurrentModificationException
-                                    //we remove the "N" record because it only serves as marker for decrement, now decrement is getting executed so we're removing the marker, essentially resetting record on that comment
+                                    //we remove the "N" record because it only serves as marker for decrement, now decrement is executed so we're removing the marker, resetting record on that comment
 
                                     //decrement influence points on Firebase to prevent duplicate point increment to same comment from same user
                                     String author = tempNode.getNodeContent().getAuthor();
-                                    mFirebaseDatabaseReference.child(getUsernameHash(author)+"/"+author+"/p").runTransaction(new Transaction.Handler() {
-                                        @Override
-                                        public Transaction.Result doTransaction(MutableData mutableData) {
-                                            Integer value = mutableData.getValue(Integer.class);
-                                            if (value == null || value <= 0) {
-                                                mutableData.setValue(0);
-                                            }
-                                            else {
-                                                mutableData.setValue(value - 1);
+                                    if(!author.equals("[deleted]")){
+                                        mFirebaseDatabaseReference.child(getUsernameHash(author)+"/"+author+"/p").runTransaction(new Transaction.Handler() {
+                                            @Override
+                                            public Transaction.Result doTransaction(MutableData mutableData) {
+                                                Integer value = mutableData.getValue(Integer.class);
+                                                if (value == null || value <= 0) {
+                                                    mutableData.setValue(0);
+                                                }
+                                                else {
+                                                    mutableData.setValue(value - 1);
+                                                }
+
+                                                return Transaction.success(mutableData);
                                             }
 
-                                            return Transaction.success(mutableData);
-                                        }
-
-                                        @Override
-                                        public void onComplete(DatabaseError databaseError, boolean b,
-                                                               DataSnapshot dataSnapshot) {
-                                            Log.d("Firebase", "transaction:onComplete:" + databaseError);
-                                        }
-                                    });
+                                            @Override
+                                            public void onComplete(DatabaseError databaseError, boolean b,
+                                                                   DataSnapshot dataSnapshot) {
+                                                Log.d("Firebase", "transaction:onComplete:" + databaseError);
+                                            }
+                                        });
+                                    }
 
                                     break;
 
