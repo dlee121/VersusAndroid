@@ -2,6 +2,8 @@ package com.vs.bcd.versus.adapter;
 
 import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -1138,7 +1140,35 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 }
                 else{
                     //for now there's only one option for when not author of the comment, Report
+                    DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            switch (which){
+                                case DialogInterface.BUTTON_POSITIVE:
+                                    //Yes button clicked
+                                    final String reportCommentID = ((VSComment)masterList.get(index)).getComment_id();
 
+                                    Runnable runnable = new Runnable() {
+                                        public void run() {
+                                            String reportPath = "reports/c/" + reportCommentID;
+                                            activity.getFirebaseDatabaseReference().child(reportPath).setValue(true);
+                                        }
+                                    };
+                                    Thread mythread = new Thread(runnable);
+                                    mythread.start();
+
+                                    break;
+
+                                case DialogInterface.BUTTON_NEGATIVE:
+                                    //No button clicked
+                                    break;
+                            }
+                        }
+                    };
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+                    builder.setMessage("Report this comment?").setPositiveButton("Yes", dialogClickListener)
+                            .setNegativeButton("No", dialogClickListener).show();
 
                 }
 

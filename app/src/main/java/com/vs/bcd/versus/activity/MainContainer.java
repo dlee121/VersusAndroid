@@ -76,6 +76,7 @@ import com.vs.bcd.versus.fragment.SettingsFragment;
 import com.vs.bcd.versus.fragment.Tab1Newsfeed;
 import com.vs.bcd.versus.fragment.Tab2Trending;
 import com.vs.bcd.versus.model.CategoryObject;
+import com.vs.bcd.versus.model.MedalUpdateRequest;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.RNumAndUList;
 import com.vs.bcd.versus.model.RoomObject;
@@ -158,6 +159,7 @@ public class MainContainer extends AppCompatActivity {
     private int clickedPostIndex = 0;
     private boolean clickCoverUp = false;
     private View mActionBarView;
+    private MainContainer thisActivity;
 
 
     private String esHost = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
@@ -279,6 +281,7 @@ public class MainContainer extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_container);
+        thisActivity = this;
         sessionManager = new SessionManager(this);
         // Initialize the Amazon Cognito credentials provider
         credentialsProvider = new CognitoCachingCredentialsProvider(
@@ -1273,7 +1276,35 @@ public class MainContainer extends AppCompatActivity {
                 }
                 else{
                     //for now there's only one option for whe not author of the post, Report
+                    DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            switch (which){
+                                case DialogInterface.BUTTON_POSITIVE:
+                                    //Yes button clicked
+                                    final String reportPostID = getCurrentPost().getPost_id();
 
+                                    Runnable runnable = new Runnable() {
+                                        public void run() {
+                                            String reportPath = "reports/p/" + reportPostID;
+                                            mFirebaseDatabaseReference.child(reportPath).setValue(true);
+                                        }
+                                    };
+                                    Thread mythread = new Thread(runnable);
+                                    mythread.start();
+
+                                    break;
+
+                                case DialogInterface.BUTTON_NEGATIVE:
+                                    //No button clicked
+                                    break;
+                            }
+                        }
+                    };
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(thisActivity);
+                    builder.setMessage("Report this post?").setPositiveButton("Yes", dialogClickListener)
+                            .setNegativeButton("No", dialogClickListener).show();
 
                 }
 
@@ -1492,6 +1523,10 @@ public class MainContainer extends AppCompatActivity {
 
     public Post getCurrentPost(){
         return getPostPage().getCurrentPost();
+    }
+
+    public DatabaseReference getFirebaseDatabaseReference(){
+        return mFirebaseDatabaseReference;
     }
 
     public String getESHost(){
