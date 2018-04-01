@@ -1174,10 +1174,6 @@ public class MainContainer extends AppCompatActivity {
         vpContainer.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
     }
 
-    public int getUserTimecode(){
-        return userTimecode;
-    }
-
     public String getUsername(){
         if(currUsername != null){
             return currUsername;
