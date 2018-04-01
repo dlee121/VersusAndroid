@@ -257,13 +257,17 @@ public class VSComment {
             case UPVOTE:
                 this.uservote = uservote;
                 upvotes++;
-                downvotes--;
+                if(downvotes > 0){
+                    downvotes--;
+                }
                 break;
 
             case DOWNVOTE:
                 this.uservote = uservote;
                 downvotes++;
-                upvotes--;
+                if(upvotes > 0){
+                    upvotes--;
+                }
                 break;
 
             //we don't use this for NOVOTE so ignore all other cases

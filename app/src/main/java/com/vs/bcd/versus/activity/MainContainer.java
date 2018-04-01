@@ -63,6 +63,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
+import com.vs.bcd.versus.adapter.PostPageAdapter;
 import com.vs.bcd.versus.fragment.CategoryFragment;
 import com.vs.bcd.versus.fragment.CommentEnterFragment;
 import com.vs.bcd.versus.fragment.CreateMessage;
@@ -1124,14 +1125,14 @@ public class MainContainer extends AppCompatActivity {
         clickCover.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                getPostPage().getPPAdapter().closeOverflowMenu();
+                //getPostPage().getPPAdapter().closeOverflowMenu();
                 enableClicksForListPopupWindowClose();
             }
         });
         mActionBarView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                getPostPage().getPPAdapter().closeOverflowMenu();
+                //getPostPage().getPPAdapter().closeOverflowMenu();
                 enableClicksForListPopupWindowClose();
             }
         });
