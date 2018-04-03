@@ -958,13 +958,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         return atRootLevel;
     }
 
-    public VSCNode getParent(VSCNode childnode){
-        while(childnode.hasHeadSibling()){
-            childnode = childnode.getHeadSibling();
-        }
-        return childnode.getParent();
-    }
-
     //only call this after nodeTable and vsComments have been set up, but before passing vsComments into a PPAdapter instance
     //sets up VSComment.uservote for comments that user upvoted or downvoted
     //this is only used after downloading for initial uservote setup
@@ -3166,29 +3159,36 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         Log.d("editComment", "adapter content updated");
     }
 
-    public void setNextRootVNRType(String commentID){
+    public boolean setNextRootVNRType(String commentID){
         VSCNode nextRoot = nodeMap.get(commentID).getTailSibling();
         if(nextRoot == null){
-            //activate post page vnr button
+            return false;
         }
         else{
             nextRoot.getNodeContent().setVnrType(1);
-            Log.d("VNRSetup", nextRoot.getNodeContent().getComment_id()+": vnrType = " + Integer.toString(nextRoot.getNodeContent().getVnrType()));
-        }
-    }
-
-    public void showHeadSiblingPage(String commentID){
-        VSCNode headSibling = nodeMap.get(commentID).getHeadSibling();
-        if(headSibling == null){
-            //hi
-        }
-        else{
-            itemViewClickHelper(headSibling.getNodeContent());
+            return true;
         }
     }
 
     public VSComment getHeadSiblingComment(String commentID){
         return nodeMap.get(commentID).getHeadSibling().getNodeContent();
+    }
+
+    public VSComment getRoot(String commentID){
+        VSCNode tempParent = nodeMap.get(nodeMap.get(commentID).getParentID());
+        if(tempParent != null){
+            if(tempParent.getParentID().equals(tempParent.getNodeContent().getPost_id())){
+                return tempParent.getNodeContent();
+            }
+            else{
+                tempParent = nodeMap.get(tempParent.getParentID());
+                if(tempParent != null && tempParent.getParentID().equals(tempParent.getNodeContent().getPost_id())){
+                    return tempParent.getNodeContent();
+                }
+            }
+        }
+
+        return null;
     }
 
 }
