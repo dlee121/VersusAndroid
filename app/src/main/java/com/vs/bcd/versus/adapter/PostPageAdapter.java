@@ -104,7 +104,8 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private final int POPULAR = 1;
     private final int CHRONOLOGICAL = 2;
 
-    private boolean lockButtons = false;
+    private boolean lockButtons = false; //TODO: currently once we lockButtons = true we don't set it back to false because we set it to true for refreshes and after a refresh we get a new adapter and destroy the old one and the new one has lockButtons = false initially.
+                                            //TODO: But eventually we should change to not making a new adapter each time, and also properly setting lockButtons back to false (by tracing back why we set it to true and setting it to false once condition flips).
 
 
     //to set imageviews, first fill out the drawable[3] with 0=image layer, 1=tint layer, 2=check mark layer, make LayerDrawable out of the array, then use setImageMask which sets the correct mask layers AND ALSO sets imageview drawable as the LayerDrawable
@@ -199,107 +200,24 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         break;
                 }
 
+                RelativeLayout.LayoutParams vnrButtonLP = (RelativeLayout.LayoutParams) commentViewHolder.viewMoreButton.getLayoutParams();
                 if(currentComment.getChild_count() > 2){
-                    if(currentComment.getParent_id().equals(currentComment.getPost_id())){
-                        if(!activity.getPostPage().setNextRootVNRType(currentComment.getComment_id())){
-                            ((VSComment)masterList.get(masterList.size() - 1)).setVnrType(3);
-                        }
+                    vnrButtonLP = (RelativeLayout.LayoutParams) commentViewHolder.viewMoreButton.getLayoutParams();
+                    vnrButtonLP.height = RelativeLayout.LayoutParams.WRAP_CONTENT;
 
-                    }
-                    else{
-                        VSComment lastShowingChild = (VSComment) masterList.get(position + 2);
-                        if(lastShowingChild != null){
-                            lastShowingChild.setVnrType(2);
+                    commentViewHolder.viewMoreButton.setText("View " + Integer.toString(currentComment.getChild_count() - 2) + " More Replies");
+                    commentViewHolder.viewMoreButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            //Log.d("pageLevel", Integer.toString(pageLevel));
+                            if(pageLevel < 2 && !lockButtons){ //itemView clicks are handled only for root page and children page
+                                activity.getPostPage().itemViewClickHelper(currentComment);
+                            }
                         }
-                    }
+                    });
                 }
-
-
-
-                RelativeLayout.LayoutParams vnrButtonLP, authorTVLP;
-                switch (currentComment.getVnrType()){
-
-                    case 0:
-                        //reset vnr related stuff
-                        authorTVLP = (RelativeLayout.LayoutParams) commentViewHolder.author.getLayoutParams();
-                        authorTVLP.removeRule(RelativeLayout.BELOW);
-                        vnrButtonLP = (RelativeLayout.LayoutParams) commentViewHolder.viewMoreButton1.getLayoutParams();
-                        vnrButtonLP.height = 0;
-                        vnrButtonLP = (RelativeLayout.LayoutParams) commentViewHolder.viewMoreButton2.getLayoutParams();
-                        vnrButtonLP.height = 0;
-                        vnrButtonLP = (RelativeLayout.LayoutParams) commentViewHolder.viewMoreButton3.getLayoutParams();
-                        vnrButtonLP.height = 0;
-                        break;
-
-                    case 1:
-                        authorTVLP = (RelativeLayout.LayoutParams) commentViewHolder.author.getLayoutParams();
-                        authorTVLP.addRule(RelativeLayout.BELOW, R.id.view_replies_button_1);
-                        vnrButtonLP = (RelativeLayout.LayoutParams) commentViewHolder.viewMoreButton1.getLayoutParams();
-                        vnrButtonLP.height = RelativeLayout.LayoutParams.WRAP_CONTENT;
-
-                        final VSComment headSibling = activity.getPostPage().getHeadSiblingComment(currentComment.getComment_id());
-                        if(headSibling != null){
-                            commentViewHolder.viewMoreButton1.setText("View " + Integer.toString(headSibling.getChild_count()) + " Replies");
-                            commentViewHolder.viewMoreButton1.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View view) {
-                                    //Log.d("pageLevel", Integer.toString(pageLevel));
-                                    if(pageLevel < 2){ //itemView clicks are handled only for root page and children page
-                                        if(!lockButtons){
-                                            activity.getPostPage().itemViewClickHelper(headSibling);
-                                        }
-                                    }
-                                }
-                            });
-                        }
-
-                        break;
-
-                    case 2:
-                        vnrButtonLP = (RelativeLayout.LayoutParams) commentViewHolder.viewMoreButton2.getLayoutParams();
-                        vnrButtonLP.height = RelativeLayout.LayoutParams.WRAP_CONTENT;
-                        final VSComment parent = (VSComment) masterList.get(position - 2);
-                        if(parent != null){
-                            commentViewHolder.viewMoreButton2.setText("View " + Integer.toString(parent.getChild_count()) + " Replies");
-                            commentViewHolder.viewMoreButton2.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View view) {
-                                    //Log.d("pageLevel", Integer.toString(pageLevel));
-                                    if(pageLevel < 2){ //itemView clicks are handled only for root page and children page
-                                        if(!lockButtons){
-                                            if(parent != null){
-                                                activity.getPostPage().itemViewClickHelper(parent);
-                                            }
-                                        }
-                                    }
-                                }
-                            });
-                        }
-
-                        break;
-
-                    case 3:
-                        vnrButtonLP = (RelativeLayout.LayoutParams) commentViewHolder.viewMoreButton3.getLayoutParams();
-                        vnrButtonLP.height = RelativeLayout.LayoutParams.WRAP_CONTENT;
-                        final VSComment root = activity.getPostPage().getRoot(currentComment.getComment_id());
-
-                        if(root != null){
-                            commentViewHolder.viewMoreButton3.setText("View " + Integer.toString(root.getChild_count()) + " Replies");
-                            commentViewHolder.viewMoreButton3.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View view) {
-                                    //Log.d("pageLevel", Integer.toString(pageLevel));
-                                    if(pageLevel < 2){ //itemView clicks are handled only for root page and children page
-                                        if(!lockButtons){
-                                            activity.getPostPage().itemViewClickHelper(root);
-                                        }
-                                    }
-                                }
-                            });
-                        }
-
-                        break;
-
+                else{
+                    vnrButtonLP.height = 0;
                 }
 
                 commentViewHolder.author.setText(currentComment.getAuthor());
@@ -890,7 +808,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private class CommentViewHolder extends RecyclerView.ViewHolder {
 
         public TextView timestamp, author, content, upvotes, downvotes;
-        public Button replyButton, seeMoreButton, viewMoreButton1, viewMoreButton2, viewMoreButton3;
+        public Button replyButton, seeMoreButton, viewMoreButton;
         public ImageButton upvoteButton, downvoteButton, overflowMenu;
         public ImageView medalImage;
         public LinearLayout seeMoreContainer;
@@ -903,15 +821,13 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             overflowMenu = view.findViewById(R.id.comment_overflow_menu);
             timestamp = view.findViewById(R.id.timetvcs);
             content = view.findViewById(R.id.usercomment);
-            viewMoreButton1 = view.findViewById(R.id.view_replies_button_1);
             upvotes = view.findViewById(R.id.upvotes_cc);
             downvotes = view.findViewById(R.id.downvotes_cc);
             replyButton = view.findViewById(R.id.replybuttoncs);
             upvoteButton = view.findViewById(R.id.heartbutton);
             downvoteButton = view.findViewById(R.id.broken_heart_button);
             medalImage = view.findViewById(R.id.medal_image);
-            viewMoreButton2 = view.findViewById(R.id.view_replies_button_2);
-            viewMoreButton3 = view.findViewById(R.id.view_replies_button_3);
+            viewMoreButton = view.findViewById(R.id.view_replies_button);
             seeMoreContainer = view.findViewById(R.id.see_more_container);
             //ellipsis = seeMoreContainer.findViewById(R.id.comment_ellipsis);
             seeMoreButton = seeMoreContainer.findViewById(R.id.see_more_button);

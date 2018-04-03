@@ -36,7 +36,6 @@ public class VSComment {
     private final int DOWNVOTE = 2;
     private int currentMedal = 0;   //current medal to display for UI
     private int child_count = 0;
-    private int vnrType = 0;
 
     private boolean isNew = false;
 
@@ -192,15 +191,6 @@ public class VSComment {
     public void setChild_count(int child_count){
         this.child_count = child_count;
     }
-
-    @DynamoDBIgnore
-    public int getVnrType(){
-        return vnrType;
-    }
-    public void setVnrType(int vnrType){
-        this.vnrType = vnrType;
-    }
-
 
     @DynamoDBIgnore
     public int getUservote(){

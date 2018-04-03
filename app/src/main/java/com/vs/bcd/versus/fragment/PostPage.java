@@ -3159,36 +3159,4 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         Log.d("editComment", "adapter content updated");
     }
 
-    public boolean setNextRootVNRType(String commentID){
-        VSCNode nextRoot = nodeMap.get(commentID).getTailSibling();
-        if(nextRoot == null){
-            return false;
-        }
-        else{
-            nextRoot.getNodeContent().setVnrType(1);
-            return true;
-        }
-    }
-
-    public VSComment getHeadSiblingComment(String commentID){
-        return nodeMap.get(commentID).getHeadSibling().getNodeContent();
-    }
-
-    public VSComment getRoot(String commentID){
-        VSCNode tempParent = nodeMap.get(nodeMap.get(commentID).getParentID());
-        if(tempParent != null){
-            if(tempParent.getParentID().equals(tempParent.getNodeContent().getPost_id())){
-                return tempParent.getNodeContent();
-            }
-            else{
-                tempParent = nodeMap.get(tempParent.getParentID());
-                if(tempParent != null && tempParent.getParentID().equals(tempParent.getNodeContent().getPost_id())){
-                    return tempParent.getNodeContent();
-                }
-            }
-        }
-
-        return null;
-    }
-
 }

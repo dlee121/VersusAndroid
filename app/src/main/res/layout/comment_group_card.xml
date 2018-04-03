@@ -76,23 +76,6 @@
             android:text="bcd"
             android:textSize="14sp" />
 
-        <Button
-            android:id="@+id/view_replies_button_1"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_alignStart="@id/usercomment"
-            android:layout_alignEnd="@id/usercomment"
-            android:layout_alignParentTop="true"
-            android:minWidth="0dp"
-            android:minHeight="0dp"
-            android:layout_marginStart="42dp"
-            android:padding="4dp"
-            android:textSize="14sp"
-            android:textAllCaps="false"
-            style="?android:attr/borderlessButtonStyle"
-            android:textColor="#0000FF"
-            android:text="View More Replies"/>
-
         <LinearLayout
             android:id="@+id/see_more_container"
             android:layout_width="wrap_content"
@@ -216,31 +199,15 @@
             style="?android:attr/borderlessButtonStyle"/>
 
         <Button
-            android:id="@+id/view_replies_button_2"
+            android:id="@+id/view_replies_button"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
             android:layout_alignStart="@id/usercomment"
             android:layout_alignEnd="@id/usercomment"
             android:layout_below="@id/heartbutton"
-            android:layout_marginStart="-8dp"
             android:minWidth="0dp"
             android:minHeight="0dp"
             android:padding="4dp"
-            android:textSize="14sp"
-            android:textAllCaps="false"
-            style="?android:attr/borderlessButtonStyle"
-            android:textColor="#0000FF"
-            android:text="View More Replies"/>
-
-        <Button
-            android:id="@+id/view_replies_button_3"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_below="@id/heartbutton"
-            android:minWidth="0dp"
-            android:minHeight="0dp"
-            android:padding="4dp"
-            android:layout_marginStart="34dp"
             android:textSize="14sp"
             android:textAllCaps="false"
             style="?android:attr/borderlessButtonStyle"
