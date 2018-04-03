@@ -180,7 +180,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 int margin = activity.getResources().getDimensionPixelSize(R.dimen.comment_margin); // margin in pixels
 
 
-                setLeftMargin(commentViewHolder.author, margin * currentComment.getNestedLevel());  //left margin (indentation) of 150dp per nested level
+                setLeftMargin(commentViewHolder.author, margin * currentComment.getNestedLevel());  //left margin (indentation) of 50dp per nested level
                 /*
                 if(currentComment.getComment_id().equals("2ebf9760-d9bf-4785-af68-c3993be8945d")){
                     Log.d("debug", "this is the 2eb comment");
@@ -201,6 +201,77 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         commentViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
                         commentViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
                         break;
+                }
+
+                if(currentComment.getChild_count() > 2){
+                    if(currentComment.getParent_id().equals(currentComment.getPost_id())){
+                        activity.getPostPage().setNextRootVNRType(currentComment.getComment_id());
+                    }
+                    else{
+                        VSComment lastShowingChild = (VSComment) masterList.get(position + 2);
+                        if(lastShowingChild != null){
+                            lastShowingChild.setVnrType(2);
+                        }
+                    }
+                }
+
+
+
+                RelativeLayout.LayoutParams vnrButtonLP;
+                switch (currentComment.getVnrType()){
+
+                    case 0:
+                        //reset margins if necessary
+
+                        break;
+
+                    case 1:
+                        RelativeLayout.LayoutParams authorTVLP = (RelativeLayout.LayoutParams) commentViewHolder.author.getLayoutParams();
+                        authorTVLP.setMargins(activity.getResources().getDimensionPixelSize(R.dimen.author_tv_margin), activity.getResources().getDimensionPixelSize(R.dimen.vnr_margin), 0, 0);
+                        vnrButtonLP = (RelativeLayout.LayoutParams) commentViewHolder.viewMoreButton1.getLayoutParams();
+                        vnrButtonLP.height = RelativeLayout.LayoutParams.WRAP_CONTENT;
+
+                        final VSComment headSibling = activity.getPostPage().getHeadSiblingComment(currentComment.getComment_id());
+                        if(headSibling != null){
+                            commentViewHolder.viewMoreButton1.setText("View " + Integer.toString(headSibling.getChild_count()) + " Replies");
+                            commentViewHolder.viewMoreButton1.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    //Log.d("pageLevel", Integer.toString(pageLevel));
+                                    if(pageLevel < 2){ //itemView clicks are handled only for root page and children page
+                                        if(!lockButtons){
+                                            activity.getPostPage().itemViewClickHelper(headSibling);
+                                        }
+                                    }
+                                }
+                            });
+                        }
+
+                        break;
+
+                    case 2:
+                        vnrButtonLP = (RelativeLayout.LayoutParams) commentViewHolder.viewMoreButton2.getLayoutParams();
+                        vnrButtonLP.height = RelativeLayout.LayoutParams.WRAP_CONTENT;
+                        final VSComment parent = (VSComment) masterList.get(position - 2);
+                        if(parent != null){
+                            commentViewHolder.viewMoreButton2.setText("View " + Integer.toString(parent.getChild_count()) + " Replies");
+                            commentViewHolder.viewMoreButton2.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    //Log.d("pageLevel", Integer.toString(pageLevel));
+                                    if(pageLevel < 2){ //itemView clicks are handled only for root page and children page
+                                        if(!lockButtons){
+                                            if(parent != null){
+                                                activity.getPostPage().itemViewClickHelper(parent);
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        }
+
+                        break;
+
                 }
 
                 commentViewHolder.author.setText(currentComment.getAuthor());
@@ -297,18 +368,6 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     obAnim.start();
                     currentComment.setIsNew(false);
                 }
-
-                commentViewHolder.content.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        //Log.d("pageLevel", Integer.toString(pageLevel));
-                        if(pageLevel < 2){ //itemView clicks are handled only for root page and children page
-                            if(!lockButtons){
-                                activity.getPostPage().itemViewClickHelper(currentComment);
-                            }
-                        }
-                    }
-                });
 
                 commentViewHolder.replyButton.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -803,7 +862,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private class CommentViewHolder extends RecyclerView.ViewHolder {
 
         public TextView timestamp, author, content, upvotes, downvotes;
-        public Button replyButton, seeMoreButton;
+        public Button replyButton, seeMoreButton, viewMoreButton1, viewMoreButton2;
         public ImageButton upvoteButton, downvoteButton, overflowMenu;
         public ImageView medalImage;
         public LinearLayout seeMoreContainer;
@@ -816,12 +875,14 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             overflowMenu = view.findViewById(R.id.comment_overflow_menu);
             timestamp = view.findViewById(R.id.timetvcs);
             content = view.findViewById(R.id.usercomment);
+            viewMoreButton1 = view.findViewById(R.id.view_replies_button_1);
             upvotes = view.findViewById(R.id.upvotes_cc);
             downvotes = view.findViewById(R.id.downvotes_cc);
             replyButton = view.findViewById(R.id.replybuttoncs);
             upvoteButton = view.findViewById(R.id.heartbutton);
             downvoteButton = view.findViewById(R.id.broken_heart_button);
             medalImage = view.findViewById(R.id.medal_image);
+            viewMoreButton2 = view.findViewById(R.id.view_replies_button_2);
             seeMoreContainer = view.findViewById(R.id.see_more_container);
             //ellipsis = seeMoreContainer.findViewById(R.id.comment_ellipsis);
             seeMoreButton = seeMoreContainer.findViewById(R.id.see_more_button);

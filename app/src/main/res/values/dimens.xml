@@ -11,6 +11,8 @@
     <dimen name="reply_button_margin_end">8dp</dimen>
     <dimen name="overflow_width">160dp</dimen>
     <dimen name="overflow_height">20dp</dimen>
+    <dimen name="vnr_margin">20dp</dimen>
+    <dimen name="author_tv_margin">8dp</dimen>
     <dimen name="overflow_text_size">14dp</dimen>
     <dimen name="overflow_row_height">48dp</dimen>
     <dimen name="comment_margin">50dp</dimen>

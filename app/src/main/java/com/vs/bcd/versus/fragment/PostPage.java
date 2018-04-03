@@ -2254,22 +2254,29 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         try {
 			/* Execute URL and attach after execution response handler */
-            long startTime = System.currentTimeMillis();
 
             String strResponse = httpClient.execute(httpPost, responseHandler);
-
-            long elapsedTime = System.currentTimeMillis() - startTime;
-            Log.d("httpElapsedTime", "child query elapsed time in milliseconds: " + elapsedTime);
 
             //Log.d("childCommentsQuery", strResponse);
             JSONObject responseObj = new JSONObject(strResponse);
             JSONArray responseArray = responseObj.getJSONArray("responses");
             for(int r = 0; r<responseArray.length(); r++){
-                JSONArray hArray = responseArray.getJSONObject(r).getJSONObject("hits").getJSONArray("hits");
+
+                JSONObject hitsObject = responseArray.getJSONObject(r).getJSONObject("hits");
+
+                //set the child_count on the parent comment
+                int childCount = hitsObject.getInt("total");
+                VSCNode parentNode = nodeMap.get(commentParents.get(r).getComment_id());
+                if(parentNode != null){
+                    parentNode.getNodeContent().setChild_count(childCount);
+                }
+
+                JSONArray hArray = hitsObject.getJSONArray("hits");
                 for(int h = 0; h<hArray.length(); h++){
                     results.add(new VSComment(hArray.getJSONObject(h).getJSONObject("_source")));
                     childrenCount++;
                 }
+
             }
 
             //System.out.println("Response: " + strResponse);
@@ -3157,6 +3164,31 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
         PPAdapter.editCommentLocal(index, text, commentID);
         Log.d("editComment", "adapter content updated");
+    }
+
+    public void setNextRootVNRType(String commentID){
+        VSCNode nextRoot = nodeMap.get(commentID).getTailSibling();
+        if(nextRoot == null){
+            //activate post page vnr button
+        }
+        else{
+            nextRoot.getNodeContent().setVnrType(1);
+            Log.d("VNRSetup", nextRoot.getNodeContent().getComment_id()+": vnrType = " + Integer.toString(nextRoot.getNodeContent().getVnrType()));
+        }
+    }
+
+    public void showHeadSiblingPage(String commentID){
+        VSCNode headSibling = nodeMap.get(commentID).getHeadSibling();
+        if(headSibling == null){
+            //hi
+        }
+        else{
+            itemViewClickHelper(headSibling.getNodeContent());
+        }
+    }
+
+    public VSComment getHeadSiblingComment(String commentID){
+        return nodeMap.get(commentID).getHeadSibling().getNodeContent();
     }
 
 }
