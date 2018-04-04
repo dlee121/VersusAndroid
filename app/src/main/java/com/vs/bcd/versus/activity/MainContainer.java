@@ -176,6 +176,10 @@ public class MainContainer extends AppCompatActivity {
         meClicked = false;
         int mainContainerCurrentItem = mViewPager.getCurrentItem();
         int mainActivityCurrentItem = getMainFrag().getViewPager().getCurrentItem();
+
+        Log.d("wahwahwah", Integer.toString(mainContainerCurrentItem) + " and "+Integer.toString(mainActivityCurrentItem));
+
+
         if(mainContainerCurrentItem == 0){  //MainContainer's current fragment is MainActivity fragment
             if(mainActivityCurrentItem == 0){   //MainActivity fragment's current fragment is Tab1Newsfeed
                 super.onBackPressed();  //call superclass's onBackPressed, closing the app
@@ -205,7 +209,7 @@ public class MainContainer extends AppCompatActivity {
                     break;
 
                 case 3:  //PostPage
-                    //Log.d("debug", "is 1");
+
                     if(postPage.overflowMenuIsOpen()){
                         postPage.closeOverflowMenu();
                         enableClicksForListPopupWindowClose();
@@ -401,6 +405,7 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 3: //PostPage
+                        postPage.hideCommentInputCursor();
                         imm.hideSoftInputFromWindow(toolbarButtonLeft.getWindowToken(), 0);
                         if(!postPage.isRootLevel()){
                             postPage.backToParentPage();

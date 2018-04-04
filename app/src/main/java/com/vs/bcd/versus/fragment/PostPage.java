@@ -3,7 +3,6 @@ package com.vs.bcd.versus.fragment;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -45,6 +44,7 @@ import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
 import com.vs.bcd.versus.adapter.PostPageAdapter;
 import com.vs.bcd.versus.model.AWSV4Auth;
+import com.vs.bcd.versus.model.CustomEditText;
 import com.vs.bcd.versus.model.FormValidator;
 import com.vs.bcd.versus.model.MedalUpdateRequest;
 import com.vs.bcd.versus.model.Post;
@@ -162,7 +162,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private Toast mToast;
 
     private ImageButton sendButton;
-    private EditText pageCommentInput;
+    private CustomEditText pageCommentInput;
+    private RelativeLayout pageCommentInputContainer;
 
     private InputMethodManager imm;
 
@@ -179,8 +180,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
 
-        //commentInput = (EditText) rootView.findViewById(R.id.commentInput);
-        sendButton = rootView.findViewById(R.id.coment_send_button);
+        pageCommentInputContainer = rootView.findViewById(R.id.page_comment_input_container);
+
+        sendButton = rootView.findViewById(R.id.comment_send_button);
         pageCommentInput = rootView.findViewById(R.id.page_comment_input);
 
         pageCommentInput.addTextChangedListener(new FormValidator(pageCommentInput) {
@@ -195,6 +197,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             }
         });
 
+
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -202,6 +205,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 final String input = pageCommentInput.getText().toString().trim();
                 PPAdapter.clearList();
                 mSwipeRefreshLayout.setRefreshing(true);
+                hideCommentInputCursor();
 
                 Runnable runnable = new Runnable() {
                     public void run() {
@@ -362,6 +366,10 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         postPageFAB.setLayoutParams(fabLP);
         postPageFAB.setClickable(true);
         ppfabActive = true;
+    }
+
+    public void hideCommentInputCursor(){
+        pageCommentInputContainer.requestFocusFromTouch();
     }
 
     /**

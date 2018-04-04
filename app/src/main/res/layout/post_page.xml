@@ -11,22 +11,23 @@
         android:id="@+id/page_comment_input_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:focusableInTouchMode="true"
         android:layout_alignParentBottom="true">
 
         <ImageButton
-            android:id="@+id/coment_send_button"
+            android:id="@+id/comment_send_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:background="@null"
             android:src="@drawable/ic_send_grey"/>
 
-        <EditText
+        <com.vs.bcd.versus.model.CustomEditText
             android:id="@+id/page_comment_input"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
-            android:layout_toStartOf="@id/coment_send_button"
+            android:layout_toStartOf="@id/comment_send_button"
             android:textSize="14sp"
             android:hint="Enter the discussion!"/>
 
