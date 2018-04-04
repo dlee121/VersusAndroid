@@ -401,6 +401,7 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 3: //PostPage
+                        imm.hideSoftInputFromWindow(toolbarButtonLeft.getWindowToken(), 0);
                         if(!postPage.isRootLevel()){
                             postPage.backToParentPage();
                         }

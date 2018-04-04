@@ -17,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -163,6 +164,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private ImageButton sendButton;
     private EditText pageCommentInput;
 
+    private InputMethodManager imm;
+
     private double commentPSI = 3.0; //ps increment per comment
 
     @Override
@@ -173,6 +176,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         host = activity.getESHost();
         region = activity.getESRegion();
+
+        imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
 
         //commentInput = (EditText) rootView.findViewById(R.id.commentInput);
         sendButton = rootView.findViewById(R.id.coment_send_button);
@@ -195,6 +200,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             public void onClick(View view) {
 
                 final String input = pageCommentInput.getText().toString().trim();
+                PPAdapter.clearList();
+                mSwipeRefreshLayout.setRefreshing(true);
 
                 Runnable runnable = new Runnable() {
                     public void run() {
@@ -266,6 +273,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     .withKey(keyMap)
                                     .withAttributeUpdates(updates);
                             activity.getDDBClient().updateItem(request);
+
+                            activity.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    pageCommentInput.setText("");
+                                    imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
+                                }
+                            });
 
                             commentSubmissionRefresh(vsc);
 
@@ -503,6 +518,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         else {
             if (rootView != null) {
                 disableChildViews();
+                pageCommentInput.setText("");
                 RVLayoutParams.height = 0;
                 RVLayoutParams.width = 0;
                 RV.setLayoutParams(RVLayoutParams);
@@ -2676,6 +2692,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     RV.setAdapter(PPAdapter);
                     activity.setPostInDownload(postID, "done");
                     setUpTopCard(parentCache.get(rootParentID));
+                    mSwipeRefreshLayout.setRefreshing(false);
 
                     RV.addOnScrollListener(new RecyclerView.OnScrollListener() {
                         @Override
@@ -2813,6 +2830,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             public void run() {
 
                 applyUserActions(masterList);
+
+                mSwipeRefreshLayout.setRefreshing(false);
 
                 //Make sure to do this after applyUserActions because applyUserActions doesn't expect post object in the list
                 if(pageLevel == 0) {
