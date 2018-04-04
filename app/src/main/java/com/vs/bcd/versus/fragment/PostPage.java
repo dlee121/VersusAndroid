@@ -3,9 +3,11 @@ package com.vs.bcd.versus.fragment;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -14,6 +16,7 @@ import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -41,6 +44,7 @@ import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
 import com.vs.bcd.versus.adapter.PostPageAdapter;
 import com.vs.bcd.versus.model.AWSV4Auth;
+import com.vs.bcd.versus.model.FormValidator;
 import com.vs.bcd.versus.model.MedalUpdateRequest;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.SessionManager;
@@ -74,10 +78,8 @@ import cz.msebera.android.httpclient.entity.StringEntity;
 import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
 import cz.msebera.android.httpclient.impl.client.HttpClients;
 import cz.msebera.android.httpclient.util.EntityUtils;
-import de.hdodenhof.circleimageview.CircleImageView;
 
 import static com.vs.bcd.versus.adapter.PostPageAdapter.DOWNVOTE;
-import static com.vs.bcd.versus.adapter.PostPageAdapter.NOVOTE;
 import static com.vs.bcd.versus.adapter.PostPageAdapter.UPVOTE;
 
 
@@ -158,6 +160,10 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     private Toast mToast;
 
+    private ImageButton sendButton;
+    private EditText pageCommentInput;
+
+    private double commentPSI = 3.0; //ps increment per comment
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -169,6 +175,109 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         region = activity.getESRegion();
 
         //commentInput = (EditText) rootView.findViewById(R.id.commentInput);
+        sendButton = rootView.findViewById(R.id.coment_send_button);
+        pageCommentInput = rootView.findViewById(R.id.page_comment_input);
+
+        pageCommentInput.addTextChangedListener(new FormValidator(pageCommentInput) {
+            @Override
+            public void validate(TextView textView, String text) {
+                if (text.length() > 0) {
+                    sendButton.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.ic_send_blue));
+
+                } else {
+                    sendButton.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.ic_send_grey));
+                }
+            }
+        });
+
+        sendButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                final String input = pageCommentInput.getText().toString().trim();
+
+                Runnable runnable = new Runnable() {
+                    public void run() {
+
+                        if(input.length() > 0){
+                            final VSComment vsc = new VSComment();
+
+                            if(pageLevel == 0){
+                                vsc.setParent_id(postID);
+                            }
+                            else{
+                                vsc.setParent_id(topCardContent.getComment_id());
+                            }
+
+                            vsc.setPost_id(postID);
+                            vsc.setAuthor(activity.getUsername());
+                            vsc.setContent(input);
+                            vsc.setIsNew(true); //sets it to be highlighted
+
+                            activity.getMapper().save(vsc);
+
+                            //send appropriate notification
+
+                            if(pageLevel == 0){
+                                if(!post.getAuthor().equals("[deleted]")){    //if root comment
+                                    String nKey = postID+":"+sanitizeContentForURL(post.getRedname())+":"+sanitizeContentForURL(post.getBlackname())+":"+sanitizeContentForURL(post.getQuestion());
+                                    String postAuthorPath = getUsernameHash(post.getAuthor()) + "/" + post.getAuthor() + "/n/r/" + nKey;
+                                    mFirebaseDatabaseReference.child(postAuthorPath).push().setValue(System.currentTimeMillis()/1000);  //set value = timestamp as seconds from epoch
+                                }
+                            }
+                            else if(topCardContent != null && !topCardContent.getAuthor().equals("[deleted]")){   //else this is a reply to a comment
+                                String payloadContent = sanitizeContentForURL(topCardContent.getContent());
+                                String subjectAuthorPath = getUsernameHash(topCardContent.getAuthor()) + "/" + topCardContent.getAuthor() + "/n/c/"
+                                        + topCardContent.getParent_id() + ":" + topCardContent.getComment_id() + ":" + payloadContent;
+                                mFirebaseDatabaseReference.child(subjectAuthorPath).push().setValue(System.currentTimeMillis()/1000);
+                            }
+
+                            HashMap<String, AttributeValue> keyMap = new HashMap<>();
+                            keyMap.put("i", new AttributeValue().withS(postID));   //sort key
+
+                            HashMap<String, AttributeValueUpdate> updates = new HashMap<>();
+
+                            //update pt and increment ps
+                            int currPt = (int)((System.currentTimeMillis()/1000)/60);
+                            AttributeValueUpdate ptu = new AttributeValueUpdate()
+                                    .withValue(new AttributeValue().withN(Integer.toString(currPt)))
+                                    .withAction(AttributeAction.PUT);
+                            updates.put("pt", ptu);
+
+                            int timeDiff;
+                            if(post == null){
+                                timeDiff = currPt - activity.getCurrentPost().getPt();
+                            }
+                            else{
+                                timeDiff = currPt - post.getPt();
+                            }
+                            if(timeDiff <= 0){ //if timeDiff is negative due to some bug or if timeDiff is zero, we just make it equal 1.
+                                timeDiff = 1;
+                            }
+
+                            double psIncrement = commentPSI/timeDiff;
+                            AttributeValueUpdate psu = new AttributeValueUpdate()
+                                    .withValue(new AttributeValue().withN(Double.toString(psIncrement)))
+                                    .withAction(AttributeAction.ADD);
+                            updates.put("ps", psu);
+
+                            UpdateItemRequest request = new UpdateItemRequest()
+                                    .withTableName("post")
+                                    .withKey(keyMap)
+                                    .withAttributeUpdates(updates);
+                            activity.getDDBClient().updateItem(request);
+
+                            commentSubmissionRefresh(vsc);
+
+                        }
+
+                    }
+                };
+                Thread mythread = new Thread(runnable);
+                mythread.start();
+            }
+        });
+
         mRelativeLayout =  rootView.findViewById(R.id.post_page_layout);
         postPageFAB = rootView.findViewById(R.id.postpage_fab);
         fabLP = (RelativeLayout.LayoutParams)postPageFAB.getLayoutParams();
@@ -381,15 +490,13 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
-            //((MainContainer)getActivity()).setToolbarTitleTextForCP();
-            //TODO: get comments from DB, create the comment structure and display it here. Actually we're doing that in setContent() right now
-
             if(rootView != null) {
                 enableChildViews();
                 rootView.findViewById(R.id.recycler_view_cs).setLayoutParams(RVLayoutParams);
                 RVLayoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
                 RVLayoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
                 RV.setLayoutParams(RVLayoutParams);
+                activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
             }
 
         }
@@ -2587,8 +2694,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             }
                         }
                     });
-                    activity.hideToolbarProgressbar();
-                    activity.getViewPager().setCurrentItem(3);
+                    //activity.hideToolbarProgressbar();
+                    //activity.getViewPager().setCurrentItem(3);
                 }
             });
             return;
@@ -2750,8 +2857,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         }
                     }
                 });
-                activity.hideToolbarProgressbar();
-                activity.getViewPager().setCurrentItem(3);
+                //activity.hideToolbarProgressbar();
+                //activity.getViewPager().setCurrentItem(3);
             }
         });
     }

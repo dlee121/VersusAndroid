@@ -278,7 +278,6 @@ public class CommentEnterFragment extends Fragment{
 
                         }
 
-                        //increment commentcount
                         HashMap<String, AttributeValue> keyMap = new HashMap<>();
                         keyMap.put("i", new AttributeValue().withS(postID));   //sort key
 

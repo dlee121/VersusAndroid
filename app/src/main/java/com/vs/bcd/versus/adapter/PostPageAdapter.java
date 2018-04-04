@@ -205,7 +205,14 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     vnrButtonLP = (RelativeLayout.LayoutParams) commentViewHolder.viewMoreButton.getLayoutParams();
                     vnrButtonLP.height = RelativeLayout.LayoutParams.WRAP_CONTENT;
 
-                    commentViewHolder.viewMoreButton.setText("View " + Integer.toString(currentComment.getChild_count() - 2) + " More Replies");
+                    int howManyMore = currentComment.getChild_count() - 2;
+                    if(howManyMore == 1){
+                        commentViewHolder.viewMoreButton.setText("View 1 More Reply");
+                    }
+                    else{
+                        commentViewHolder.viewMoreButton.setText("View " + Integer.toString(howManyMore) + " More Replies");
+                    }
+
                     commentViewHolder.viewMoreButton.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
