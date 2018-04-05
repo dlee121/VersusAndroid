@@ -10,6 +10,9 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.Selection;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
@@ -165,7 +168,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private CustomEditText pageCommentInput;
     private RelativeLayout pageCommentInputContainer;
     private VSComment replyTarget;
-    private TextView replyingTo;
+    private TextView replyingTo, replyTV;
     private int replyTargetIndex;
 
     private InputMethodManager imm;
@@ -188,12 +191,23 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         sendButton = rootView.findViewById(R.id.comment_send_button);
         pageCommentInput = rootView.findViewById(R.id.page_comment_input);
         replyingTo = rootView.findViewById(R.id.replying_to);
+        replyTV = rootView.findViewById(R.id.reply_target_tv);
 
         pageCommentInput.addTextChangedListener(new FormValidator(pageCommentInput) {
             @Override
             public void validate(TextView textView, String text) {
                 if (text.length() > 0) {
                     sendButton.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.ic_send_blue));
+
+                    if(pageCommentInput.hasPrefix()){
+                        String str = "@"+replyTarget.getAuthor()+" ";
+                        if(!text.startsWith(str)){
+                            String newText = str + text.substring(str.length()-1);
+                            pageCommentInput.setText(newText);
+
+                            Selection.setSelection(pageCommentInput.getText(), str.length());
+                        }
+                    }
 
                 } else {
                     sendButton.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.ic_send_grey));
@@ -240,6 +254,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                 targetID = replyTarget.getComment_id();
                                 targetChildCount = replyTarget.getChild_count();
                                 targetNestedLevel = replyTarget.getNestedLevel();
+
                                 vsc.setParent_id(targetID);
                                 Log.d("chichichichia!", "has " + Integer.toString(targetChildCount) + " chillums");
                                 Log.d("chichichichia!", "nested at " + Integer.toString(targetNestedLevel));
@@ -357,6 +372,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             else{
                                 commentSubmissionRefresh(vsc);
                             }
+                            nodeMap.get(targetID).getNodeContent().incrementChild_Count();
                         }
 
                     }
@@ -2963,6 +2979,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         replyingTo.getLayoutParams().height = 0;
         replyTarget = null;
         pageCommentInput.setText("");
+        replyTV.getLayoutParams().width = 0;
     }
 
     public void itemViewClickHelper(VSComment clickedComment){
@@ -3020,6 +3037,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         replyingTo.getLayoutParams().height = RelativeLayout.LayoutParams.WRAP_CONTENT;
 
         pageCommentInput.requestFocus();
+
         imm.showSoftInput(pageCommentInput, 0);
 
 
@@ -3046,6 +3064,21 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     addThisToCache(clickedComment.getComment_id());
                 }
                 break;
+        }
+
+        if((pageLevel == 0 && nestedLevel == 2) || (pageLevel == 1 && nestedLevel == 1) || (pageLevel == 2 && nestedLevel == 0)){
+            String prefix = "@"+replyTarget.getAuthor() +" ";
+            pageCommentInput.setText(prefix);
+            pageCommentInput.setPrefix(prefix);
+
+            //this is a reply to a grandchild comment, so we set the replyTarget to its parent
+            replyTarget = nodeMap.get(clickedComment.getParent_id()).getNodeContent();
+            if(nodeMap.get(clickedComment.getComment_id()).getHeadSibling() == null){ //first displayed grandchild
+                replyTargetIndex--;
+            }
+            else{ //second displayed grandchild
+                replyTargetIndex -= 2;
+            }
         }
 
     }

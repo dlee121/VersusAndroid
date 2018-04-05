@@ -191,6 +191,9 @@ public class VSComment {
     public void setChild_count(int child_count){
         this.child_count = child_count;
     }
+    public void incrementChild_Count(){
+        child_count++;
+    }
 
     @DynamoDBIgnore
     public int getUservote(){
