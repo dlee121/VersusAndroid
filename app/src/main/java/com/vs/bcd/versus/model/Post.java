@@ -255,6 +255,7 @@ public class Post {
         post_id = UUID.randomUUID().toString(); //generate random UUID as post_id when post is created
     }
 
+
     public Post(JSONObject postObj, boolean compact) throws JSONException{
         if(!compact){
             question = postObj.getString("q");

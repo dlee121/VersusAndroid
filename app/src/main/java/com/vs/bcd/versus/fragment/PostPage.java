@@ -70,6 +70,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Stack;
 import java.util.TreeMap;
 
 import cz.msebera.android.httpclient.HttpEntity;
@@ -168,6 +169,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private TextView replyingTo, replyTV;
     private int replyTargetIndex;
 
+    private Stack<List<Object>> masterListStack = new Stack<>();
+    private Stack<Integer> scrollPositionStack = new Stack<>();
+
     private InputMethodManager imm;
 
     private double commentPSI = 3.0; //ps increment per comment
@@ -195,14 +199,13 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             public void validate(TextView textView, String text) {
                 if (text.length() > 0) {
                     sendButton.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.ic_send_blue));
-
-                    if(pageCommentInput.hasPrefix()){
-                        String str = "@"+replyTarget.getAuthor()+" ";
-                        if(!text.startsWith(str)){
-                            String newText = str + text.substring(str.length()-1);
+                    String prefix = pageCommentInput.getPrefix();
+                    if(prefix != null){
+                        if(!text.startsWith(prefix)){
+                            String newText = prefix + text.substring(prefix.length()-1);
                             pageCommentInput.setText(newText);
 
-                            Selection.setSelection(pageCommentInput.getText(), str.length());
+                            Selection.setSelection(pageCommentInput.getText(), prefix.length());
                         }
                     }
 
@@ -260,6 +263,24 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     insertReplyInCurrentPage = true;
                                 }
                                 else{
+
+                                    if(PPAdapter != null) {
+                                        List<Object> masterList = PPAdapter.getMasterList();
+
+                                        if(!masterList.isEmpty()){
+                                            List<Object> stackEntry = new ArrayList<>();
+                                            stackEntry.addAll(masterList);
+
+                                            masterListStack.push(stackEntry);
+
+                                            scrollPositionStack.push(((LinearLayoutManager) RV.getLayoutManager()).findFirstVisibleItemPosition());
+
+                                            if(stackEntry.get(0) instanceof Post && replyTarget.getNestedLevel() > 0){ //pageLevel is already incremented at this point so we check for pageLevel == 1
+                                                scrollPositionStack.push(-1);
+                                            }
+                                        }
+                                    }
+
                                     //add comment in a new page with replyTarget as top card
                                     if(targetNestedLevel == 2){
                                         pageLevel = 2;
@@ -268,6 +289,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                         pageLevel += targetNestedLevel + 1;
                                         Log.d("chichichichia!", "now page level is " + Integer.toString(pageLevel));
                                     }
+
+                                    activity.runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            PPAdapter.clearList();
+                                            mSwipeRefreshLayout.setRefreshing(true);
+                                        }
+                                    });
 
                                 }
                             }
@@ -341,7 +370,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                             if(insertReplyInCurrentPage){
                                 vsc.setNestedLevel(targetNestedLevel + 1);
-                                Log.d("chichichichia!", "RTI = " + Integer.toString(replyTargetIndex));
                                 VSCNode parentNode = nodeMap.get(targetID);
                                 VSCNode thisNode = new VSCNode(vsc);
                                 if(targetChildCount > 0){
@@ -369,7 +397,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             else{
                                 commentSubmissionRefresh(vsc);
                             }
-                            nodeMap.get(targetID).getNodeContent().incrementChild_Count();
+                            if(!(targetID.equals(""))){
+                                nodeMap.get(targetID).getNodeContent().incrementChild_Count();
+                            }
                         }
 
                     }
@@ -1087,6 +1117,25 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     //used when expanding into nested levels, so when pageNestedLevel > 0
     public void setCommentsPage(VSComment subjectComment){
+
+        if(PPAdapter != null && PPAdapter.getPostID().equals(subjectComment.getPost_id())) {
+            List<Object> masterList = PPAdapter.getMasterList();
+
+            if(!masterList.isEmpty()){
+                List<Object> stackEntry = new ArrayList<>();
+                stackEntry.addAll(masterList);
+
+                masterListStack.push(stackEntry);
+
+                scrollPositionStack.push(((LinearLayoutManager) RV.getLayoutManager()).findFirstVisibleItemPosition());
+
+                if(stackEntry.get(0) instanceof Post && subjectComment.getNestedLevel() > 0){ //pageLevel is already incremented at this point so we check for pageLevel == 1
+                    scrollPositionStack.push(-1);
+                }
+            }
+        }
+
+
         mSwipeRefreshLayout.setRefreshing(true);
         if(pageLevel != 2){
             sortType = POPULAR;
@@ -1129,9 +1178,18 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             setUpTopCard(parentCache.get(tempParentID));
         }
 
+        if(!scrollPositionStack.isEmpty()){
+            int scrollPosition = scrollPositionStack.pop();
+            if(scrollPosition >= 0){
+                PPAdapter = new PostPageAdapter(masterListStack.pop(), post, activity, pageLevel);
+                RV.setAdapter(PPAdapter);
+                mSwipeRefreshLayout.setRefreshing(false);
+                RV.getLayoutManager().scrollToPosition(scrollPosition);
+                return;
+            }
+        }
+
         commentsQuery(tempParentID, "u");
-
-
     }
 
     public boolean isRootLevel(){

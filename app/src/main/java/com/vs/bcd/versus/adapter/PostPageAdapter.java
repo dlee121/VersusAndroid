@@ -738,6 +738,14 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         notifyDataSetChanged();
     }
 
+    public String getPostID(){
+        return post.getPost_id();
+    }
+
+    public List<Object> getMasterList(){
+        return masterList;
+    }
+
     @Override
     public int getItemCount() {
         return masterList == null ? 0 : masterList.size();

@@ -70,4 +70,8 @@ public class CustomEditText extends AppCompatEditText {
     public boolean hasPrefix(){
         return (prefix != null);
     }
+
+    public String getPrefix(){
+        return prefix;
+    }
 }
