@@ -325,7 +325,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 commentViewHolder.replyButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        activity.getPostPage().itemReplyClickHelper(currentComment);
+                        activity.getPostPage().itemReplyClickHelper(currentComment, position);
                     }
                 });
 
@@ -1280,6 +1280,13 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         if(listPopupWindow != null && listPopupWindow.isShowing()){
             listPopupWindow.dismiss();
         }
+    }
+
+    public void insertItem(VSComment newComment, int index){
+        newComment.setIsNew(true);
+        masterList.add(index, newComment);
+
+        notifyItemInserted(index);
     }
 
 }

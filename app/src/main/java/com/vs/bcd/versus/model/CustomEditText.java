@@ -1,6 +1,7 @@
 package com.vs.bcd.versus.model;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.inputmethod.InputMethodManager;
@@ -25,5 +26,13 @@ public class CustomEditText extends AppCompatEditText {
 
         }
         return true;
+    }
+
+    @Override
+    public void onFocusChanged (boolean gainFocus, int direction, Rect previouslyFocusedRect){
+        super.onFocusChanged(gainFocus, direction, previouslyFocusedRect);
+        if(!gainFocus){
+            ((MainContainer)getContext()).getPostPage().clearReplyingTo();
+        }
     }
 }

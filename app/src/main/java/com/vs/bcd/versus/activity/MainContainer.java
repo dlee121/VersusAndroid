@@ -406,6 +406,7 @@ public class MainContainer extends AppCompatActivity {
 
                     case 3: //PostPage
                         postPage.hideCommentInputCursor();
+
                         imm.hideSoftInputFromWindow(toolbarButtonLeft.getWindowToken(), 0);
                         if(!postPage.isRootLevel()){
                             postPage.backToParentPage();
