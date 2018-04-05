@@ -62,19 +62,4 @@
     </android.support.v4.widget.SwipeRefreshLayout>
 
 
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/postpage_fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginTop="@dimen/fab_margin_top"
-        android:layout_marginRight="@dimen/fab_margin_right"
-        android:layout_marginLeft="@dimen/fab_margin_left"
-        android:layout_marginBottom="@dimen/fab_margin_bottom_nobn"
-        app:srcCompat="@drawable/ic_reply_white_fab"
-        android:scaleType="fitXY" />
-
-
 </RelativeLayout>

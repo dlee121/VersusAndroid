@@ -113,9 +113,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private VSCNode firstRoot = null; //first comment in root level, as in parent_id = "0"
     private MainContainer activity;
     private boolean topCardActive = false;
-    private boolean ppfabActive = true;
-    private FloatingActionButton postPageFAB;
-    private RelativeLayout.LayoutParams fabLP;
     private VSComment topCardContent = null;
     private UserAction userAction;
     private boolean redIncrementedLast, blackIncrementedLast;
@@ -383,8 +380,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         });
 
         mRelativeLayout =  rootView.findViewById(R.id.post_page_layout);
-        postPageFAB = rootView.findViewById(R.id.postpage_fab);
-        fabLP = (RelativeLayout.LayoutParams)postPageFAB.getLayoutParams();
         RV = rootView.findViewById(R.id.recycler_view_cs);
         RV.setLayoutManager(new LinearLayoutManager(activity));
         RVLayoutParams = RV.getLayoutParams();
@@ -404,16 +399,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             LPStore.add(childViews.get(i).getLayoutParams());
         }
         disableChildViews();
-
-        postPageFAB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //TODO: implement a version where we reply to comments and have this function choose between that and root comment version
-                //depending if we're at isRootLevel or not
-                activity.getCommentEnterFragment().setContentReplyToPost(post);
-                activity.getViewPager().setCurrentItem(4);
-            }
-        });
 
         // SwipeRefreshLayout
         mSwipeRefreshLayout = rootView.findViewById(R.id.swipe_container_postpage);
@@ -435,22 +420,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         //save the activity to a member of this fragment
         activity = (MainContainer)context;
         thisPage = this;
-    }
-
-    public void hidePostPageFAB(){
-        Log.d("debug", "hppfab called");
-        postPageFAB.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
-        postPageFAB.setEnabled(false);
-        postPageFAB.setClickable(false);
-        ppfabActive = false;
-    }
-
-    public void showPostPageFAB(){
-        Log.d("debug", "showppfab called");
-        postPageFAB.setEnabled(true);
-        postPageFAB.setLayoutParams(fabLP);
-        postPageFAB.setClickable(true);
-        ppfabActive = true;
     }
 
     public void hideCommentInputCursor(){
@@ -630,7 +599,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             setUpTopCard(topCardContent);
         }
         for(int i = 0; i<childViews.size(); i++){
-            if( !(childViews.get(i) instanceof FloatingActionButton && ppfabActive == false) ){
+            if( !(childViews.get(i) instanceof FloatingActionButton) ){
 
                 childViews.get(i).setEnabled(true);
                 childViews.get(i).setClickable(true);
@@ -1108,16 +1077,11 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         topCardContent = clickedComment;
         atRootLevel = false;
 
-        if(ppfabActive){
-            hidePostPageFAB();
-        }
-
         setCommentCardSortTypeHint();
     }
 
     public void hideTopCard(){
         topCardContent = null;
-        showPostPageFAB();
         atRootLevel = true;
     }
 
