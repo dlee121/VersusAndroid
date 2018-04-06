@@ -38,6 +38,7 @@ public class VSComment {
     private int child_count = 0;
 
     private boolean isNew = false;
+    private boolean isHighlighted = false;
 
     private String r;
     private String b;
@@ -193,6 +194,14 @@ public class VSComment {
     }
     public void incrementChild_Count(){
         child_count++;
+    }
+
+    @DynamoDBIgnore
+    public boolean getIsHighlighted(){
+        return isHighlighted;
+    }
+    public void setIsHighlighted(boolean isHighlighted){
+        this.isHighlighted = isHighlighted;
     }
 
     @DynamoDBIgnore

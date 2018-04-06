@@ -46,7 +46,6 @@ public class CustomEditText extends AppCompatEditText {
             CharSequence text = getText();
             if (text != null) {
                 if (start < prefix.length() || end < prefix.length()) {
-                    Log.d("iggystore", "start: " + Integer.toString(start) + ", end: " + Integer.toString(end) + ", prefix: " + prefix);
                     if(getText().length() >= prefix.length()){
                         setSelection(prefix.length());
                     }
@@ -60,7 +59,6 @@ public class CustomEditText extends AppCompatEditText {
     }
 
     public void setPrefix(String prefix) {
-        Log.d("iggystore", prefix);
         this.prefix = prefix;
         if(getText().toString().equals(prefix)){
             setSelection(prefix.length());

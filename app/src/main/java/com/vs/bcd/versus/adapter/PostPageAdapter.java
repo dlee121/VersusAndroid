@@ -322,9 +322,14 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     currentComment.setIsNew(false);
                 }
 
+                if(!currentComment.getIsHighlighted()){
+                    commentViewHolder.itemView.setBackgroundColor(Color.parseColor("#FFFFFF"));
+                }
+
                 commentViewHolder.replyButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        commentViewHolder.itemView.setBackgroundColor(Color.parseColor("#FEE38F"));
                         activity.getPostPage().itemReplyClickHelper(currentComment, position);
                     }
                 });

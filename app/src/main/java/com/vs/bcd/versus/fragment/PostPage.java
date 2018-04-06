@@ -18,6 +18,7 @@ import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -168,9 +169,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private VSComment replyTarget;
     private TextView replyingTo, replyTV;
     private int replyTargetIndex;
+    private int trueReplyTargetIndex;
+    private VSComment trueReplyTarget;
 
     private Stack<List<Object>> masterListStack = new Stack<>();
     private Stack<Integer> scrollPositionStack = new Stack<>();
+    private int viewTreeTriggerCount = 0;
 
     private InputMethodManager imm;
 
@@ -193,6 +197,16 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         pageCommentInput = rootView.findViewById(R.id.page_comment_input);
         replyingTo = rootView.findViewById(R.id.replying_to);
         replyTV = rootView.findViewById(R.id.reply_target_tv);
+
+        rootView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener(){
+            public void onGlobalLayout(){
+                if(replyTarget != null && viewTreeTriggerCount == 0 && ((float)rootView.getHeight())/((float)rootView.getRootView().getHeight()) < 0.6){
+                    ((LinearLayoutManager)RV.getLayoutManager()).scrollToPositionWithOffset(replyTargetIndex, 0);
+                    viewTreeTriggerCount++;
+                }
+
+            }
+        });
 
         pageCommentInput.addTextChangedListener(new FormValidator(pageCommentInput) {
             @Override
@@ -2999,7 +3013,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     public void clearReplyingTo(){
         replyingTo.getLayoutParams().height = 0;
+        if(trueReplyTarget != null){
+            trueReplyTarget.setIsHighlighted(false);
+            if(PPAdapter != null){
+                PPAdapter.notifyItemChanged(trueReplyTargetIndex);
+            }
+        }
         replyTarget = null;
+        trueReplyTarget = null;
         pageCommentInput.setText("");
         replyTV.getLayoutParams().width = 0;
     }
@@ -3052,11 +3073,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     public void itemReplyClickHelper(VSComment clickedComment, int index){
-
+        clickedComment.setIsHighlighted(true);
         replyTarget = clickedComment;
+        trueReplyTarget = clickedComment;
         replyTargetIndex = index;
+        trueReplyTargetIndex = index;
         replyingTo.setText("Replying to: " + clickedComment.getAuthor());
         replyingTo.getLayoutParams().height = RelativeLayout.LayoutParams.WRAP_CONTENT;
+        viewTreeTriggerCount = 0;
 
         pageCommentInput.requestFocus();
 
