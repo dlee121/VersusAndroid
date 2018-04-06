@@ -1024,6 +1024,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     public void setContent(final Post post){  //downloadImages signifies initial post page set up
+        pageCommentInput.setHint("Join the discussion!");
         this.post = post;
         postID = post.getPost_id();
 
@@ -1131,6 +1132,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     //used when expanding into nested levels, so when pageNestedLevel > 0
     public void setCommentsPage(VSComment subjectComment){
+        pageCommentInput.setHint("Enter a reply!");
 
         if(PPAdapter != null && PPAdapter.getPostID().equals(subjectComment.getPost_id())) {
             List<Object> masterList = PPAdapter.getMasterList();
@@ -1186,6 +1188,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         String tempParentID = topCardContent.getParent_id();
 
         if(tempParentID.equals(postID)){
+            pageCommentInput.setHint("Join the discussion!");
             hideTopCard();
         }
         else{

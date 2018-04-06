@@ -41,7 +41,7 @@
             android:layout_below="@id/replying_to"
             android:layout_toStartOf="@id/comment_send_button"
             android:textSize="14sp"
-            android:hint="Enter the discussion!"/>
+            android:hint="Join the discussion!"/>
 
     </RelativeLayout>
 
