@@ -200,10 +200,9 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         break;
                 }
 
-                RelativeLayout.LayoutParams vnrButtonLP = (RelativeLayout.LayoutParams) commentViewHolder.viewMoreButton.getLayoutParams();
+                RelativeLayout.LayoutParams viewMoreContainerLP = (RelativeLayout.LayoutParams) commentViewHolder.viewMoreContainer.getLayoutParams();
                 if(currentComment.getChild_count() > 2){
-                    vnrButtonLP = (RelativeLayout.LayoutParams) commentViewHolder.viewMoreButton.getLayoutParams();
-                    vnrButtonLP.height = RelativeLayout.LayoutParams.WRAP_CONTENT;
+                    viewMoreContainerLP.height = RelativeLayout.LayoutParams.WRAP_CONTENT;
 
                     int howManyMore = currentComment.getChild_count() - 2;
                     if(howManyMore == 1){
@@ -224,7 +223,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     });
                 }
                 else{
-                    vnrButtonLP.height = 0;
+                    viewMoreContainerLP.height = 0;
                 }
 
                 commentViewHolder.author.setText(currentComment.getAuthor());
@@ -831,7 +830,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         public Button replyButton, seeMoreButton, viewMoreButton;
         public ImageButton upvoteButton, downvoteButton, overflowMenu;
         public ImageView medalImage;
-        public LinearLayout seeMoreContainer;
+        public LinearLayout seeMoreContainer, viewMoreContainer;
 
         //public TextView ellipsis;
 
@@ -847,9 +846,10 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             upvoteButton = view.findViewById(R.id.heartbutton);
             downvoteButton = view.findViewById(R.id.broken_heart_button);
             medalImage = view.findViewById(R.id.medal_image);
-            viewMoreButton = view.findViewById(R.id.view_replies_button);
+
             seeMoreContainer = view.findViewById(R.id.see_more_container);
-            //ellipsis = seeMoreContainer.findViewById(R.id.comment_ellipsis);
+            viewMoreContainer = view.findViewById(R.id.view_replies_button_container);
+            viewMoreButton = viewMoreContainer.findViewById(R.id.view_replies_button);
             seeMoreButton = seeMoreContainer.findViewById(R.id.see_more_button);
         }
 
