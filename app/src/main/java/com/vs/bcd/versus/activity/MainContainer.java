@@ -177,9 +177,6 @@ public class MainContainer extends AppCompatActivity {
         int mainContainerCurrentItem = mViewPager.getCurrentItem();
         int mainActivityCurrentItem = getMainFrag().getViewPager().getCurrentItem();
 
-        Log.d("wahwahwah", Integer.toString(mainContainerCurrentItem) + " and "+Integer.toString(mainActivityCurrentItem));
-
-
         if(mainContainerCurrentItem == 0){  //MainContainer's current fragment is MainActivity fragment
             if(mainActivityCurrentItem == 0){   //MainActivity fragment's current fragment is Tab1Newsfeed
                 super.onBackPressed();  //call superclass's onBackPressed, closing the app
@@ -224,7 +221,6 @@ public class MainContainer extends AppCompatActivity {
                         //Log.d("debug", "is root");
                         postPage.writeActionsToDB();
                         //postPage.clearList();
-                        Log.d("MyAdapterInt", Integer.toString(myAdapterFragInt));
                         if(myAdapterFragInt == 9 && postParentProfileUsername != null){
                             goToProfile(postParentProfileUsername, false);
                         }
@@ -405,9 +401,57 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 3: //PostPage
+                        if(postPage.pageCommentInputInUse()){
+                            DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    switch (which){
+                                        case DialogInterface.BUTTON_POSITIVE:
+                                            //Yes button clicked
+                                            imm.hideSoftInputFromWindow(toolbarButtonLeft.getWindowToken(), 0);
+
+                                            getPostPage().hideCommentInputCursor();
+
+                                            if(!postPage.isRootLevel()){
+                                                postPage.backToParentPage();
+                                            }
+                                            else{
+                                                postPage.writeActionsToDB();
+                                                //postPage.clearList();
+                                                if(myAdapterFragInt == 9 && postParentProfileUsername != null){
+                                                    goToProfile(postParentProfileUsername, false);
+                                                }
+                                                else{
+                                                    mViewPager.setCurrentItem(myAdapterFragInt);
+                                                }
+                                                xBmp = null;
+                                                yBmp = null;
+                                            }
+
+                                            if(clickCoverUp){
+                                                enableClicksForListPopupWindowClose();
+                                            }
+                                            break;
+
+                                        case DialogInterface.BUTTON_NEGATIVE:
+                                            //No button clicked
+
+                                            break;
+                                    }
+                                }
+                            };
+
+                            AlertDialog.Builder builder = new AlertDialog.Builder(thisActivity);
+                            builder.setMessage("Are you sure? The text you entered will be discarded.").setPositiveButton("Yes", dialogClickListener)
+                                    .setNegativeButton("No", dialogClickListener).show();
+
+
+                            return;
+                        }
                         postPage.hideCommentInputCursor();
 
                         imm.hideSoftInputFromWindow(toolbarButtonLeft.getWindowToken(), 0);
+
                         if(!postPage.isRootLevel()){
                             postPage.backToParentPage();
                         }

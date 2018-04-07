@@ -201,7 +201,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         rootView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener(){
             public void onGlobalLayout(){
                 if(replyTarget != null && viewTreeTriggerCount == 0 && ((float)rootView.getHeight())/((float)rootView.getRootView().getHeight()) < 0.6){
-                    ((LinearLayoutManager)RV.getLayoutManager()).scrollToPositionWithOffset(replyTargetIndex, 0);
+                    ((LinearLayoutManager)RV.getLayoutManager()).scrollToPositionWithOffset(trueReplyTargetIndex, 0);
                     viewTreeTriggerCount++;
                 }
 
@@ -3014,6 +3014,10 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         });
     }
 
+    public boolean pageCommentInputInUse(){
+        return pageCommentInput.isInUse();
+    }
+
     public void clearReplyingTo(){
         replyingTo.getLayoutParams().height = 0;
         if(trueReplyTarget != null){
@@ -3025,6 +3029,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         replyTarget = null;
         trueReplyTarget = null;
         pageCommentInput.setText("");
+        pageCommentInput.setPrefix(null);
         replyTV.getLayoutParams().width = 0;
     }
 
@@ -3075,7 +3080,50 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     }
 
-    public void itemReplyClickHelper(VSComment clickedComment, int index){
+    public void itemReplyClickHelper(final VSComment clickedComment, final int index){
+        if(replyTarget != null){
+
+            if(replyTarget.getComment_id().equals(clickedComment)){
+                return;
+            }
+
+            if(pageCommentInput.length() > 0 && !(pageCommentInput.hasPrefix()&&pageCommentInput.getText().toString().equals(pageCommentInput.getPrefix()))){
+                DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which){
+                            case DialogInterface.BUTTON_POSITIVE:
+                                //Yes button clicked
+                                trueReplyTarget.setIsHighlighted(false);
+                                PPAdapter.notifyItemChanged(trueReplyTargetIndex);
+                                replyTarget = null;
+                                pageCommentInput.setText("");
+                                pageCommentInput.setPrefix(null);
+                                itemReplyClickHelper(clickedComment, index);
+                                break;
+
+                            case DialogInterface.BUTTON_NEGATIVE:
+                                //No button clicked
+
+                                break;
+                        }
+                    }
+                };
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+                builder.setMessage("Are you sure? The text you entered will be discarded.").setPositiveButton("Yes", dialogClickListener)
+                        .setNegativeButton("No", dialogClickListener).show();
+
+                return;
+            }
+            else{
+                pageCommentInput.setText("");
+                pageCommentInput.setPrefix(null);
+                trueReplyTarget.setIsHighlighted(false);
+                PPAdapter.notifyItemChanged(trueReplyTargetIndex);
+            }
+        }
+
         clickedComment.setIsHighlighted(true);
         replyTarget = clickedComment;
         trueReplyTarget = clickedComment;
@@ -3085,10 +3133,11 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         replyingTo.getLayoutParams().height = RelativeLayout.LayoutParams.WRAP_CONTENT;
         viewTreeTriggerCount = 0;
 
-        pageCommentInput.requestFocus();
 
-        imm.showSoftInput(pageCommentInput, 0);
-
+        if(!pageCommentInput.hasFocus()){
+            pageCommentInput.requestFocus();
+            imm.showSoftInput(pageCommentInput, 0);
+        }
 
         int nestedLevel = clickedComment.getNestedLevel();
 
