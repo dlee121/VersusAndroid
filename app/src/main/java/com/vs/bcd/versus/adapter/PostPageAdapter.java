@@ -324,11 +324,13 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 if(!currentComment.getIsHighlighted()){
                     commentViewHolder.itemView.setBackgroundColor(Color.parseColor("#FFFFFF"));
                 }
+                else{
+                    commentViewHolder.itemView.setBackgroundColor(Color.parseColor("#FEE38F"));
+                }
 
                 commentViewHolder.replyButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        commentViewHolder.itemView.setBackgroundColor(Color.parseColor("#FEE38F"));
                         activity.getPostPage().itemReplyClickHelper(currentComment, position);
                     }
                 });
@@ -1216,10 +1218,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             e.printStackTrace();
         }
         if(yesEdit){
-            //TODO: set up EditComment page with CommentEnterFragment, similar to how we set up EditPost page with CreatePost fragment.
-            //TODO: then move into it.
-            activity.getCommentEnterFragment().setContentEditComment(index, ((VSComment) masterList.get(index)).getContent(), ((VSComment) masterList.get(index)).getComment_id());
-            activity.getViewPager().setCurrentItem(4);
+            activity.getPostPage().editComment((VSComment)masterList.get(index), index);
         }
         else{
             Toast.makeText(activity, "Too late to edit.", Toast.LENGTH_SHORT).show();

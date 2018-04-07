@@ -171,6 +171,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private int replyTargetIndex;
     private int trueReplyTargetIndex;
     private VSComment trueReplyTarget;
+    private int editIndex;
+    private VSComment editTarget;
 
     private Stack<List<Object>> masterListStack = new Stack<>();
     private Stack<Integer> scrollPositionStack = new Stack<>();
@@ -200,7 +202,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         rootView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener(){
             public void onGlobalLayout(){
-                if(replyTarget != null && viewTreeTriggerCount == 0 && ((float)rootView.getHeight())/((float)rootView.getRootView().getHeight()) < 0.6){
+                if((replyTarget != null || editTarget != null) && viewTreeTriggerCount == 0 && ((float)rootView.getHeight())/((float)rootView.getRootView().getHeight()) < 0.6){
                     ((LinearLayoutManager)RV.getLayoutManager()).scrollToPositionWithOffset(trueReplyTargetIndex, 0);
                     viewTreeTriggerCount++;
                 }
@@ -241,67 +243,52 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     public void run() {
 
                         if(input.length() > 0){
-                            String targetID = "";
-                            int targetChildCount = 0;
-                            int targetNestedLevel = 0;
+                            if(editTarget != null){
+                                //update comment content through ddb update request
+                                HashMap<String, AttributeValue> keyMap = new HashMap<>();
+                                keyMap.put("i", new AttributeValue().withS(editTarget.getComment_id()));
 
-                            boolean insertReplyInCurrentPage = false;
-                            final VSComment vsc = new VSComment();
+                                HashMap<String, AttributeValueUpdate> updates = new HashMap<>();
 
-                            if(replyTarget == null){
-                                if(pageLevel == 0){
-                                    vsc.setParent_id(postID);
-                                }
-                                else{
-                                    vsc.setParent_id(topCardContent.getComment_id());
-                                }
+                                AttributeValueUpdate ct = new AttributeValueUpdate()
+                                        .withValue(new AttributeValue().withS(input))
+                                        .withAction(AttributeAction.PUT);
+                                updates.put("ct", ct);
+
+                                UpdateItemRequest request = new UpdateItemRequest()
+                                        .withTableName("vscomment")
+                                        .withKey(keyMap)
+                                        .withAttributeUpdates(updates);
+                                activity.getDDBClient().updateItem(request);
 
                                 activity.runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        PPAdapter.clearList();
-                                        mSwipeRefreshLayout.setRefreshing(true);
+                                        //update content in local copy of the comment, first in nodemap, then in masterlist
+                                        editCommentLocal(editIndex, input, editTarget.getComment_id());
+                                        editTarget.setIsHighlighted(false);
+                                        PPAdapter.notifyItemChanged(editIndex);
+                                        pageCommentInput.setText("");
+                                        hideCommentInputCursor();
+                                        imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
                                     }
                                 });
+
                             }
                             else{
-                                targetID = replyTarget.getComment_id();
-                                targetChildCount = replyTarget.getChild_count();
-                                targetNestedLevel = replyTarget.getNestedLevel();
+                                String targetID = "";
+                                int targetChildCount = 0;
+                                int targetNestedLevel = 0;
 
-                                vsc.setParent_id(targetID);
-                                Log.d("chichichichia!", "has " + Integer.toString(targetChildCount) + " chillums");
-                                Log.d("chichichichia!", "nested at " + Integer.toString(targetNestedLevel));
-                                if(pageLevel < 2 && targetChildCount < 2){
-                                    //insert comment into the existing tree in the page
-                                    insertReplyInCurrentPage = true;
-                                }
-                                else{
+                                boolean insertReplyInCurrentPage = false;
+                                final VSComment vsc = new VSComment();
 
-                                    if(PPAdapter != null) {
-                                        List<Object> masterList = PPAdapter.getMasterList();
-
-                                        if(!masterList.isEmpty()){
-                                            List<Object> stackEntry = new ArrayList<>();
-                                            stackEntry.addAll(masterList);
-
-                                            masterListStack.push(stackEntry);
-
-                                            scrollPositionStack.push(((LinearLayoutManager) RV.getLayoutManager()).findFirstVisibleItemPosition());
-
-                                            if(stackEntry.get(0) instanceof Post && replyTarget.getNestedLevel() > 0){ //pageLevel is already incremented at this point so we check for pageLevel == 1
-                                                scrollPositionStack.push(-1);
-                                            }
-                                        }
-                                    }
-
-                                    //add comment in a new page with replyTarget as top card
-                                    if(targetNestedLevel == 2){
-                                        pageLevel = 2;
+                                if(replyTarget == null){
+                                    if(pageLevel == 0){
+                                        vsc.setParent_id(postID);
                                     }
                                     else{
-                                        pageLevel += targetNestedLevel + 1;
-                                        Log.d("chichichichia!", "now page level is " + Integer.toString(pageLevel));
+                                        vsc.setParent_id(topCardContent.getComment_id());
                                     }
 
                                     activity.runOnUiThread(new Runnable() {
@@ -311,111 +298,159 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                             mSwipeRefreshLayout.setRefreshing(true);
                                         }
                                     });
-
-                                }
-                            }
-
-                            vsc.setPost_id(postID);
-                            vsc.setAuthor(activity.getUsername());
-                            vsc.setContent(input);
-                            vsc.setIsNew(true); //sets it to be highlighted
-
-                            activity.getMapper().save(vsc);
-
-                            //send appropriate notification
-
-                            if(pageLevel == 0){
-                                if(!post.getAuthor().equals("[deleted]")){    //if root comment
-                                    String nKey = postID+":"+sanitizeContentForURL(post.getRedname())+":"+sanitizeContentForURL(post.getBlackname())+":"+sanitizeContentForURL(post.getQuestion());
-                                    String postAuthorPath = getUsernameHash(post.getAuthor()) + "/" + post.getAuthor() + "/n/r/" + nKey;
-                                    mFirebaseDatabaseReference.child(postAuthorPath).push().setValue(System.currentTimeMillis()/1000);  //set value = timestamp as seconds from epoch
-                                }
-                            }
-                            else if(topCardContent != null && !topCardContent.getAuthor().equals("[deleted]")){   //else this is a reply to a comment
-                                String payloadContent = sanitizeContentForURL(topCardContent.getContent());
-                                String subjectAuthorPath = getUsernameHash(topCardContent.getAuthor()) + "/" + topCardContent.getAuthor() + "/n/c/"
-                                        + topCardContent.getParent_id() + ":" + topCardContent.getComment_id() + ":" + payloadContent;
-                                mFirebaseDatabaseReference.child(subjectAuthorPath).push().setValue(System.currentTimeMillis()/1000);
-                            }
-
-                            HashMap<String, AttributeValue> keyMap = new HashMap<>();
-                            keyMap.put("i", new AttributeValue().withS(postID));   //sort key
-
-                            HashMap<String, AttributeValueUpdate> updates = new HashMap<>();
-
-                            //update pt and increment ps
-                            int currPt = (int)((System.currentTimeMillis()/1000)/60);
-                            AttributeValueUpdate ptu = new AttributeValueUpdate()
-                                    .withValue(new AttributeValue().withN(Integer.toString(currPt)))
-                                    .withAction(AttributeAction.PUT);
-                            updates.put("pt", ptu);
-
-                            int timeDiff;
-                            if(post == null){
-                                timeDiff = currPt - activity.getCurrentPost().getPt();
-                            }
-                            else{
-                                timeDiff = currPt - post.getPt();
-                            }
-                            if(timeDiff <= 0){ //if timeDiff is negative due to some bug or if timeDiff is zero, we just make it equal 1.
-                                timeDiff = 1;
-                            }
-
-                            double psIncrement = commentPSI/timeDiff;
-                            AttributeValueUpdate psu = new AttributeValueUpdate()
-                                    .withValue(new AttributeValue().withN(Double.toString(psIncrement)))
-                                    .withAction(AttributeAction.ADD);
-                            updates.put("ps", psu);
-
-                            UpdateItemRequest request = new UpdateItemRequest()
-                                    .withTableName("post")
-                                    .withKey(keyMap)
-                                    .withAttributeUpdates(updates);
-                            activity.getDDBClient().updateItem(request);
-
-                            activity.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    pageCommentInput.setText("");
-                                    hideCommentInputCursor();
-                                    imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
-                                }
-                            });
-
-                            if(insertReplyInCurrentPage){
-                                vsc.setNestedLevel(targetNestedLevel + 1);
-                                VSCNode parentNode = nodeMap.get(targetID);
-                                VSCNode thisNode = new VSCNode(vsc);
-                                if(targetChildCount > 0){
-                                    thisNode.setHeadSibling(parentNode.getFirstChild());
-                                    parentNode.getFirstChild().setTailSibling(thisNode);
-                                    activity.runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            PPAdapter.insertItem(vsc, replyTargetIndex + 2);
-                                        }
-                                    });
                                 }
                                 else{
-                                    thisNode.setParent(parentNode);
-                                    parentNode.setFirstChild(thisNode);
-                                    activity.runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            PPAdapter.insertItem(vsc, replyTargetIndex + 1);
+                                    targetID = replyTarget.getComment_id();
+                                    targetChildCount = replyTarget.getChild_count();
+                                    targetNestedLevel = replyTarget.getNestedLevel();
+
+                                    vsc.setParent_id(targetID);
+                                    Log.d("chichichichia!", "has " + Integer.toString(targetChildCount) + " chillums");
+                                    Log.d("chichichichia!", "nested at " + Integer.toString(targetNestedLevel));
+                                    if(pageLevel < 2 && targetChildCount < 2){
+                                        //insert comment into the existing tree in the page
+                                        insertReplyInCurrentPage = true;
+                                    }
+                                    else{
+
+                                        if(PPAdapter != null) {
+                                            List<Object> masterList = PPAdapter.getMasterList();
+
+                                            if(!masterList.isEmpty()){
+                                                List<Object> stackEntry = new ArrayList<>();
+                                                stackEntry.addAll(masterList);
+
+                                                masterListStack.push(stackEntry);
+
+                                                scrollPositionStack.push(((LinearLayoutManager) RV.getLayoutManager()).findFirstVisibleItemPosition());
+
+                                                if(stackEntry.get(0) instanceof Post && replyTarget.getNestedLevel() > 0){ //pageLevel is already incremented at this point so we check for pageLevel == 1
+                                                    scrollPositionStack.push(-1);
+                                                }
+                                            }
                                         }
-                                    });
+
+                                        //add comment in a new page with replyTarget as top card
+                                        if(targetNestedLevel == 2){
+                                            pageLevel = 2;
+                                        }
+                                        else{
+                                            pageLevel += targetNestedLevel + 1;
+                                            Log.d("chichichichia!", "now page level is " + Integer.toString(pageLevel));
+                                        }
+
+                                        activity.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                PPAdapter.clearList();
+                                                mSwipeRefreshLayout.setRefreshing(true);
+                                            }
+                                        });
+
+                                    }
                                 }
-                                nodeMap.put(vsc.getComment_id(), thisNode);
-                            }
-                            else{
-                                commentSubmissionRefresh(vsc);
-                            }
-                            if(!(targetID.equals(""))){
-                                nodeMap.get(targetID).getNodeContent().incrementChild_Count();
+
+                                vsc.setPost_id(postID);
+                                vsc.setAuthor(activity.getUsername());
+                                vsc.setContent(input);
+                                vsc.setIsNew(true); //sets it to be highlighted
+
+                                activity.getMapper().save(vsc);
+
+                                //send appropriate notification
+
+                                if(pageLevel == 0){
+                                    if(!post.getAuthor().equals("[deleted]")){    //if root comment
+                                        String nKey = postID+":"+sanitizeContentForURL(post.getRedname())+":"+sanitizeContentForURL(post.getBlackname())+":"+sanitizeContentForURL(post.getQuestion());
+                                        String postAuthorPath = getUsernameHash(post.getAuthor()) + "/" + post.getAuthor() + "/n/r/" + nKey;
+                                        mFirebaseDatabaseReference.child(postAuthorPath).push().setValue(System.currentTimeMillis()/1000);  //set value = timestamp as seconds from epoch
+                                    }
+                                }
+                                else if(topCardContent != null && !topCardContent.getAuthor().equals("[deleted]")){   //else this is a reply to a comment
+                                    String payloadContent = sanitizeContentForURL(topCardContent.getContent());
+                                    String subjectAuthorPath = getUsernameHash(topCardContent.getAuthor()) + "/" + topCardContent.getAuthor() + "/n/c/"
+                                            + topCardContent.getParent_id() + ":" + topCardContent.getComment_id() + ":" + payloadContent;
+                                    mFirebaseDatabaseReference.child(subjectAuthorPath).push().setValue(System.currentTimeMillis()/1000);
+                                }
+
+                                HashMap<String, AttributeValue> keyMap = new HashMap<>();
+                                keyMap.put("i", new AttributeValue().withS(postID));   //sort key
+
+                                HashMap<String, AttributeValueUpdate> updates = new HashMap<>();
+
+                                //update pt and increment ps
+                                int currPt = (int)((System.currentTimeMillis()/1000)/60);
+                                AttributeValueUpdate ptu = new AttributeValueUpdate()
+                                        .withValue(new AttributeValue().withN(Integer.toString(currPt)))
+                                        .withAction(AttributeAction.PUT);
+                                updates.put("pt", ptu);
+
+                                int timeDiff;
+                                if(post == null){
+                                    timeDiff = currPt - activity.getCurrentPost().getPt();
+                                }
+                                else{
+                                    timeDiff = currPt - post.getPt();
+                                }
+                                if(timeDiff <= 0){ //if timeDiff is negative due to some bug or if timeDiff is zero, we just make it equal 1.
+                                    timeDiff = 1;
+                                }
+
+                                double psIncrement = commentPSI/timeDiff;
+                                AttributeValueUpdate psu = new AttributeValueUpdate()
+                                        .withValue(new AttributeValue().withN(Double.toString(psIncrement)))
+                                        .withAction(AttributeAction.ADD);
+                                updates.put("ps", psu);
+
+                                UpdateItemRequest request = new UpdateItemRequest()
+                                        .withTableName("post")
+                                        .withKey(keyMap)
+                                        .withAttributeUpdates(updates);
+                                activity.getDDBClient().updateItem(request);
+
+                                activity.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        pageCommentInput.setText("");
+                                        hideCommentInputCursor();
+                                        imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
+                                    }
+                                });
+
+                                if(insertReplyInCurrentPage){
+                                    vsc.setNestedLevel(targetNestedLevel + 1);
+                                    VSCNode parentNode = nodeMap.get(targetID);
+                                    VSCNode thisNode = new VSCNode(vsc);
+                                    if(targetChildCount > 0){
+                                        thisNode.setHeadSibling(parentNode.getFirstChild());
+                                        parentNode.getFirstChild().setTailSibling(thisNode);
+                                        activity.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                PPAdapter.insertItem(vsc, replyTargetIndex + 2);
+                                            }
+                                        });
+                                    }
+                                    else{
+                                        thisNode.setParent(parentNode);
+                                        parentNode.setFirstChild(thisNode);
+                                        activity.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                PPAdapter.insertItem(vsc, replyTargetIndex + 1);
+                                            }
+                                        });
+                                    }
+                                    nodeMap.put(vsc.getComment_id(), thisNode);
+                                }
+                                else{
+                                    commentSubmissionRefresh(vsc);
+                                }
+                                if(!(targetID.equals(""))){
+                                    nodeMap.get(targetID).getNodeContent().incrementChild_Count();
+                                }
                             }
                         }
-
                     }
                 };
                 Thread mythread = new Thread(runnable);
@@ -3026,11 +3061,20 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 PPAdapter.notifyItemChanged(trueReplyTargetIndex);
             }
         }
+        if(editTarget != null){
+            editTarget.setIsHighlighted(false);
+            if(PPAdapter != null){
+                PPAdapter.notifyItemChanged(editIndex);
+            }
+        }
         replyTarget = null;
         trueReplyTarget = null;
         pageCommentInput.setText("");
         pageCommentInput.setPrefix(null);
         replyTV.getLayoutParams().width = 0;
+        editTarget = null;
+        editIndex = 0;
+        replyTargetIndex = 0;
     }
 
     public void itemViewClickHelper(VSComment clickedComment){
@@ -3081,50 +3125,61 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     public void itemReplyClickHelper(final VSComment clickedComment, final int index){
-        if(replyTarget != null){
+        if(replyTarget != null && replyTarget.getComment_id().equals(clickedComment)){
+            return;
+        }
 
-            if(replyTarget.getComment_id().equals(clickedComment)){
-                return;
-            }
+        if(pageCommentInput.isInUse()){
+            DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    switch (which){
+                        case DialogInterface.BUTTON_POSITIVE:
+                            //Yes button clicked
 
-            if(pageCommentInput.length() > 0 && !(pageCommentInput.hasPrefix()&&pageCommentInput.getText().toString().equals(pageCommentInput.getPrefix()))){
-                DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        switch (which){
-                            case DialogInterface.BUTTON_POSITIVE:
-                                //Yes button clicked
+                            pageCommentInput.setPrefix(null);
+                            pageCommentInput.setText("");
+                            if(replyTarget != null){
                                 trueReplyTarget.setIsHighlighted(false);
                                 PPAdapter.notifyItemChanged(trueReplyTargetIndex);
                                 replyTarget = null;
-                                pageCommentInput.setText("");
-                                pageCommentInput.setPrefix(null);
-                                itemReplyClickHelper(clickedComment, index);
-                                break;
+                            }
+                            else if(editTarget != null){
+                                editTarget.setIsHighlighted(false);
+                                PPAdapter.notifyItemChanged(editIndex);
+                            }
 
-                            case DialogInterface.BUTTON_NEGATIVE:
-                                //No button clicked
+                            itemReplyClickHelper(clickedComment, index);
+                            break;
 
-                                break;
-                        }
+                        case DialogInterface.BUTTON_NEGATIVE:
+                            //No button clicked
+
+                            break;
                     }
-                };
+                }
+            };
 
-                AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-                builder.setMessage("Are you sure? The text you entered will be discarded.").setPositiveButton("Yes", dialogClickListener)
-                        .setNegativeButton("No", dialogClickListener).show();
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+            builder.setMessage("Are you sure? The text you entered will be discarded.").setPositiveButton("Yes", dialogClickListener)
+                    .setNegativeButton("No", dialogClickListener).show();
 
-                return;
-            }
-            else{
-                pageCommentInput.setText("");
-                pageCommentInput.setPrefix(null);
+            return;
+        }
+        else{
+            pageCommentInput.setPrefix(null);
+            pageCommentInput.setText("");
+            if(trueReplyTarget != null){
                 trueReplyTarget.setIsHighlighted(false);
                 PPAdapter.notifyItemChanged(trueReplyTargetIndex);
             }
         }
 
+        editTarget = null;
+        editIndex = 0;
+
         clickedComment.setIsHighlighted(true);
+        PPAdapter.notifyItemChanged(index);
         replyTarget = clickedComment;
         trueReplyTarget = clickedComment;
         replyTargetIndex = index;
@@ -3176,6 +3231,68 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             }
             else{ //second displayed grandchild
                 replyTargetIndex -= 2;
+            }
+        }
+    }
+
+    public void editComment(final VSComment commentToEdit, final int index){
+        //TODO: dialog if pageCommentInput is in use, same as in reply helper
+
+        if(pageCommentInput.isInUse()){
+            DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    switch (which){
+                        case DialogInterface.BUTTON_POSITIVE:
+                            //Yes button clicked
+                            pageCommentInput.setPrefix(null);
+                            pageCommentInput.setText("");
+                            if(replyTarget != null){
+                                trueReplyTarget.setIsHighlighted(false);
+                                PPAdapter.notifyItemChanged(trueReplyTargetIndex);
+                                replyTarget = null;
+                            }
+                            else if(editTarget != null){
+                                editTarget.setIsHighlighted(false);
+                                PPAdapter.notifyItemChanged(editIndex);
+                            }
+                            editComment(commentToEdit, index);
+                            break;
+
+                        case DialogInterface.BUTTON_NEGATIVE:
+                            //No button clicked
+
+                            break;
+                    }
+                }
+            };
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+            builder.setMessage("Are you sure? The text you entered will be discarded.").setPositiveButton("Yes", dialogClickListener)
+                    .setNegativeButton("No", dialogClickListener).show();
+
+            return;
+        }
+
+        editTarget = commentToEdit;
+        editIndex = index;
+        commentToEdit.setIsHighlighted(true);
+        PPAdapter.notifyItemChanged(index);
+        replyingTo.setText("Editing");
+        replyingTo.getLayoutParams().height = RelativeLayout.LayoutParams.WRAP_CONTENT;
+        viewTreeTriggerCount = 0;
+        pageCommentInput.setText(commentToEdit.getContent());
+        if(!pageCommentInput.hasFocus()){
+            pageCommentInput.requestFocus();
+            imm.showSoftInput(pageCommentInput, 0);
+        }
+        if(!(commentToEdit.getParent_id().equals(postID))) {
+            VSCNode parentNode = nodeMap.get(commentToEdit.getParent_id());
+            if (parentNode != null) {
+                String prefix = "@" + parentNode.getNodeContent().getAuthor() + " ";
+                if (commentToEdit.getContent().startsWith(prefix)) {
+                    pageCommentInput.setPrefix(prefix);
+                }
             }
         }
 
