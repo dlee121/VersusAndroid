@@ -134,7 +134,6 @@ public class MainContainer extends AppCompatActivity {
     private RelativeLayout.LayoutParams vpContainerLP;
     private MessageRoom messageRoom;
     private String userMKey = "";
-    private int profileImage = 0;
     private Button toolbarTextButton;
     private CreateMessage createMessageFragment;
     private HashMap<String, String> following, followers;
@@ -299,7 +298,6 @@ public class MainContainer extends AppCompatActivity {
 
         currUsername = sessionManager.getCurrentUsername();
         userMKey = sessionManager.getMKey();
-        profileImage = sessionManager.getProfileImage();
 
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
@@ -1183,6 +1181,10 @@ public class MainContainer extends AppCompatActivity {
         });
     }
 
+    public ProfileTab getProfileTab(){
+        return profileTab;
+    }
+
     //enable click events in PostPage when ListPopupWindow is closed
     public void enableClicksForListPopupWindowClose(){
         clickCoverUp = false;
@@ -1480,7 +1482,7 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public int getProfileImage(){
-        return profileImage;
+        return sessionManager.getProfileImage();
     }
 
     private void hideToolbarTextButton(){

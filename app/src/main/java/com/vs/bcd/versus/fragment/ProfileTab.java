@@ -53,8 +53,13 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.loopj.android.http.HttpGet;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
+import com.vs.bcd.versus.model.AWSV4Auth;
+import com.vs.bcd.versus.model.Post;
+
+import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -66,7 +71,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
+import cz.msebera.android.httpclient.HttpEntity;
+import cz.msebera.android.httpclient.HttpResponse;
+import cz.msebera.android.httpclient.client.ClientProtocolException;
+import cz.msebera.android.httpclient.client.ResponseHandler;
+import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
+import cz.msebera.android.httpclient.impl.client.HttpClients;
+import cz.msebera.android.httpclient.util.EntityUtils;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 /**
@@ -109,6 +122,8 @@ public class ProfileTab extends Fragment {
     private RelativeLayout.LayoutParams profileImgCancelLP, profileImgConfirmLP, uploadProgressBarLP;
     private ProgressBar uploadProgressBar;
 
+    private String host, region;
+
     private int profileImgVersion = 0;
 
 
@@ -116,6 +131,9 @@ public class ProfileTab extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.profile, container, false);
+
+        host = activity.getESHost();
+        region = activity.getESRegion();
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
@@ -185,7 +203,6 @@ public class ProfileTab extends Fragment {
             public void onClick(View view) {
                 hideProfileImgButtons();
                 showUploadProgressBar();
-                profileImgVersion++;
                 uploadImageToAWS(profileImageView.getDrawingCache());
             }
         });
@@ -488,8 +505,7 @@ public class ProfileTab extends Fragment {
                     bmpIn.compress(Bitmap.CompressFormat.JPEG, 65, bos);
                     byte[] bitmapdata = bos.toByteArray();
                     ByteArrayInputStream bis = new ByteArrayInputStream(bitmapdata);
-
-                    String keyName = profileUsername + "-" + profileImgVersion + ".jpeg";
+                    String keyName = profileUsername + "-" + Integer.toString(profileImgVersion + 1) + ".jpeg";
 
                     ObjectMetadata meta = new ObjectMetadata();
                     meta.setContentLength(bitmapdata.length);
@@ -563,8 +579,9 @@ public class ProfileTab extends Fragment {
             @Override
             protected void onPostExecute(String result)
             {
+                //TODO: handle errors, and if picture was not uploaded then don't increment profileImgVersion
+                profileImgVersion++;
                 Toast.makeText(activity, "Profile image updated!", Toast.LENGTH_SHORT).show();
-                Glide.with(activity).load(activity.getProfileImgUrl(profileUsername, profileImgVersion)).into(profileImageView);
                 hideUploadProgressBar();
                 activity.getSessionManager().setProfileImage(profileImgVersion);
             }
@@ -600,16 +617,103 @@ public class ProfileTab extends Fragment {
                 profileImageView.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
             }
             else {
-                Glide.with(this).load(activity.getProfileImgUrl(profileUsername, profileImgVersion)).into(profileImageView);
+                Glide.with(activity.getProfileTab()).load(activity.getProfileImgUrl(profileUsername, profileImgVersion)).into(profileImageView);
+
             }
         }
         else{
             //get profileVersion from ES, then once reponse arrives, handle it with Glide request or local image set
-            profileImgVersion = 1234;
-
+            final String username = profileUsername;
+            Runnable runnable = new Runnable() {
+                public void run() {
+                    profileImgVersion = getProfileImgVersion(username);
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(profileImgVersion == 0){
+                                profileImageView.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
+                            }
+                            else{
+                                Glide.with(activity.getProfileTab()).load(activity.getProfileImgUrl(username, profileImgVersion)).into(profileImageView);
+                            }
+                        }
+                    });
+                }
+            };
+            Thread mythread = new Thread(runnable);
+            mythread.start();
 
         }
 
+    }
+
+    private int getProfileImgVersion(String username){
+
+        String query = "/user/user_type/"+username;
+        String url = "https://" + host + query;
+
+        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
+        awsHeaders.put("host", host);
+
+        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
+                .regionName(region)
+                .serviceName("es") // es - elastic search. use your service name
+                .httpMethodName("GET") //GET, PUT, POST, DELETE, etc...
+                .canonicalURI(query) //end point
+                .queryParametes(null) //query parameters if any
+                .awsHeaders(awsHeaders) //aws header parameters
+                .debug() // turn on the debug mode
+                .build();
+
+        HttpGet httpGet = new HttpGet(url);
+
+		        /* Get header calculated for request */
+        Map<String, String> header = aWSV4Auth.getHeaders();
+        for (Map.Entry<String, String> entrySet : header.entrySet()) {
+            String key = entrySet.getKey();
+            String value = entrySet.getValue();
+
+			    /* Attach header in your request */
+			    /* Simple get request */
+
+            httpGet.addHeader(key, value);
+        }
+
+        /* Create object of CloseableHttpClient */
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+		/* Response handler for after request execution */
+        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
+
+            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+				/* Get status code */
+                int status = response.getStatusLine().getStatusCode();
+                if (status >= 200 && status < 300) {
+					/* Convert response to String */
+                    HttpEntity entity = response.getEntity();
+                    return entity != null ? EntityUtils.toString(entity) : null;
+                } else {
+                    throw new ClientProtocolException("Unexpected response status: " + status);
+                }
+            }
+        };
+
+        try {
+			/* Execute URL and attach after execution response handler */
+
+            String strResponse = httpClient.execute(httpGet, responseHandler);
+
+            JSONObject obj = new JSONObject(strResponse);
+            JSONObject item = obj.getJSONObject("_source");
+            return item.getInt("pi");
+
+            //System.out.println("Response: " + strResponse);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //if the ES GET fails, then return old topCardContent
+        return 0;
     }
 
     //for accessing another user's profile page
