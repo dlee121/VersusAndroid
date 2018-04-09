@@ -1,16 +1,12 @@
 package com.vs.bcd.versus.model;
 
 import java.util.HashMap;
-import java.util.HashSet;
-import java.lang.reflect.Type;
 
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.vs.bcd.versus.activity.StartScreen;
 
 public class SessionManager {
@@ -40,10 +36,8 @@ public class SessionManager {
     public static final String KEY_LASTNAME = "pref_lastname";
     public static final String KEY_PHONE = "pref_phone";
     public static final String KEY_USERNAME = "pref_username";
-    public static final String KEY_FW = "pref_fw";  //following
-    public static final String KEY_FC = "pref_fc";  //follower count
     public static final String KEY_MKEY = "pref_mkey";
-    public static final String KEY_PURL = "pref_purl";
+    public static final String KEY_PI = "pref_profileimage";
 
     //keep password private
     private static final String KEY_PASSWORD = "pref_password";
@@ -71,15 +65,8 @@ public class SessionManager {
         editor.putString(KEY_PASSWORD, user.getPassword());
         editor.putString(KEY_PHONE, user.getPhone());
         editor.putString(KEY_USERNAME, user.getUsername());
-        editor.putInt(KEY_FC, user.getFc());
         editor.putString(KEY_MKEY, user.getMkey());
-        editor.putString(KEY_PURL, user.getPurl());
-
-        Gson gson = new Gson();
-
-        String fnsStr = gson.toJson(user.getFw());
-        editor.putString(KEY_FW, fnsStr);
-
+        editor.putInt(KEY_PI, user.getProfileImage());
         // commit changes
         editor.commit();
     }
@@ -114,27 +101,17 @@ public class SessionManager {
         return pref.getString(KEY_MKEY, null);
     }
 
-    public String getProfileImageURL(){
-        return pref.getString(KEY_PURL, "0");
+    public int getProfileImage(){
+        return pref.getInt(KEY_PI, 0);
+    }
+
+    public void setProfileImage(int newPI){
+        editor.putInt(KEY_PI, newPI);
+        editor.apply();
     }
 
     public String getBday(){
         return pref.getString(KEY_BDAY, null);
-    }
-
-    public HashSet<String> getFollowingHashSet(){
-        Gson gson = new Gson();
-        String json = pref.getString(KEY_FW, null);
-        Type type = new TypeToken<HashSet<String>>() {}.getType();
-        HashSet<String> ret = gson.fromJson(json, type);
-        return ret;
-    }
-
-    public void updateFollowingLocal(HashSet<String> updatedList){
-        Gson gson = new Gson();
-        String fwStr = gson.toJson(updatedList);
-        editor.putString(KEY_FW, fwStr);
-        editor.apply();
     }
 
     /**

@@ -1,12 +1,29 @@
 package com.vs.bcd.versus.fragment;
 
+import android.Manifest;
+import android.app.Activity;
+import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.graphics.Bitmap;
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Parcelable;
+import android.provider.MediaStore;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
+import android.support.media.ExifInterface;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
+import android.system.ErrnoException;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,10 +35,19 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.amazonaws.services.dynamodbv2.model.AttributeAction;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
 import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
 import com.amazonaws.services.dynamodbv2.model.GetItemResult;
+import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -30,9 +56,18 @@ import com.google.firebase.database.ValueEventListener;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 /**
  * Created by dlee on 4/29/17.
@@ -66,6 +101,15 @@ public class ProfileTab extends Fragment {
 
     private CommentsHistory commentsTab;
     private PostsHistory postsTab;
+
+    private CircleImageView profileImageView;
+    private Uri mImageUri;
+    private RequestOptions requestOptions;
+    private FloatingActionButton profileImgCancel, profileImgConfirm;
+    private RelativeLayout.LayoutParams profileImgCancelLP, profileImgConfirmLP, uploadProgressBarLP;
+    private ProgressBar uploadProgressBar;
+
+    private int profileImgVersion = 0;
 
 
     @Override
@@ -117,6 +161,39 @@ public class ProfileTab extends Fragment {
             }
         });
 
+        profileImageView = rootView.findViewById(R.id.profile_image_pt);
+        profileImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                uploadProfileImage();
+            }
+        });
+
+        profileImgCancel = rootView.findViewById(R.id.profile_img_cancel);
+        profileImgCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                hideProfileImgButtons();
+                setProfileImageView(profileUsername.equals(activity.getUsername()));
+            }
+        });
+        profileImgCancelLP = (RelativeLayout.LayoutParams) profileImgCancel.getLayoutParams();
+
+        profileImgConfirm = rootView.findViewById(R.id.profile_img_confirm);
+        profileImgConfirm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                hideProfileImgButtons();
+                showUploadProgressBar();
+                profileImgVersion++;
+                uploadImageToAWS(profileImageView.getDrawingCache());
+            }
+        });
+        profileImgConfirmLP = (RelativeLayout.LayoutParams) profileImgConfirm.getLayoutParams();
+
+        uploadProgressBar = rootView.findViewById(R.id.upload_progress_bar);
+        uploadProgressBarLP = (RelativeLayout.LayoutParams) uploadProgressBar.getLayoutParams();
+
         usernameTV = rootView.findViewById(R.id.username_pt);
         goldTV = rootView.findViewById(R.id.pmc_goldmedal_count);
         silverTV = rootView.findViewById(R.id.pmc_silvermedal_count);
@@ -155,7 +232,16 @@ public class ProfileTab extends Fragment {
 
         disableChildViews();
 
+        requestOptions = new RequestOptions();
+        requestOptions.skipMemoryCache(true);
+        requestOptions.diskCacheStrategy(DiskCacheStrategy.NONE);
+
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
+
+        hideProfileImgButtons();
+        hideUploadProgressBar();
+        profileImageView.setDrawingCacheEnabled(false);
+        profileImageView.setDrawingCacheEnabled(true);
 
         return rootView;
     }
@@ -198,6 +284,334 @@ public class ProfileTab extends Fragment {
         activity = (MainContainer)context;
     }
 
+    private void uploadProfileImage(){
+        profileImageView.setDrawingCacheEnabled(false);
+        profileImageView.setDrawingCacheEnabled(true);
+        startActivityForResult(getPickImageChooserIntent(), 200);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == Activity.RESULT_OK) {
+            Uri imageUri = getPickImageResultUri(data);
+
+            // For API >= 23 we need to check specifically that we have permissions to read external storage,
+            // but we don't know if we need to for the URI so the simplest is to try open the stream and see if we get error.
+            boolean requirePermissions = false;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+                    getContext().checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED &&
+                    isUriRequiresPermissions(imageUri)) {
+
+                // request permissions and handle the result in onRequestPermissionsResult()
+                requirePermissions = true;
+                mImageUri = imageUri;
+                requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
+            }
+
+            if (!requirePermissions) {
+
+                float rotate = 0;
+                InputStream in = null;
+                try {
+
+                    ContentResolver resolver = getContext().getContentResolver();
+                    in = resolver.openInputStream(imageUri);
+                    ExifInterface exif = new ExifInterface(in);
+                    // Now you can extract any Exif tag you want
+                    // Assuming the image is a JPEG or supported raw format
+                    int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+
+                    switch (orientation) {
+                        case ExifInterface.ORIENTATION_ROTATE_270:
+                            rotate = 270;
+                            break;
+                        case ExifInterface.ORIENTATION_ROTATE_180:
+                            rotate = 180;
+                            break;
+                        case ExifInterface.ORIENTATION_ROTATE_90:
+                            rotate = 90;
+                            break;
+                    }
+                } catch (IOException e) {
+                    // Handle any errors
+                } finally {
+                    if (in != null) {
+                        try {
+                            in.close();
+                        } catch (IOException ignored) {}
+                    }
+                }
+
+                Glide.with(this).load(imageUri).apply(requestOptions).into(profileImageView);
+                showProfileImgButtons();
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        if (mImageUri != null && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+            Glide.with(this).load(mImageUri).apply(requestOptions).into(profileImageView);
+            showProfileImgButtons();
+
+        } else {
+            Toast.makeText(getActivity(), "Required permissions are not granted", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    /**
+     * Create a chooser intent to select the source to get image from.<br/>
+     * The source can be camera's (ACTION_IMAGE_CAPTURE) or gallery's (ACTION_GET_CONTENT).<br/>
+     * All possible sources are added to the intent chooser.
+     */
+    public Intent getPickImageChooserIntent() {
+
+        // Determine Uri of camera image to save.
+        Uri outputFileUri = getCaptureImageOutputUri();
+
+        List<Intent> allIntents = new ArrayList<>();
+        PackageManager packageManager = getContext().getPackageManager();
+
+        // collect all camera intents
+        Intent captureIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        List<ResolveInfo> listCam = packageManager.queryIntentActivities(captureIntent, 0);
+        for (ResolveInfo res : listCam) {
+            Intent intent = new Intent(captureIntent);
+            intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
+            intent.setPackage(res.activityInfo.packageName);
+            if (outputFileUri != null) {
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
+            }
+            allIntents.add(intent);
+        }
+
+        // collect all gallery intents
+        Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT);
+        galleryIntent.setType("image/*");
+        List<ResolveInfo> listGallery = packageManager.queryIntentActivities(galleryIntent, 0);
+        for (ResolveInfo res : listGallery) {
+            Intent intent = new Intent(galleryIntent);
+            intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
+            intent.setPackage(res.activityInfo.packageName);
+            allIntents.add(intent);
+        }
+
+        // the main intent is the last in the list (fucking android) so pickup the useless one
+        Intent mainIntent = allIntents.get(allIntents.size() - 1);
+        for (Intent intent : allIntents) {
+            if (intent.getComponent().getClassName().equals("com.android.documentsui.DocumentsActivity")) {
+                mainIntent = intent;
+                break;
+            }
+        }
+        allIntents.remove(mainIntent);
+
+        // Create a chooser from the main intent
+        Intent chooserIntent = Intent.createChooser(mainIntent, "Select source");
+
+        // Add all other intents
+        chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, allIntents.toArray(new Parcelable[allIntents.size()]));
+
+        return chooserIntent;
+    }
+
+    /**
+     * Get URI to image received from capture by camera.
+     */
+    private Uri getCaptureImageOutputUri() {
+        Uri outputFileUri = null;
+        File getImage = getContext().getExternalCacheDir();
+        if (getImage != null) {
+            outputFileUri = Uri.fromFile(new File(getImage.getPath(), "pickImageResult.jpeg"));
+        }
+        return outputFileUri;
+    }
+
+    /**
+     * Get the URI of the selected image from {@link #getPickImageChooserIntent()}.<br/>
+     * Will return the correct URI for camera and gallery image.
+     *
+     * @param data the returned data of the activity result
+     */
+    public Uri getPickImageResultUri(Intent data) {
+        boolean isCamera = true;
+        if (data != null && data.getData() != null) {
+            String action = data.getAction();
+            isCamera = action != null && action.equals(MediaStore.ACTION_IMAGE_CAPTURE);
+        }
+        return isCamera ? getCaptureImageOutputUri() : data.getData();
+    }
+
+    /**
+     * Test if we can open the given Android URI to test if permission required error is thrown.<br>
+     */
+    public boolean isUriRequiresPermissions(Uri uri) {
+        try {
+            ContentResolver resolver = getContext().getContentResolver();
+            InputStream stream = resolver.openInputStream(uri);
+            stream.close();
+            return false;
+        } catch (FileNotFoundException e) {
+            if (e.getCause() instanceof ErrnoException) {
+                return true;
+            }
+        } catch (Exception e) {
+        }
+        return false;
+    }
+
+    private void uploadImageToAWS(final Bitmap bmpIn) {
+
+        //Log.d("IMGUPLOAD", postIDin + "-" + side + ".jpeg");
+
+        AsyncTask<String, String, String> _Task = new AsyncTask<String, String, String>() {
+
+            @Override
+            protected void onPreExecute() {
+
+            }
+
+            @Override
+            protected String doInBackground(String... arg0)
+            {
+                //if (NetworkAvailablity.checkNetworkStatus(MyActivity.this))
+                //{
+                try {
+                    java.util.Date expiration = new java.util.Date();
+                    long msec = expiration.getTime();
+                    msec += 1000 * 60 * 60; // 1 hour.
+                    expiration.setTime(msec);
+                    publishProgress(arg0);
+
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                    bmpIn.compress(Bitmap.CompressFormat.JPEG, 65, bos);
+                    byte[] bitmapdata = bos.toByteArray();
+                    ByteArrayInputStream bis = new ByteArrayInputStream(bitmapdata);
+
+                    String keyName = profileUsername + "-" + profileImgVersion + ".jpeg";
+
+                    ObjectMetadata meta = new ObjectMetadata();
+                    meta.setContentLength(bitmapdata.length);
+
+                    PutObjectRequest por = new PutObjectRequest("versus.profile-pictures",
+                            keyName,
+                            bis,
+                            meta);
+
+                    //making the object Public
+                    //por.setCannedAcl(CannedAccessControlList.PublicRead);
+
+                    activity.getS3Client().putObject(por);
+
+                    //update attribute "pi", which is profile image version
+                    //update comment content through ddb update request
+                    HashMap<String, AttributeValue> keyMap = new HashMap<>();
+                    keyMap.put("i", new AttributeValue().withS(activity.getUsername()));
+
+                    HashMap<String, AttributeValueUpdate> updates = new HashMap<>();
+
+                    AttributeValueUpdate pi = new AttributeValueUpdate()
+                            .withValue(new AttributeValue().withN("1"))
+                            .withAction(AttributeAction.ADD);
+                    updates.put("pi", pi);
+
+                    UpdateItemRequest request = new UpdateItemRequest()
+                            .withTableName("user")
+                            .withKey(keyMap)
+                            .withAttributeUpdates(updates);
+                    activity.getDDBClient().updateItem(request);
+
+                    /*
+                    //run UI updates on UI Thread
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(side.substring(0,4).equals("left")){
+                                ivLeft.setDrawingCacheEnabled(false);
+                                ivLeft.setDrawingCacheEnabled(true);
+                            }
+                            else{
+                                ivRight.setDrawingCacheEnabled(false);
+                                ivRight.setDrawingCacheEnabled(true);
+                            }
+                        }
+                    });
+                    */
+
+                    //String _finalUrl = "https://"+existingBucketName+".s3.amazonaws.com/" + keyName + ".jpeg";
+
+                } catch (Exception e) {
+                    // writing error to Log
+                    e.printStackTrace();
+                }
+            /*
+                }
+                else
+                {
+
+                }
+            */
+                return null;
+            }
+            @Override
+            protected void onProgressUpdate(String... values) {
+                // TODO Auto-generated method stub
+                super.onProgressUpdate(values);
+                System.out.println("Progress : "  + values);
+            }
+            @Override
+            protected void onPostExecute(String result)
+            {
+                Toast.makeText(activity, "Profile image updated!", Toast.LENGTH_SHORT).show();
+                Glide.with(activity).load(activity.getProfileImgUrl(profileUsername, profileImgVersion)).into(profileImageView);
+                hideUploadProgressBar();
+                activity.getSessionManager().setProfileImage(profileImgVersion);
+            }
+        };
+        _Task.execute((String[]) null);
+    }
+
+    private void showUploadProgressBar(){
+        uploadProgressBar.setLayoutParams(uploadProgressBarLP);
+    }
+
+    private void hideUploadProgressBar(){
+        uploadProgressBar.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+    }
+
+    private void showProfileImgButtons(){
+        Log.d("hohoy", "show them");
+        profileImgCancel.setLayoutParams(profileImgCancelLP);
+        profileImgConfirm.setLayoutParams(profileImgConfirmLP);
+    }
+
+    private void hideProfileImgButtons(){
+        Log.d("hohoy", "hide them");
+        profileImgCancel.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+        profileImgConfirm.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+    }
+
+    private void setProfileImageView(boolean myProfile){
+        if(myProfile){
+            profileImgVersion = activity.getProfileImage();
+            if(profileImgVersion == 0){
+                //display addProfilePage button in the circle
+                profileImageView.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
+            }
+            else {
+                Glide.with(this).load(activity.getProfileImgUrl(profileUsername, profileImgVersion)).into(profileImageView);
+            }
+        }
+        else{
+            //get profileVersion from ES, then once reponse arrives, handle it with Glide request or local image set
+            profileImgVersion = 1234;
+
+
+        }
+
+    }
+
     //for accessing another user's profile page
     public void setUpProfile(final String username, boolean myProfile){
 
@@ -216,9 +630,10 @@ public class ProfileTab extends Fragment {
 
             hideFollowUI();
 
+            setProfileImageView(true);
+
             Runnable runnable = new Runnable() {
                 public void run() {
-                    //setUpComments(username);
 
                     activity.runOnUiThread(new Runnable() {
                         @Override
@@ -236,6 +651,8 @@ public class ProfileTab extends Fragment {
 
         }
         else{
+            hideProfileImgButtons();
+            hideUploadProgressBar();
             //this is setting up the profile page for another user that the logged-in user clicked on
             //enable toolbarButtonLeft and set it to "x" or "<" and set it to go back to the page that user came from
             //use projection attribute to exclude private info.
@@ -251,10 +668,10 @@ public class ProfileTab extends Fragment {
                 showFollowButton();
             }
 
+            setProfileImageView(false);
+
             Runnable runnable = new Runnable() {
                 public void run() {
-
-                    //setUpComments(username);
 
                     activity.runOnUiThread(new Runnable() {
                         @Override
@@ -677,6 +1094,7 @@ public class ProfileTab extends Fragment {
     }
 
     public void clearProfilePage(){
+        profileImageView.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
         goldTV.setText("");
         silverTV.setText("");
         bronzeTV.setText("");
@@ -684,6 +1102,8 @@ public class ProfileTab extends Fragment {
         if(profileUsername != null && !profileUsername.equals(activity.getUsername())){
             commentsORposts = COMMENTS;
         }
+        hideProfileImgButtons();
+        hideUploadProgressBar();
     }
 
     private void sendFollowNotification(String fUsername){

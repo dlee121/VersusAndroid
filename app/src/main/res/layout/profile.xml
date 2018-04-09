@@ -43,6 +43,43 @@
                 android:layout_centerHorizontal="true"
                 app:civ_border_width="2dp" />
 
+            <ProgressBar
+                android:id="@+id/upload_progress_bar"
+                android:layout_width="wrap_content"
+                android:layout_height="24dp"
+                android:layout_alignStart="@id/profile_image_pt"
+                android:layout_alignEnd="@id/profile_image_pt"
+                android:layout_marginTop="4dp"
+                android:layout_below="@id/profile_image_pt"/>
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/profile_img_cancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/profile_image_pt"
+                android:layout_alignStart="@id/profile_image_pt"
+                android:layout_marginTop="-14dp"
+                android:layout_marginStart="-8dp"
+                app:backgroundTint="@color/vsRed"
+                android:scaleX="0.6"
+                android:scaleY="0.6"
+                android:tint="#FFFFFFFF"
+                android:src="@drawable/ic_x_white"/>
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/profile_img_confirm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/profile_image_pt"
+                android:layout_alignEnd="@id/profile_image_pt"
+                android:layout_marginTop="-14dp"
+                android:layout_marginEnd="-8dp"
+                app:backgroundTint="@color/vsBlue"
+                android:scaleX="0.6"
+                android:scaleY="0.6"
+                android:tint="#FFFFFFFF"
+                android:src="@drawable/ic_check_white"/>
+
             <LinearLayout
                 android:id="@+id/profile_buttons"
                 android:layout_width="102dp"

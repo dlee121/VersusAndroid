@@ -503,7 +503,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
             if (post.getRedimg() % 10 == S3) {
                 try {
-                    GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI("versus.pictures", post, 0));
+                    GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI(post, 0));
                     Glide.with(activity).load(gurlLeft).into(postCard.redIV);
                 } catch (Exception e) {
                     postCard.redIV.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
@@ -514,7 +514,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
             if (post.getBlackimg() % 10 == S3) {
                 try {
-                    GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI("versus.pictures", post, 1));
+                    GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI(post, 1));
                     Glide.with(activity).load(gurlRight).into(postCard.blkIV);
                 } catch (Exception e) {
                     postCard.blkIV.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));

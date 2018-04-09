@@ -2,7 +2,6 @@ package com.vs.bcd.versus.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -14,15 +13,10 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.analytics.FirebaseAnalytics;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -34,9 +28,6 @@ import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.model.RNumAndUList;
 import com.vs.bcd.versus.model.RoomObject;
 import com.vs.bcd.versus.model.SessionManager;
-import com.vs.bcd.versus.model.UserSearchItem;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
@@ -86,7 +77,7 @@ public class Tab4Messenger extends Fragment {
     private LinearLayoutManager mLinearLayoutManager;
     private ProgressBar mProgressBar;
     private String mUsername = "";
-    private String mPhotoUrl = "";
+    private int mPhotoUrl = 0;
     private String userMKey = "";
     private SimpleDateFormat df;
     private MainContainer activity;
@@ -112,7 +103,7 @@ public class Tab4Messenger extends Fragment {
         mRoomRecyclerView.setLayoutManager(mLinearLayoutManager);
 
         userMKey = ((MainContainer)getActivity()).getUserMKey();
-        mPhotoUrl = activity.getProfileImageURL();
+        mPhotoUrl = activity.getProfileImage();
 
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();

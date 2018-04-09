@@ -27,7 +27,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.vs.bcd.versus.R;
-import com.vs.bcd.versus.activity.LogIn;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.InvitedUserAdapter;
 import com.vs.bcd.versus.adapter.UserSearchAdapter;
@@ -36,11 +35,9 @@ import com.vs.bcd.versus.model.UserSearchItem;
 
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 /**
  * Created by dlee on 8/6/17.
@@ -68,7 +65,7 @@ public class CreateMessage extends Fragment {
     private FirebaseAnalytics mFirebaseAnalytics;
     private LinearLayoutManager invitedUsersLLM, userSearchLLM;
     private String mUsername = "";
-    private String mPhotoUrl = "";
+    private int mPhotoUrl = 0;
     private String userMKey = "";
     private SimpleDateFormat df;
     private MainContainer activity;
@@ -145,7 +142,7 @@ public class CreateMessage extends Fragment {
         mFirebaseUser = mFirebaseAuth.getCurrentUser(); //TODO: handle possible null object reference error
 
         userMKey = activity.getUserMKey();
-        mPhotoUrl = activity.getProfileImageURL();
+        mPhotoUrl = activity.getProfileImage();
 
         thisFragment = this;
 

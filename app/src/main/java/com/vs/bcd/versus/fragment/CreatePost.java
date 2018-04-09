@@ -245,8 +245,8 @@ public class CreatePost extends Fragment {
         if(post.getRedimg()%10 == S3){
             showLeftClearButton();
             try{
-                GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI("versus.pictures", post, 0));
-                Glide.with(activity).load(gurlLeft).into(ivLeft);
+                GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI(post, 0));
+                Glide.with(this).load(gurlLeft).into(ivLeft);
             } catch (Exception e) {
                 ivLeft.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
             }
@@ -254,8 +254,8 @@ public class CreatePost extends Fragment {
         if(post.getBlackimg()%10 == S3){
             showRightClearButton();
             try{
-                GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI("versus.pictures", post, 1));
-                Glide.with(activity).load(gurlRight).into(ivRight);
+                GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI(post, 1));
+                Glide.with(this).load(gurlRight).into(ivRight);
             } catch (Exception e) {
                 ivRight.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
             }

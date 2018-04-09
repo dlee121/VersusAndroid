@@ -21,13 +21,11 @@ public class User {
     private String password;
     private String email = "n/a"; //default value, since dynamodb doesn't want empty strings either email or phone may be unspecified by user
     private String phone = "n/a";
-    private List<String> fw; //list of username of users this user is following (following list)
-    private int fc;   //number of followers this user has (follower count)
     private String mkey; //pw for messenger auth
-    private String purl; //profile image storage url
+    private int profileImage; //profile image storage url
 
 
-    @DynamoDBAttribute(attributeName = "firstname")
+    @DynamoDBAttribute(attributeName = "fn")
     public String getFirstName() {
         return firstName;
     }
@@ -35,7 +33,7 @@ public class User {
         this.firstName = firstName;
     }
 
-    @DynamoDBAttribute(attributeName = "lastname")
+    @DynamoDBAttribute(attributeName = "ln")
     public String getLastName() {
         return lastName;
     }
@@ -43,7 +41,7 @@ public class User {
         this.lastName = lastName;
     }
 
-    @DynamoDBAttribute(attributeName = "bday")
+    @DynamoDBAttribute(attributeName = "bd")
     public String getBday() {
         return bday;
     }
@@ -51,7 +49,7 @@ public class User {
         this.bday = bday;
     }
 
-    @DynamoDBHashKey(attributeName = "username")
+    @DynamoDBHashKey(attributeName = "i")
     public String getUsername() {
         return username;
     }
@@ -59,7 +57,7 @@ public class User {
         this.username = username;
     }
 
-    @DynamoDBAttribute(attributeName = "password")
+    @DynamoDBAttribute(attributeName = "pw")
     public String getPassword() {
         return password;
     }
@@ -67,7 +65,7 @@ public class User {
         this.password = password;
     }
 
-    @DynamoDBAttribute(attributeName = "email")
+    @DynamoDBAttribute(attributeName = "em")
     public String getEmail() {
         return email;
     }
@@ -75,7 +73,7 @@ public class User {
         this.email = email;
     }
 
-    @DynamoDBAttribute(attributeName = "phone")
+    @DynamoDBAttribute(attributeName = "ph")
     public String getPhone() {
         return phone;
     }
@@ -83,23 +81,7 @@ public class User {
         this.phone = phone;
     }
 
-    @DynamoDBAttribute(attributeName = "fw")
-    public List<String> getFw(){
-        return fw;
-    }
-    public void setFw(List<String> fw){
-        this.fw = fw;
-    }
-
-    @DynamoDBAttribute(attributeName = "fc")
-    public int getFc(){
-        return fc;
-    }
-    public void setFc(int fc){
-        this.fc = fc;
-    }
-
-    @DynamoDBAttribute(attributeName = "mkey")
+    @DynamoDBAttribute(attributeName = "mk")
     public String getMkey(){
         return mkey;
     }
@@ -107,12 +89,12 @@ public class User {
         this.mkey = mkey;
     }
 
-    @DynamoDBAttribute(attributeName = "purl")
-    public String getPurl() {
-        return purl;
+    @DynamoDBAttribute(attributeName = "pi")
+    public int getProfileImage() {
+        return profileImage;
     }
-    public void setPurl(String purl){
-        this.purl = purl;
+    public void setProfileImage(int profileImage){
+        this.profileImage = profileImage;
     }
 
     public User(){
@@ -127,12 +109,8 @@ public class User {
         bday = userData[2];
         username = userData[3];
         password = userData[4];
-        fw = new ArrayList<>();
-        fc = 0;
         mkey = UUID.randomUUID().toString().substring(0, 5);
-        purl = "0"; //default value meaning use a default in-app profile image
-
-        //finish this thing, then do the write to db, then write session info to sharedpref and we're done with basic signup!
+        profileImage = 0; //default value meaning use a default in-app profile image
     }
 
 }

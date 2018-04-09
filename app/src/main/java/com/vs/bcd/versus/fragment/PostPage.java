@@ -244,6 +244,21 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                         if(input.length() > 0){
                             if(editTarget != null){
+
+                                if(editTarget.getContent().equals(input)){
+                                    activity.runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            editTarget.setIsHighlighted(false);
+                                            PPAdapter.notifyItemChanged(editIndex);
+                                            pageCommentInput.setText("");
+                                            hideCommentInputCursor();
+                                            imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
+                                        }
+                                    });
+                                    return;
+                                }
+
                                 //update comment content through ddb update request
                                 HashMap<String, AttributeValue> keyMap = new HashMap<>();
                                 keyMap.put("i", new AttributeValue().withS(editTarget.getComment_id()));

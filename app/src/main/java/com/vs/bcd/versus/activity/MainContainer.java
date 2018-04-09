@@ -63,7 +63,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
-import com.vs.bcd.versus.adapter.PostPageAdapter;
 import com.vs.bcd.versus.fragment.CategoryFragment;
 import com.vs.bcd.versus.fragment.CommentEnterFragment;
 import com.vs.bcd.versus.fragment.CreateMessage;
@@ -77,7 +76,7 @@ import com.vs.bcd.versus.fragment.SettingsFragment;
 import com.vs.bcd.versus.fragment.Tab1Newsfeed;
 import com.vs.bcd.versus.fragment.Tab2Trending;
 import com.vs.bcd.versus.model.CategoryObject;
-import com.vs.bcd.versus.model.MedalUpdateRequest;
+import com.vs.bcd.versus.model.GlideUrlCustom;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.RNumAndUList;
 import com.vs.bcd.versus.model.RoomObject;
@@ -92,7 +91,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 
 
 public class MainContainer extends AppCompatActivity {
@@ -129,7 +127,6 @@ public class MainContainer extends AppCompatActivity {
     private boolean meClicked = false;
     private ProfileTab profileTab;
     private int profileTabParent = 0;   //default parent is MainActivity, here parent just refers to previous page before the profile page was opened
-    private HashSet<String> localFns;
     private String currUsername = null;
     private String beforeProfileTitle = "";
     private RelativeLayout.LayoutParams toolbarButtonRightLP, bottomNavLP, toolbarTextButtonLP;
@@ -137,7 +134,7 @@ public class MainContainer extends AppCompatActivity {
     private RelativeLayout.LayoutParams vpContainerLP;
     private MessageRoom messageRoom;
     private String userMKey = "";
-    private String profileImageURL = "";
+    private int profileImage = 0;
     private Button toolbarTextButton;
     private CreateMessage createMessageFragment;
     private HashMap<String, String> following, followers;
@@ -300,11 +297,9 @@ public class MainContainer extends AppCompatActivity {
         mapper = new DynamoDBMapper(ddbClient);
         s3 = new AmazonS3Client(credentialsProvider);
 
-        //userTimecode = sessionManager.getUserTimecode();
-        localFns = sessionManager.getFollowingHashSet();
         currUsername = sessionManager.getCurrentUsername();
         userMKey = sessionManager.getMKey();
-        profileImageURL = sessionManager.getProfileImageURL();
+        profileImage = sessionManager.getProfileImage();
 
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
@@ -869,11 +864,10 @@ public class MainContainer extends AppCompatActivity {
         lastSetTitle = str;
     }
 
-    public void setToolbarTitleTextForCP(){
-        if(fromCategoryFragment){
+    public void setToolbarTitleTextForCP() {
+        if (fromCategoryFragment) {
             titleTxtView.setText(currentCFTitle);
-        }
-        else{
+        } else {
             titleTxtView.setText(lastSetTitle);
         }
     }
@@ -1485,8 +1479,8 @@ public class MainContainer extends AppCompatActivity {
         mViewPager.setCurrentItem(11);
     }
 
-    public String getProfileImageURL(){
-        return profileImageURL;
+    public int getProfileImage(){
+        return profileImage;
     }
 
     private void hideToolbarTextButton(){
@@ -1584,30 +1578,37 @@ public class MainContainer extends AppCompatActivity {
         return esRegion;
     }
 
-    public URL getImgURI(String bucket, Post post, int lORr) throws URISyntaxException{
+    //for bucket == versus.pictures
+    public URL getImgURI(Post post, int lORr) throws URISyntaxException{
         //lORr == 0 means left, lORr == 1 means right
         long expirationTime = System.currentTimeMillis() + 86400000; //24 hours from current time
-        String urlString;
+        String filename;
         if(lORr == 0){ //left
             int editVersion = post.getRedimg()/10;
             if(editVersion > 0){//this image has edit version number
-                urlString = post.getPost_id() + "-left" + Integer.toString(editVersion) + ".jpeg";
+                filename = post.getPost_id() + "-left" + Integer.toString(editVersion) + ".jpeg";
             }
             else{
-                urlString = post.getPost_id() + "-left.jpeg";
+                filename = post.getPost_id() + "-left.jpeg";
             }
         }
         else{
             int editVersion = post.getBlackimg()/10;
             if(editVersion > 0){//this image has edit version number
-                urlString = post.getPost_id() + "-right" + Integer.toString(editVersion) + ".jpeg";
+                filename = post.getPost_id() + "-right" + Integer.toString(editVersion) + ".jpeg";
             }
             else{
-                urlString = post.getPost_id() + "-right.jpeg";
+                filename = post.getPost_id() + "-right.jpeg";
             }
         }
 
-        return s3.generatePresignedUrl(bucket, urlString, new Date(expirationTime));
+        return s3.generatePresignedUrl("versus.pictures", filename, new Date(expirationTime));
+    }
+
+    public GlideUrlCustom getProfileImgUrl(String username, int profileVersion){
+        String filename = username + "-" + Integer.toString(profileVersion) + ".jpeg";
+        long expirationTime = System.currentTimeMillis() + 86400000; //24 hours from current time
+        return new GlideUrlCustom(s3.generatePresignedUrl("versus.profile-pictures", filename, new Date(expirationTime)));
     }
 
     public int getImageWidthPixels(){
