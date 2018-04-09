@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.os.NetworkOnMainThreadException;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v7.app.AppCompatActivity;
@@ -1607,7 +1608,7 @@ public class MainContainer extends AppCompatActivity {
         return s3.generatePresignedUrl("versus.pictures", filename, new Date(expirationTime));
     }
 
-    public GlideUrlCustom getProfileImgUrl(String username, int profileVersion){
+    public GlideUrlCustom getProfileImgUrl(String username, int profileVersion) throws NetworkOnMainThreadException{
         String filename = username + "-" + Integer.toString(profileVersion) + ".jpeg";
         long expirationTime = System.currentTimeMillis() + 86400000; //24 hours from current time
         return new GlideUrlCustom(s3.generatePresignedUrl("versus.profile-pictures", filename, new Date(expirationTime)));

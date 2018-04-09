@@ -520,6 +520,12 @@ public class ProfileTab extends Fragment {
 
                     activity.getS3Client().putObject(por);
 
+                    //deletes previous profile image from S3, if any
+                    if(profileImgVersion > 0){
+                        String objectKey = profileUsername + "-" + Integer.toString(profileImgVersion) + ".jpeg";
+                        activity.getS3Client().deleteObject("versus.profile-pictures", objectKey);
+                    }
+
                     //update attribute "pi", which is profile image version
                     //update comment content through ddb update request
                     HashMap<String, AttributeValue> keyMap = new HashMap<>();
