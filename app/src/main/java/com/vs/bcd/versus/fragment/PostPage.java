@@ -291,6 +291,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                             }
                             else{
+                                Log.d("replyTargetIndex1", Integer.toString(replyTargetIndex));
                                 String targetID = "";
                                 int targetChildCount = 0;
                                 int targetNestedLevel = 0;
@@ -320,8 +321,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     targetNestedLevel = replyTarget.getNestedLevel();
 
                                     vsc.setParent_id(targetID);
-                                    Log.d("chichichichia!", "has " + Integer.toString(targetChildCount) + " chillums");
-                                    Log.d("chichichichia!", "nested at " + Integer.toString(targetNestedLevel));
+
                                     if(pageLevel < 2 && targetChildCount < 2){
                                         //insert comment into the existing tree in the page
                                         insertReplyInCurrentPage = true;
@@ -433,29 +433,38 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                 });
 
                                 if(insertReplyInCurrentPage){
+                                    Log.d("replyTargetIndex2", Integer.toString(replyTargetIndex));
+                                    final int indexIn = replyTargetIndex;
                                     vsc.setNestedLevel(targetNestedLevel + 1);
                                     VSCNode parentNode = nodeMap.get(targetID);
                                     VSCNode thisNode = new VSCNode(vsc);
+                                    int offset = 0;
+
                                     if(targetChildCount > 0){
+                                        VSCNode firstChild = parentNode.getFirstChild();
                                         thisNode.setHeadSibling(parentNode.getFirstChild());
-                                        parentNode.getFirstChild().setTailSibling(thisNode);
-                                        activity.runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                PPAdapter.insertItem(vsc, replyTargetIndex + 2);
-                                            }
-                                        });
+                                        firstChild.setTailSibling(thisNode);
+                                        offset += 2;
+
+                                        if(pageLevel == 0 && targetNestedLevel == 0){
+                                            offset += firstChild.getNodeContent().getChild_count();
+                                        }
                                     }
                                     else{
                                         thisNode.setParent(parentNode);
                                         parentNode.setFirstChild(thisNode);
-                                        activity.runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                PPAdapter.insertItem(vsc, replyTargetIndex + 1);
-                                            }
-                                        });
+                                        offset++;
                                     }
+
+                                    final int offsetFinal = offset;
+                                    activity.runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            PPAdapter.insertItem(vsc, indexIn + offsetFinal);
+                                            Log.d("replyTargetIndex3", Integer.toString(indexIn + offsetFinal));
+                                        }
+                                    });
+
                                     nodeMap.put(vsc.getComment_id(), thisNode);
                                 }
                                 else{
