@@ -288,6 +288,18 @@ public class MainContainer extends AppCompatActivity {
                 "us-east-1:88614505-c8df-4dce-abd8-79a0543852ff", // Identity Pool ID
                 Regions.US_EAST_1 // Region
         );
+
+        credentialsProvider.clear();
+
+        Runnable runnable = new Runnable() {
+            public void run() {
+                credentialsProvider.getCredentials();
+            }
+        };
+        Thread mythread = new Thread(runnable);
+        mythread.start();
+
+
         /*
         //these two for signing REST requests to Amazon Elasticsearch
         credentialsProvider.getCredentials().getAWSAccessKeyId()
