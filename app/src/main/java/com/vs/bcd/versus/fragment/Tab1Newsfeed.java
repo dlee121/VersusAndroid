@@ -276,7 +276,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
             String strResponse = httpClient.execute(httpPost, responseHandler);
             if(posts == null){
                 posts = new ArrayList<>();
-                myAdapter = new MyAdapter(posts, mHostActivity, 0);
+                myAdapter = new MyAdapter(posts, mHostActivity, profileImgVersions, 0);
                 recyclerView.setAdapter(myAdapter);
             }
 

@@ -11,6 +11,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
+import android.os.AsyncTask;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -35,14 +36,19 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
 import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.bumptech.glide.Glide;
+import com.loopj.android.http.HttpGet;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.GlideUrlCustom;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.TopCardObject;
 import com.vs.bcd.versus.model.UserAction;
 import com.vs.bcd.versus.model.VSComment;
 
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -51,7 +57,15 @@ import java.util.List;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TreeMap;
 
+import cz.msebera.android.httpclient.HttpEntity;
+import cz.msebera.android.httpclient.HttpResponse;
+import cz.msebera.android.httpclient.client.ClientProtocolException;
+import cz.msebera.android.httpclient.client.ResponseHandler;
+import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
+import cz.msebera.android.httpclient.impl.client.HttpClients;
+import cz.msebera.android.httpclient.util.EntityUtils;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 
@@ -107,6 +121,8 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private boolean lockButtons = false; //TODO: currently once we lockButtons = true we don't set it back to false because we set it to true for refreshes and after a refresh we get a new adapter and destroy the old one and the new one has lockButtons = false initially.
                                             //TODO: But eventually we should change to not making a new adapter each time, and also properly setting lockButtons back to false (by tracing back why we set it to true and setting it to false once condition flips).
 
+
+    private CircleImageView profileImageView;
 
     //to set imageviews, first fill out the drawable[3] with 0=image layer, 1=tint layer, 2=check mark layer, make LayerDrawable out of the array, then use setImageMask which sets the correct mask layers AND ALSO sets imageview drawable as the LayerDrawable
 
@@ -421,6 +437,8 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 }
             });
 
+            profileImageView = postCard.profileImg;
+            loadProfileImage(post.getAuthor());
 
             redTint = new ShapeDrawable(new RectShape());
             redTint.setIntrinsicWidth(postCard.redIV.getWidth());
@@ -1299,6 +1317,144 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         masterList.add(index, newComment);
 
         notifyItemInserted(index);
+    }
+
+    private void loadProfileImage(final String username) {
+
+        //Log.d("IMGUPLOAD", postIDin + "-" + side + ".jpeg");
+
+        AsyncTask<String, String, String> _Task = new AsyncTask<String, String, String>() {
+
+            GlideUrlCustom imageURL;
+
+            @Override
+            protected void onPreExecute() {
+
+            }
+
+            @Override
+            protected String doInBackground(String... arg0)
+            {
+                //if (NetworkAvailablity.checkNetworkStatus(MyActivity.this))
+                //{
+                try {
+
+                    int profileImgVersion;
+
+                    if(username.equals(activity.getUsername())){
+                        profileImgVersion = activity.getUserProfileImageVersion();
+                    }
+                    else{
+                        profileImgVersion = activity.getProfileImageVersion(username);
+                        if(profileImgVersion == -1){
+                            profileImgVersion = getProfileImgVersion(username);
+                            activity.addToCentralProfileImgVersionMap(username, profileImgVersion);
+                        }
+                    }
+
+                    if(profileImgVersion == 0){
+                        imageURL = null;
+                    }
+                    else{
+                        imageURL = activity.getProfileImgUrl(username, profileImgVersion);
+                    }
+
+                } catch (Exception e) {
+                    // writing error to Log
+                    e.printStackTrace();
+                }
+                return null;
+            }
+            @Override
+            protected void onProgressUpdate(String... values) {
+                // TODO Auto-generated method stub
+                super.onProgressUpdate(values);
+                System.out.println("Progress : "  + values);
+            }
+            @Override
+            protected void onPostExecute(String result)
+            {
+                if(profileImageView != null){
+                    if(imageURL != null){
+                        Glide.with(activity.getProfileTab()).load(imageURL).into(profileImageView);
+                    }
+                    else{
+                        Glide.with(activity.getProfileTab()).load(ContextCompat.getDrawable(activity, R.drawable.default_profile)).into(profileImageView);
+                    }
+                }
+            }
+        };
+        _Task.execute((String[]) null);
+    }
+
+    private int getProfileImgVersion(String username){
+        String host = activity.getESHost();
+        String region = activity.getESRegion();
+        String query = "/user/user_type/"+username;
+        String url = "https://" + host + query;
+
+        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
+        awsHeaders.put("host", host);
+
+        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
+                .regionName(region)
+                .serviceName("es") // es - elastic search. use your service name
+                .httpMethodName("GET") //GET, PUT, POST, DELETE, etc...
+                .canonicalURI(query) //end point
+                .queryParametes(null) //query parameters if any
+                .awsHeaders(awsHeaders) //aws header parameters
+                .debug() // turn on the debug mode
+                .build();
+
+        HttpGet httpGet = new HttpGet(url);
+
+		        /* Get header calculated for request */
+        Map<String, String> header = aWSV4Auth.getHeaders();
+        for (Map.Entry<String, String> entrySet : header.entrySet()) {
+            String key = entrySet.getKey();
+            String value = entrySet.getValue();
+
+			    /* Attach header in your request */
+			    /* Simple get request */
+
+            httpGet.addHeader(key, value);
+        }
+
+        /* Create object of CloseableHttpClient */
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+		/* Response handler for after request execution */
+        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
+
+            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+				/* Get status code */
+                int status = response.getStatusLine().getStatusCode();
+                if (status >= 200 && status < 300) {
+					/* Convert response to String */
+                    HttpEntity entity = response.getEntity();
+                    return entity != null ? EntityUtils.toString(entity) : null;
+                } else {
+                    throw new ClientProtocolException("Unexpected response status: " + status);
+                }
+            }
+        };
+
+        try {
+			/* Execute URL and attach after execution response handler */
+
+            String strResponse = httpClient.execute(httpGet, responseHandler);
+
+            JSONObject obj = new JSONObject(strResponse);
+            JSONObject item = obj.getJSONObject("_source");
+            return item.getInt("pi");
+
+            //System.out.println("Response: " + strResponse);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //if the ES GET fails, then return old topCardContent
+        return 0;
     }
 
 }

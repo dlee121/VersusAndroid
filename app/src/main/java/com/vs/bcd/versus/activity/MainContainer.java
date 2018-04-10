@@ -158,6 +158,7 @@ public class MainContainer extends AppCompatActivity {
     private boolean clickCoverUp = false;
     private View mActionBarView;
     private MainContainer thisActivity;
+    private HashMap<String, Integer> profileImgVersions = new HashMap<>();
 
 
     private String esHost = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
@@ -1032,6 +1033,25 @@ public class MainContainer extends AppCompatActivity {
         clickedPostIndex = index;
     }
 
+    public void addToCentralProfileImgVersionMap(HashMap<String, Integer> imageVersions){
+        profileImgVersions.putAll(imageVersions);
+    }
+
+    public void addToCentralProfileImgVersionMap(String username, int imageVersion){
+        profileImgVersions.put(username, imageVersion);
+    }
+
+    public int getProfileImageVersion(String username){
+        if(profileImgVersions != null){
+            Integer imgVersion = profileImgVersions.get(username);
+            if(imgVersion != null){
+                return imgVersion;
+            }
+        }
+        return -1; //this means do an ES query to find out
+    }
+
+
     public void setMyAdapterFragInt(int fragInt){
         myAdapterFragInt = fragInt;
     }
@@ -1482,7 +1502,7 @@ public class MainContainer extends AppCompatActivity {
         mViewPager.setCurrentItem(11);
     }
 
-    public int getProfileImage(){
+    public int getUserProfileImageVersion(){
         return sessionManager.getProfileImage();
     }
 

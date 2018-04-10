@@ -142,7 +142,7 @@ public class CreateMessage extends Fragment {
         mFirebaseUser = mFirebaseAuth.getCurrentUser(); //TODO: handle possible null object reference error
 
         userMKey = activity.getUserMKey();
-        mPhotoUrl = activity.getProfileImage();
+        mPhotoUrl = activity.getUserProfileImageVersion();
 
         thisFragment = this;
 

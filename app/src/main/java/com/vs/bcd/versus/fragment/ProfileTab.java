@@ -59,7 +59,6 @@ import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.GlideUrlCustom;
-import com.vs.bcd.versus.model.Post;
 
 import org.json.JSONObject;
 
@@ -641,11 +640,13 @@ public class ProfileTab extends Fragment {
                 try {
 
                     if(profileUsername.equals(activity.getUsername())){
-                        profileImgVersion = activity.getProfileImage();
+                        profileImgVersion = activity.getUserProfileImageVersion();
                     }
                     else{
                         profileImgVersion = getProfileImgVersion(username);
                     }
+
+                    activity.addToCentralProfileImgVersionMap(username, profileImgVersion);
 
                     if(profileImgVersion == 0){
                         imageURL = null;
@@ -679,9 +680,6 @@ public class ProfileTab extends Fragment {
         };
         _Task.execute((String[]) null);
     }
-
-
-
 
 
 

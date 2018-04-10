@@ -115,6 +115,8 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
             defaultProfileImage = ContextCompat.getDrawable(activity, R.drawable.default_profile);
         }
 
+        activity.addToCentralProfileImgVersionMap(profileImgVersions);
+
     }
 
     @Override

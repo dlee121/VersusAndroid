@@ -103,7 +103,7 @@ public class Tab4Messenger extends Fragment {
         mRoomRecyclerView.setLayoutManager(mLinearLayoutManager);
 
         userMKey = ((MainContainer)getActivity()).getUserMKey();
-        mPhotoUrl = activity.getProfileImage();
+        mPhotoUrl = activity.getUserProfileImageVersion();
 
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();
