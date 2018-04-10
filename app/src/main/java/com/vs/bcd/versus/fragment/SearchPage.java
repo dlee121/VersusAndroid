@@ -27,6 +27,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -63,6 +64,7 @@ public class SearchPage extends Fragment {
 
     private String host, region;
 
+    private HashMap<String, Integer> profileImgVersions = new HashMap<>();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -83,6 +85,7 @@ public class SearchPage extends Fragment {
                     if(searchET.getText().toString() != null && searchET.getText().toString().trim().length() > 0){
                         if(postSearchResults != null && searchResultsPostsAdapter != null){
                             postSearchResults.clear();
+                            profileImgVersions.clear();
                             searchResultsPostsAdapter.notifyDataSetChanged();
                         }
                         nowLoading = false;
@@ -96,9 +99,9 @@ public class SearchPage extends Fragment {
             }
         });
 
-        recyclerView = (RecyclerView) rootView.findViewById(R.id.search_results_posts);
+        recyclerView = rootView.findViewById(R.id.search_results_posts);
         recyclerView.setLayoutManager(new LinearLayoutManager(activity));
-        searchResultsPostsAdapter = new MyAdapter(postSearchResults, activity, 1);
+        searchResultsPostsAdapter = new MyAdapter(postSearchResults, activity, profileImgVersions, 1);
         recyclerView.setAdapter(searchResultsPostsAdapter);
 
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -264,11 +267,27 @@ public class SearchPage extends Fragment {
 
             JSONObject obj = new JSONObject(strResponse);
             JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
+
+            StringBuilder strBuilder = new StringBuilder((56*hits.length()) - 1);
             for(int i = 0; i < hits.length(); i++){
                 JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
                 postSearchResults.add(new Post(item, true));
-                //TODO: display search results. If zero results then display empty results page. Items should be clickable, but we may want to use a new adapter, differentiating search view from MainActivity views, mainly that searchview should be more concise to display more search results in one page. Or should it be same as MainActivity's way of displaying posts list?
+
+                //add username to parameter string, then at loop finish we do multiget of those users and create hashmap of username:profileImgVersion
+                if(i == 0){
+                    strBuilder.append("{\"_id\":\""+item.getString("a")+"\",\"_source\":\"pi\"}");
+                }
+                else{
+                    strBuilder.append(",{\"_id\":\""+item.getString("a")+"\",\"_source\":\"pi\"}");
+                }
+
             }
+
+            if(strBuilder.length() > 0){
+                String payload = "{\"docs\":["+strBuilder.toString()+"]}";
+                getProfileImgVersions(payload);
+            }
+
             if(postSearchResults != null && !postSearchResults.isEmpty()){
                 activity.runOnUiThread(new Runnable() {
                     @Override
@@ -299,5 +318,79 @@ public class SearchPage extends Fragment {
     }
 
     //TODO: also implement request cancelling where cancel() is called on the Request, in case user exists search before current search completes, so as to not trigger handler unnecessarily, although it may not matter and may actually work better that way to not cancel...think about that too, not cancelling.
+
+    private void getProfileImgVersions(String payload){
+        String query = "/user/user_type/_mget";
+        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
+        awsHeaders.put("host", host);
+        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
+                .regionName(region)
+                .serviceName("es") // es - elastic search. use your service name
+                .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
+                .canonicalURI(query) //end point
+                .queryParametes(null) //query parameters if any
+                .awsHeaders(awsHeaders) //aws header parameters
+                .payload(payload) // payload if any
+                .debug() // turn on the debug mode
+                .build();
+
+        String url = "https://" + host + query;
+
+        HttpPost httpPost = new HttpPost(url);
+        StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
+        httpPost.setEntity(requestEntity);
+
+		        /* Get header calculated for request */
+        Map<String, String> header = aWSV4Auth.getHeaders();
+        for (Map.Entry<String, String> entrySet : header.entrySet()) {
+            String key = entrySet.getKey();
+            String value = entrySet.getValue();
+
+			    /* Attach header in your request */
+			    /* Simple get request */
+
+            httpPost.addHeader(key, value);
+        }
+
+        /* Create object of CloseableHttpClient */
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+		/* Response handler for after request execution */
+        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
+
+            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+				/* Get status code */
+                int status = response.getStatusLine().getStatusCode();
+                if (status >= 200 && status < 300) {
+					/* Convert response to String */
+                    HttpEntity entity = response.getEntity();
+                    return entity != null ? EntityUtils.toString(entity) : null;
+                } else {
+                    throw new ClientProtocolException("Unexpected response status: " + status);
+                }
+            }
+        };
+
+        try {
+			/* Execute URL and attach after execution response handler */
+
+            String strResponse = httpClient.execute(httpPost, responseHandler);
+            Log.d("hahahai", strResponse);
+
+            //iterate through hits and put the info in postInfoMap
+            JSONObject obj = new JSONObject(strResponse);
+            JSONArray hits = obj.getJSONArray("docs");
+            for(int i = 0; i<hits.length(); i++){
+                JSONObject item = hits.getJSONObject(i);
+                JSONObject src = item.getJSONObject("_source");
+                profileImgVersions.put(item.getString("_id"), src.getInt("pi"));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
 }
 

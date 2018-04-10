@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Date;
 import java.util.Locale;
@@ -79,7 +80,9 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
     private int imageWidthPixels = 696;
     private int imageHeightPixels = 747;
 
-    Drawable defaultImage;
+    private HashMap<String, Integer> profileImgVersions;
+
+    Drawable defaultImage, defaultProfileImage;
 
     public MyAdapter(List<Post> posts, MainContainer activity, int fragmentInt) {
         this.posts = posts;
@@ -91,6 +94,25 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
 
         if(fragmentInt == 0 || fragmentInt == 6){
             defaultImage = ContextCompat.getDrawable(activity, R.drawable.default_background);
+            //defaultProfileImage = ContextCompat.getDrawable(activity, R.drawable.default_profile);
+        }
+
+    }
+
+    public MyAdapter(List<Post> posts, MainContainer activity, HashMap<String, Integer> profileImgVersions, int fragmentInt) {
+        this.posts = posts;
+        this.activity = activity;
+        this.profileImgVersions = profileImgVersions;
+        this.fragmentInt = fragmentInt;
+
+        VSRED = ContextCompat.getColor(this.activity, R.color.vsRed);
+        VSBLUE = ContextCompat.getColor(this.activity, R.color.vsBlue);
+
+        if(fragmentInt == 0 || fragmentInt == 6){
+            defaultImage = ContextCompat.getDrawable(activity, R.drawable.default_background);
+        }
+        if(fragmentInt != 9){
+            defaultProfileImage = ContextCompat.getDrawable(activity, R.drawable.default_profile);
         }
 
     }
@@ -221,6 +243,14 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
 
 
             try{
+                int profileImg = profileImgVersions.get(authorName).intValue();
+                if(profileImg == 0){
+                    GlideApp.with(activity).load(defaultProfileImage).into(txtImgViewHolder.circView);
+                }
+                else{
+                    GlideApp.with(activity).load(activity.getProfileImgUrl(authorName, profileImg)).into(txtImgViewHolder.circView);
+                }
+
                 if(post.getRedimg()%10 == S3){
                     GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI(post, 0));
                     GlideApp.with(activity).load(gurlLeft).override(imageWidthPixels, imageHeightPixels).into(txtImgViewHolder.leftIV);
@@ -304,6 +334,20 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
                 }
             });
 
+
+            try{
+                int profileImg = profileImgVersions.get(authorName).intValue();
+                if(profileImg == 0){
+                    GlideApp.with(activity).load(defaultProfileImage).into(txtOnlyViewHolder.circView);
+                }
+                else{
+                    GlideApp.with(activity).load(activity.getProfileImgUrl(authorName, profileImg)).into(txtOnlyViewHolder.circView);
+                }
+
+            }catch (Throwable t){
+
+            }
+
         }
 
         else if(holder instanceof NAIAdViewHolder){
@@ -383,29 +427,41 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
             CompactViewHolder compactViewHolder = (CompactViewHolder) holder;
 
             if(fragmentInt == 1){ //Search item, so show author
-                compactViewHolder.author.setText(compactPost.getAuthor());
+                final String authorName = compactPost.getAuthor();
+                compactViewHolder.author.setText(authorName);
                 compactViewHolder.timeTop.setText(getFormattedTime(compactPost.getTime()));
                 compactViewHolder.time.setText("");
-
-
 
                 compactViewHolder.author.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        if(!compactPost.getAuthor().equals("[deleted]")){
-                            activity.goToProfile(compactPost.getAuthor(), true);
+                        if(!authorName.equals("[deleted]")){
+                            activity.goToProfile(authorName, true);
                         }
                     }
                 });
 
-                compactViewHolder.profileImg.setOnClickListener(new View.OnClickListener() {
+                compactViewHolder.circView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        if(!compactPost.getAuthor().equals("[deleted]")){
-                            activity.goToProfile(compactPost.getAuthor(), true);
+                        if(!authorName.equals("[deleted]")){
+                            activity.goToProfile(authorName, true);
                         }
                     }
                 });
+
+                try{
+                    int profileImg = profileImgVersions.get(compactPost.getAuthor()).intValue();
+                    if(profileImg == 0){
+                        GlideApp.with(activity).load(defaultProfileImage).into(compactViewHolder.circView);
+                    }
+                    else{
+                        GlideApp.with(activity).load(activity.getProfileImgUrl(compactPost.getAuthor(), profileImg)).into(compactViewHolder.circView);
+                    }
+
+                }catch (Throwable t){
+
+                }
             }
             else{ //Post History item, so no need to show author
                 compactViewHolder.authorContainer.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
@@ -598,12 +654,12 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
     private class CompactViewHolder extends RecyclerView.ViewHolder{
         private TextView author, question, votecount, rname, bname, time, timeTop;
         private RelativeLayout authorContainer;
-        private CircleImageView profileImg;
+        private CircleImageView circView;
 
         public CompactViewHolder(View view){
             super(view);
             authorContainer = view.findViewById(R.id.cc_author_container);
-            profileImg = authorContainer.findViewById(R.id.profile_image_cc);
+            circView = authorContainer.findViewById(R.id.profile_image_cc);
             author = authorContainer.findViewById(R.id.cc_author_tv);
             timeTop = authorContainer.findViewById(R.id.time_cc);
             question = view.findViewById(R.id.question_vc);
@@ -808,33 +864,75 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
     @Override
     @NonNull
     public List<Post> getPreloadItems(int position) {
-        Post post = posts.get(position);
-        if (post.getRedimg()%10 == S3 || post.getBlackimg()%10 == S3) {
-            return Collections.singletonList(post);
+        if(fragmentInt == 9){
+            return Collections.emptyList();
         }
-        return Collections.emptyList();
+        return Collections.singletonList(posts.get(position));
     }
 
     @Override
     @Nullable
     public RequestBuilder getPreloadRequestBuilder(Post post) {
-        //Log.d("hihihihoy", "doing work");
         try{
-            if(post.getRedimg()%10 == S3){
-                if(post.getBlackimg()%10 == S3){
-                    GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI(post, 0));
-                    GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI(post, 1));
-                    return GlideApp.with(activity).load(gurlLeft).override(imageWidthPixels, imageHeightPixels).load(gurlRight).override(imageWidthPixels, imageHeightPixels);
-                }
-                else{
-                    GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI(post, 0));
-                    return GlideApp.with(activity).load(gurlLeft).override(imageWidthPixels, imageHeightPixels);
-                }
+            int profileImg;
+            switch (fragmentInt){
+                case 1:
+                    profileImg = profileImgVersions.get(post.getAuthor()).intValue();
+                    if(profileImg == 0){
+                        return null;
+                    }
+                    return GlideApp.with(activity).load( activity.getProfileImgUrl(post.getAuthor(),profileImgVersions.get(post.getAuthor()).intValue()) );
+
+                case 9:
+                    return null;
+
+                default:
+                    profileImg = profileImgVersions.get(post.getAuthor()).intValue();
+                    if(profileImg == 0){
+                        if(post.getRedimg()%10 == S3){
+                            if(post.getBlackimg()%10 == S3){
+                                GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI(post, 0));
+                                GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI(post, 1));
+                                return GlideApp.with(activity).load(gurlLeft).override(imageWidthPixels, imageHeightPixels).load(gurlRight).override(imageWidthPixels, imageHeightPixels);
+                            }
+                            else{
+                                GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI(post, 0));
+                                return GlideApp.with(activity).load(gurlLeft).override(imageWidthPixels, imageHeightPixels).load(defaultImage).override(imageWidthPixels, imageHeightPixels);
+                            }
+                        }
+                        else if(post.getBlackimg()%10 == S3){
+                            GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI(post, 1));
+                            return GlideApp.with(activity).load(defaultImage).override(imageWidthPixels, imageHeightPixels).load(gurlRight).override(imageWidthPixels, imageHeightPixels);
+                        }
+                        else{
+                            return GlideApp.with(activity).load(defaultImage).override(imageWidthPixels, imageHeightPixels).load(defaultImage).override(imageWidthPixels, imageHeightPixels);
+
+                        }
+                    }
+                    else{
+                        GlideUrlCustom gurlProfile = activity.getProfileImgUrl(post.getAuthor(), profileImg);
+                        if(post.getRedimg()%10 == S3){
+                            if(post.getBlackimg()%10 == S3){
+                                GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI(post, 0));
+                                GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI(post, 1));
+                                return GlideApp.with(activity).load(gurlProfile).load(gurlLeft).override(imageWidthPixels, imageHeightPixels).load(gurlRight).override(imageWidthPixels, imageHeightPixels);
+                            }
+                            else{
+                                GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI(post, 0));
+                                return GlideApp.with(activity).load(gurlProfile).load(gurlLeft).override(imageWidthPixels, imageHeightPixels).load(defaultImage).override(imageWidthPixels, imageHeightPixels);
+                            }
+                        }
+                        else if(post.getBlackimg()%10 == S3){
+                            GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI(post, 1));
+                            return GlideApp.with(activity).load(gurlProfile).load(defaultImage).override(imageWidthPixels, imageHeightPixels).load(gurlRight).override(imageWidthPixels, imageHeightPixels);
+                        }
+                        else{
+                            return GlideApp.with(activity).load(gurlProfile).load(defaultImage).override(imageWidthPixels, imageHeightPixels).load(defaultImage).override(imageWidthPixels, imageHeightPixels);
+                        }
+                    }
             }
-            else if(post.getBlackimg()%10 == S3){
-                GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI(post, 1));
-                return GlideApp.with(activity).load(gurlRight).override(imageWidthPixels, imageHeightPixels);
-            }
+
+
         }
         catch (Throwable t){
 

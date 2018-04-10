@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -57,6 +58,7 @@ import com.loopj.android.http.HttpGet;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.model.AWSV4Auth;
+import com.vs.bcd.versus.model.GlideUrlCustom;
 import com.vs.bcd.versus.model.Post;
 
 import org.json.JSONObject;
@@ -125,6 +127,7 @@ public class ProfileTab extends Fragment {
     private String host, region;
 
     private int profileImgVersion = 0;
+    private Drawable defaultProfileImage;
 
 
     @Override
@@ -179,6 +182,8 @@ public class ProfileTab extends Fragment {
             }
         });
 
+        defaultProfileImage = ContextCompat.getDrawable(activity, R.drawable.default_profile);
+
         profileImageView = rootView.findViewById(R.id.profile_image_pt);
         profileImageView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -192,7 +197,7 @@ public class ProfileTab extends Fragment {
             @Override
             public void onClick(View view) {
                 hideProfileImgButtons();
-                setProfileImageView(profileUsername.equals(activity.getUsername()));
+                loadProfileImage(profileUsername);
             }
         });
         profileImgCancelLP = (RelativeLayout.LayoutParams) profileImgCancel.getLayoutParams();
@@ -615,43 +620,70 @@ public class ProfileTab extends Fragment {
         profileImgConfirm.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
     }
 
-    private void setProfileImageView(boolean myProfile){
-        if(myProfile){
-            profileImgVersion = activity.getProfileImage();
-            if(profileImgVersion == 0){
-                //display addProfilePage button in the circle
-                profileImageView.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
-            }
-            else {
-                Glide.with(activity.getProfileTab()).load(activity.getProfileImgUrl(profileUsername, profileImgVersion)).into(profileImageView);
+    private void loadProfileImage(final String username) {
+
+        //Log.d("IMGUPLOAD", postIDin + "-" + side + ".jpeg");
+
+        AsyncTask<String, String, String> _Task = new AsyncTask<String, String, String>() {
+
+            GlideUrlCustom imageURL;
+
+            @Override
+            protected void onPreExecute() {
 
             }
-        }
-        else{
-            //get profileVersion from ES, then once reponse arrives, handle it with Glide request or local image set
-            final String username = profileUsername;
-            Runnable runnable = new Runnable() {
-                public void run() {
-                    profileImgVersion = getProfileImgVersion(username);
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if(profileImgVersion == 0){
-                                profileImageView.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
-                            }
-                            else{
-                                Glide.with(activity.getProfileTab()).load(activity.getProfileImgUrl(username, profileImgVersion)).into(profileImageView);
-                            }
-                        }
-                    });
+
+            @Override
+            protected String doInBackground(String... arg0)
+            {
+                //if (NetworkAvailablity.checkNetworkStatus(MyActivity.this))
+                //{
+                try {
+
+                    if(profileUsername.equals(activity.getUsername())){
+                        profileImgVersion = activity.getProfileImage();
+                    }
+                    else{
+                        profileImgVersion = getProfileImgVersion(username);
+                    }
+
+                    if(profileImgVersion == 0){
+                        imageURL = null;
+                    }
+                    else{
+                        imageURL = activity.getProfileImgUrl(username, profileImgVersion);
+                    }
+
+                } catch (Exception e) {
+                    // writing error to Log
+                    e.printStackTrace();
                 }
-            };
-            Thread mythread = new Thread(runnable);
-            mythread.start();
-
-        }
-
+                return null;
+            }
+            @Override
+            protected void onProgressUpdate(String... values) {
+                // TODO Auto-generated method stub
+                super.onProgressUpdate(values);
+                System.out.println("Progress : "  + values);
+            }
+            @Override
+            protected void onPostExecute(String result)
+            {
+                if(imageURL != null){
+                    Glide.with(activity.getProfileTab()).load(imageURL).into(profileImageView);
+                }
+                else{
+                    Glide.with(activity.getProfileTab()).load(defaultProfileImage).into(profileImageView);
+                }
+            }
+        };
+        _Task.execute((String[]) null);
     }
+
+
+
+
+
 
     private int getProfileImgVersion(String username){
 
@@ -727,6 +759,8 @@ public class ProfileTab extends Fragment {
 
         profileUsername = username;
 
+        loadProfileImage(profileUsername);
+
         commentsTab.setProfileUsername(username);
         postsTab.setProfileUsername(username);
 
@@ -740,7 +774,6 @@ public class ProfileTab extends Fragment {
 
             hideFollowUI();
 
-            setProfileImageView(true);
 
             Runnable runnable = new Runnable() {
                 public void run() {
@@ -777,8 +810,6 @@ public class ProfileTab extends Fragment {
             else{
                 showFollowButton();
             }
-
-            setProfileImageView(false);
 
             Runnable runnable = new Runnable() {
                 public void run() {

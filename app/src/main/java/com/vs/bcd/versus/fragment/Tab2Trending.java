@@ -14,6 +14,7 @@ import android.support.v7.widget.RecyclerView;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
@@ -74,6 +75,8 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
 
     private String host, region;
 
+    private HashMap<String, Integer> profileImgVersions = new HashMap<>();
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -85,11 +88,11 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
 
         posts = new ArrayList<>();
 
-        recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler_view2);
+        recyclerView = rootView.findViewById(R.id.recycler_view2);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(mHostActivity));
         //this is where the list is passed on to adapter
-        myAdapter = new MyAdapter(posts, mHostActivity, 0);
+        myAdapter = new MyAdapter(posts, mHostActivity, profileImgVersions, 0);
         recyclerView.setAdapter(myAdapter);
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -152,6 +155,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
         Log.d("Refresh", "Now Refreshing");
 
         posts.clear();
+        profileImgVersions.clear();
         trendingESQuery(0);
 
         Log.d("Refresh", "Now posts has " + Integer.toString(posts.size()) + " items");
@@ -263,6 +267,8 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                 });
                 return;
             }
+
+            StringBuilder strBuilder = new StringBuilder((56*hits.length()) - 1);
             for(int i = 0; i < hits.length(); i++) {
                 JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
                 posts.add(new Post(item, false));
@@ -287,7 +293,19 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                         Log.d("adscheck", "ads not loaded");
                     }
                 }
-                Log.d("SEARCHRESULTS", "R: " + posts.get(i).getRedname() + ", B: " + posts.get(i).getBlackname() + ", Q: " + posts.get(i).getQuestion());
+
+                //add username to parameter string, then at loop finish we do multiget of those users and create hashmap of username:profileImgVersion
+                if(i == 0){
+                    strBuilder.append("{\"_id\":\""+item.getString("a")+"\",\"_source\":\"pi\"}");
+                }
+                else{
+                    strBuilder.append(",{\"_id\":\""+item.getString("a")+"\",\"_source\":\"pi\"}");
+                }
+            }
+
+            if(strBuilder.length() > 0){
+                String payload = "{\"docs\":["+strBuilder.toString()+"]}";
+                getProfileImgVersions(payload);
             }
 
             mHostActivity.runOnUiThread(new Runnable() {
@@ -330,6 +348,79 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                 posts.set(index, editedPost);
                 myAdapter.notifyItemChanged(index);
             }
+        }
+
+    }
+
+    private void getProfileImgVersions(String payload){
+        String query = "/user/user_type/_mget";
+        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
+        awsHeaders.put("host", host);
+        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
+                .regionName(region)
+                .serviceName("es") // es - elastic search. use your service name
+                .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
+                .canonicalURI(query) //end point
+                .queryParametes(null) //query parameters if any
+                .awsHeaders(awsHeaders) //aws header parameters
+                .payload(payload) // payload if any
+                .debug() // turn on the debug mode
+                .build();
+
+        String url = "https://" + host + query;
+
+        HttpPost httpPost = new HttpPost(url);
+        StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
+        httpPost.setEntity(requestEntity);
+
+		        /* Get header calculated for request */
+        Map<String, String> header = aWSV4Auth.getHeaders();
+        for (Map.Entry<String, String> entrySet : header.entrySet()) {
+            String key = entrySet.getKey();
+            String value = entrySet.getValue();
+
+			    /* Attach header in your request */
+			    /* Simple get request */
+
+            httpPost.addHeader(key, value);
+        }
+
+        /* Create object of CloseableHttpClient */
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+		/* Response handler for after request execution */
+        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
+
+            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+				/* Get status code */
+                int status = response.getStatusLine().getStatusCode();
+                if (status >= 200 && status < 300) {
+					/* Convert response to String */
+                    HttpEntity entity = response.getEntity();
+                    return entity != null ? EntityUtils.toString(entity) : null;
+                } else {
+                    throw new ClientProtocolException("Unexpected response status: " + status);
+                }
+            }
+        };
+
+        try {
+			/* Execute URL and attach after execution response handler */
+
+            String strResponse = httpClient.execute(httpPost, responseHandler);
+            Log.d("hahahai", strResponse);
+
+            //iterate through hits and put the info in postInfoMap
+            JSONObject obj = new JSONObject(strResponse);
+            JSONArray hits = obj.getJSONArray("docs");
+            for(int i = 0; i<hits.length(); i++){
+                JSONObject item = hits.getJSONObject(i);
+                JSONObject src = item.getJSONObject("_source");
+                profileImgVersions.put(item.getString("_id"), src.getInt("pi"));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
     }

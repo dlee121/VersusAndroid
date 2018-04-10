@@ -25,7 +25,7 @@
                 android:layout_height="30dp"
                 android:clickable="true"
                 android:focusable="true"
-                android:src="@drawable/vs_shadow_w_tag"
+                android:src="@drawable/default_profile"
                 android:layout_marginStart="8dp"
                 app:civ_border_color="#FF000000"
                 app:civ_border_width="2dp"

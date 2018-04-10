@@ -89,6 +89,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
 
     private String host, region;
 
+    private HashMap<String, Integer> profileImgVersions = new HashMap<>();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -103,11 +104,11 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
 
         posts = new ArrayList<>();
 
-        recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler_view_cf);
+        recyclerView = rootView.findViewById(R.id.recycler_view_cf);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(mHostActivity));
         //this is where the list is passed on to adapter
-        myAdapter = new MyAdapter(posts, mHostActivity, 6);
+        myAdapter = new MyAdapter(posts, mHostActivity, profileImgVersions, 6);
         recyclerView.setAdapter(myAdapter);
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -271,6 +272,7 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
 
     public void clearPosts(){
         posts.clear();
+        profileImgVersions.clear();
         if(recyclerView != null){
             recyclerView.getAdapter().notifyDataSetChanged();
         }
@@ -455,11 +457,6 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
         try {
 			/* Execute URL and attach after execution response handler */
             String strResponse = httpClient.execute(httpPost, responseHandler);
-            if(posts == null){
-                posts = new ArrayList<>();
-                myAdapter = new MyAdapter(posts, mHostActivity, 6);
-                recyclerView.setAdapter(myAdapter);
-            }
 
             JSONObject obj = new JSONObject(strResponse);
             JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
@@ -473,6 +470,8 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
                 });
                 return;
             }
+
+            StringBuilder strBuilder = new StringBuilder((56*hits.length()) - 1);
             for(int i = 0; i < hits.length(); i++){
                 JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
                 posts.add(new Post(item, false));
@@ -499,7 +498,19 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
                         Log.d("adscheck", "ads not loaded");
                     }
                 }
-                Log.d("SEARCHRESULTS", "R: " + posts.get(i).getRedname() + ", B: " + posts.get(i).getBlackname() + ", Q: " + posts.get(i).getQuestion());
+
+                //add username to parameter string, then at loop finish we do multiget of those users and create hashmap of username:profileImgVersion
+                if(i == 0){
+                    strBuilder.append("{\"_id\":\""+item.getString("a")+"\",\"_source\":\"pi\"}");
+                }
+                else{
+                    strBuilder.append(",{\"_id\":\""+item.getString("a")+"\",\"_source\":\"pi\"}");
+                }
+            }
+
+            if(strBuilder.length() > 0){
+                String payload = "{\"docs\":["+strBuilder.toString()+"]}";
+                getProfileImgVersions(payload);
             }
 
             mHostActivity.runOnUiThread(new Runnable() {
@@ -554,5 +565,77 @@ public class CategoryFragment extends Fragment implements SwipeRefreshLayout.OnR
 
     }
 
+    private void getProfileImgVersions(String payload){
+        String query = "/user/user_type/_mget";
+        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
+        awsHeaders.put("host", host);
+        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
+                .regionName(region)
+                .serviceName("es") // es - elastic search. use your service name
+                .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
+                .canonicalURI(query) //end point
+                .queryParametes(null) //query parameters if any
+                .awsHeaders(awsHeaders) //aws header parameters
+                .payload(payload) // payload if any
+                .debug() // turn on the debug mode
+                .build();
+
+        String url = "https://" + host + query;
+
+        HttpPost httpPost = new HttpPost(url);
+        StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
+        httpPost.setEntity(requestEntity);
+
+		        /* Get header calculated for request */
+        Map<String, String> header = aWSV4Auth.getHeaders();
+        for (Map.Entry<String, String> entrySet : header.entrySet()) {
+            String key = entrySet.getKey();
+            String value = entrySet.getValue();
+
+			    /* Attach header in your request */
+			    /* Simple get request */
+
+            httpPost.addHeader(key, value);
+        }
+
+        /* Create object of CloseableHttpClient */
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+		/* Response handler for after request execution */
+        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
+
+            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+				/* Get status code */
+                int status = response.getStatusLine().getStatusCode();
+                if (status >= 200 && status < 300) {
+					/* Convert response to String */
+                    HttpEntity entity = response.getEntity();
+                    return entity != null ? EntityUtils.toString(entity) : null;
+                } else {
+                    throw new ClientProtocolException("Unexpected response status: " + status);
+                }
+            }
+        };
+
+        try {
+			/* Execute URL and attach after execution response handler */
+
+            String strResponse = httpClient.execute(httpPost, responseHandler);
+            Log.d("hahahai", strResponse);
+
+            //iterate through hits and put the info in postInfoMap
+            JSONObject obj = new JSONObject(strResponse);
+            JSONArray hits = obj.getJSONArray("docs");
+            for(int i = 0; i<hits.length(); i++){
+                JSONObject item = hits.getJSONObject(i);
+                JSONObject src = item.getJSONObject("_source");
+                profileImgVersions.put(item.getString("_id"), src.getInt("pi"));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
 
 }
