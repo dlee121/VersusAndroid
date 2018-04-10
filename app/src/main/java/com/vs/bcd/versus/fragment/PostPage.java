@@ -291,10 +291,11 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                             }
                             else{
-                                Log.d("replyTargetIndex1", Integer.toString(replyTargetIndex));
+
                                 String targetID = "";
                                 int targetChildCount = 0;
                                 int targetNestedLevel = 0;
+                                int targetIndex = 0;
 
                                 boolean insertReplyInCurrentPage = false;
                                 final VSComment vsc = new VSComment();
@@ -319,6 +320,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     targetID = replyTarget.getComment_id();
                                     targetChildCount = replyTarget.getChild_count();
                                     targetNestedLevel = replyTarget.getNestedLevel();
+                                    targetIndex = replyTargetIndex;
 
                                     vsc.setParent_id(targetID);
 
@@ -351,7 +353,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                         }
                                         else{
                                             pageLevel += targetNestedLevel + 1;
-                                            Log.d("chichichichia!", "now page level is " + Integer.toString(pageLevel));
                                         }
 
                                         activity.runOnUiThread(new Runnable() {
@@ -433,8 +434,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                 });
 
                                 if(insertReplyInCurrentPage){
-                                    Log.d("replyTargetIndex2", Integer.toString(replyTargetIndex));
-                                    final int indexIn = replyTargetIndex;
+
                                     vsc.setNestedLevel(targetNestedLevel + 1);
                                     VSCNode parentNode = nodeMap.get(targetID);
                                     VSCNode thisNode = new VSCNode(vsc);
@@ -456,12 +456,11 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                         offset++;
                                     }
 
-                                    final int offsetFinal = offset;
+                                    final int insertionIndex = targetIndex + offset;
                                     activity.runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            PPAdapter.insertItem(vsc, indexIn + offsetFinal);
-                                            Log.d("replyTargetIndex3", Integer.toString(indexIn + offsetFinal));
+                                            PPAdapter.insertItem(vsc, insertionIndex);
                                         }
                                     });
 
