@@ -187,7 +187,9 @@ public class ProfileTab extends Fragment {
         profileImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                uploadProfileImage();
+                if(profileUsername != null && profileUsername.equals(activity.getUsername())){
+                    uploadProfileImage();
+                }
             }
         });
 
