@@ -306,6 +306,7 @@ public class MainContainer extends AppCompatActivity {
         credentialsProvider.getCredentials().getAWSSecretKey()
         */
 
+
         ddbClient = new AmazonDynamoDBClient(credentialsProvider);
         mapper = new DynamoDBMapper(ddbClient);
         s3 = new AmazonS3Client(credentialsProvider);
