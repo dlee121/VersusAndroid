@@ -3297,6 +3297,16 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             return;
         }
 
+        if(replyTarget != null){
+            trueReplyTarget.setIsHighlighted(false);
+            PPAdapter.notifyItemChanged(trueReplyTargetIndex);
+            replyTarget = null;
+        }
+        else if(editTarget != null){
+            editTarget.setIsHighlighted(false);
+            PPAdapter.notifyItemChanged(editIndex);
+        }
+
         editTarget = commentToEdit;
         editIndex = index;
         commentToEdit.setIsHighlighted(true);
@@ -3304,6 +3314,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         replyingTo.setText("Editing");
         replyingTo.getLayoutParams().height = RelativeLayout.LayoutParams.WRAP_CONTENT;
         viewTreeTriggerCount = 0;
+        trueReplyTargetIndex = editIndex; //for scrolling to target
         pageCommentInput.setText(commentToEdit.getContent());
         if(!pageCommentInput.hasFocus()){
             pageCommentInput.requestFocus();

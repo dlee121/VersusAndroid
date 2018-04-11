@@ -264,8 +264,7 @@ public class MainContainer extends AppCompatActivity {
                     break;
 
                 case 11: //currently in MessageRoom fragment
-                    toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
-                    mViewPager.setCurrentItem(0);
+                    mViewPager.setCurrentItem(4);
                     messageRoom.cleanUp();
                     break;
 
@@ -525,8 +524,7 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 11:
-                        toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
-                        mViewPager.setCurrentItem(0);
+                        mViewPager.setCurrentItem(4);
                         messageRoom.cleanUp();
                         break;
 
