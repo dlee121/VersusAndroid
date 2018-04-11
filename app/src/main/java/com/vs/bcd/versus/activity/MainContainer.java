@@ -76,6 +76,7 @@ import com.vs.bcd.versus.fragment.SelectCategory;
 import com.vs.bcd.versus.fragment.SettingsFragment;
 import com.vs.bcd.versus.fragment.Tab1Newsfeed;
 import com.vs.bcd.versus.fragment.Tab2Trending;
+import com.vs.bcd.versus.fragment.Tab4Messenger;
 import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.model.GlideUrlCustom;
 import com.vs.bcd.versus.model.Post;
@@ -159,6 +160,8 @@ public class MainContainer extends AppCompatActivity {
     private View mActionBarView;
     private MainContainer thisActivity;
     private HashMap<String, Integer> profileImgVersions = new HashMap<>();
+    private Tab4Messenger messengerFragment;
+    private int messengerBackTarget = 0;
 
 
     private String esHost = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
@@ -230,9 +233,8 @@ public class MainContainer extends AppCompatActivity {
                     }
                     break;
 
-                case 4:
-                    mViewPager.setCurrentItem(3);
-                    commentEnterFragment.clearTextInput();
+                case 4: //messenger
+                    mViewPager.setCurrentItem(messengerBackTarget);
                     break;
 
                 case 5: //currently in SelectCategory for CreatePost
@@ -481,10 +483,8 @@ public class MainContainer extends AppCompatActivity {
                         }
                         break;
 
-                    case 4: //commentEnterFragment
-                        imm.hideSoftInputFromWindow(toolbarButtonLeft.getWindowToken(), 0);
-                        mViewPager.setCurrentItem(3);
-                        commentEnterFragment.clearTextInput();
+                    case 4: //messenger
+                        mViewPager.setCurrentItem(messengerBackTarget);
                         break;
 
                     case 5: //category selection screen for CreatePost
@@ -544,9 +544,37 @@ public class MainContainer extends AppCompatActivity {
             public void onClick(View v) {
                 int currPage = mViewPager.getCurrentItem();
                 switch (currPage){
+                    case 0: //MainActivity
+                        mViewPager.setCurrentItem(4); //go to messenger
+                        messengerBackTarget = 0;
+                        titleTxtView.setText("Messenger");
+                        setLeftChevron();
+                        break;
+
+                    case 1: //Search
+                        mViewPager.setCurrentItem(4);
+                        messengerBackTarget = 1;
+                        titleTxtView.setText("Messenger");
+                        break;
 
                     case 3: //PostPage
                         showListPopupWindow(getCurrentPost().getAuthor().equals(currUsername));
+                        break;
+
+                    case 7: //Leaderboard
+                        mViewPager.setCurrentItem(4);
+                        messengerBackTarget = 7;
+                        titleTxtView.setText("Messenger");
+                        setLeftChevron();
+                        showToolbarButtonLeft();
+                        break;
+
+                    case 8: //Notifications
+                        mViewPager.setCurrentItem(4);
+                        messengerBackTarget = 8;
+                        titleTxtView.setText("Messenger");
+                        setLeftChevron();
+                        showToolbarButtonLeft();
                         break;
 
                     case 9:    //Me
@@ -575,21 +603,10 @@ public class MainContainer extends AppCompatActivity {
 
                         break;
 
-                    case 4: //CommentEnterFragment
-                        //Log.d("buttontest", "button press");
-                        toolbarTextButton.setClickable(false);
-                        if(commentEnterFragment.submitButtonPressed()){
-                            imm.hideSoftInputFromWindow(toolbarButtonLeft.getWindowToken(), 0);
-                        }
-                        else{
-                            toolbarTextButton.setClickable(true);
-                        }
-                        break;
-
                     case 12:    //CreateMessage fragment
                         String dmTarget = createMessageFragment.getDMTarget();
                         if(!(dmTarget.equals(""))){
-                            RNumAndUList rNumAndUList = mainActivityFragRef.getTab4Messenger().getRNumAndUList(dmTarget);
+                            RNumAndUList rNumAndUList = messengerFragment.getRNumAndUList(dmTarget);
                             if(rNumAndUList != null){
                                 setUpAndOpenMessageRoom(rNumAndUList.getRNum(), rNumAndUList.getUsersList(), dmTarget);
                             }
@@ -605,7 +622,7 @@ public class MainContainer extends AppCompatActivity {
             }
         });
 
-        bottomNavigation = (AHBottomNavigation) findViewById(R.id.bottom_navigation);
+        bottomNavigation = findViewById(R.id.bottom_navigation);
 
         bottomNavLP = (RelativeLayout.LayoutParams) bottomNavigation.getLayoutParams();
 
@@ -671,7 +688,7 @@ public class MainContainer extends AppCompatActivity {
                     //We probably only need to account for when the transition between yes-tab / no-tab happens (tabs 0, 2, 3, 6)
                     //But if it makes no significant performance difference to include all the other tabs, we might as well, to be on safe side especially in case future developments necessitate doing so.
                     case 0: //MainActivity
-                        hideToolbarButtonRight();
+                        showMessengerButton();
                         hideToolbarTextButton();
                         enableBottomTabs();
                         titleTxtView.setText(lastSetTitle);
@@ -682,9 +699,11 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 1: //SearchPage
+                        showMessengerButton();
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         disableBottomTabs();
+                        titleTxtView.setText("Search");
                         break;
 
                     case 2: //CreatePost
@@ -705,10 +724,10 @@ public class MainContainer extends AppCompatActivity {
                         hideToolbarProgressbar();
                         break;
 
-                    case 4: //CommentEnterFragment
-                        //disableBottomTabs();  //accessed from PostPage which already disables bottom tabs
-                        hideToolbarButtonRight();
-                        showToolbarTextButton("POST");
+                    case 4: //messenger
+                        showMessengerSearchButton();
+                        hideToolbarTextButton();
+                        disableBottomTabs();
                         break;
 
                     case 5: //SelectCategory
@@ -728,8 +747,8 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 7: //LeaderboardTab
-                        //enableBottomTabs();   //Leaderboard is accessible through bottom tabs only so bottom tabs are already enabled
-                        hideToolbarButtonRight();
+                        enableBottomTabs();
+                        showMessengerButton();
                         hideToolbarTextButton();
                         hideToolbarButtonLeft();
                         titleTxtView.setText("Leaderboard");
@@ -737,8 +756,8 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 8: //NotificationsTab
-                        //enableBottomTabs();   //Notifications is accessible through bottom tabs only so bottom tabs are already enabled
-                        hideToolbarButtonRight();
+                        enableBottomTabs();
+                        showMessengerButton();
                         hideToolbarTextButton();
                         enableBottomTabs(); //because we might make notifications not bottom tab, putting this here just in case
                         hideToolbarButtonLeft();
@@ -799,6 +818,7 @@ public class MainContainer extends AppCompatActivity {
 
         setToolbarTitleTextForTabs("Newsfeed");
         goToMainActivityOnResume = true;
+        showMessengerButton();
 
         //Log.d("USER_INFO", sessionManager.getUserDetails().get(SessionManager.KEY_USERNAME));
         Log.d("ORDER", "MainContainer OnCreate finished");
@@ -952,8 +972,8 @@ public class MainContainer extends AppCompatActivity {
                     postPage = new PostPage();
                     return postPage;
                 case 4:
-                    commentEnterFragment = new CommentEnterFragment();
-                    return commentEnterFragment;
+                    messengerFragment = new Tab4Messenger();
+                    return messengerFragment;
                 case 5:
                     return new SelectCategory();
                 case 6:
@@ -995,7 +1015,7 @@ public class MainContainer extends AppCompatActivity {
                 case 3:
                     return "POST PAGE";
                 case 4:
-                    return "COMMENT ENTER PAGE";
+                    return "Messenger";
                 case 5:
                     return "SELECT CATEGORY";
                 case 6:
@@ -1300,6 +1320,18 @@ public class MainContainer extends AppCompatActivity {
         toolbarButtonRight.setEnabled(true);
         toolbarButtonRight.setLayoutParams(toolbarButtonRightLP);
         toolbarButtonRight.setImageResource(R.drawable.ic_settings_white_24dp);
+    }
+
+    private void showMessengerSearchButton(){
+        toolbarButtonRight.setEnabled(true);
+        toolbarButtonRight.setLayoutParams(toolbarButtonRightLP);
+        toolbarButtonRight.setImageResource(R.drawable.ic_search_white);
+    }
+
+    private void showMessengerButton(){
+        toolbarButtonRight.setEnabled(true);
+        toolbarButtonRight.setLayoutParams(toolbarButtonRightLP);
+        toolbarButtonRight.setImageResource(R.drawable.ic_chat_bubble);
     }
 
     private  void showOverflowMenu() {

@@ -40,7 +40,6 @@ public class MainActivity extends Fragment {
     private FloatingActionButton fab;
     private Tab1Newsfeed tab1;
     private Tab2Trending tab2;
-    private Tab4Messenger tab4;
 
 
     @Override
@@ -66,7 +65,6 @@ public class MainActivity extends Fragment {
         tabLayout.getTabAt(0).setIcon(R.drawable.ic_home_selected);
         tabLayout.getTabAt(1).setIcon(R.drawable.ic_trending_unselected);
         tabLayout.getTabAt(2).setIcon(R.drawable.ic_categories_unselected);
-        tabLayout.getTabAt(3).setIcon(R.drawable.ic_messenger_unselected);
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -95,11 +93,6 @@ public class MainActivity extends Fragment {
                         mainContainer.setToolbarTitleTextForTabs("Categories");
                         disableCPFab();
                         break;
-                    case 3: //messenger
-                        tab.setIcon(R.drawable.ic_messenger_selected);
-                        mainContainer.setToolbarTitleTextForTabs("Messenger");
-                        disableCPFab();
-                        break;
                     default:
                         tab.setIcon(R.drawable.ic_home_selected);
                         break;
@@ -117,9 +110,6 @@ public class MainActivity extends Fragment {
                         break;
                     case 2: //categories
                         tab.setIcon(R.drawable.ic_categories_unselected);
-                        break;
-                    case 3: //messenger
-                        tab.setIcon(R.drawable.ic_messenger_unselected);
                         break;
                     default:
                         tab.setIcon(R.drawable.ic_home_unselected);
@@ -194,9 +184,6 @@ public class MainActivity extends Fragment {
                 case 2:
                     Tab3Categories tab3 = new Tab3Categories();
                     return tab3;
-                case 3:
-                    tab4 = new Tab4Messenger();
-                    return tab4;
                 default:
                     return null;
             }
@@ -204,8 +191,8 @@ public class MainActivity extends Fragment {
 
         @Override
         public int getCount() {
-            // Show 4 total pages.
-            return 4;
+            // Show 3 total pages.
+            return 3;
         }
     }
 
@@ -226,7 +213,7 @@ public class MainActivity extends Fragment {
             if(rootView != null){
                 enableChildViews();
                 int currItem = mViewPager.getCurrentItem();
-                if(currItem == 2 || currItem == 3){
+                if(currItem == 2 ){
                     disableCPFab();
                 }
             }
@@ -276,12 +263,8 @@ public class MainActivity extends Fragment {
         return tab1;
     }
 
-    public Tab2Trending getTab2(){
+    public Tab2Trending getTab2() {
         return tab2;
-    }
-
-    public Tab4Messenger getTab4Messenger(){
-        return tab4;
     }
 
     public void addPostToTop(Post post){
