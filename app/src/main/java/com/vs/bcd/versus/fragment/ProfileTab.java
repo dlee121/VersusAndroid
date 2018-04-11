@@ -999,7 +999,7 @@ public class ProfileTab extends Fragment {
                                     public void run() {
                                         sendFollowNotification(profileUsername);
                                         showFollowingText();
-                                        updateProfileInfo();
+                                        getFGHCounts();
                                     }
                                 });
                             } else {
@@ -1049,7 +1049,7 @@ public class ProfileTab extends Fragment {
                                         public void run() {
                                             sendFollowNotification(profileUsername);
                                             showFollowingText();
-                                            updateProfileInfo();
+                                            getFGHCounts();
                                         }
                                     });
                                 } else {
@@ -1060,53 +1060,6 @@ public class ProfileTab extends Fragment {
 
             }
         }
-    }
-
-    //only use for updating points, following count, and follower count for other users' profile. not for use with myProfile
-    private void updateProfileInfo(){
-        //only called when we follow another user, meaning the profile page is displaying another user when this function is called
-        //that means we can use getFGHCounts(), which uses displayOtherProfile() and not displayMyProfile(), to update the follower count and following count
-        Runnable runnable = new Runnable() {
-            public void run() {
-
-                if(profileUsername == null){
-                    return;
-                }
-                HashMap<String, AttributeValue> keyMap =
-                        new HashMap<>();
-                keyMap.put("username", new AttributeValue().withS(profileUsername));  //partition key
-
-                GetItemRequest request = new GetItemRequest()
-                        .withTableName("user")
-                        .withKey(keyMap)
-                        .withProjectionExpression("points");
-                GetItemResult result = activity.getDDBClient().getItem(request);
-
-                final Map<String, AttributeValue> resultMap = result.getItem();
-
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-
-                        usernameTV.setText(profileUsername);
-
-                        for (Map.Entry<String, AttributeValue> entry : resultMap.entrySet()) {
-                            String attrName = entry.getKey();
-                            if(attrName.equals("points")){
-                                String strIn = entry.getValue().getN() + " influence";
-                                pointsTV.setText(strIn);
-                            }
-                        }
-
-                        getFGHCounts();
-
-                    }
-                });
-            }
-        };
-        Thread mythread = new Thread(runnable);
-        mythread.start();
-
     }
 
     //get counts for following and follower
