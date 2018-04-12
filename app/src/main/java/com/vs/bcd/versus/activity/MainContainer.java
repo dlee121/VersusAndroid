@@ -559,6 +559,10 @@ public class MainContainer extends AppCompatActivity {
                         showListPopupWindow(getCurrentPost().getAuthor().equals(currUsername));
                         break;
 
+                    case 4:
+                        //TODO: change to "go to Messenger Search"
+                        break;
+
                     case 7: //Leaderboard
                         mViewPager.setCurrentItem(4);
                         messengerBackTarget = 7;

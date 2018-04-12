@@ -1,5 +1,8 @@
 package com.vs.bcd.versus.fragment;
 
+import android.arch.lifecycle.Lifecycle;
+import android.arch.lifecycle.LifecycleOwner;
+import android.arch.lifecycle.OnLifecycleEvent;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -15,6 +18,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -22,9 +26,11 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
+import com.vs.bcd.versus.adapter.MyAdapter;
 import com.vs.bcd.versus.model.RNumAndUList;
 import com.vs.bcd.versus.model.RoomObject;
 import com.vs.bcd.versus.model.SessionManager;
@@ -86,6 +92,7 @@ public class MessengerFragment extends Fragment {
     private ChildEventListener roomsListener;
     private HashMap<String, RNumAndUList> rNameToRNum;
     private TextView emptyListTV;
+    private Query query;
 
 
     @Override
@@ -99,6 +106,7 @@ public class MessengerFragment extends Fragment {
         mRoomRecyclerView = rootView.findViewById(R.id.roomsRecyclerView);
         mLinearLayoutManager = new LinearLayoutManager(getActivity());
         mLinearLayoutManager.setStackFromEnd(true);
+        mLinearLayoutManager.setReverseLayout(true);
         mRoomRecyclerView.setLayoutManager(mLinearLayoutManager);
 
         userMKey = ((MainContainer)getActivity()).getUserMKey();
@@ -152,74 +160,85 @@ public class MessengerFragment extends Fragment {
     public void onResume(){
         super.onResume();
 
-        rNameToRNum = new HashMap<>();
+        if(mFirebaseAdapter != null){
+            mFirebaseAdapter.startListening();
+        }
+        else{
+            rNameToRNum = new HashMap<>();
 
-        mFirebaseAdapter = new FirebaseRecyclerAdapter<RoomObject,
-                RoomViewHolder>(
-                RoomObject.class,
-                R.layout.room_item_view,
-                RoomViewHolder.class,
-                mFirebaseDatabaseReference.child(ROOMS_CHILD)) {
+            query = mFirebaseDatabaseReference.child(ROOMS_CHILD).orderByChild("time").limitToLast(40);
 
-            @Override
-            protected void populateViewHolder(final RoomViewHolder viewHolder,
-                                              final RoomObject roomObject, final int position) {
+            FirebaseRecyclerOptions<RoomObject> options =
+                    new FirebaseRecyclerOptions.Builder<RoomObject>()
+                            .setLifecycleOwner(this)
+                            .setQuery(query, RoomObject.class)
+                            .build();
 
-                mProgressBar.setVisibility(ProgressBar.INVISIBLE);
-                emptyListTV.setVisibility(TextView.INVISIBLE);
-                if (roomObject != null) {
+            mFirebaseAdapter = new FirebaseRecyclerAdapter<RoomObject, RoomViewHolder>(options) {
 
-                    final ArrayList<String> usersList = roomObject.getUsers();
-                    final String roomTitle = roomObject.getName();
-                    final String roomNum = getRef(position).getKey();
+                @Override
+                public RoomViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                    View view = LayoutInflater.from(activity).inflate(R.layout.room_item_view, parent, false);
+                    return new RoomViewHolder(view);
+                }
 
-                    rNameToRNum.put(roomTitle, new RNumAndUList(roomNum, usersList)); //TODO: will this get updated if room is updated with modified usersList?
+                @Override
+                protected void onBindViewHolder(final RoomViewHolder viewHolder, final int position, final RoomObject roomObject) {
 
-                    viewHolder.roomTitleTV.setText(roomTitle);
-                    viewHolder.roomTimeTV.setText(getMessengerTimeString(roomObject.getTime()));
-                    viewHolder.roomPreviewTV.setText(roomObject.getPreview());
-                    viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
+                    mProgressBar.setVisibility(ProgressBar.INVISIBLE);
+                    emptyListTV.setVisibility(TextView.INVISIBLE);
+                    if (roomObject != null) {
 
-                            usersList.remove(mUsername); //remove logged-in user from the room users map to prevent duplicate sends,
-                            // since we handle logged-in user's message transfer separate from message transfer of other room users
+                        final ArrayList<String> usersList = roomObject.getUsers();
+                        final String roomTitle = roomObject.getName();
+                        final String roomNum = getRef(position).getKey();
 
-                            if(roomNum != null && usersList != null){
-                                activity.setUpAndOpenMessageRoom(roomNum, usersList, roomTitle);
+                        rNameToRNum.put(roomTitle, new RNumAndUList(roomNum, usersList)); //TODO: will this get updated if room is updated with modified usersList?
+
+                        viewHolder.roomTitleTV.setText(roomTitle);
+                        viewHolder.roomTimeTV.setText(getMessengerTimeString(roomObject.getTime()));
+                        viewHolder.roomPreviewTV.setText(roomObject.getPreview());
+                        viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+
+                                usersList.remove(mUsername); //remove logged-in user from the room users map to prevent duplicate sends,
+                                // since we handle logged-in user's message transfer separate from message transfer of other room users
+
+                                if(roomNum != null && usersList != null){
+                                    activity.setUpAndOpenMessageRoom(roomNum, usersList, roomTitle);
+                                }
+                                else{
+                                    Log.d("MESSENGER", "roomNum is null");
+                                }
                             }
-                            else{
-                                Log.d("MESSENGER", "roomNum is null");
-                            }
-                        }
-                    });
+                        });
+                    }
+                    else {
+                        Log.d("roomSetUp", "title null");
+                    }
+
                 }
-                else {
-                    Log.d("roomSetUp", "title null");
+            };
+
+            mRoomRecyclerView.setAdapter(mFirebaseAdapter);
+
+            mFirebaseDatabaseReference.child(ROOMS_CHILD).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    mProgressBar.setVisibility(ProgressBar.INVISIBLE);
+                    if(!(dataSnapshot.hasChildren())){
+                        emptyListTV.setVisibility(TextView.VISIBLE);
+                    }
+                    setFirebaseObserver();
                 }
 
-            }
-        };
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
 
-        mRoomRecyclerView.setAdapter(mFirebaseAdapter);
-
-        mFirebaseDatabaseReference.child(ROOMS_CHILD).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                mProgressBar.setVisibility(ProgressBar.INVISIBLE);
-                if(!(dataSnapshot.hasChildren())){
-                    emptyListTV.setVisibility(TextView.VISIBLE);
                 }
-                setFirebaseObserver();
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-
+            });
+        }
     }
 
     private void setFirebaseObserver(){
@@ -252,6 +271,10 @@ public class MessengerFragment extends Fragment {
     @Override
     public void onPause(){
         super.onPause();
+        if(mFirebaseAdapter != null){
+            mFirebaseAdapter.stopListening();
+            //mRoomRecyclerView.setAdapter(null);
+        }
     }
 
     @Override
@@ -302,8 +325,16 @@ public class MessengerFragment extends Fragment {
         if(year == currentYear){
             if(month == currentMonth && day == currentDay){ //format = hh:mm
                 int hour = chatTime.get(Calendar.HOUR);
+                int minute = chatTime.get(Calendar.MINUTE);
+                String minuteString;
+                if(minute > 10) {
+                    minuteString = Integer.toString(minute);
+                }
+                else{
+                    minuteString = "0" + Integer.toString(minute);
+                }
 
-                String timeString = Integer.toString(hour)+":"+Integer.toString(chatTime.get(Calendar.MINUTE));
+                String timeString = Integer.toString(hour)+":"+minuteString;
                 if(chatTime.get(Calendar.AM_PM) == Calendar.PM){
                     timeString = timeString.concat(" pm");
                 }

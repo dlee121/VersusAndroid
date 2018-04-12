@@ -27,6 +27,7 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.analytics.FirebaseAnalytics;
@@ -38,6 +39,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -65,6 +67,7 @@ import java.util.UUID;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 import static android.R.attr.data;
+import static android.R.attr.multiArch;
 import static android.content.ContentValues.TAG;
 
 /**
@@ -209,9 +212,15 @@ public class MessageRoom extends Fragment {
     @Override
     public void onResume(){
         super.onResume();
-        if(roomNum.length() > 1 && activity != null && activity.isInMessageRoom()){
+        if(mFirebaseAdapter != null){
             setRoomObjListener(roomNum);
-            setUpRecyclerView(roomNum);
+            mFirebaseAdapter.startListening();
+        }
+        else{
+            if(roomNum.length() > 1 && activity != null && activity.isInMessageRoom()){
+                setRoomObjListener(roomNum);
+                setUpRecyclerView(roomNum);
+            }
         }
     }
 
@@ -219,7 +228,8 @@ public class MessageRoom extends Fragment {
     public void onPause(){
         super.onPause();
         if(mFirebaseAdapter != null){
-            mFirebaseAdapter.cleanup();
+            mFirebaseAdapter.stopListening();
+            mMessageRecyclerView.setAdapter(null);
             closeRoomObjListener(roomNum);
             Log.d("ORDER", "MessageRoom FirebaseRecyclerAdapter cleanup done");
         }
@@ -626,16 +636,25 @@ public class MessageRoom extends Fragment {
     private void setUpRecyclerView(String rnum){
         MESSAGES_CHILD = MESSAGES_CHILD_BODY + rnum;
 
-        mFirebaseAdapter = new FirebaseRecyclerAdapter<MessageObject,
-                MessageViewHolder>(
-                MessageObject.class,
-                R.layout.message_item_view,
-                MessageViewHolder.class,
-                mFirebaseDatabaseReference.child(MESSAGES_CHILD)) {
+        Query query = mFirebaseDatabaseReference.child(MESSAGES_CHILD).limitToLast(2); //TODO: increase the limit number
+
+        FirebaseRecyclerOptions<MessageObject> options =
+                new FirebaseRecyclerOptions.Builder<MessageObject>()
+                        .setLifecycleOwner(this)
+                        .setQuery(query, MessageObject.class)
+                        .build();
+
+
+        mFirebaseAdapter = new FirebaseRecyclerAdapter<MessageObject, MessageViewHolder>(options) {
 
             @Override
-            protected void populateViewHolder(final MessageViewHolder viewHolder,
-                                              MessageObject friendlyMessage, int position) {
+            public MessageViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                View view = LayoutInflater.from(activity).inflate(R.layout.message_item_view, parent, false);
+                return new MessageViewHolder(view);
+            }
+
+            @Override
+            protected void onBindViewHolder(final MessageViewHolder viewHolder, int position, MessageObject friendlyMessage) {
                 mProgressBar.setVisibility(ProgressBar.INVISIBLE);
                 if (friendlyMessage.getText() != null) {
                     viewHolder.messageTextView.setText(friendlyMessage.getText());
@@ -724,21 +743,26 @@ public class MessageRoom extends Fragment {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
 
+                if(roomObject.getUsers() != null && roomObject.getUsers().size() == 2){
+                    roomObject.setName(mUsername);
+                }
+
                 setRoomObjListener(roomNum);
 
                 for(String mName : roomUsersHolderList){
-                    int usernameHash;
-                    if(mName.length() < 5){
-                        usernameHash = mName.hashCode();
-                    }
-                    else{
-                        String hashIn = "" + mName.charAt(0) + mName.charAt(mName.length() - 2) + mName.charAt(1) + mName.charAt(mName.length() - 1);
-                        usernameHash = hashIn.hashCode();
-                    }
+                    if(!mName.equals(mUsername)) {
+                        int usernameHash;
+                        if (mName.length() < 5) {
+                            usernameHash = mName.hashCode();
+                        } else {
+                            String hashIn = "" + mName.charAt(0) + mName.charAt(mName.length() - 2) + mName.charAt(1) + mName.charAt(mName.length() - 1);
+                            usernameHash = hashIn.hashCode();
+                        }
 
-                    String roomPath = usernameHash + "/" + mName + "/" + "r/" + roomNum;
-                    Log.d("ROOMCREATE", roomPath);
-                    mFirebaseDatabaseReference.child(roomPath).setValue(roomObject);
+                        String roomPath = usernameHash + "/" + mName + "/" + "r/" + roomNum;
+                        Log.d("ROOMCREATE", roomPath);
+                        mFirebaseDatabaseReference.child(roomPath).setValue(roomObject);
+                    }
                 }
             }
         });
@@ -822,7 +846,7 @@ public class MessageRoom extends Fragment {
 
     public void cleanUp(){
         if(mFirebaseAdapter != null){
-            mFirebaseAdapter.cleanup();
+            mFirebaseAdapter.stopListening();
         }
         if(mMessageRecyclerView != null){
             mMessageRecyclerView.setAdapter(null);
