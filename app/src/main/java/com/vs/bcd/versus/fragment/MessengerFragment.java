@@ -81,7 +81,6 @@ public class MessengerFragment extends Fragment {
     private String mUsername = "";
     private int mPhotoUrl = 0;
     private String userMKey = "";
-    private SimpleDateFormat df;
     private MainContainer activity;
     private FloatingActionButton fabNewMsg;
     private ChildEventListener roomsListener;
@@ -93,8 +92,6 @@ public class MessengerFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.tab4messenger, container, false);
-
-        df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
 
         // Initialize ProgressBar and RecyclerView.
         mProgressBar = rootView.findViewById(R.id.roomsProgressBar);
@@ -120,7 +117,7 @@ public class MessengerFragment extends Fragment {
 
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(getActivity());
 
-        fabNewMsg = (FloatingActionButton) rootView.findViewById(R.id.fab_new_msg);
+        fabNewMsg = rootView.findViewById(R.id.fab_new_msg);
         fabNewMsg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -255,11 +252,6 @@ public class MessengerFragment extends Fragment {
     @Override
     public void onPause(){
         super.onPause();
-        if(mFirebaseAdapter != null){
-            mFirebaseAdapter.cleanup();
-            mRoomRecyclerView.setAdapter(null);
-            Log.d("ORDER", "MessengerFragment FirebaseRecyclerAdapter cleanup done");
-        }
     }
 
     @Override
