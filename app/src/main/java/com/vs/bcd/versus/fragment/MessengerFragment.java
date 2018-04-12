@@ -29,8 +29,10 @@ import com.vs.bcd.versus.model.RNumAndUList;
 import com.vs.bcd.versus.model.RoomObject;
 import com.vs.bcd.versus.model.SessionManager;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -41,7 +43,7 @@ import java.util.Locale;
 
 
 
-public class Tab4Messenger extends Fragment {
+public class MessengerFragment extends Fragment {
 
     public static class RoomViewHolder extends RecyclerView.ViewHolder {
         TextView roomTitleTV;
@@ -52,9 +54,9 @@ public class Tab4Messenger extends Fragment {
 
         public RoomViewHolder(View v) {
             super(v);
-            roomTitleTV = (TextView) itemView.findViewById(R.id.roomNameTV);
-            roomTimeTV = (TextView) itemView.findViewById(R.id.roomTimeTV);
-            roomPreviewTV = (TextView) itemView.findViewById(R.id.roomPreviewTV);
+            roomTitleTV = itemView.findViewById(R.id.roomNameTV);
+            roomTimeTV = itemView.findViewById(R.id.roomTimeTV);
+            roomPreviewTV = itemView.findViewById(R.id.roomPreviewTV);
             //roomImageView
         }
     }
@@ -95,9 +97,9 @@ public class Tab4Messenger extends Fragment {
         df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
 
         // Initialize ProgressBar and RecyclerView.
-        mProgressBar = (ProgressBar) rootView.findViewById(R.id.roomsProgressBar);
-        emptyListTV = (TextView) rootView.findViewById(R.id.emptyListText);
-        mRoomRecyclerView = (RecyclerView) rootView.findViewById(R.id.roomsRecyclerView);
+        mProgressBar = rootView.findViewById(R.id.roomsProgressBar);
+        emptyListTV = rootView.findViewById(R.id.emptyListText);
+        mRoomRecyclerView = rootView.findViewById(R.id.roomsRecyclerView);
         mLinearLayoutManager = new LinearLayoutManager(getActivity());
         mLinearLayoutManager.setStackFromEnd(true);
         mRoomRecyclerView.setLayoutManager(mLinearLayoutManager);
@@ -177,8 +179,7 @@ public class Tab4Messenger extends Fragment {
                     rNameToRNum.put(roomTitle, new RNumAndUList(roomNum, usersList)); //TODO: will this get updated if room is updated with modified usersList?
 
                     viewHolder.roomTitleTV.setText(roomTitle);
-
-                    viewHolder.roomTimeTV.setText(df.format(new Date(roomObject.getTime())));
+                    viewHolder.roomTimeTV.setText(getMessengerTimeString(roomObject.getTime()));
                     viewHolder.roomPreviewTV.setText(roomObject.getPreview());
                     viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -257,7 +258,7 @@ public class Tab4Messenger extends Fragment {
         if(mFirebaseAdapter != null){
             mFirebaseAdapter.cleanup();
             mRoomRecyclerView.setAdapter(null);
-            Log.d("ORDER", "Tab4Messenger FirebaseRecyclerAdapter cleanup done");
+            Log.d("ORDER", "MessengerFragment FirebaseRecyclerAdapter cleanup done");
         }
     }
 
@@ -293,6 +294,40 @@ public class Tab4Messenger extends Fragment {
     //returns null if entry not found, else returns the corresponding RNumAndUList object
     public RNumAndUList getRNumAndUList(String rName){
         return rNameToRNum.get(rName);
+    }
+
+    private String getMessengerTimeString(long epochTime){
+        Calendar chatTime = Calendar.getInstance();
+        int currentYear = chatTime.get(Calendar.YEAR);
+        int currentMonth = chatTime.get(Calendar.MONTH);
+        int currentDay = chatTime.get(Calendar.DAY_OF_MONTH);
+
+        chatTime.setTimeInMillis(epochTime);
+        int year = chatTime.get(Calendar.YEAR);
+        int month = chatTime.get(Calendar.MONTH);
+        int day = chatTime.get(Calendar.DAY_OF_MONTH);
+
+        if(year == currentYear){
+            if(month == currentMonth && day == currentDay){ //format = hh:mm
+                int hour = chatTime.get(Calendar.HOUR);
+
+                String timeString = Integer.toString(hour)+":"+Integer.toString(chatTime.get(Calendar.MINUTE));
+                if(chatTime.get(Calendar.AM_PM) == Calendar.PM){
+                    timeString = timeString.concat(" pm");
+                }
+                else{
+                    timeString = timeString.concat(" am");
+                }
+
+                return timeString;
+            }
+            else{ //format = mm/dd
+                return Integer.toString(month+1)+"/"+Integer.toString(day); //Calendar's month starts at 0 so add 1
+            }
+        }
+        else { //format = mm/dd/yy
+            return Integer.toString(month+1)+"/"+Integer.toString(day)+"/"+Integer.toString(year); //Calendar's month starts at 0 so add 1
+        }
     }
 
 }

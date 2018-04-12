@@ -20,7 +20,6 @@ import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.fragment.Tab1Newsfeed;
 import com.vs.bcd.versus.fragment.Tab2Trending;
 import com.vs.bcd.versus.fragment.Tab3Categories;
-import com.vs.bcd.versus.fragment.Tab4Messenger;
 import com.vs.bcd.versus.model.Post;
 
 import java.util.ArrayList;

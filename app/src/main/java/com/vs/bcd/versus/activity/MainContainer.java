@@ -69,6 +69,7 @@ import com.vs.bcd.versus.fragment.CommentEnterFragment;
 import com.vs.bcd.versus.fragment.CreateMessage;
 import com.vs.bcd.versus.fragment.LeaderboardTab;
 import com.vs.bcd.versus.fragment.MessageRoom;
+import com.vs.bcd.versus.fragment.MessengerFragment;
 import com.vs.bcd.versus.fragment.NotificationsTab;
 import com.vs.bcd.versus.fragment.PostPage;
 import com.vs.bcd.versus.fragment.ProfileTab;
@@ -76,7 +77,6 @@ import com.vs.bcd.versus.fragment.SelectCategory;
 import com.vs.bcd.versus.fragment.SettingsFragment;
 import com.vs.bcd.versus.fragment.Tab1Newsfeed;
 import com.vs.bcd.versus.fragment.Tab2Trending;
-import com.vs.bcd.versus.fragment.Tab4Messenger;
 import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.model.GlideUrlCustom;
 import com.vs.bcd.versus.model.Post;
@@ -160,7 +160,7 @@ public class MainContainer extends AppCompatActivity {
     private View mActionBarView;
     private MainContainer thisActivity;
     private HashMap<String, Integer> profileImgVersions = new HashMap<>();
-    private Tab4Messenger messengerFragment;
+    private MessengerFragment messengerFragment;
     private int messengerBackTarget = 0;
 
 
@@ -970,7 +970,7 @@ public class MainContainer extends AppCompatActivity {
                     postPage = new PostPage();
                     return postPage;
                 case 4:
-                    messengerFragment = new Tab4Messenger();
+                    messengerFragment = new MessengerFragment();
                     return messengerFragment;
                 case 5:
                     return new SelectCategory();

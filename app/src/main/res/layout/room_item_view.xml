@@ -1,38 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="47dp"
+    android:layout_margin="8dp">
 
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/room_item_profile_img"
+        android:layout_width="47dp"
+        android:layout_height="47dp"
+        android:layout_marginEnd="8dp"
+        android:src="@drawable/default_profile"/>
 
     <TextView
         android:id="@+id/roomNameTV"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="8dp"
-        android:layout_marginLeft="8dp"
+        android:layout_alignTop="@id/room_item_profile_img"
+        android:layout_toEndOf="@id/room_item_profile_img"
         android:maxLines="1"
         android:maxWidth="200dp"
         android:ellipsize="end"
-        android:text="room name or destination user(s)" />
-
-    <TextView
-        android:id="@+id/roomTimeTV"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="8dp"
-        android:layout_marginRight="8dp"
-        android:text="3:50 PM" />
+        android:textSize="18sp"
+        android:textColor="#000000"
+        android:text="room name" />
 
     <TextView
         android:id="@+id/roomPreviewTV"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/roomNameTV"
-        android:layout_margin="8dp"
+        android:layout_below="@+id/roomNameTV"
+        android:layout_alignStart="@id/roomNameTV"
+        android:textSize="14sp"
         android:text="Message Preview" />
+
+
+
+    <TextView
+        android:id="@+id/roomTimeTV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/roomNameTV"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="8dp"
+        android:text="3:50 PM" />
+
+
 
 </RelativeLayout>

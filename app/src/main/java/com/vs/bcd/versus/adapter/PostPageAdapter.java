@@ -877,7 +877,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     }
 
 
-    public void setLeftMargin (View v, int margin) {
+    private void setLeftMargin (View v, int margin) {
         if (v.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
             ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
             p.setMargins(margin, 0, 0, 0);
@@ -885,7 +885,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
     }
 
-    public String getTimeString(String timeStamp){
+    private String getTimeString(String timeStamp){
         int timeFormat = 0;
 
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
