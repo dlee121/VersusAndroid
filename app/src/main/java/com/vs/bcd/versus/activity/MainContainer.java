@@ -91,6 +91,7 @@ import com.vs.bcd.versus.model.ViewPagerCustomDuration;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -1545,6 +1546,10 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public void setUpAndOpenMessageRoom(String rnum, ArrayList<String> usersMap, String roomTitle){
+        ArrayList<String> users = new ArrayList<>();
+        users.addAll(usersMap);
+        users.remove(getUsername()); //remove logged-in user from the room users map to prevent duplicate sends,
+                                    // since we handle logged-in user's message transfer separate from message transfer of other room users
         messageRoom.setUpRoom(rnum, usersMap, roomTitle);
         mViewPager.setCurrentItem(11);
     }

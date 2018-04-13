@@ -323,9 +323,6 @@ public class MessengerFragment extends Fragment {
                                                     @Override
                                                     public void onClick(View view) {
 
-                                                        usersList.remove(mUsername); //remove logged-in user from the room users map to prevent duplicate sends,
-                                                        // since we handle logged-in user's message transfer separate from message transfer of other room users
-
                                                         if(roomNum != null && usersList != null){
                                                             activity.setUpAndOpenMessageRoom(roomNum, usersList, roomTitle);
                                                         }
@@ -509,10 +506,7 @@ public class MessengerFragment extends Fragment {
                                                         @Override
                                                         public void onClick(View view) {
 
-                                                            usersList.remove(mUsername); //remove logged-in user from the room users map to prevent duplicate sends,
-                                                            // since we handle logged-in user's message transfer separate from message transfer of other room users
-
-                                                            if (roomNum != null && usersList != null) {
+                                                            if (roomNum != null) {
                                                                 activity.setUpAndOpenMessageRoom(roomNum, usersList, roomTitle);
                                                             } else {
                                                                 Log.d("MESSENGER", "roomNum is null");
@@ -719,9 +713,6 @@ public class MessengerFragment extends Fragment {
                                                 viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                                                     @Override
                                                     public void onClick(View view) {
-
-                                                        usersList.remove(mUsername); //remove logged-in user from the room users map to prevent duplicate sends,
-                                                        // since we handle logged-in user's message transfer separate from message transfer of other room users
 
                                                         if(roomNum != null && usersList != null){
                                                             activity.setUpAndOpenMessageRoom(roomNum, usersList, roomTitle);
