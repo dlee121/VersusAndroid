@@ -636,7 +636,7 @@ public class MessageRoom extends Fragment {
     private void setUpRecyclerView(String rnum){
         MESSAGES_CHILD = MESSAGES_CHILD_BODY + rnum;
 
-        Query query = mFirebaseDatabaseReference.child(MESSAGES_CHILD).limitToLast(2); //TODO: increase the limit number
+        Query query = mFirebaseDatabaseReference.child(MESSAGES_CHILD).limitToLast(15); //TODO: increase the limit number
 
         FirebaseRecyclerOptions<MessageObject> options =
                 new FirebaseRecyclerOptions.Builder<MessageObject>()

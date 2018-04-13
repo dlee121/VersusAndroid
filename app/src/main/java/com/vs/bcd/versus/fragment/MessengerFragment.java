@@ -5,10 +5,12 @@ import android.arch.lifecycle.LifecycleOwner;
 import android.arch.lifecycle.OnLifecycleEvent;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SimpleItemAnimator;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -93,6 +95,14 @@ public class MessengerFragment extends Fragment {
     private HashMap<String, RNumAndUList> rNameToRNum;
     private TextView emptyListTV;
     private Query query;
+    private int retrievalSize = 12;
+    private int initialRetrievalSize = retrievalSize * 2; //has to be integer multiple of retrievalSize for current code for loadMore to work //TODO: increase this
+    private int loadThreshold = 3;
+    private boolean nowLoading = false;
+    private boolean modifyNowLoading = false;
+    private int previousAdapterItemCount = 0;
+    private int previousAdapterScrollPosition = 0;
+    private int totalRoomCount = Integer.MAX_VALUE;
 
 
     @Override
@@ -108,6 +118,31 @@ public class MessengerFragment extends Fragment {
         mLinearLayoutManager.setStackFromEnd(true);
         mLinearLayoutManager.setReverseLayout(true);
         mRoomRecyclerView.setLayoutManager(mLinearLayoutManager);
+        mRoomRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                //only if postSearchResults.size()%retrievalSize == 0, meaning it's possible there's more matching documents for this search
+                if(!nowLoading && mFirebaseAdapter != null && mFirebaseAdapter.getItemCount()%retrievalSize == 0) {
+                    LinearLayoutManager layoutManager = LinearLayoutManager.class.cast(recyclerView.getLayoutManager());
+                    int firstVisible = layoutManager.findFirstVisibleItemPosition(); //reversed recyclerview so we're getting first visible instead of last visible
+                    if(firstVisible < 3){
+                        int retrievalMultiplier = (mFirebaseAdapter.getItemCount() / retrievalSize) - 1;
+                        if(!(initialRetrievalSize + retrievalSize * retrievalMultiplier < mFirebaseAdapter.getItemCount())){
+                            if (mFirebaseAdapter.getItemCount() > 0) {
+                                //you have reached to the bottom of your recycler view
+                                nowLoading = true;
+                                if(initialRetrievalSize + retrievalSize * retrievalMultiplier >= totalRoomCount){
+                                    loadMoreRooms(-1);
+                                }
+                                else{
+                                    loadMoreRooms(retrievalMultiplier);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
 
         userMKey = ((MainContainer)getActivity()).getUserMKey();
         mPhotoUrl = activity.getUserProfileImageVersion();
@@ -135,6 +170,182 @@ public class MessengerFragment extends Fragment {
         });
 
         return rootView;
+    }
+
+    private void loadMoreRooms(int retrievalMultiplier){
+        mRoomRecyclerView.setAdapter(null);
+        mProgressBar.setVisibility(View.VISIBLE);
+        final FirebaseRecyclerAdapter oldAdapter = mFirebaseAdapter;
+
+        Log.d("loadmorecalled", "hello");
+        previousAdapterItemCount = mFirebaseAdapter.getItemCount();
+        rNameToRNum = new HashMap<>();
+
+        if(retrievalMultiplier == -1){
+
+            Log.d("loadmorecalled", "hello2");
+            query = mFirebaseDatabaseReference.child(ROOMS_CHILD).orderByChild("time");
+
+            modifyNowLoading = true;
+
+            FirebaseRecyclerOptions<RoomObject> options =
+                    new FirebaseRecyclerOptions.Builder<RoomObject>()
+                            .setLifecycleOwner(this)
+                            .setQuery(query, RoomObject.class)
+                            .build();
+
+            final FirebaseRecyclerAdapter freshFirebaseAdapter = new FirebaseRecyclerAdapter<RoomObject, RoomViewHolder>(options) {
+
+                @Override
+                public RoomViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                    View view = LayoutInflater.from(activity).inflate(R.layout.room_item_view, parent, false);
+                    return new RoomViewHolder(view);
+                }
+
+                @Override
+                protected void onBindViewHolder(final RoomViewHolder viewHolder, final int position, final RoomObject roomObject) {
+
+                    if(modifyNowLoading){
+                        modifyNowLoading = false;
+
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                mRoomRecyclerView.scrollToPosition(previousAdapterScrollPosition);
+                            }
+                        }, 1);
+                        oldAdapter.stopListening();
+                    }
+
+                    mProgressBar.setVisibility(ProgressBar.INVISIBLE);
+                    emptyListTV.setVisibility(TextView.INVISIBLE);
+                    if (roomObject != null) {
+
+                        final ArrayList<String> usersList = roomObject.getUsers();
+                        final String roomTitle = roomObject.getName();
+                        final String roomNum = getRef(position).getKey();
+
+                        rNameToRNum.put(roomTitle, new RNumAndUList(roomNum, usersList)); //TODO: will this get updated if room is updated with modified usersList?
+
+                        viewHolder.roomTitleTV.setText(roomTitle);
+                        viewHolder.roomTimeTV.setText(getMessengerTimeString(roomObject.getTime()));
+                        viewHolder.roomPreviewTV.setText(roomObject.getPreview());
+                        viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+
+                                usersList.remove(mUsername); //remove logged-in user from the room users map to prevent duplicate sends,
+                                // since we handle logged-in user's message transfer separate from message transfer of other room users
+
+                                if(roomNum != null && usersList != null){
+                                    activity.setUpAndOpenMessageRoom(roomNum, usersList, roomTitle);
+                                }
+                                else{
+                                    Log.d("MESSENGER", "roomNum is null");
+                                }
+                            }
+                        });
+                    }
+                    else {
+                        Log.d("roomSetUp", "title null");
+                    }
+
+                }
+            };
+
+            mFirebaseAdapter = freshFirebaseAdapter;
+            mRoomRecyclerView.setAdapter(mFirebaseAdapter);
+        }
+        else{
+
+            Log.d("loadmorecalled", "hello3");
+            query = mFirebaseDatabaseReference.child(ROOMS_CHILD).orderByChild("time").limitToLast(initialRetrievalSize + retrievalSize * retrievalMultiplier);
+
+            if(retrievalMultiplier > 0){
+                modifyNowLoading = true;
+
+                FirebaseRecyclerOptions<RoomObject> options =
+                        new FirebaseRecyclerOptions.Builder<RoomObject>()
+                                .setLifecycleOwner(this)
+                                .setQuery(query, RoomObject.class)
+                                .build();
+
+                final FirebaseRecyclerAdapter freshFirebaseAdapter = new FirebaseRecyclerAdapter<RoomObject, RoomViewHolder>(options) {
+
+                    @Override
+                    public RoomViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                        View view = LayoutInflater.from(activity).inflate(R.layout.room_item_view, parent, false);
+                        return new RoomViewHolder(view);
+                    }
+
+                    @Override
+                    protected void onBindViewHolder(final RoomViewHolder viewHolder, final int position, final RoomObject roomObject) {
+                        if(modifyNowLoading){
+                            modifyNowLoading = false;
+                            if(mFirebaseAdapter.getItemCount()-previousAdapterItemCount < retrievalSize){
+                                nowLoading = true;
+                                previousAdapterScrollPosition = ((LinearLayoutManager)mRoomRecyclerView.getLayoutManager()).findFirstVisibleItemPosition(); //reversed recyclerview so we're getting first visible instead of last visible
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        loadMoreRooms(-1);
+                                    }
+                                }, 1);
+                                return;
+                            }
+                            else{
+                                nowLoading = false;
+                            }
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mRoomRecyclerView.scrollToPosition(mFirebaseAdapter.getItemCount()-previousAdapterItemCount+2);
+                                }
+                            }, 1);
+                            oldAdapter.stopListening();
+                        }
+
+                        mProgressBar.setVisibility(ProgressBar.INVISIBLE);
+                        emptyListTV.setVisibility(TextView.INVISIBLE);
+                        if (roomObject != null) {
+
+                            final ArrayList<String> usersList = roomObject.getUsers();
+                            final String roomTitle = roomObject.getName();
+                            final String roomNum = getRef(position).getKey();
+
+                            rNameToRNum.put(roomTitle, new RNumAndUList(roomNum, usersList)); //TODO: will this get updated if room is updated with modified usersList?
+
+                            viewHolder.roomTitleTV.setText(roomTitle);
+                            viewHolder.roomTimeTV.setText(getMessengerTimeString(roomObject.getTime()));
+                            viewHolder.roomPreviewTV.setText(roomObject.getPreview());
+                            viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+
+                                    usersList.remove(mUsername); //remove logged-in user from the room users map to prevent duplicate sends,
+                                    // since we handle logged-in user's message transfer separate from message transfer of other room users
+
+                                    if(roomNum != null && usersList != null){
+                                        activity.setUpAndOpenMessageRoom(roomNum, usersList, roomTitle);
+                                    }
+                                    else{
+                                        Log.d("MESSENGER", "roomNum is null");
+                                    }
+                                }
+                            });
+                        }
+                        else {
+                            Log.d("roomSetUp", "title null");
+                        }
+
+                    }
+                };
+
+                mFirebaseAdapter = freshFirebaseAdapter;
+                mRoomRecyclerView.setAdapter(mFirebaseAdapter);
+            }
+        }
+
     }
 
     @Override
@@ -166,7 +377,7 @@ public class MessengerFragment extends Fragment {
         else{
             rNameToRNum = new HashMap<>();
 
-            query = mFirebaseDatabaseReference.child(ROOMS_CHILD).orderByChild("time").limitToLast(40);
+            query = mFirebaseDatabaseReference.child(ROOMS_CHILD).orderByChild("time").limitToLast(initialRetrievalSize);
 
             FirebaseRecyclerOptions<RoomObject> options =
                     new FirebaseRecyclerOptions.Builder<RoomObject>()
@@ -229,6 +440,9 @@ public class MessengerFragment extends Fragment {
                     mProgressBar.setVisibility(ProgressBar.INVISIBLE);
                     if(!(dataSnapshot.hasChildren())){
                         emptyListTV.setVisibility(TextView.VISIBLE);
+                    }
+                    else{
+                        totalRoomCount = (int) dataSnapshot.getChildrenCount();
                     }
                     setFirebaseObserver();
                 }
