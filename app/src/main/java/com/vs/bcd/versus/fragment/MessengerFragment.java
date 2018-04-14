@@ -284,146 +284,177 @@ public class MessengerFragment extends Fragment {
                                     strBuilder.append(",{\"_id\":\""+username+"\",\"_source\":\"pi\"}");
                                 }
                             }
+                            rNameToRNum.put(roomObject.getName(), new RNumAndUList(child.getKey(), roomObject.getUsers()));
                         }
+
+                        final String payload;
                         if(strBuilder.length() > 0){
-                            final String payload = "{\"docs\":["+strBuilder.toString()+"]}";
-                            Runnable runnable = new Runnable() {
-                                public void run() {
+                            payload = "{\"docs\":[" + strBuilder.toString() + "]}";
+                        }
+                        else{
+                            payload = null;
+                        }
+
+                        Runnable runnable = new Runnable() {
+                            public void run() {
+                                if(payload != null){
                                     getProfileImgVersions(payload);
+                                }
 
-                                    firstOnBindVieHolderCall = true;
+                                firstOnBindVieHolderCall = true;
 
-                                    FirebaseRecyclerOptions<RoomObject> options =
-                                            new FirebaseRecyclerOptions.Builder<RoomObject>()
-                                                    .setLifecycleOwner(thisFragment)
-                                                    .setQuery(query, RoomObject.class)
-                                                    .build();
+                                FirebaseRecyclerOptions<RoomObject> options =
+                                        new FirebaseRecyclerOptions.Builder<RoomObject>()
+                                                .setLifecycleOwner(thisFragment)
+                                                .setQuery(query, RoomObject.class)
+                                                .build();
 
-                                    final CustomFirebaseRecyclerAdapter freshFirebaseAdapter = new CustomFirebaseRecyclerAdapter<RoomObject, RoomViewHolder>(options) {
+                                final CustomFirebaseRecyclerAdapter freshFirebaseAdapter = new CustomFirebaseRecyclerAdapter<RoomObject, RoomViewHolder>(options) {
 
-                                        @Override
-                                        public RoomViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-                                            View view = LayoutInflater.from(activity).inflate(R.layout.room_item_view, parent, false);
-                                            return new RoomViewHolder(view);
+                                    @Override
+                                    public RoomViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                                        View view = LayoutInflater.from(activity).inflate(R.layout.room_item_view, parent, false);
+                                        return new RoomViewHolder(view);
+                                    }
+
+                                    @Override
+                                    protected void onBindViewHolder(final RoomViewHolder viewHolder, final int position, final RoomObject roomObject) {
+
+                                        if(firstOnBindVieHolderCall){
+                                            firstOnBindVieHolderCall = false;
+                                            new Handler().postDelayed(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    mRoomRecyclerView.scrollToPosition(mFirebaseAdapter.getItemCount() - previousAdapterItemCount + 2);
+                                                }
+                                            }, 1);
+                                            oldAdapter.stopListening();
                                         }
 
-                                        @Override
-                                        protected void onBindViewHolder(final RoomViewHolder viewHolder, final int position, final RoomObject roomObject) {
+                                        mProgressBar.setVisibility(ProgressBar.INVISIBLE);
+                                        emptyListTV.setVisibility(TextView.INVISIBLE);
+                                        if (roomObject != null) {
 
-                                            if(firstOnBindVieHolderCall){
-                                                firstOnBindVieHolderCall = false;
-                                                new Handler().postDelayed(new Runnable() {
-                                                    @Override
-                                                    public void run() {
-                                                        mRoomRecyclerView.scrollToPosition(mFirebaseAdapter.getItemCount() - previousAdapterItemCount + 2);
-                                                    }
-                                                }, 1);
-                                                oldAdapter.stopListening();
+                                            final ArrayList<String> usersList = roomObject.getUsers();
+                                            final String roomTitle = roomObject.getName();
+                                            final String roomNum = getRef(position).getKey();
+
+                                            if(unreadRooms.contains(roomNum)){
+                                                //set unread UI
+                                                viewHolder.unreadCircleView.setVisibility(View.VISIBLE);
+                                            }
+                                            else{
+                                                viewHolder.unreadCircleView.setVisibility(View.INVISIBLE);
                                             }
 
-                                            mProgressBar.setVisibility(ProgressBar.INVISIBLE);
-                                            emptyListTV.setVisibility(TextView.INVISIBLE);
-                                            if (roomObject != null) {
+                                            if(usersList.size() == 2){
+                                                try{
+                                                    String username = usersList.get(0);
+                                                    if(username.equals(mUsername)){
+                                                        username = usersList.get(1);
+                                                    }
 
-                                                final ArrayList<String> usersList = roomObject.getUsers();
-                                                final String roomTitle = roomObject.getName();
-                                                final String roomNum = getRef(position).getKey();
+                                                    int profileImg = profileImgVersions.get(username).intValue();
 
-                                                if(usersList.size() == 2){
-                                                    try{
-                                                        String username = usersList.get(0);
-                                                        if(username.equals(mUsername)){
-                                                            username = usersList.get(1);
-                                                        }
+                                                    if(profileImg == 0){
+                                                        GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
+                                                    }
+                                                    else{
+                                                        GlideApp.with(activity).load(activity.getProfileImgUrl(username, profileImg)).into(viewHolder.circView);
+                                                    }
 
-                                                        int profileImg = profileImgVersions.get(username).intValue();
+                                                }catch (Throwable t){
 
-                                                        if(profileImg == 0){
-                                                            GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
-                                                        }
-                                                        else{
-                                                            GlideApp.with(activity).load(activity.getProfileImgUrl(username, profileImg)).into(viewHolder.circView);
-                                                        }
+                                                }
+                                            }
+                                            else{
+                                                GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
+                                            }
 
-                                                    }catch (Throwable t){
+                                            //rNameToRNum.put(roomTitle, new RNumAndUList(roomNum, usersList)); //TODO: will this get updated if room is updated with modified usersList?
 
+                                            viewHolder.roomTitleTV.setText(roomTitle);
+                                            viewHolder.roomTimeTV.setText(getMessengerTimeString(roomObject.getTime()));
+                                            viewHolder.roomPreviewTV.setText(roomObject.getPreview());
+                                            viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                                                @Override
+                                                public void onClick(View view) {
+
+                                                    if(roomNum != null){
+                                                        clickedRoomNum = roomNum;
+                                                        activity.setUpAndOpenMessageRoom(roomNum, usersList, roomTitle);
+                                                    }
+                                                    else{
+                                                        Log.d("MESSENGER", "roomNum is null");
                                                     }
                                                 }
-                                                else{
-                                                    GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
+                                            });
+
+                                            viewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                                                @Override
+                                                public boolean onLongClick(View view) {
+                                                    roomItemLongClickMenu(viewHolder.roomTimeTV, roomNum, roomObject);
+                                                    return true;
                                                 }
+                                            });
 
-                                                rNameToRNum.put(roomTitle, new RNumAndUList(roomNum, usersList)); //TODO: will this get updated if room is updated with modified usersList?
-
-                                                viewHolder.roomTitleTV.setText(roomTitle);
-                                                viewHolder.roomTimeTV.setText(getMessengerTimeString(roomObject.getTime()));
-                                                viewHolder.roomPreviewTV.setText(roomObject.getPreview());
-                                                viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(View view) {
-
-                                                        if(roomNum != null){
-                                                            activity.setUpAndOpenMessageRoom(roomNum, usersList, roomTitle);
-                                                        }
-                                                        else{
-                                                            Log.d("MESSENGER", "roomNum is null");
-                                                        }
-                                                    }
-                                                });
-                                            }
-                                            else {
-                                                Log.d("roomSetUp", "title null");
-                                            }
+                                        }
+                                        else {
+                                            Log.d("roomSetUp", "title null");
                                         }
 
-                                        @Override
-                                        @NonNull
-                                        public List<RoomObject> getPreloadItems(int position) {
-                                            RoomObject item = (RoomObject)getItem(position);
-                                            if(item == null || item.getUsers().size() > 2){
+                                    }
+
+                                    @Override
+                                    @NonNull
+                                    public List<RoomObject> getPreloadItems(int position) {
+                                        if (getItemCount() > position) {
+                                            RoomObject item = (RoomObject) getItem(position);
+                                            if (item == null) {
                                                 return Collections.emptyList();
                                             }
-                                            return Collections.singletonList((RoomObject)getItem(position));
+                                            return Collections.singletonList(getItem(position));
                                         }
+                                        return Collections.emptyList();
 
-                                        @Override
-                                        @Nullable
-                                        public RequestBuilder getPreloadRequestBuilder(RoomObject roomObject) {
-                                            try{
-                                                int profileImg;
-                                                String username = roomObject.getUsers().get(0);
-                                                if(username.equals(mUsername)){
-                                                    username = roomObject.getUsers().get(1);
-                                                }
-                                                profileImg = profileImgVersions.get(username).intValue();
-                                                if(profileImg == 0){
-                                                    return null;
-                                                }
-                                                return GlideApp.with(activity).load( activity.getProfileImgUrl(username,profileImgVersions.get(username).intValue()) );
+                                    }
 
+                                    @Override
+                                    @Nullable
+                                    public RequestBuilder getPreloadRequestBuilder(RoomObject roomObject) {
+                                        try {
+                                            int profileImg;
+                                            String username = roomObject.getUsers().get(0);
+                                            if (username.equals(mUsername)) {
+                                                username = roomObject.getUsers().get(1);
                                             }
-                                            catch (Throwable t){
-
+                                            profileImg = profileImgVersions.get(username).intValue();
+                                            if (profileImg == 0) {
+                                                return null;
                                             }
+                                            return GlideApp.with(activity).load(activity.getProfileImgUrl(username, profileImgVersions.get(username).intValue()));
 
-                                            return null;
+                                        } catch (Throwable t) {
+
                                         }
-                                    };
 
-                                    mFirebaseAdapter = freshFirebaseAdapter;
-                                    activity.runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            mRoomRecyclerView.setAdapter(mFirebaseAdapter);
-                                            setFirebaseObserver();
-                                        }
-                                    });
+                                        return null;
+                                    }
+                                };
 
-                                }
-                            };
-                            Thread mythread = new Thread(runnable);
-                            mythread.start();
-                        }
+                                mFirebaseAdapter = freshFirebaseAdapter;
+                                activity.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        mRoomRecyclerView.setAdapter(mFirebaseAdapter);
+                                        setFirebaseObserver();
+                                    }
+                                });
+
+                            }
+                        };
+                        Thread mythread = new Thread(runnable);
+                        mythread.start();
 
                     }
                 }
@@ -468,145 +499,176 @@ public class MessengerFragment extends Fragment {
                                     strBuilder.append(",{\"_id\":\"" + username + "\",\"_source\":\"pi\"}");
                                 }
                             }
+                            rNameToRNum.put(roomObject.getName(), new RNumAndUList(child.getKey(), roomObject.getUsers()));
                         }
-                        if (strBuilder.length() > 0) {
-                            final String payload = "{\"docs\":[" + strBuilder.toString() + "]}";
-                            Runnable runnable = new Runnable() {
-                                public void run() {
+
+                        final String payload;
+                        if(strBuilder.length() > 0){
+                            payload = "{\"docs\":[" + strBuilder.toString() + "]}";
+                        }
+                        else{
+                            payload = null;
+                        }
+
+                        Runnable runnable = new Runnable() {
+                            public void run() {
+                                if(payload != null){
                                     getProfileImgVersions(payload);
+                                }
 
-                                    if (retrievalMultiplier > 0) {
-                                        firstOnBindVieHolderCall = true;
+                                if (retrievalMultiplier > 0) {
+                                    firstOnBindVieHolderCall = true;
 
-                                        FirebaseRecyclerOptions<RoomObject> options =
-                                                new FirebaseRecyclerOptions.Builder<RoomObject>()
-                                                        .setLifecycleOwner(thisFragment)
-                                                        .setQuery(query, RoomObject.class)
-                                                        .build();
+                                    FirebaseRecyclerOptions<RoomObject> options =
+                                            new FirebaseRecyclerOptions.Builder<RoomObject>()
+                                                    .setLifecycleOwner(thisFragment)
+                                                    .setQuery(query, RoomObject.class)
+                                                    .build();
 
-                                        final CustomFirebaseRecyclerAdapter freshFirebaseAdapter = new CustomFirebaseRecyclerAdapter<RoomObject, RoomViewHolder>(options) {
+                                    final CustomFirebaseRecyclerAdapter freshFirebaseAdapter = new CustomFirebaseRecyclerAdapter<RoomObject, RoomViewHolder>(options) {
 
-                                            @Override
-                                            public RoomViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-                                                View view = LayoutInflater.from(activity).inflate(R.layout.room_item_view, parent, false);
-                                                return new RoomViewHolder(view);
-                                            }
+                                        @Override
+                                        public RoomViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                                            View view = LayoutInflater.from(activity).inflate(R.layout.room_item_view, parent, false);
+                                            return new RoomViewHolder(view);
+                                        }
 
-                                            @Override
-                                            protected void onBindViewHolder(final RoomViewHolder viewHolder, final int position, final RoomObject roomObject) {
-                                                if (firstOnBindVieHolderCall) {
-                                                    firstOnBindVieHolderCall = false;
-                                                    nowLoading = false;
-                                                    new Handler().postDelayed(new Runnable() {
-                                                        @Override
-                                                        public void run() {
-                                                            mRoomRecyclerView.scrollToPosition(mFirebaseAdapter.getItemCount() - previousAdapterItemCount + 2);
-                                                        }
-                                                    }, 1);
-                                                    oldAdapter.stopListening();
-                                                }
-
-                                                mProgressBar.setVisibility(ProgressBar.INVISIBLE);
-                                                emptyListTV.setVisibility(TextView.INVISIBLE);
-                                                if (roomObject != null) {
-
-                                                    final ArrayList<String> usersList = roomObject.getUsers();
-                                                    final String roomTitle = roomObject.getName();
-                                                    final String roomNum = getRef(position).getKey();
-
-                                                    if (usersList.size() == 2) {
-                                                        try {
-                                                            String username = usersList.get(0);
-                                                            if (username.equals(mUsername)) {
-                                                                username = usersList.get(1);
-                                                            }
-
-                                                            int profileImg = profileImgVersions.get(username).intValue();
-
-                                                            if (profileImg == 0) {
-                                                                GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
-                                                            } else {
-                                                                GlideApp.with(activity).load(activity.getProfileImgUrl(username, profileImg)).into(viewHolder.circView);
-                                                            }
-
-                                                        } catch (Throwable t) {
-
-                                                        }
-                                                    } else {
-                                                        GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
+                                        @Override
+                                        protected void onBindViewHolder(final RoomViewHolder viewHolder, final int position, final RoomObject roomObject) {
+                                            if (firstOnBindVieHolderCall) {
+                                                firstOnBindVieHolderCall = false;
+                                                nowLoading = false;
+                                                new Handler().postDelayed(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        mRoomRecyclerView.scrollToPosition(mFirebaseAdapter.getItemCount() - previousAdapterItemCount + 2);
                                                     }
-
-                                                    rNameToRNum.put(roomTitle, new RNumAndUList(roomNum, usersList)); //TODO: will this get updated if room is updated with modified usersList?
-
-                                                    viewHolder.roomTitleTV.setText(roomTitle);
-                                                    viewHolder.roomTimeTV.setText(getMessengerTimeString(roomObject.getTime()));
-                                                    viewHolder.roomPreviewTV.setText(roomObject.getPreview());
-                                                    viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-                                                        @Override
-                                                        public void onClick(View view) {
-
-                                                            if (roomNum != null) {
-                                                                activity.setUpAndOpenMessageRoom(roomNum, usersList, roomTitle);
-                                                            } else {
-                                                                Log.d("MESSENGER", "roomNum is null");
-                                                            }
-                                                        }
-                                                    });
-                                                } else {
-                                                    Log.d("roomSetUp", "title null");
-                                                }
-
+                                                }, 1);
+                                                oldAdapter.stopListening();
                                             }
 
-                                            @Override
-                                            @NonNull
-                                            public List<RoomObject> getPreloadItems(int position) {
+                                            mProgressBar.setVisibility(ProgressBar.INVISIBLE);
+                                            emptyListTV.setVisibility(TextView.INVISIBLE);
+                                            if (roomObject != null) {
+
+                                                final ArrayList<String> usersList = roomObject.getUsers();
+                                                final String roomTitle = roomObject.getName();
+                                                final String roomNum = getRef(position).getKey();
+
+                                                if(unreadRooms.contains(roomNum)){
+                                                    //set unread UI
+                                                    viewHolder.unreadCircleView.setVisibility(View.VISIBLE);
+                                                }
+                                                else{
+                                                    viewHolder.unreadCircleView.setVisibility(View.INVISIBLE);
+                                                }
+
+                                                if (usersList.size() == 2) {
+                                                    try {
+                                                        String username = usersList.get(0);
+                                                        if (username.equals(mUsername)) {
+                                                            username = usersList.get(1);
+                                                        }
+
+                                                        int profileImg = profileImgVersions.get(username).intValue();
+
+                                                        if (profileImg == 0) {
+                                                            GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
+                                                        } else {
+                                                            GlideApp.with(activity).load(activity.getProfileImgUrl(username, profileImg)).into(viewHolder.circView);
+                                                        }
+
+                                                    } catch (Throwable t) {
+
+                                                    }
+                                                } else {
+                                                    GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
+                                                }
+
+                                                //rNameToRNum.put(roomTitle, new RNumAndUList(roomNum, usersList)); //TODO: will this get updated if room is updated with modified usersList?
+
+                                                viewHolder.roomTitleTV.setText(roomTitle);
+                                                viewHolder.roomTimeTV.setText(getMessengerTimeString(roomObject.getTime()));
+                                                viewHolder.roomPreviewTV.setText(roomObject.getPreview());
+                                                viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View view) {
+
+                                                        if (roomNum != null) {
+                                                            clickedRoomNum = roomNum;
+                                                            activity.setUpAndOpenMessageRoom(roomNum, usersList, roomTitle);
+                                                        } else {
+                                                            Log.d("MESSENGER", "roomNum is null");
+                                                        }
+                                                    }
+                                                });
+
+                                                viewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                                                    @Override
+                                                    public boolean onLongClick(View view) {
+                                                        roomItemLongClickMenu(viewHolder.roomTimeTV, roomNum, roomObject);
+                                                        return true;
+                                                    }
+                                                });
+
+                                            } else {
+                                                Log.d("roomSetUp", "title null");
+                                            }
+
+                                        }
+
+                                        @Override
+                                        @NonNull
+                                        public List<RoomObject> getPreloadItems(int position) {
+                                            if (getItemCount() > position) {
                                                 RoomObject item = (RoomObject) getItem(position);
-                                                if (item == null || item.getUsers().size() > 2) {
+                                                if (item == null) {
                                                     return Collections.emptyList();
                                                 }
-                                                return Collections.singletonList((RoomObject) getItem(position));
+                                                return Collections.singletonList(getItem(position));
                                             }
+                                            return Collections.emptyList();
 
-                                            @Override
-                                            @Nullable
-                                            public RequestBuilder getPreloadRequestBuilder(RoomObject roomObject) {
-                                                try {
-                                                    int profileImg;
-                                                    String username = roomObject.getUsers().get(0);
-                                                    if (username.equals(mUsername)) {
-                                                        username = roomObject.getUsers().get(1);
-                                                    }
-                                                    profileImg = profileImgVersions.get(username).intValue();
-                                                    if (profileImg == 0) {
-                                                        return null;
-                                                    }
-                                                    return GlideApp.with(activity).load(activity.getProfileImgUrl(username, profileImgVersions.get(username).intValue()));
+                                        }
 
-                                                } catch (Throwable t) {
-
+                                        @Override
+                                        @Nullable
+                                        public RequestBuilder getPreloadRequestBuilder(RoomObject roomObject) {
+                                            try {
+                                                int profileImg;
+                                                String username = roomObject.getUsers().get(0);
+                                                if (username.equals(mUsername)) {
+                                                    username = roomObject.getUsers().get(1);
                                                 }
+                                                profileImg = profileImgVersions.get(username).intValue();
+                                                if (profileImg == 0) {
+                                                    return null;
+                                                }
+                                                return GlideApp.with(activity).load(activity.getProfileImgUrl(username, profileImgVersions.get(username).intValue()));
 
-                                                return null;
+                                            } catch (Throwable t) {
+
                                             }
-                                        };
 
-                                        mFirebaseAdapter = freshFirebaseAdapter;
-                                        activity.runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                mRoomRecyclerView.setAdapter(mFirebaseAdapter);
-                                                setFirebaseObserver();
-                                            }
-                                        });
-                                    }
+                                            return null;
+                                        }
+                                    };
 
-
+                                    mFirebaseAdapter = freshFirebaseAdapter;
+                                    activity.runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            mRoomRecyclerView.setAdapter(mFirebaseAdapter);
+                                            setFirebaseObserver();
+                                        }
+                                    });
                                 }
-                            };
-                            Thread mythread = new Thread(runnable);
-                            mythread.start();
-                        }
+
+
+                            }
+                        };
+                        Thread mythread = new Thread(runnable);
+                        mythread.start();
 
                     }
                 }
