@@ -725,6 +725,7 @@ public class MessageRoom extends Fragment {
     }
 
     private void setUpRoomInDB(String preview){
+
         final ArrayList<String> roomUsersHolderList;
         if(roomUsersList != null){
             roomUsersHolderList = new ArrayList<>();
@@ -742,6 +743,10 @@ public class MessageRoom extends Fragment {
         mFirebaseDatabaseReference.child(userRoomPath).setValue(roomObject).addOnCompleteListener(activity, new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
+
+                if(activity.getMessengerFragment().isEmpty()){
+                    activity.getMessengerFragment().initializeFragmentAfterFirstRoomCreation();
+                }
 
                 if(roomObject.getUsers() != null && roomObject.getUsers().size() == 2){
                     roomObject.setName(mUsername);

@@ -15,12 +15,15 @@
  */
 package com.vs.bcd.versus.adapter;
 
+import android.content.Intent;
 import android.util.Log;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
+
+    public static final String INTENT_FILTER = "INTENT_FILTER";
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
@@ -29,5 +32,8 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         Log.d("MyFMService", "FCM Notification Message: " +
                 remoteMessage.getNotification());
         Log.d("MyFMService", "FCM Data Message: " + remoteMessage.getData());
+        Intent intent = new Intent(INTENT_FILTER);
+        intent.putExtra("roomNum", remoteMessage.getData().get("room_id"));
+        sendBroadcast(intent);
     }
 }

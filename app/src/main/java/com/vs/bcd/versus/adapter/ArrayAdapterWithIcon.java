@@ -61,13 +61,16 @@ public class ArrayAdapterWithIcon extends ArrayAdapter<String> {
         TextView textView = view.findViewById(android.R.id.text1);
         textView.setTextSize(18);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            textView.setCompoundDrawablesRelativeWithIntrinsicBounds(images.get(position), 0, 0, 0);
-        } else {
-            textView.setCompoundDrawablesWithIntrinsicBounds(images.get(position), 0, 0, 0);
+        if(!images.isEmpty()){
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                textView.setCompoundDrawablesRelativeWithIntrinsicBounds(images.get(position), 0, 0, 0);
+            } else {
+                textView.setCompoundDrawablesWithIntrinsicBounds(images.get(position), 0, 0, 0);
+            }
+            textView.setCompoundDrawablePadding(
+                    (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 12, getContext().getResources().getDisplayMetrics()));
         }
-        textView.setCompoundDrawablePadding(
-                (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 12, getContext().getResources().getDisplayMetrics()));
+
         return view;
     }
 

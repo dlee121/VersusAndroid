@@ -1,9 +1,11 @@
 package com.vs.bcd.versus.activity;
 
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.NetworkOnMainThreadException;
@@ -64,6 +66,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
+import com.vs.bcd.versus.adapter.MyFirebaseMessagingService;
 import com.vs.bcd.versus.fragment.CategoryFragment;
 import com.vs.bcd.versus.fragment.CommentEnterFragment;
 import com.vs.bcd.versus.fragment.CreateMessage;
@@ -91,7 +94,6 @@ import com.vs.bcd.versus.model.ViewPagerCustomDuration;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -167,6 +169,13 @@ public class MainContainer extends AppCompatActivity {
 
     private String esHost = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
     private String esRegion = "us-east-1";
+
+    private BroadcastReceiver myReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            handleNewMessage(intent.getStringExtra("roomNum"));
+        }
+    };
 
     @Override
     public void onBackPressed(){
@@ -300,6 +309,8 @@ public class MainContainer extends AppCompatActivity {
         };
         Thread mythread = new Thread(runnable);
         mythread.start();
+
+        registerReceiver(myReceiver, new IntentFilter(MyFirebaseMessagingService.INTENT_FILTER));
 
 
         /*
@@ -728,6 +739,7 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 4: //messenger
+                        titleTxtView.setText("Messenger");
                         showMessengerSearchButton();
                         hideToolbarTextButton();
                         disableBottomTabs();
@@ -842,6 +854,16 @@ public class MainContainer extends AppCompatActivity {
             mViewPager.setCurrentItem(0);
             goToMainActivityOnResume = false;
         }
+    }
+
+    @Override
+    protected void onDestroy(){
+        unregisterReceiver(myReceiver);
+        super.onDestroy();
+    }
+
+    public MessengerFragment getMessengerFragment(){
+        return messengerFragment;
     }
 
     private void goToMsgRoom(final String rnum){
@@ -1546,6 +1568,9 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public void setUpAndOpenMessageRoom(String rnum, ArrayList<String> usersMap, String roomTitle){
+        if(messengerFragment.roomIsUnread(rnum)){
+            mFirebaseDatabaseReference.child(getUserPath()+"unread/"+rnum).removeValue();
+        }
         ArrayList<String> users = new ArrayList<>();
         users.addAll(usersMap);
         users.remove(getUsername()); //remove logged-in user from the room users map to prevent duplicate sends,
@@ -1761,6 +1786,16 @@ public class MainContainer extends AppCompatActivity {
         myAdapterFragInt = 9; //profile page
         postParentProfileUsername = commentAuthor;
         clickedPostIndex = -1;
+    }
+
+    private void handleNewMessage(String roomNum){
+        if(messengerFragment != null){
+            //adding to unread list is done in Cloud Functions
+            if(messengerFragment.isEmpty()){
+                messengerFragment.initializeFragmentAfterFirstRoomCreation();
+            }
+
+        }
     }
 
 }
