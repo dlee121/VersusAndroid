@@ -147,11 +147,16 @@ public class MessengerFragment extends Fragment {
     private HashMap<String, Boolean> blockList = new HashMap<>();
     private HashMap<String, Boolean> muteList = new HashMap<>();
     private HashSet<String> unreadRooms = new HashSet<>();
-    private int clickedPosition = 0;
+    private String clickedRoomNum = "";
     private ChildEventListener unreadMessagesListener = new ChildEventListener() {
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-            unreadRooms.add(dataSnapshot.getKey());
+            if(clickedRoomNum.equals(dataSnapshot.getKey())){
+                mFirebaseDatabaseReference.child(activity.getUserPath()+"unread/"+dataSnapshot.getKey()).removeValue();
+            }
+            else{
+                unreadRooms.add(dataSnapshot.getKey());
+            }
         }
 
         @Override
@@ -774,7 +779,7 @@ public class MessengerFragment extends Fragment {
                                                 public void onClick(View view) {
 
                                                     if (roomNum != null) {
-                                                        clickedPosition = position;
+                                                        clickedRoomNum = roomNum;
                                                         activity.setUpAndOpenMessageRoom(roomNum, usersList, roomTitle);
                                                     } else {
                                                         Log.d("MESSENGER", "roomNum is null");
