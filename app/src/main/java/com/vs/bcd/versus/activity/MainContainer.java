@@ -83,7 +83,6 @@ import com.vs.bcd.versus.fragment.Tab2Trending;
 import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.model.GlideUrlCustom;
 import com.vs.bcd.versus.model.Post;
-import com.vs.bcd.versus.model.RNumAndUList;
 import com.vs.bcd.versus.model.RoomObject;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.fragment.CreatePost;
@@ -333,7 +332,7 @@ public class MainContainer extends AppCompatActivity {
         MobileAds.initialize(this, "ca-app-pub-3940256099942544/2247696110"); //TODO: this loads test ads. Replace the app_id_string with our adMob account app_id_string to get real ads.
         loadNativeAds();
 
-        int usernameHash;
+        final int usernameHash;
         if(currUsername.length() < 5){
             usernameHash = currUsername.hashCode();
         }
@@ -618,15 +617,27 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 12:    //CreateMessage fragment
-                        String dmTarget = createMessageFragment.getDMTarget();
+                        final String dmTarget = "";//TODO:createMessageFragment.getDMTarget();
                         if(!(dmTarget.equals(""))){
-                            RNumAndUList rNumAndUList = messengerFragment.getRNumAndUList(dmTarget);
-                            if(rNumAndUList != null){
-                                setUpAndOpenMessageRoom(rNumAndUList.getRNum(), rNumAndUList.getUsersList(), dmTarget);
-                            }
-                            else{
-                                createMessageFragment.createMessageRoom();
-                            }
+                            mFirebaseDatabaseReference.child(userPath+"dm/"+dmTarget).addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                    if (dataSnapshot.exists()) {
+                                        ArrayList<String> usersList = new ArrayList<>();
+                                        usersList.add(dmTarget);
+                                        usersList.add(currUsername);
+                                        setUpAndOpenMessageRoom(dataSnapshot.getValue(String.class), usersList, dmTarget);
+                                    }
+                                    else {
+                                        getCreateMessageFragment().createMessageRoom();
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+
+                                }
+                            });
                         }
                         else{
                             createMessageFragment.createMessageRoom();
@@ -864,6 +875,10 @@ public class MainContainer extends AppCompatActivity {
 
     public MessengerFragment getMessengerFragment(){
         return messengerFragment;
+    }
+
+    public CreateMessage getCreateMessageFragment(){
+        return createMessageFragment;
     }
 
     private void goToMsgRoom(final String rnum){

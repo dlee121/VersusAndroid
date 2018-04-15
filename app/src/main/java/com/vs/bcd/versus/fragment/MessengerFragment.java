@@ -126,7 +126,7 @@ public class MessengerFragment extends Fragment {
     private MainContainer activity;
     private FloatingActionButton fabNewMsg;
     private ChildEventListener roomsListener;
-    private HashMap<String, RNumAndUList> rNameToRNum;
+    //private HashMap<String, RNumAndUList> rNameToRNumAndUListMap;
     private TextView emptyListTV;
     private Query query;
     private int retrievalSize = 12;
@@ -253,7 +253,7 @@ public class MessengerFragment extends Fragment {
         final FirebaseRecyclerAdapter oldAdapter = mFirebaseAdapter;
 
         previousAdapterItemCount = mFirebaseAdapter.getItemCount();
-        rNameToRNum = new HashMap<>();
+        //rNameToRNumAndUListMap = new HashMap<>();
 
         if(retrievalMultiplier == -1){
 
@@ -284,7 +284,7 @@ public class MessengerFragment extends Fragment {
                                     strBuilder.append(",{\"_id\":\""+username+"\",\"_source\":\"pi\"}");
                                 }
                             }
-                            rNameToRNum.put(roomObject.getName(), new RNumAndUList(child.getKey(), roomObject.getUsers()));
+                            //rNameToRNumAndUListMap.put(roomObject.getName(), new RNumAndUList(child.getKey(), roomObject.getUsers()));
                         }
 
                         final String payload;
@@ -371,7 +371,7 @@ public class MessengerFragment extends Fragment {
                                                 GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
                                             }
 
-                                            //rNameToRNum.put(roomTitle, new RNumAndUList(roomNum, usersList)); //TODO: will this get updated if room is updated with modified usersList?
+                                            //rNameToRNumAndUListMap.put(roomTitle, new RNumAndUList(roomNum, usersList)); //TODO: will this get updated if room is updated with modified usersList?
 
                                             viewHolder.roomTitleTV.setText(roomTitle);
                                             viewHolder.roomTimeTV.setText(getMessengerTimeString(roomObject.getTime()));
@@ -499,7 +499,7 @@ public class MessengerFragment extends Fragment {
                                     strBuilder.append(",{\"_id\":\"" + username + "\",\"_source\":\"pi\"}");
                                 }
                             }
-                            rNameToRNum.put(roomObject.getName(), new RNumAndUList(child.getKey(), roomObject.getUsers()));
+                            //rNameToRNumAndUListMap.put(roomObject.getName(), new RNumAndUList(child.getKey(), roomObject.getUsers()));
                         }
 
                         final String payload;
@@ -585,7 +585,7 @@ public class MessengerFragment extends Fragment {
                                                     GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
                                                 }
 
-                                                //rNameToRNum.put(roomTitle, new RNumAndUList(roomNum, usersList)); //TODO: will this get updated if room is updated with modified usersList?
+                                                //rNameToRNumAndUListMap.put(roomTitle, new RNumAndUList(roomNum, usersList)); //TODO: will this get updated if room is updated with modified usersList?
 
                                                 viewHolder.roomTitleTV.setText(roomTitle);
                                                 viewHolder.roomTimeTV.setText(getMessengerTimeString(roomObject.getTime()));
@@ -715,7 +715,7 @@ public class MessengerFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        rNameToRNum = new HashMap<>();
+        //rNameToRNumAndUListMap = new HashMap<>();
 
         if (mFirebaseAdapter != null) {
             mFirebaseAdapter.startListening();
@@ -724,8 +724,8 @@ public class MessengerFragment extends Fragment {
             query.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    mProgressBar.setVisibility(ProgressBar.INVISIBLE);
                     if (!(dataSnapshot.hasChildren())) {
+                        mProgressBar.setVisibility(ProgressBar.INVISIBLE);
                         emptyListTV.setVisibility(TextView.VISIBLE);
                     } else {
                         totalRoomCount = (int) dataSnapshot.getChildrenCount();
@@ -746,7 +746,7 @@ public class MessengerFragment extends Fragment {
                                 }
                             }
 
-                            rNameToRNum.put(roomObject.getName(), new RNumAndUList(child.getKey(), roomObject.getUsers()));
+                            //rNameToRNumAndUListMap.put(roomObject.getName(), new RNumAndUList(child.getKey(), roomObject.getUsers()));
 
                         }
 
@@ -831,7 +831,7 @@ public class MessengerFragment extends Fragment {
                                             }
 
 
-                                            //rNameToRNum.put(roomTitle, new RNumAndUList(roomNum, usersList)); //TODO: will this get updated if room is updated with modified usersList?
+                                            //rNameToRNumAndUListMap.put(roomTitle, new RNumAndUList(roomNum, usersList)); //TODO: will this get updated if room is updated with modified usersList?
 
                                             viewHolder.roomTitleTV.setText(roomTitle);
                                             viewHolder.roomTimeTV.setText(getMessengerTimeString(roomObject.getTime()));
@@ -973,7 +973,6 @@ public class MessengerFragment extends Fragment {
         mFirebaseDatabaseReference.child(target).child(username).removeValue();
     }
 
-    //Delete for private message and Leave for group chat are same here
     private void deleteRoom(String roomNum, String roomName){
         String roomTarget = Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/r";
         mFirebaseDatabaseReference.child(roomTarget).child(roomNum).removeValue();
@@ -981,12 +980,11 @@ public class MessengerFragment extends Fragment {
         String messagesTarget = Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/messages";
         mFirebaseDatabaseReference.child(messagesTarget).child(roomNum).removeValue();
 
-        rNameToRNum.remove(roomName);
-
+        //rNameToRNumAndUListMap.remove(roomName);
     }
 
     private void leaveRoom(String roomNum, RoomObject roomObject){
-        rNameToRNum.remove(roomObject.getName());
+        //rNameToRNumAndUListMap.remove(roomObject.getName());
 
         String roomTarget = Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/r";
         mFirebaseDatabaseReference.child(roomTarget).child(roomNum).removeValue();
@@ -1255,16 +1253,8 @@ public class MessengerFragment extends Fragment {
         }
     }
 
-    //returns null if entry not found, else returns the corresponding RNumAndUList object
-    public RNumAndUList getRNumAndUList(String rName){
-        if(rNameToRNum != null){
-            return rNameToRNum.get(rName);
-        }
-        return null;
-    }
-
     public boolean isEmpty(){
-        return rNameToRNum == null || rNameToRNum.isEmpty();
+        return mFirebaseAdapter == null || mFirebaseAdapter.getItemCount() == 0;
     }
 
     private String getMessengerTimeString(long epochTime){

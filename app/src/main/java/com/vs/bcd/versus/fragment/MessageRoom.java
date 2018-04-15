@@ -308,44 +308,23 @@ public class MessageRoom extends Fragment {
                 String USER_PATH = Integer.toString(usernameHash) + "/" + mUsername + "/messages/" + rnum;
 
                 if(firstMessage){
-                    mFirebaseDatabaseReference.child(USER_PATH).push().setValue(messageObject)
-                        .addOnCompleteListener(activity, new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                setUpRecyclerView(rnum);
-                                setUpRoomInDB(content);
-                            }
-                        });
+                    setUpRoomInDB(content, messageObject, null);
                     firstMessage = false;
                 }
                 else{
                     mFirebaseDatabaseReference.child(USER_PATH).push().setValue(messageObject);
+
+                    for(final UserSearchItem usi : invitedUsers){
+                        String WRITE_PATH = usi.getHash() + "/" + usi.getUsername() + "/messages/" + rnum;
+                        //final String username = usi.getUsername();
+                        mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+
+                    }
                 }
 
                 mMessageEditText.setText("");
 
-                final boolean isDM;
-                if(invitedUsers.size() == 1){
-                    isDM = true;
-                }
-                else{
-                    isDM = false;
-                }
 
-                final String preview;
-                if(content.trim().length() > 15){
-                    preview = content.trim().substring(0,12) + "...";
-                }
-                else{
-                    preview = content.trim();
-                }
-
-                for(final UserSearchItem usi : invitedUsers){
-                    String WRITE_PATH = usi.getHash() + "/" + usi.getUsername() + "/messages/" + rnum;
-                    final String username = usi.getUsername();
-                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
-
-                }
             }
         });
 
@@ -482,36 +461,36 @@ public class MessageRoom extends Fragment {
                     final Uri uri = data.getData();
                     Log.d(TAG, "Uri: " + uri.toString());
 
-                    MessageObject tempMessage = new MessageObject(null, mUsername, mPhotoUrl,
+                    final MessageObject tempMessage = new MessageObject(null, mUsername, mPhotoUrl,
                             LOADING_IMAGE_URL);
 
+                    if(firstMessage){
+                        setUpRoomInDB("", tempMessage, uri);
+                        firstMessage = false;
+                    }
+                    else{
+                        mFirebaseDatabaseReference.child(MESSAGES_CHILD).push()
+                                .setValue(tempMessage, new DatabaseReference.CompletionListener() { //sends message with temp image holder to self. Currently, not broadcasting temp message to the room and sending just to self.
+                                    @Override
+                                    public void onComplete(DatabaseError databaseError,
+                                                           DatabaseReference databaseReference) {
+                                        if (databaseError == null) {
 
-                    mFirebaseDatabaseReference.child(MESSAGES_CHILD).push()
-                        .setValue(tempMessage, new DatabaseReference.CompletionListener() { //sends message with temp image holder to self. Currently, not broadcasting temp message to the room and sending just to self.
-                            @Override
-                            public void onComplete(DatabaseError databaseError,
-                                                   DatabaseReference databaseReference) {
-                                if (databaseError == null) {
-                                    if(firstMessage){
-                                        setUpRecyclerView(roomNum);
-                                        setUpRoomInDB("");
-                                        firstMessage = false;
+                                            String key = databaseReference.getKey();
+                                            StorageReference storageReference =
+                                                    FirebaseStorage.getInstance()
+                                                            .getReference(mFirebaseUser.getUid())
+                                                            .child(key)
+                                                            .child(uri.getLastPathSegment());
+
+                                            putImageInStorage(storageReference, uri, key);
+                                        } else {
+                                            Log.w(TAG, "Unable to write message to database.",
+                                                    databaseError.toException());
+                                        }
                                     }
-
-                                    String key = databaseReference.getKey();
-                                    StorageReference storageReference =
-                                            FirebaseStorage.getInstance()
-                                                    .getReference(mFirebaseUser.getUid())
-                                                    .child(key)
-                                                    .child(uri.getLastPathSegment());
-
-                                    putImageInStorage(storageReference, uri, key);
-                                } else {
-                                    Log.w(TAG, "Unable to write message to database.",
-                                            databaseError.toException());
-                                }
-                            }
-                        });
+                                });
+                    }
 
                     //TODO: for now, not broadcasting placeholder message. We'll broadcast the real message with the actual image in putImageInStorage once image upload is done.
                     //TODO: see if that's sufficient, if it feels slow or less optimal by any means we'll switch to broadcasting placeholder message
@@ -724,8 +703,8 @@ public class MessageRoom extends Fragment {
         mMessageRecyclerView.setAdapter(mFirebaseAdapter);
     }
 
-    private void setUpRoomInDB(String preview){
-
+    private void setUpRoomInDB(String preview, final MessageObject messageObject, final Uri uri){
+        MESSAGES_CHILD = MESSAGES_CHILD_BODY + roomNum;
         final ArrayList<String> roomUsersHolderList;
         if(roomUsersList != null){
             roomUsersHolderList = new ArrayList<>();
@@ -736,6 +715,12 @@ public class MessageRoom extends Fragment {
         else {
             roomUsersHolderList = roomUsersStringList;
         }
+
+        if(roomUsersHolderList.size() == 1){
+            //this is a DM, so add it to the dm list in firebase
+            mFirebaseDatabaseReference.child(activity.getUserPath() + "dm/"+roomUsersHolderList.get(0)).setValue(roomNum);
+        }
+
         roomUsersHolderList.add(mUsername);
 
         final RoomObject roomObject = new RoomObject(currentRoomTitle, System.currentTimeMillis(), preview, roomUsersHolderList);
@@ -743,6 +728,42 @@ public class MessageRoom extends Fragment {
         mFirebaseDatabaseReference.child(userRoomPath).setValue(roomObject).addOnCompleteListener(activity, new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
+                if(messageObject.getText() == null){
+                    mFirebaseDatabaseReference.child(MESSAGES_CHILD).push()
+                        .setValue(messageObject, new DatabaseReference.CompletionListener() { //sends message with temp image holder to self. Currently, not broadcasting temp message to the room and sending just to self.
+                            @Override
+                            public void onComplete(DatabaseError databaseError,
+                                                   DatabaseReference databaseReference) {
+                                if (databaseError == null) {
+
+                                    setUpRecyclerView(roomNum);
+
+                                    String key = databaseReference.getKey();
+                                    StorageReference storageReference =
+                                            FirebaseStorage.getInstance()
+                                                    .getReference(mFirebaseUser.getUid())
+                                                    .child(key)
+                                                    .child(uri.getLastPathSegment());
+
+                                    putImageInStorage(storageReference, uri, key);
+                                } else {
+                                    Log.w(TAG, "Unable to write message to database.",
+                                            databaseError.toException());
+                                }
+                            }
+                        });
+
+                }
+                else{
+                    mFirebaseDatabaseReference.child(MESSAGES_CHILD).push().setValue(messageObject)
+                        .addOnCompleteListener(activity, new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                setUpRecyclerView(roomNum);
+                            }
+                        });
+
+                }
 
                 if(activity.getMessengerFragment().isEmpty()){
                     activity.getMessengerFragment().initializeFragmentAfterFirstRoomCreation();
@@ -754,9 +775,9 @@ public class MessageRoom extends Fragment {
 
                 setRoomObjListener(roomNum);
 
-                for(String mName : roomUsersHolderList){
+                for(final String mName : roomUsersHolderList){
                     if(!mName.equals(mUsername)) {
-                        int usernameHash;
+                        final int usernameHash;
                         if (mName.length() < 5) {
                             usernameHash = mName.hashCode();
                         } else {
@@ -766,7 +787,13 @@ public class MessageRoom extends Fragment {
 
                         String roomPath = usernameHash + "/" + mName + "/" + "r/" + roomNum;
                         Log.d("ROOMCREATE", roomPath);
-                        mFirebaseDatabaseReference.child(roomPath).setValue(roomObject);
+                        mFirebaseDatabaseReference.child(roomPath).setValue(roomObject).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                String WRITE_PATH = usernameHash + "/" + mName + "/messages/" + roomNum;
+                                mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                            }
+                        });
                     }
                 }
             }
