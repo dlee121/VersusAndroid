@@ -233,9 +233,6 @@ public class MessengerFragment extends Fragment {
 
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(getActivity());
 
-        //get unread list here
-        mFirebaseDatabaseReference.child(activity.getUserPath()+"unread").addChildEventListener(unreadMessagesListener);
-
         fabNewMsg = rootView.findViewById(R.id.fab_new_msg);
         fabNewMsg.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -347,56 +344,61 @@ public class MessengerFragment extends Fragment {
                                                 viewHolder.unreadCircleView.setVisibility(View.INVISIBLE);
                                             }
 
-                                            if(usersList.size() == 2){
-                                                try{
-                                                    String username = usersList.get(0);
-                                                    if(username.equals(mUsername)){
-                                                        username = usersList.get(1);
-                                                    }
-
-                                                    int profileImg = profileImgVersions.get(username).intValue();
-
-                                                    if(profileImg == 0){
-                                                        GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
-                                                    }
-                                                    else{
-                                                        GlideApp.with(activity).load(activity.getProfileImgUrl(username, profileImg)).into(viewHolder.circView);
-                                                    }
-
-                                                }catch (Throwable t){
-
-                                                }
+                                            if(usersList == null){
+                                                mFirebaseDatabaseReference.child(ROOMS_CHILD).child(roomNum).removeValue();
                                             }
                                             else{
-                                                GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
+                                                if(usersList.size() == 2){
+                                                    try{
+                                                        String username = usersList.get(0);
+                                                        if(username.equals(mUsername)){
+                                                            username = usersList.get(1);
+                                                        }
+
+                                                        int profileImg = profileImgVersions.get(username).intValue();
+
+                                                        if(profileImg == 0){
+                                                            GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
+                                                        }
+                                                        else{
+                                                            GlideApp.with(activity).load(activity.getProfileImgUrl(username, profileImg)).into(viewHolder.circView);
+                                                        }
+
+                                                    }catch (Throwable t){
+
+                                                    }
+                                                }
+                                                else{
+                                                    GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
+                                                }
+
+                                                //rNameToRNumAndUListMap.put(roomTitle, new RNumAndUList(roomNum, usersList)); //TODO: will this get updated if room is updated with modified usersList?
+
+                                                viewHolder.roomTitleTV.setText(roomTitle);
+                                                viewHolder.roomTimeTV.setText(getMessengerTimeString(roomObject.getTime()));
+                                                viewHolder.roomPreviewTV.setText(roomObject.getPreview());
+                                                viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View view) {
+
+                                                        if(roomNum != null){
+                                                            clickedRoomNum = roomNum;
+                                                            activity.setUpAndOpenMessageRoom(roomNum, usersList, roomTitle);
+                                                        }
+                                                        else{
+                                                            Log.d("MESSENGER", "roomNum is null");
+                                                        }
+                                                    }
+                                                });
+
+                                                viewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                                                    @Override
+                                                    public boolean onLongClick(View view) {
+                                                        roomItemLongClickMenu(viewHolder.roomTimeTV, roomNum, roomObject);
+                                                        return true;
+                                                    }
+                                                });
                                             }
-
-                                            //rNameToRNumAndUListMap.put(roomTitle, new RNumAndUList(roomNum, usersList)); //TODO: will this get updated if room is updated with modified usersList?
-
-                                            viewHolder.roomTitleTV.setText(roomTitle);
-                                            viewHolder.roomTimeTV.setText(getMessengerTimeString(roomObject.getTime()));
-                                            viewHolder.roomPreviewTV.setText(roomObject.getPreview());
-                                            viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-                                                @Override
-                                                public void onClick(View view) {
-
-                                                    if(roomNum != null){
-                                                        clickedRoomNum = roomNum;
-                                                        activity.setUpAndOpenMessageRoom(roomNum, usersList, roomTitle);
-                                                    }
-                                                    else{
-                                                        Log.d("MESSENGER", "roomNum is null");
-                                                    }
-                                                }
-                                            });
-
-                                            viewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-                                                @Override
-                                                public boolean onLongClick(View view) {
-                                                    roomItemLongClickMenu(viewHolder.roomTimeTV, roomNum, roomObject);
-                                                    return true;
-                                                }
-                                            });
 
                                         }
                                         else {
@@ -563,53 +565,58 @@ public class MessengerFragment extends Fragment {
                                                     viewHolder.unreadCircleView.setVisibility(View.INVISIBLE);
                                                 }
 
-                                                if (usersList.size() == 2) {
-                                                    try {
-                                                        String username = usersList.get(0);
-                                                        if (username.equals(mUsername)) {
-                                                            username = usersList.get(1);
-                                                        }
-
-                                                        int profileImg = profileImgVersions.get(username).intValue();
-
-                                                        if (profileImg == 0) {
-                                                            GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
-                                                        } else {
-                                                            GlideApp.with(activity).load(activity.getProfileImgUrl(username, profileImg)).into(viewHolder.circView);
-                                                        }
-
-                                                    } catch (Throwable t) {
-
-                                                    }
-                                                } else {
-                                                    GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
+                                                if(usersList == null){
+                                                    mFirebaseDatabaseReference.child(ROOMS_CHILD).child(roomNum).removeValue();
                                                 }
+                                                else{
+                                                    if (usersList.size() == 2) {
+                                                        try {
+                                                            String username = usersList.get(0);
+                                                            if (username.equals(mUsername)) {
+                                                                username = usersList.get(1);
+                                                            }
 
-                                                //rNameToRNumAndUListMap.put(roomTitle, new RNumAndUList(roomNum, usersList)); //TODO: will this get updated if room is updated with modified usersList?
+                                                            int profileImg = profileImgVersions.get(username).intValue();
 
-                                                viewHolder.roomTitleTV.setText(roomTitle);
-                                                viewHolder.roomTimeTV.setText(getMessengerTimeString(roomObject.getTime()));
-                                                viewHolder.roomPreviewTV.setText(roomObject.getPreview());
-                                                viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(View view) {
+                                                            if (profileImg == 0) {
+                                                                GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
+                                                            } else {
+                                                                GlideApp.with(activity).load(activity.getProfileImgUrl(username, profileImg)).into(viewHolder.circView);
+                                                            }
 
-                                                        if (roomNum != null) {
-                                                            clickedRoomNum = roomNum;
-                                                            activity.setUpAndOpenMessageRoom(roomNum, usersList, roomTitle);
-                                                        } else {
-                                                            Log.d("MESSENGER", "roomNum is null");
+                                                        } catch (Throwable t) {
+
                                                         }
+                                                    } else {
+                                                        GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
                                                     }
-                                                });
 
-                                                viewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-                                                    @Override
-                                                    public boolean onLongClick(View view) {
-                                                        roomItemLongClickMenu(viewHolder.roomTimeTV, roomNum, roomObject);
-                                                        return true;
-                                                    }
-                                                });
+                                                    //rNameToRNumAndUListMap.put(roomTitle, new RNumAndUList(roomNum, usersList)); //TODO: will this get updated if room is updated with modified usersList?
+
+                                                    viewHolder.roomTitleTV.setText(roomTitle);
+                                                    viewHolder.roomTimeTV.setText(getMessengerTimeString(roomObject.getTime()));
+                                                    viewHolder.roomPreviewTV.setText(roomObject.getPreview());
+                                                    viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                                                        @Override
+                                                        public void onClick(View view) {
+
+                                                            if (roomNum != null) {
+                                                                clickedRoomNum = roomNum;
+                                                                activity.setUpAndOpenMessageRoom(roomNum, usersList, roomTitle);
+                                                            } else {
+                                                                Log.d("MESSENGER", "roomNum is null");
+                                                            }
+                                                        }
+                                                    });
+
+                                                    viewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                                                        @Override
+                                                        public boolean onLongClick(View view) {
+                                                            roomItemLongClickMenu(viewHolder.roomTimeTV, roomNum, roomObject);
+                                                            return true;
+                                                        }
+                                                    });
+                                                }
 
                                             } else {
                                                 Log.d("roomSetUp", "title null");
@@ -714,6 +721,8 @@ public class MessengerFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        //get unread list here
+        mFirebaseDatabaseReference.child(activity.getUserPath()+"unread").addChildEventListener(unreadMessagesListener);
 
         //rNameToRNumAndUListMap = new HashMap<>();
 
@@ -808,54 +817,59 @@ public class MessengerFragment extends Fragment {
                                                 viewHolder.unreadCircleView.setVisibility(View.INVISIBLE);
                                             }
 
-                                            if (usersList.size() == 2) {
-                                                try {
-                                                    String username = usersList.get(0);
-                                                    if (username.equals(mUsername)) {
-                                                        username = usersList.get(1);
-                                                    }
-
-                                                    int profileImg = profileImgVersions.get(username).intValue();
-
-                                                    if (profileImg == 0) {
-                                                        GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
-                                                    } else {
-                                                        GlideApp.with(activity).load(activity.getProfileImgUrl(username, profileImg)).into(viewHolder.circView);
-                                                    }
-
-                                                } catch (Throwable t) {
-
-                                                }
-                                            } else {
-                                                GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
+                                            if(usersList == null){
+                                                mFirebaseDatabaseReference.child(ROOMS_CHILD).child(roomNum).removeValue();
                                             }
+                                            else{
+                                                if (usersList.size() == 2) {
+                                                    try {
+                                                        String username = usersList.get(0);
+                                                        if (username.equals(mUsername)) {
+                                                            username = usersList.get(1);
+                                                        }
 
+                                                        int profileImg = profileImgVersions.get(username).intValue();
 
-                                            //rNameToRNumAndUListMap.put(roomTitle, new RNumAndUList(roomNum, usersList)); //TODO: will this get updated if room is updated with modified usersList?
+                                                        if (profileImg == 0) {
+                                                            GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
+                                                        } else {
+                                                            GlideApp.with(activity).load(activity.getProfileImgUrl(username, profileImg)).into(viewHolder.circView);
+                                                        }
 
-                                            viewHolder.roomTitleTV.setText(roomTitle);
-                                            viewHolder.roomTimeTV.setText(getMessengerTimeString(roomObject.getTime()));
-                                            viewHolder.roomPreviewTV.setText(roomObject.getPreview());
-                                            viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-                                                @Override
-                                                public void onClick(View view) {
+                                                    } catch (Throwable t) {
 
-                                                    if (roomNum != null) {
-                                                        clickedRoomNum = roomNum;
-                                                        activity.setUpAndOpenMessageRoom(roomNum, usersList, roomTitle);
-                                                    } else {
-                                                        Log.d("MESSENGER", "roomNum is null");
                                                     }
+                                                } else {
+                                                    GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
                                                 }
-                                            });
 
-                                            viewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-                                                @Override
-                                                public boolean onLongClick(View view) {
-                                                    roomItemLongClickMenu(viewHolder.roomTimeTV, roomNum, roomObject);
-                                                    return true;
-                                                }
-                                            });
+
+                                                //rNameToRNumAndUListMap.put(roomTitle, new RNumAndUList(roomNum, usersList)); //TODO: will this get updated if room is updated with modified usersList?
+
+                                                viewHolder.roomTitleTV.setText(roomTitle);
+                                                viewHolder.roomTimeTV.setText(getMessengerTimeString(roomObject.getTime()));
+                                                viewHolder.roomPreviewTV.setText(roomObject.getPreview());
+                                                viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View view) {
+
+                                                        if (roomNum != null) {
+                                                            clickedRoomNum = roomNum;
+                                                            activity.setUpAndOpenMessageRoom(roomNum, usersList, roomTitle);
+                                                        } else {
+                                                            Log.d("MESSENGER", "roomNum is null");
+                                                        }
+                                                    }
+                                                });
+
+                                                viewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                                                    @Override
+                                                    public boolean onLongClick(View view) {
+                                                        roomItemLongClickMenu(viewHolder.roomTimeTV, roomNum, roomObject);
+                                                        return true;
+                                                    }
+                                                });
+                                            }
 
                                         } else {
                                             Log.d("roomSetUp", "title null");
@@ -1218,6 +1232,8 @@ public class MessengerFragment extends Fragment {
     @Override
     public void onPause(){
         super.onPause();
+        //get unread list here
+        mFirebaseDatabaseReference.child(activity.getUserPath()+"unread").removeEventListener(unreadMessagesListener);
         if(mFirebaseAdapter != null){
             mFirebaseAdapter.stopListening();
             //mRoomRecyclerView.setAdapter(null);

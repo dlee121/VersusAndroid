@@ -9,6 +9,7 @@ import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.NetworkOnMainThreadException;
+import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v7.app.AppCompatActivity;
@@ -58,6 +59,8 @@ import com.google.android.gms.ads.formats.NativeAppInstallAd;
 import com.google.android.gms.ads.formats.NativeAppInstallAd.OnAppInstallAdLoadedListener;
 import com.google.android.gms.ads.formats.NativeContentAd;
 import com.google.android.gms.ads.formats.NativeContentAd.OnContentAdLoadedListener;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -617,9 +620,9 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 12:    //CreateMessage fragment
-                        final String dmTarget = "";//TODO:createMessageFragment.getDMTarget();
+                        final String dmTarget = createMessageFragment.getDMTarget();
                         if(!(dmTarget.equals(""))){
-                            mFirebaseDatabaseReference.child(userPath+"dm/"+dmTarget).addListenerForSingleValueEvent(new ValueEventListener() {
+                            mFirebaseDatabaseReference.child(getUserPath()+"dm/"+dmTarget).addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(DataSnapshot dataSnapshot) {
                                     if (dataSnapshot.exists()) {
@@ -1582,16 +1585,28 @@ public class MainContainer extends AppCompatActivity {
         return userMKey;
     }
 
-    public void setUpAndOpenMessageRoom(String rnum, ArrayList<String> usersMap, String roomTitle){
-        if(messengerFragment.roomIsUnread(rnum)){
-            mFirebaseDatabaseReference.child(getUserPath()+"unread/"+rnum).removeValue();
-        }
-        ArrayList<String> users = new ArrayList<>();
-        users.addAll(usersMap);
-        users.remove(getUsername()); //remove logged-in user from the room users map to prevent duplicate sends,
-                                    // since we handle logged-in user's message transfer separate from message transfer of other room users
-        messageRoom.setUpRoom(rnum, usersMap, roomTitle);
+    public void setUpAndOpenMessageRoom(final String rnum, final ArrayList<String> usersMap, final String roomTitle){
         mViewPager.setCurrentItem(11);
+        if(messengerFragment.roomIsUnread(rnum)){
+            mFirebaseDatabaseReference.child(getUserPath()+"unread/"+rnum).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    ArrayList<String> users = new ArrayList<>();
+                    users.addAll(usersMap);
+                    users.remove(getUsername()); //remove logged-in user from the room users map to prevent duplicate sends,
+                    // since we handle logged-in user's message transfer separate from message transfer of other room users
+                    messageRoom.setUpRoom(rnum, usersMap, roomTitle);
+                }
+            });
+        }
+        else{
+            ArrayList<String> users = new ArrayList<>();
+            users.addAll(usersMap);
+            users.remove(getUsername()); //remove logged-in user from the room users map to prevent duplicate sends,
+            // since we handle logged-in user's message transfer separate from message transfer of other room users
+            messageRoom.setUpRoom(rnum, usersMap, roomTitle);
+        }
+
     }
 
     public int getUserProfileImageVersion(){
