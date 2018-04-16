@@ -632,7 +632,32 @@ public class MainContainer extends AppCompatActivity {
                                         setUpAndOpenMessageRoom(dataSnapshot.getValue(String.class), usersList, dmTarget);
                                     }
                                     else {
-                                        getCreateMessageFragment().createMessageRoom();
+                                        int dmTargetHash;
+                                        if(dmTarget.length() < 5){
+                                            dmTargetHash = dmTarget.hashCode();
+                                        }
+                                        else {
+                                            String hashIn = "" + dmTarget.charAt(0) + dmTarget.charAt(dmTarget.length() - 2) + dmTarget.charAt(1) + dmTarget.charAt(dmTarget.length() - 1);
+                                            dmTargetHash = hashIn.hashCode();
+                                        }
+
+                                        String targetDMPath = Integer.toString(dmTargetHash) + "/" + dmTarget + "/dm/" + getUsername();
+                                        mFirebaseDatabaseReference.child(targetDMPath).addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                                if(dataSnapshot.exists()){
+                                                    getCreateMessageFragment().createMessageRoom(dataSnapshot.getValue(String.class));
+                                                }
+                                                else{
+                                                    getCreateMessageFragment().createMessageRoom();
+                                                }
+                                            }
+
+                                            @Override
+                                            public void onCancelled(DatabaseError databaseError) {
+
+                                            }
+                                        });
                                     }
                                 }
 

@@ -31,6 +31,8 @@ import com.bumptech.glide.integration.recyclerview.RecyclerViewPreloader;
 import com.bumptech.glide.util.FixedPreloadSizeProvider;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -987,12 +989,32 @@ public class MessengerFragment extends Fragment {
         mFirebaseDatabaseReference.child(target).child(username).removeValue();
     }
 
-    private void deleteRoom(String roomNum, String roomName){
-        String roomTarget = Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/r";
-        mFirebaseDatabaseReference.child(roomTarget).child(roomNum).removeValue();
+    private void deleteRoom(final String roomNum, final String dmTarget){
+        mFirebaseDatabaseReference.child(activity.getUserPath()+"dm/"+dmTarget).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                /*
+                final int targetHash;
+                if(dmTarget.length() < 5){
+                    targetHash = dmTarget.hashCode();
+                }
+                else{
+                    String hashIn = "" + dmTarget.charAt(0) + dmTarget.charAt(dmTarget.length() - 2) + dmTarget.charAt(1) + dmTarget.charAt(dmTarget.length() - 1);
+                    targetHash = hashIn.hashCode();
+                }
 
-        String messagesTarget = Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/messages";
-        mFirebaseDatabaseReference.child(messagesTarget).child(roomNum).removeValue();
+                mFirebaseDatabaseReference.child(Integer.toString(targetHash) + "/" + dmTarget + "/dm/" + mUsername).setValue("*" + roomNum);
+                */
+
+                String roomTarget = Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/r";
+                mFirebaseDatabaseReference.child(roomTarget).child(roomNum).removeValue();
+
+                String messagesTarget = Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/messages";
+                mFirebaseDatabaseReference.child(messagesTarget).child(roomNum).removeValue();
+            }
+        });
+
+        mFirebaseDatabaseReference.child(Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/unread/" + roomNum).removeValue();
 
         //rNameToRNumAndUListMap.remove(roomName);
     }

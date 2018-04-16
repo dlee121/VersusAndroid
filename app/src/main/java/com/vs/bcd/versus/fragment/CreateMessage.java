@@ -338,6 +338,25 @@ public class CreateMessage extends Fragment {
         }
     }
 
+    //for when you delete your copy of the dm room and want to dm the same person and that person hasn't deleted their copy of the dm room
+    public void createMessageRoom(String roomNum){
+        if(invitedUsers != null && !invitedUsers.isEmpty()){
+            //set up a new message room and go into it. actual message room in DB is created with the sending of its first message.
+            ArrayList<UserSearchItem> invitedUsersFinal = new ArrayList<>();
+            for(UserSearchItem usi:invitedUsers){
+                invitedUsersFinal.add(new UserSearchItem(usi.getUsername()));
+            }
+            activity.getMessageRoom().setUpNewRoom(invitedUsersFinal, roomNum);
+            activity.getViewPager().setCurrentItem(11);
+        } else{
+            if(mToast != null){
+                mToast.cancel();
+            }
+            mToast = Toast.makeText(activity, "Please add recipient(s).", Toast.LENGTH_SHORT);
+            mToast.show();
+        }
+    }
+
     private void addFollowingListener(){
 
         following = new HashSet<>();

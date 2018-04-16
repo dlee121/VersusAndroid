@@ -127,6 +127,8 @@ public class MessageRoom extends Fragment {
     private boolean initialRoomInfoLoaded = false;
     private String currentRoomTitle = "";
     private boolean roomVisible = false;
+    private boolean specialSend = false;
+    private String oldRoomNum = "";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -236,6 +238,7 @@ public class MessageRoom extends Fragment {
     }
 
     public void setUpNewRoom(final ArrayList<UserSearchItem> invitedUsers){
+        specialSend = false;
         mProgressBar.setVisibility(ProgressBar.INVISIBLE);
 
         firstMessage = true;
@@ -324,6 +327,112 @@ public class MessageRoom extends Fragment {
 
                 mMessageEditText.setText("");
 
+            }
+        });
+
+        mAddMessageImageView = (ImageView) rootView.findViewById(R.id.addMessageImageView);
+        mAddMessageImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("image/*");
+                startActivityForResult(intent, REQUEST_IMAGE);
+            }
+        });
+
+        mFirebaseAnalytics = FirebaseAnalytics.getInstance(getActivity());
+    }
+
+    public void setUpNewRoom(final ArrayList<UserSearchItem> invitedUsers, final String roomNumInput){
+        specialSend = true;
+        mProgressBar.setVisibility(ProgressBar.INVISIBLE);
+        firstMessage = true;
+        roomNum = roomNumInput;
+        oldRoomNum = roomNumInput;
+        MESSAGES_CHILD = MESSAGES_CHILD_BODY + roomNumInput;
+        roomUsersList = invitedUsers;
+        roomUsersStringList = null;
+
+        final String roomTitle;
+
+        switch(invitedUsers.size()){
+            case 1:
+                roomTitle = invitedUsers.get(0).getUsername();
+                break;
+
+            case 2:
+                roomTitle = invitedUsers.get(0).getUsername() + " and " + invitedUsers.get(1).getUsername();
+                break;
+
+            default:
+                roomTitle = invitedUsers.get(0).getUsername() + ", " + invitedUsers.get(1).getUsername() + ", and " + Integer.toString(invitedUsers.size() - 2) + " more";
+                break;
+        }
+
+        currentRoomTitle = roomTitle;
+        activity.setMessageRoomTitle(currentRoomTitle);
+
+        mMessageEditText = rootView.findViewById(R.id.messageEditText);
+
+        mMessageEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if (charSequence.toString().trim().length() > 0) {
+                    mSendButton.setEnabled(true);
+                } else {
+                    mSendButton.setEnabled(false);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+            }
+        });
+
+        mSendButton = rootView.findViewById(R.id.sendButton);
+
+        mSendButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
+
+                final String content = mMessageEditText.getText().toString().trim();
+                final MessageObject messageObject = new MessageObject(content, mUsername, mPhotoUrl, null);
+
+                int usernameHash;
+                if(mUsername.length() < 5){
+                    usernameHash = mUsername.hashCode();
+                }
+                else{
+                    String hashIn = "" + mUsername.charAt(0) + mUsername.charAt(mUsername.length() - 2) + mUsername.charAt(1) + mUsername.charAt(mUsername.length() - 1);
+                    usernameHash = hashIn.hashCode();
+                }
+
+                String USER_PATH = Integer.toString(usernameHash) + "/" + mUsername + "/messages/" + roomNumInput;
+
+                if(firstMessage){
+                    setUpRoomInDBSpecial(roomNumInput, content, messageObject, null);
+                    firstMessage = false;
+                }
+                else{
+                    mFirebaseDatabaseReference.child(USER_PATH).push().setValue(messageObject);
+
+                    for(final UserSearchItem usi : invitedUsers){
+                        String WRITE_PATH = usi.getHash() + "/" + usi.getUsername() + "/messages/" + roomNumInput;
+                        //final String username = usi.getUsername();
+                        mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+
+                    }
+                }
+
+                mMessageEditText.setText("");
+
 
             }
         });
@@ -340,6 +449,100 @@ public class MessageRoom extends Fragment {
         });
 
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(getActivity());
+    }
+
+    //for when you delete your copy of the dm room and want to dm the same person and that person hasn't deleted their copy of the dm room
+    public void setUpRoomInDBSpecial(final String roomNumInput, String preview, final MessageObject messageObject, final Uri uri){
+
+        //modified version of setUpRoomInDB()
+        MESSAGES_CHILD = MESSAGES_CHILD_BODY + roomNumInput;
+        final ArrayList<String> roomUsersHolderList;
+        if(roomUsersList != null){
+            roomUsersHolderList = new ArrayList<>();
+            for(UserSearchItem usi : roomUsersList){
+                roomUsersHolderList.add(usi.getUsername());
+            }
+        }
+        else {
+            roomUsersHolderList = roomUsersStringList;
+        }
+
+        if(roomUsersHolderList.size() == 1){
+            String dmTarget = roomUsersHolderList.get(0);
+            //this is a DM, so add it to the dm list in firebase
+            mFirebaseDatabaseReference.child(activity.getUserPath() + "dm/"+dmTarget).setValue(roomNumInput);
+        }
+
+        roomUsersHolderList.add(mUsername);
+
+        final RoomObject roomObject = new RoomObject(currentRoomTitle, System.currentTimeMillis(), preview, roomUsersHolderList);
+        String userRoomPath = activity.getUserPath() + "r/" + roomNumInput;
+        mFirebaseDatabaseReference.child(userRoomPath).setValue(roomObject).addOnCompleteListener(activity, new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if(messageObject.getText() == null){
+                    mFirebaseDatabaseReference.child(MESSAGES_CHILD).push()
+                        .setValue(messageObject, new DatabaseReference.CompletionListener() {
+                            @Override
+                            public void onComplete(DatabaseError databaseError,
+                                                   DatabaseReference databaseReference) {
+                                if (databaseError == null) {
+
+                                    setUpRecyclerView(roomNumInput);
+
+                                    String key = databaseReference.getKey();
+                                    StorageReference storageReference =
+                                            FirebaseStorage.getInstance()
+                                                    .getReference(mFirebaseUser.getUid())
+                                                    .child(key)
+                                                    .child(uri.getLastPathSegment());
+
+                                    putImageInStorage(storageReference, uri, key);
+                                } else {
+                                    Log.w(TAG, "Unable to write message to database.",
+                                            databaseError.toException());
+                                }
+                            }
+                        });
+
+                }
+                else{
+                    mFirebaseDatabaseReference.child(MESSAGES_CHILD).push().setValue(messageObject)
+                        .addOnCompleteListener(activity, new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                setUpRecyclerView(roomNumInput);
+                            }
+                        });
+
+                }
+
+                if(activity.getMessengerFragment().isEmpty()){
+                    activity.getMessengerFragment().initializeFragmentAfterFirstRoomCreation();
+                }
+
+                if(roomObject.getUsers() != null && roomObject.getUsers().size() == 2){
+                    roomObject.setName(mUsername);
+                }
+
+                setRoomObjListener(roomNumInput);
+
+                for(final String mName : roomUsersHolderList){
+                    if(!mName.equals(mUsername)) {
+                        final int usernameHash;
+                        if (mName.length() < 5) {
+                            usernameHash = mName.hashCode();
+                        } else {
+                            String hashIn = "" + mName.charAt(0) + mName.charAt(mName.length() - 2) + mName.charAt(1) + mName.charAt(mName.length() - 1);
+                            usernameHash = hashIn.hashCode();
+                        }
+
+                        String WRITE_PATH = usernameHash + "/" + mName + "/messages/" + roomNumInput;
+                        mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                    }
+                }
+            }
+        });
     }
 
     public void setUpRoom(final String rnum, final ArrayList<String> usersList, String roomTitle){
@@ -465,7 +668,13 @@ public class MessageRoom extends Fragment {
                             LOADING_IMAGE_URL);
 
                     if(firstMessage){
-                        setUpRoomInDB("", tempMessage, uri);
+                        if(specialSend){
+                            setUpRoomInDBSpecial(oldRoomNum, "", tempMessage, uri);
+                        }
+                        else{
+                            setUpRoomInDB("", tempMessage, uri);
+                        }
+                        specialSend = false;
                         firstMessage = false;
                     }
                     else{
@@ -717,8 +926,20 @@ public class MessageRoom extends Fragment {
         }
 
         if(roomUsersHolderList.size() == 1){
+            String dmTarget = roomUsersHolderList.get(0);
             //this is a DM, so add it to the dm list in firebase
-            mFirebaseDatabaseReference.child(activity.getUserPath() + "dm/"+roomUsersHolderList.get(0)).setValue(roomNum);
+            mFirebaseDatabaseReference.child(activity.getUserPath() + "dm/"+dmTarget).setValue(roomNum);
+
+            final int targetHash;
+            if(dmTarget.length() < 5){
+                targetHash = dmTarget.hashCode();
+            }
+            else{
+                String hashIn = "" + dmTarget.charAt(0) + dmTarget.charAt(dmTarget.length() - 2) + dmTarget.charAt(1) + dmTarget.charAt(dmTarget.length() - 1);
+                targetHash = hashIn.hashCode();
+            }
+
+            mFirebaseDatabaseReference.child(Integer.toString(targetHash) + "/" + dmTarget + "/dm/" + mUsername).setValue(roomNum);
         }
 
         roomUsersHolderList.add(mUsername);
