@@ -288,7 +288,7 @@ public class MessageRoom extends Fragment {
             }
         });
 
-        mSendButton = (Button) rootView.findViewById(R.id.sendButton);
+        mSendButton = rootView.findViewById(R.id.sendButton);
 
         mSendButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -317,11 +317,14 @@ public class MessageRoom extends Fragment {
                 else{
                     mFirebaseDatabaseReference.child(USER_PATH).push().setValue(messageObject);
 
-                    for(final UserSearchItem usi : invitedUsers){
-                        String WRITE_PATH = usi.getHash() + "/" + usi.getUsername() + "/messages/" + rnum;
-                        //final String username = usi.getUsername();
-                        mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                    boolean isDM = invitedUsers.size() == 1;
 
+                    for(final UserSearchItem usi : invitedUsers){
+                        if(!(activity.getMessengerFragment().blockedFromUser(usi.getUsername()) && isDM)){
+                            String WRITE_PATH = usi.getHash() + "/" + usi.getUsername() + "/messages/" + rnum;
+                            //final String username = usi.getUsername();
+                            mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                        }
                     }
                 }
 
@@ -423,11 +426,14 @@ public class MessageRoom extends Fragment {
                 else{
                     mFirebaseDatabaseReference.child(USER_PATH).push().setValue(messageObject);
 
-                    for(final UserSearchItem usi : invitedUsers){
-                        String WRITE_PATH = usi.getHash() + "/" + usi.getUsername() + "/messages/" + roomNumInput;
-                        //final String username = usi.getUsername();
-                        mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                    boolean isDM = invitedUsers.size() == 1;
 
+                    for(final UserSearchItem usi : invitedUsers){
+                        if(!(activity.getMessengerFragment().blockedFromUser(usi.getUsername()) && isDM)){
+                            String WRITE_PATH = usi.getHash() + "/" + usi.getUsername() + "/messages/" + roomNumInput;
+                            //final String username = usi.getUsername();
+                            mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                        }
                     }
                 }
 
@@ -527,22 +533,37 @@ public class MessageRoom extends Fragment {
 
                 setRoomObjListener(roomNumInput);
 
+                boolean isDM = false;
+                if(roomUsersHolderList.size() == 2){
+                    isDM = true;
+                }
+
+                //setUpRoomInDBSpecial is called when the person at the other end already has the corresponding room, so we skip room setup and send message right away
                 for(final String mName : roomUsersHolderList){
                     if(!mName.equals(mUsername)) {
-                        final int usernameHash;
-                        if (mName.length() < 5) {
-                            usernameHash = mName.hashCode();
-                        } else {
-                            String hashIn = "" + mName.charAt(0) + mName.charAt(mName.length() - 2) + mName.charAt(1) + mName.charAt(mName.length() - 1);
-                            usernameHash = hashIn.hashCode();
+                        if(!(activity.getMessengerFragment().blockedFromUser(mName) && isDM)){
+                            String WRITE_PATH = Integer.toString(getUsernameHash(mName)) + "/" + mName + "/messages/" + roomNumInput;
+                            //final String username = usi.getUsername();
+                            mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
                         }
-
-                        String WRITE_PATH = usernameHash + "/" + mName + "/messages/" + roomNumInput;
-                        mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
                     }
                 }
             }
         });
+    }
+
+
+    private int getUsernameHash(String username){
+        int usernameHash;
+        if(username.length() < 5){
+            usernameHash = username.hashCode();
+        }
+        else {
+            String hashIn = "" + username.charAt(0) + username.charAt(username.length() - 2) + username.charAt(1) + username.charAt(username.length() - 1);
+            usernameHash = hashIn.hashCode();
+        }
+
+        return usernameHash;
     }
 
     public void setUpRoom(final String rnum, final ArrayList<String> usersList, String roomTitle){
@@ -608,31 +629,20 @@ public class MessageRoom extends Fragment {
                 mMessageEditText.setText("");
 
                 final boolean isDM;
-                if (usersList.size() == 1) {
+                if (usersList.size() == 2) {
                     isDM = true;
                 } else {
                     isDM = false;
                 }
 
-                final String preview;
-                if (content.trim().length() > 15) {
-                    preview = content.trim().substring(0, 12) + "...";
-                } else {
-                    preview = content.trim();
-                }
-
                 for (final String mName : usersList) {
                     if(!(mName.equals(mUsername))){ //this condition check is necessary for when going from CreateMessage to existing room
-                        int nameHash;
-                        if (mName.length() < 5) {
-                            usernameHash = mName.hashCode();
-                        } else {
-                            String hashIn = "" + mName.charAt(0) + mName.charAt(mName.length() - 2) + mName.charAt(1) + mName.charAt(mName.length() - 1);
-                            usernameHash = hashIn.hashCode();
-                        }
 
-                        String WRITE_PATH = Integer.toString(usernameHash) + "/" + mName + "/messages/" + rnum;
-                        mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                        if(!(activity.getMessengerFragment().blockedFromUser(mName) && isDM)){
+                            String WRITE_PATH = Integer.toString(getUsernameHash(mName)) + "/" + mName + "/messages/" + rnum;
+                            //final String username = usi.getUsername();
+                            mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                        }
                     }
                 }
             }
@@ -730,47 +740,36 @@ public class MessageRoom extends Fragment {
                                     .setValue(messageObject);
 
                             if(roomUsersList != null){
+
+                                boolean isDM = roomUsersList.size() == 1;
+
                                 for(final UserSearchItem usi : roomUsersList){
 
-                                    final boolean isDM;
-                                    if (roomUsersList.size() == 1) {
-                                        isDM = true;
-                                    } else {
-                                        isDM = false;
+                                    if(!(activity.getMessengerFragment().blockedFromUser(usi.getUsername()) && isDM)){
+                                        String WRITE_PATH = usi.getHash() + "/" + usi.getUsername() + "/messages/" + roomNum;
+                                        //final String username = usi.getUsername();
+                                        mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
                                     }
 
-                                    final String preview = mUsername + " sent an image.";
-
-
-                                    String WRITE_PATH = usi.getHash() + "/" + usi.getUsername() + "/messages/" + roomNum;
-                                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
                                 }
 
                             }
                             else if(roomUsersStringList != null){
-
-                                final boolean isDM;
-                                if (roomUsersStringList.size() == 1) {
+                                boolean isDM = false;
+                                if(roomUsersStringList.size() == 1){
                                     isDM = true;
-                                } else {
-                                    isDM = false;
                                 }
-
-                                final String preview = mUsername + " sent an image.";
+                                else if(roomUsersStringList.size() == 2 && (roomUsersStringList.get(0).equals(mUsername) || roomUsersStringList.get(1).equals(mUsername))){
+                                    isDM = true;
+                                }
 
                                 for(final String mName : roomUsersStringList){
 
-                                    int usernameHash;
-                                    if(mName.length() < 5){
-                                        usernameHash = mName.hashCode();
+                                    if(!(activity.getMessengerFragment().blockedFromUser(mName) && isDM)){
+                                        String WRITE_PATH = getUsernameHash(mName) + "/" + mName + "/messages/" + roomNum;
+                                        //final String username = usi.getUsername();
+                                        mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
                                     }
-                                    else{
-                                        String hashIn = "" + mName.charAt(0) + mName.charAt(mName.length() - 2) + mName.charAt(1) + mName.charAt(mName.length() - 1);
-                                        usernameHash = hashIn.hashCode();
-                                    }
-
-                                    String WRITE_PATH = usernameHash + "/" + mName + "/messages/" + roomNum;
-                                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
                                 }
                             }
 
@@ -996,6 +995,11 @@ public class MessageRoom extends Fragment {
 
                 setRoomObjListener(roomNum);
 
+                boolean isDM = false;
+                if(roomUsersHolderList.size() == 2){
+                    isDM = true;
+                }
+
                 for(final String mName : roomUsersHolderList){
                     if(!mName.equals(mUsername)) {
                         final int usernameHash;
@@ -1008,13 +1012,16 @@ public class MessageRoom extends Fragment {
 
                         String roomPath = usernameHash + "/" + mName + "/" + "r/" + roomNum;
                         Log.d("ROOMCREATE", roomPath);
-                        mFirebaseDatabaseReference.child(roomPath).setValue(roomObject).addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                String WRITE_PATH = usernameHash + "/" + mName + "/messages/" + roomNum;
-                                mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
-                            }
-                        });
+                        if(!(activity.getMessengerFragment().blockedFromUser(mName) && isDM)){
+                            mFirebaseDatabaseReference.child(roomPath).setValue(roomObject).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    String WRITE_PATH = usernameHash + "/" + mName + "/messages/" + roomNum;
+                                    //final String username = usi.getUsername();
+                                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                                }
+                            });
+                        }
                     }
                 }
             }

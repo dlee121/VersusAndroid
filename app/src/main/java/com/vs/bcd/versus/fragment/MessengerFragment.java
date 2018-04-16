@@ -146,8 +146,9 @@ public class MessengerFragment extends Fragment {
     private Rect rect;
     private Toast mToast;
     private ListPopupWindow listPopupWindow;
-    private HashMap<String, Boolean> blockList = new HashMap<>();
-    private HashMap<String, Boolean> muteList = new HashMap<>();
+    private HashSet<String> blockList = new HashSet<>();
+    private HashSet<String > blockedfromList = new HashSet<>();
+    private HashSet<String> muteList = new HashSet<>();
     private HashSet<String> unreadRooms = new HashSet<>();
     private String clickedRoomNum = "";
 
@@ -173,6 +174,87 @@ public class MessengerFragment extends Fragment {
             if(mFirebaseAdapter != null){
                 mFirebaseAdapter.notifyDataSetChanged();
             }
+        }
+
+        @Override
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+
+        }
+    };
+
+    private ChildEventListener blockListListener = new ChildEventListener() {
+        @Override
+        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            blockList.add(dataSnapshot.getKey());
+        }
+
+        @Override
+        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+        }
+
+        @Override
+        public void onChildRemoved(DataSnapshot dataSnapshot) {
+            blockList.remove(dataSnapshot.getKey());
+        }
+
+        @Override
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+
+        }
+    };
+
+    private ChildEventListener blockedfromListListener = new ChildEventListener() {
+        @Override
+        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            blockedfromList.add(dataSnapshot.getKey());
+        }
+
+        @Override
+        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+        }
+
+        @Override
+        public void onChildRemoved(DataSnapshot dataSnapshot) {
+            blockedfromList.remove(dataSnapshot.getKey());
+        }
+
+        @Override
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+
+        }
+    };
+
+    private ChildEventListener muteListListener = new ChildEventListener() {
+        @Override
+        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            muteList.add(dataSnapshot.getKey());
+        }
+
+        @Override
+        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+        }
+
+        @Override
+        public void onChildRemoved(DataSnapshot dataSnapshot) {
+            muteList.remove(dataSnapshot.getKey());
         }
 
         @Override
@@ -726,6 +808,9 @@ public class MessengerFragment extends Fragment {
         super.onResume();
         //get unread list here
         mFirebaseDatabaseReference.child(activity.getUserPath()+"unread").addChildEventListener(unreadMessagesListener);
+        mFirebaseDatabaseReference.child(activity.getUserPath()+"block").addChildEventListener(blockListListener);
+        mFirebaseDatabaseReference.child(activity.getUserPath()+"blockedfrom").addChildEventListener(blockedfromListListener);
+        mFirebaseDatabaseReference.child(activity.getUserPath()+"mute").addChildEventListener(muteListListener);
 
         //rNameToRNumAndUListMap = new HashMap<>();
 
@@ -976,8 +1061,10 @@ public class MessengerFragment extends Fragment {
             username = roomObject.getUsers().get(1);
         }
 
-        String target = Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/block";
-        mFirebaseDatabaseReference.child(target).child(username).setValue(true);
+        String blockTarget = Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/block";
+        mFirebaseDatabaseReference.child(blockTarget).child(username).setValue(true);
+        String blockedFromTarget = Integer.toString(getUsernameHash(username)) + "/" + username + "/blockedfrom";
+        mFirebaseDatabaseReference.child(blockedFromTarget).child(mUsername).setValue(true);
     }
 
     private void unblockUser(RoomObject roomObject){
@@ -986,8 +1073,10 @@ public class MessengerFragment extends Fragment {
             username = roomObject.getUsers().get(1);
         }
 
-        String target = Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/block";
-        mFirebaseDatabaseReference.child(target).child(username).removeValue();
+        String blockTarget = Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/block";
+        mFirebaseDatabaseReference.child(blockTarget).child(username).removeValue();
+        String blockedFromTarget = Integer.toString(getUsernameHash(username)) + "/" + username + "/blockedfrom";
+        mFirebaseDatabaseReference.child(blockedFromTarget).child(mUsername).removeValue();
     }
 
     private void deleteRoom(final String roomNum, final String dmTarget){
@@ -1044,22 +1133,14 @@ public class MessengerFragment extends Fragment {
     private void roomItemLongClickMenu(View anchorPoint, final String roomNum, final RoomObject roomObject){
         final String [] items;
         final Integer[] icons;
-        boolean yesEdit = false;
-        final boolean editAvailable;
-        final boolean muted, blocked;
+        final boolean muted;
+        boolean blocked = false;
 
-        if(muteList.get(roomNum) != null){
-            muted = muteList.get(roomNum);
+        if(muteList.contains(roomNum)){
+            muted = true;
         }
         else{
             muted = false;
-        }
-
-        if(blockList.get(roomNum) != null && blockList.get(roomNum)){
-            blocked = true;
-        }
-        else{
-            blocked = false;
         }
 
         if(roomObject.getUsers().size() > 2){
@@ -1075,6 +1156,15 @@ public class MessengerFragment extends Fragment {
 
         }
         else{
+            String targetUsername = roomObject.getUsers().get(0);
+            if(targetUsername.equals(mUsername)){
+                targetUsername = roomObject.getUsers().get(1);
+            }
+
+            if(blockList.contains(targetUsername)){
+                blocked = true;
+            }
+
             if(blocked){
                 items = new String[]{"Unblock", "Delete"};
             }
@@ -1099,13 +1189,15 @@ public class MessengerFragment extends Fragment {
         listPopupWindow.setAdapter(adapter);
         listPopupWindow.setWidth(width);
 
+        final boolean blockFinal = blocked;
+
         listPopupWindow.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 switch (position){
                     case 0:
-                        if(blocked){
+                        if(blockFinal){
                             unblockUser(roomObject);
                             unmuteRoom(roomNum);
                         }
@@ -1257,6 +1349,10 @@ public class MessengerFragment extends Fragment {
         super.onPause();
         //get unread list here
         mFirebaseDatabaseReference.child(activity.getUserPath()+"unread").removeEventListener(unreadMessagesListener);
+        mFirebaseDatabaseReference.child(activity.getUserPath()+"block").removeEventListener(blockListListener);
+        mFirebaseDatabaseReference.child(activity.getUserPath()+"blockedfrom").removeEventListener(blockedfromListListener);
+        mFirebaseDatabaseReference.child(activity.getUserPath()+"mute").removeEventListener(muteListListener);
+
         if(mFirebaseAdapter != null){
             mFirebaseAdapter.stopListening();
             //mRoomRecyclerView.setAdapter(null);
@@ -1337,8 +1433,12 @@ public class MessengerFragment extends Fragment {
             return Integer.toString(month+1)+"/"+Integer.toString(day)+"/"+Integer.toString(year); //Calendar's month starts at 0 so add 1
         }
     }
-    
+
     public void resetClickedRoomNum(){
         clickedRoomNum = "";
+    }
+
+    public boolean blockedFromUser(String username){
+        return blockedfromList.contains(username);
     }
 }
