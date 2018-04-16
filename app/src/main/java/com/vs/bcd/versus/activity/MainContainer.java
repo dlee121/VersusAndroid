@@ -278,6 +278,7 @@ public class MainContainer extends AppCompatActivity {
                 case 11: //currently in MessageRoom fragment
                     mViewPager.setCurrentItem(4);
                     messageRoom.cleanUp();
+                    messengerFragment.resetClickedRoomNum();
                     break;
 
                 //default might be enough to handle case 12 (CreateMessage)
@@ -540,6 +541,7 @@ public class MainContainer extends AppCompatActivity {
                     case 11:
                         mViewPager.setCurrentItem(4);
                         messageRoom.cleanUp();
+                        messengerFragment.resetClickedRoomNum();
                         break;
 
                     default:

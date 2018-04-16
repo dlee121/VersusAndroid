@@ -150,6 +150,7 @@ public class MessengerFragment extends Fragment {
     private HashMap<String, Boolean> muteList = new HashMap<>();
     private HashSet<String> unreadRooms = new HashSet<>();
     private String clickedRoomNum = "";
+
     private ChildEventListener unreadMessagesListener = new ChildEventListener() {
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -1336,5 +1337,8 @@ public class MessengerFragment extends Fragment {
             return Integer.toString(month+1)+"/"+Integer.toString(day)+"/"+Integer.toString(year); //Calendar's month starts at 0 so add 1
         }
     }
-
+    
+    public void resetClickedRoomNum(){
+        clickedRoomNum = "";
+    }
 }
