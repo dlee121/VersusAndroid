@@ -17,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListPopupWindow;
 import android.widget.ProgressBar;
@@ -94,6 +95,7 @@ public class MessengerFragment extends Fragment {
         TextView roomTimeTV;
         TextView roomPreviewTV;
         CircleImageView circView;
+        ImageView blockIcon;
 
         //CircleImageView roomImageView;    //TODO: implement circular image view for rooms
 
@@ -104,6 +106,7 @@ public class MessengerFragment extends Fragment {
             roomTimeTV = itemView.findViewById(R.id.roomTimeTV);
             roomPreviewTV = itemView.findViewById(R.id.roomPreviewTV);
             circView = itemView.findViewById(R.id.room_item_profile_img);
+            blockIcon = itemView.findViewById(R.id.block_icon);
             //roomImageView
         }
     }
@@ -187,7 +190,7 @@ public class MessengerFragment extends Fragment {
             if(initialMuteListLoaded && initialUnreadListLoaded && !(ignoreThisRemoval.contains(dataSnapshot.getKey()))){
                 activity.decrementMessengerBadge();
             }
-            if(mFirebaseAdapter != null){
+            if(mFirebaseAdapter != null && mFirebaseAdapter.getItemCount() > 0){
                 mFirebaseAdapter.notifyDataSetChanged();
             }
             mFirebaseDatabaseReference.child(activity.getUserPath()+"push/m/"+dataSnapshot.getKey()).removeValue();
@@ -208,6 +211,10 @@ public class MessengerFragment extends Fragment {
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
             blockList.add(dataSnapshot.getKey());
+            if(mFirebaseAdapter != null && mFirebaseAdapter.getItemCount() > 0){
+                mFirebaseAdapter.notifyDataSetChanged();
+            }
+
         }
 
         @Override
@@ -218,6 +225,9 @@ public class MessengerFragment extends Fragment {
         @Override
         public void onChildRemoved(DataSnapshot dataSnapshot) {
             blockList.remove(dataSnapshot.getKey());
+            if(mFirebaseAdapter != null && mFirebaseAdapter.getItemCount() > 0){
+                mFirebaseAdapter.notifyDataSetChanged();
+            }
         }
 
         @Override
@@ -457,6 +467,13 @@ public class MessengerFragment extends Fragment {
                                                             username = usersList.get(1);
                                                         }
 
+                                                        if(blockList.contains(username)){
+                                                            viewHolder.blockIcon.setVisibility(View.VISIBLE);
+                                                        }
+                                                        else{
+                                                            viewHolder.blockIcon.setVisibility(View.INVISIBLE);
+                                                        }
+
                                                         int profileImg = profileImgVersions.get(username).intValue();
 
                                                         if(profileImg == 0){
@@ -471,6 +488,7 @@ public class MessengerFragment extends Fragment {
                                                     }
                                                 }
                                                 else{
+                                                    viewHolder.blockIcon.setVisibility(View.INVISIBLE);
                                                     GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
                                                 }
 
@@ -678,6 +696,13 @@ public class MessengerFragment extends Fragment {
                                                                 username = usersList.get(1);
                                                             }
 
+                                                            if(blockList.contains(username)){
+                                                                viewHolder.blockIcon.setVisibility(View.VISIBLE);
+                                                            }
+                                                            else{
+                                                                viewHolder.blockIcon.setVisibility(View.INVISIBLE);
+                                                            }
+
                                                             int profileImg = profileImgVersions.get(username).intValue();
 
                                                             if (profileImg == 0) {
@@ -690,6 +715,7 @@ public class MessengerFragment extends Fragment {
 
                                                         }
                                                     } else {
+                                                        viewHolder.blockIcon.setVisibility(View.INVISIBLE);
                                                         GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
                                                     }
 
@@ -963,6 +989,8 @@ public class MessengerFragment extends Fragment {
                                                 viewHolder.unreadCircleView.setVisibility(View.INVISIBLE);
                                             }
 
+
+
                                             if(usersList == null){
                                                 mFirebaseDatabaseReference.child(ROOMS_CHILD).child(roomNum).removeValue();
                                             }
@@ -972,6 +1000,13 @@ public class MessengerFragment extends Fragment {
                                                         String username = usersList.get(0);
                                                         if (username.equals(mUsername)) {
                                                             username = usersList.get(1);
+                                                        }
+
+                                                        if(blockList.contains(username)){
+                                                            viewHolder.blockIcon.setVisibility(View.VISIBLE);
+                                                        }
+                                                        else{
+                                                            viewHolder.blockIcon.setVisibility(View.INVISIBLE);
                                                         }
 
                                                         int profileImg = profileImgVersions.get(username).intValue();
@@ -986,6 +1021,7 @@ public class MessengerFragment extends Fragment {
 
                                                     }
                                                 } else {
+                                                    viewHolder.blockIcon.setVisibility(View.INVISIBLE);
                                                     GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
                                                 }
 
@@ -1104,6 +1140,9 @@ public class MessengerFragment extends Fragment {
     }
 
     private void muteRoom(String roomNum){
+        if(unreadRooms.contains(roomNum)){
+            activity.decrementMessengerBadge();
+        }
         String target = Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/mute";
         mFirebaseDatabaseReference.child(target).child(roomNum).setValue(true);
     }
@@ -1274,6 +1313,7 @@ public class MessengerFragment extends Fragment {
                         else{
                             deleteRoom(roomNum, roomObject.getName());
                         }
+                        unmuteRoom(roomNum);
                         break;
 
                     case 2:
@@ -1464,6 +1504,9 @@ public class MessengerFragment extends Fragment {
         if(year == currentYear){
             if(month == currentMonth && day == currentDay){ //format = hh:mm
                 int hour = chatTime.get(Calendar.HOUR);
+                if(hour == 0){
+                    hour = 12;
+                }
                 int minute = chatTime.get(Calendar.MINUTE);
                 String minuteString;
                 if(minute > 10) {
