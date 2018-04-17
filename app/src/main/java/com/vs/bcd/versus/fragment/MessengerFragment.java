@@ -46,11 +46,14 @@ import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
 import com.vs.bcd.versus.adapter.CustomFirebaseRecyclerAdapter;
+import com.vs.bcd.versus.adapter.InvitedUserAdapter;
+import com.vs.bcd.versus.adapter.UserSearchAdapter;
 import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.GlideApp;
 import com.vs.bcd.versus.model.RNumAndUList;
 import com.vs.bcd.versus.model.RoomObject;
 import com.vs.bcd.versus.model.SessionManager;
+import com.vs.bcd.versus.model.UserSearchItem;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -151,15 +154,25 @@ public class MessengerFragment extends Fragment {
     private HashSet<String> muteList = new HashSet<>();
     private HashSet<String> unreadRooms = new HashSet<>();
     private String clickedRoomNum = "";
+    private HashSet<String> ignoreThisRemoval = new HashSet<>();
+    private boolean initialUnreadListLoaded = false;
+    private boolean initialMuteListLoaded = false;
 
     private ChildEventListener unreadMessagesListener = new ChildEventListener() {
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
             if(clickedRoomNum.equals(dataSnapshot.getKey())){
                 mFirebaseDatabaseReference.child(activity.getUserPath()+"unread/"+dataSnapshot.getKey()).removeValue();
+                ignoreThisRemoval.add(clickedRoomNum);
             }
             else{
                 unreadRooms.add(dataSnapshot.getKey());
+                if(muteList.contains(dataSnapshot.getKey())){
+                    ignoreThisRemoval.add(dataSnapshot.getKey());
+                }
+                else if(initialMuteListLoaded && initialUnreadListLoaded){
+                    activity.incrementMessengerBadge();
+                }
             }
         }
 
@@ -171,6 +184,9 @@ public class MessengerFragment extends Fragment {
         @Override
         public void onChildRemoved(DataSnapshot dataSnapshot) {
             unreadRooms.remove(dataSnapshot.getKey());
+            if(initialMuteListLoaded && initialUnreadListLoaded && !(ignoreThisRemoval.contains(dataSnapshot.getKey()))){
+                activity.decrementMessengerBadge();
+            }
             if(mFirebaseAdapter != null){
                 mFirebaseAdapter.notifyDataSetChanged();
             }
@@ -807,10 +823,51 @@ public class MessengerFragment extends Fragment {
     public void onResume() {
         super.onResume();
         //get unread list here
+        unreadRooms.clear();
+        muteList.clear();
+        initialMuteListLoaded = false;
+        initialUnreadListLoaded = false;
         mFirebaseDatabaseReference.child(activity.getUserPath()+"unread").addChildEventListener(unreadMessagesListener);
         mFirebaseDatabaseReference.child(activity.getUserPath()+"block").addChildEventListener(blockListListener);
         mFirebaseDatabaseReference.child(activity.getUserPath()+"blockedfrom").addChildEventListener(blockedfromListListener);
         mFirebaseDatabaseReference.child(activity.getUserPath()+"mute").addChildEventListener(muteListListener);
+
+        //first download all mutelist, then oncomplete, download all unread list,
+        // then oncomplete, set initial badge count and then run the child event listeners
+
+        mFirebaseDatabaseReference.child(activity.getUserPath()+"unread").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                initialUnreadListLoaded = true;
+                mFirebaseDatabaseReference.child(activity.getUserPath()+"mute").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        int badgeCount = unreadRooms.size();
+                        for(String unreadRoom : unreadRooms){
+                            if(muteList.contains(unreadRoom)){
+                                badgeCount--;
+                            }
+                        }
+                        if(badgeCount < 0){
+                            badgeCount = 0;
+                        }
+                        Log.d("badge", "initial badge count: " + badgeCount);
+                        activity.setInitialMessengerBadgeCount(badgeCount);
+                        initialMuteListLoaded = true;
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
 
         //rNameToRNumAndUListMap = new HashMap<>();
 

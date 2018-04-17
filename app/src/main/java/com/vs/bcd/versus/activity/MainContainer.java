@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.NetworkOnMainThreadException;
 import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
@@ -18,6 +19,8 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
@@ -167,7 +170,9 @@ public class MainContainer extends AppCompatActivity {
     private HashMap<String, Integer> profileImgVersions = new HashMap<>();
     private MessengerFragment messengerFragment;
     private int messengerBackTarget = 0;
-
+    private TextView messengerButtonBadge;
+    private boolean showBadge = false;
+    private int messengerBadgeCount = 0;
 
     private String esHost = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
     private String esRegion = "us-east-1";
@@ -551,6 +556,50 @@ public class MainContainer extends AppCompatActivity {
                 }
             }
         });
+
+        messengerButtonBadge = mActionBarView.findViewById(R.id.messenger_button_badge);
+        messengerButtonBadge.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                try{
+                    int badgeContent = Integer.parseInt(charSequence.toString());
+                    if(badgeContent > 0){
+                        messengerButtonBadge.setBackgroundResource(R.drawable.badge_circle);
+                        if(showBadge){
+                            messengerButtonBadge.setVisibility(View.VISIBLE);
+                        }
+                    }
+                    else{
+                        if(badgeContent == 0){
+                            messengerButtonBadge.setBackground(null);
+                            if(showBadge){
+                                messengerButtonBadge.setVisibility(View.INVISIBLE);
+                            }
+                        }
+                        else {
+                            messengerButtonBadge.setText("0");
+                        }
+                    }
+
+                }catch (Throwable t) {
+                    messengerButtonBadge.setText("0");
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
+
+        //Typeface custom_font = Typeface.createFromAsset(getAssets(), "fonts/Vera.ttf");
+        //messengerButtonBadge.setTypeface(custom_font);
+
         toolbarButtonRight = (ImageButton) mActionBarView.findViewById(R.id.top_right_img_button);
         toolbarButtonRightLP = (RelativeLayout.LayoutParams) toolbarButtonRight.getLayoutParams();
         toolbarButtonRight.setOnClickListener(new View.OnClickListener() {
@@ -875,6 +924,7 @@ public class MainContainer extends AppCompatActivity {
         setToolbarTitleTextForTabs("Newsfeed");
         goToMainActivityOnResume = true;
         showMessengerButton();
+        showMessegerButtonBadge(true);
 
         //Log.d("USER_INFO", sessionManager.getUserDetails().get(SessionManager.KEY_USERNAME));
         Log.d("ORDER", "MainContainer OnCreate finished");
@@ -1387,24 +1437,28 @@ public class MainContainer extends AppCompatActivity {
     }
 
     private void showSettingsButton(){
+        showMessegerButtonBadge(false);
         toolbarButtonRight.setEnabled(true);
         toolbarButtonRight.setLayoutParams(toolbarButtonRightLP);
         toolbarButtonRight.setImageResource(R.drawable.ic_settings_white_24dp);
     }
 
     private void showMessengerSearchButton(){
+        showMessegerButtonBadge(false);
         toolbarButtonRight.setEnabled(true);
         toolbarButtonRight.setLayoutParams(toolbarButtonRightLP);
         toolbarButtonRight.setImageResource(R.drawable.ic_search_white);
     }
 
     private void showMessengerButton(){
+        showMessegerButtonBadge(true);
         toolbarButtonRight.setEnabled(true);
         toolbarButtonRight.setLayoutParams(toolbarButtonRightLP);
         toolbarButtonRight.setImageResource(R.drawable.ic_chat_bubble);
     }
 
     private  void showOverflowMenu() {
+        showMessegerButtonBadge(false);
         toolbarButtonRight.setEnabled(true);
         toolbarButtonRight.setLayoutParams(toolbarButtonRightLP);
         toolbarButtonRight.setImageResource(R.drawable.ic_overflow_vertical);
@@ -1853,6 +1907,35 @@ public class MainContainer extends AppCompatActivity {
             }
 
         }
+    }
+
+    public void showMessegerButtonBadge(boolean show){
+        if(show){
+            if(!(messengerButtonBadge.getText().toString().equals("0") || messengerButtonBadge.getText().toString().equals(""))){
+                messengerButtonBadge.setVisibility(View.VISIBLE);
+            }
+            showBadge = true;
+        }
+        else{
+            messengerButtonBadge.setVisibility(View.INVISIBLE);
+            showBadge = false;
+        }
+    }
+
+    public String getMessengerBadgeContent(){
+        return messengerButtonBadge.getText().toString();
+    }
+
+    public void incrementMessengerBadge(){
+        messengerButtonBadge.setText(Integer.toString(Integer.parseInt(messengerButtonBadge.getText().toString()) + 1));
+    }
+
+    public void decrementMessengerBadge(){
+        messengerButtonBadge.setText(Integer.toString(Integer.parseInt(messengerButtonBadge.getText().toString()) - 1));
+    }
+
+    public void setInitialMessengerBadgeCount(int count){
+        messengerButtonBadge.setText(Integer.toString(count));
     }
 
 }
