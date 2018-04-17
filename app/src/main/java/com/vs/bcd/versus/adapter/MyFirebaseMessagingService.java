@@ -33,7 +33,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 remoteMessage.getNotification());
         Log.d("MyFMService", "FCM Data Message: " + remoteMessage.getData());
         Intent intent = new Intent(INTENT_FILTER);
-        intent.putExtra("roomNum", remoteMessage.getData().get("room_id"));
+        //intent.putExtra("roomNum", remoteMessage.getData().get("room_id"));
         sendBroadcast(intent);
     }
 }

@@ -190,6 +190,7 @@ public class MessengerFragment extends Fragment {
             if(mFirebaseAdapter != null){
                 mFirebaseAdapter.notifyDataSetChanged();
             }
+            mFirebaseDatabaseReference.child(activity.getUserPath()+"push/m/"+dataSnapshot.getKey()).removeValue();
         }
 
         @Override

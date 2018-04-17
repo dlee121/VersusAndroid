@@ -69,6 +69,8 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.MutableData;
+import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
@@ -180,7 +182,7 @@ public class MainContainer extends AppCompatActivity {
     private BroadcastReceiver myReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            handleNewMessage(intent.getStringExtra("roomNum"));
+            handleNewMessage();
         }
     };
 
@@ -1899,7 +1901,8 @@ public class MainContainer extends AppCompatActivity {
         clickedPostIndex = -1;
     }
 
-    private void handleNewMessage(String roomNum){
+    private void handleNewMessage(){
+
         if(messengerFragment != null){
             //adding to unread list is done in Cloud Functions
             if(messengerFragment.isEmpty()){
