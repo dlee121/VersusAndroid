@@ -2,7 +2,9 @@
 <resources>
     <color name="colorPrimary">#125688</color>
     <color name="colorPrimaryDark">#000000</color><!--125688-->
+    <color name="textColorPrimary">#FFFFFF</color>
     <color name="windowBackground">#FFFFFF</color>
+    <color name="navigationBarColor">#000000</color>
     <color name="colorAccent">#c8e8ff</color>
     <color name="vsRed">#FF2020</color>
     <color name="vsBlue">#5ED3FF</color>
@@ -11,4 +13,5 @@
     <color name="noticeRed">#F53C55</color>
     <color name="noticeYellow">#FFDD00</color>
     <color name="noticeGreen">#18BF2F</color>
+    <color name="highlightGrey">#BDBDBD</color>
 </resources>

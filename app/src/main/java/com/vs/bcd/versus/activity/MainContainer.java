@@ -599,6 +599,9 @@ public class MainContainer extends AppCompatActivity {
             }
         });
 
+        //Typeface custom_font = Typeface.createFromAsset(getAssets(), "fonts/Vera.ttf");
+        //messengerButtonBadge.setTypeface(custom_font);
+
         toolbarButtonRight = (ImageButton) mActionBarView.findViewById(R.id.top_right_img_button);
         toolbarButtonRightLP = (RelativeLayout.LayoutParams) toolbarButtonRight.getLayoutParams();
         toolbarButtonRight.setOnClickListener(new View.OnClickListener() {
