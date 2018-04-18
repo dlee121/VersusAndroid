@@ -95,7 +95,7 @@ public class MessengerFragment extends Fragment {
         TextView roomTimeTV;
         TextView roomPreviewTV;
         CircleImageView circView;
-        ImageView blockIcon;
+        ImageView blockIcon, muteIcon;
 
         //CircleImageView roomImageView;    //TODO: implement circular image view for rooms
 
@@ -107,6 +107,7 @@ public class MessengerFragment extends Fragment {
             roomPreviewTV = itemView.findViewById(R.id.roomPreviewTV);
             circView = itemView.findViewById(R.id.room_item_profile_img);
             blockIcon = itemView.findViewById(R.id.block_icon);
+            muteIcon = itemView.findViewById(R.id.mute_icon);
             //roomImageView
         }
     }
@@ -147,7 +148,7 @@ public class MessengerFragment extends Fragment {
     private int totalRoomCount = Integer.MAX_VALUE;
     private HashMap<String, Integer> profileImgVersions = new HashMap<>();
     private boolean setPreloader = true;
-    private Drawable defaultProfileImage;
+    private Drawable defaultProfileImage, defaultGroupImage;
     private MessengerFragment thisFragment;
     private Rect rect;
     private Toast mToast;
@@ -272,6 +273,9 @@ public class MessengerFragment extends Fragment {
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
             muteList.add(dataSnapshot.getKey());
+            if(mFirebaseAdapter != null && mFirebaseAdapter.getItemCount() > 0){
+                mFirebaseAdapter.notifyDataSetChanged();
+            }
         }
 
         @Override
@@ -282,6 +286,9 @@ public class MessengerFragment extends Fragment {
         @Override
         public void onChildRemoved(DataSnapshot dataSnapshot) {
             muteList.remove(dataSnapshot.getKey());
+            if(mFirebaseAdapter != null && mFirebaseAdapter.getItemCount() > 0){
+                mFirebaseAdapter.notifyDataSetChanged();
+            }
         }
 
         @Override
@@ -456,6 +463,13 @@ public class MessengerFragment extends Fragment {
                                                 viewHolder.unreadCircleView.setVisibility(View.INVISIBLE);
                                             }
 
+                                            if(muteList.contains(roomNum)){
+                                                viewHolder.muteIcon.setVisibility(View.VISIBLE);
+                                            }
+                                            else{
+                                                viewHolder.muteIcon.setVisibility(View.INVISIBLE);
+                                            }
+
                                             if(usersList == null){
                                                 mFirebaseDatabaseReference.child(ROOMS_CHILD).child(roomNum).removeValue();
                                             }
@@ -469,9 +483,11 @@ public class MessengerFragment extends Fragment {
 
                                                         if(blockList.contains(username)){
                                                             viewHolder.blockIcon.setVisibility(View.VISIBLE);
+                                                            viewHolder.blockIcon.getLayoutParams().width = viewHolder.blockIcon.getLayoutParams().width = activity.getResources().getDimensionPixelSize(R.dimen.block_icon_width);
                                                         }
                                                         else{
                                                             viewHolder.blockIcon.setVisibility(View.INVISIBLE);
+                                                            viewHolder.blockIcon.getLayoutParams().width = 0;
                                                         }
 
                                                         int profileImg = profileImgVersions.get(username).intValue();
@@ -489,7 +505,8 @@ public class MessengerFragment extends Fragment {
                                                 }
                                                 else{
                                                     viewHolder.blockIcon.setVisibility(View.INVISIBLE);
-                                                    GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
+                                                    viewHolder.blockIcon.getLayoutParams().width = 0;
+                                                    GlideApp.with(activity).load(defaultGroupImage).into(viewHolder.circView);
                                                 }
 
                                                 //rNameToRNumAndUListMap.put(roomTitle, new RNumAndUList(roomNum, usersList)); //TODO: will this get updated if room is updated with modified usersList?
@@ -685,6 +702,13 @@ public class MessengerFragment extends Fragment {
                                                     viewHolder.unreadCircleView.setVisibility(View.INVISIBLE);
                                                 }
 
+                                                if(muteList.contains(roomNum)){
+                                                    viewHolder.muteIcon.setVisibility(View.VISIBLE);
+                                                }
+                                                else{
+                                                    viewHolder.muteIcon.setVisibility(View.INVISIBLE);
+                                                }
+
                                                 if(usersList == null){
                                                     mFirebaseDatabaseReference.child(ROOMS_CHILD).child(roomNum).removeValue();
                                                 }
@@ -698,9 +722,11 @@ public class MessengerFragment extends Fragment {
 
                                                             if(blockList.contains(username)){
                                                                 viewHolder.blockIcon.setVisibility(View.VISIBLE);
+                                                                viewHolder.blockIcon.getLayoutParams().width = viewHolder.blockIcon.getLayoutParams().width = activity.getResources().getDimensionPixelSize(R.dimen.block_icon_width);
                                                             }
                                                             else{
                                                                 viewHolder.blockIcon.setVisibility(View.INVISIBLE);
+                                                                viewHolder.blockIcon.getLayoutParams().width = 0;
                                                             }
 
                                                             int profileImg = profileImgVersions.get(username).intValue();
@@ -716,7 +742,8 @@ public class MessengerFragment extends Fragment {
                                                         }
                                                     } else {
                                                         viewHolder.blockIcon.setVisibility(View.INVISIBLE);
-                                                        GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
+                                                        viewHolder.blockIcon.getLayoutParams().width = 0;
+                                                        GlideApp.with(activity).load(defaultGroupImage).into(viewHolder.circView);
                                                     }
 
                                                     //rNameToRNumAndUListMap.put(roomTitle, new RNumAndUList(roomNum, usersList)); //TODO: will this get updated if room is updated with modified usersList?
@@ -825,6 +852,7 @@ public class MessengerFragment extends Fragment {
         SessionManager sessionManager = new SessionManager(context);
         mUsername = sessionManager.getCurrentUsername();
         defaultProfileImage = ContextCompat.getDrawable(activity, R.drawable.default_profile);
+        defaultGroupImage = ContextCompat.getDrawable(activity, R.drawable.default_group_image);
 
         int usernameHash;
         if(mUsername.length() < 5){
@@ -989,7 +1017,12 @@ public class MessengerFragment extends Fragment {
                                                 viewHolder.unreadCircleView.setVisibility(View.INVISIBLE);
                                             }
 
-
+                                            if(muteList.contains(roomNum)){
+                                                viewHolder.muteIcon.setVisibility(View.VISIBLE);
+                                            }
+                                            else{
+                                                viewHolder.muteIcon.setVisibility(View.INVISIBLE);
+                                            }
 
                                             if(usersList == null){
                                                 mFirebaseDatabaseReference.child(ROOMS_CHILD).child(roomNum).removeValue();
@@ -1004,9 +1037,11 @@ public class MessengerFragment extends Fragment {
 
                                                         if(blockList.contains(username)){
                                                             viewHolder.blockIcon.setVisibility(View.VISIBLE);
+                                                            viewHolder.blockIcon.getLayoutParams().width = activity.getResources().getDimensionPixelSize(R.dimen.block_icon_width);
                                                         }
                                                         else{
                                                             viewHolder.blockIcon.setVisibility(View.INVISIBLE);
+                                                            viewHolder.blockIcon.getLayoutParams().width = 0;
                                                         }
 
                                                         int profileImg = profileImgVersions.get(username).intValue();
@@ -1022,7 +1057,8 @@ public class MessengerFragment extends Fragment {
                                                     }
                                                 } else {
                                                     viewHolder.blockIcon.setVisibility(View.INVISIBLE);
-                                                    GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
+                                                    viewHolder.blockIcon.getLayoutParams().width = 0;
+                                                    GlideApp.with(activity).load(defaultGroupImage).into(viewHolder.circView);
                                                 }
 
 
@@ -1263,7 +1299,12 @@ public class MessengerFragment extends Fragment {
             }
 
             if(blocked){
-                items = new String[]{"Unblock", "Delete"};
+                if(muted){
+                    items = new String[]{"Unmute", "Delete", "Unblock"};
+                }
+                else{
+                    items = new String[]{"Mute", "Delete", "Unblock"};
+                }
             }
             else if(muted){
                 items = new String[]{"Unmute", "Delete", "Block"};
@@ -1294,16 +1335,13 @@ public class MessengerFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 switch (position){
                     case 0:
-                        if(blockFinal){
-                            unblockUser(roomObject);
-                            unmuteRoom(roomNum);
-                        }
-                        else if(muted){
+                        if(muted){
                             unmuteRoom(roomNum);
                         }
                         else{
                             muteRoom(roomNum);
                         }
+
                         break;
 
                     case 1:
@@ -1314,10 +1352,17 @@ public class MessengerFragment extends Fragment {
                             deleteRoom(roomNum, roomObject.getName());
                         }
                         unmuteRoom(roomNum);
+
                         break;
 
                     case 2:
-                        blockUser(roomObject);
+                        if(blockFinal){
+                            unblockUser(roomObject);
+                        }
+                        else{
+                            blockUser(roomObject);
+                        }
+
                         break;
                 }
 
