@@ -472,6 +472,7 @@ public class MessageRoom extends Fragment {
     }
 
     //for when you delete your copy of the dm room and want to dm the same person and that person hasn't deleted their copy of the dm room
+    //so this is only for that special dm case
     public void setUpRoomInDBSpecial(final String roomNumInput, String preview, final MessageObject messageObject, final Uri uri){
 
         //modified version of setUpRoomInDB()
@@ -536,34 +537,34 @@ public class MessageRoom extends Fragment {
                         });
 
                 }
-
-                if(activity.getMessengerFragment().isEmpty()){
-                    activity.getMessengerFragment().initializeFragmentAfterFirstRoomCreation();
-                }
-
-                if(roomObject.getUsers() != null && roomObject.getUsers().size() == 2){
-                    roomObject.setName(mUsername);
-                }
-
-                setRoomObjListener(roomNumInput);
-
-                boolean isDM = false;
-                if(roomUsersHolderList.size() == 2){
-                    isDM = true;
-                }
-
-                //setUpRoomInDBSpecial is called when the person at the other end already has the corresponding room, so we skip room setup and send message right away
-                for(final String mName : roomUsersHolderList){
-                    if(!mName.equals(mUsername)) {
-                        if(!(activity.getMessengerFragment().blockedFromUser(mName) && isDM)){
-                            String WRITE_PATH = Integer.toString(getUsernameHash(mName)) + "/" + mName + "/messages/" + roomNumInput;
-                            //final String username = usi.getUsername();
-                            mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
-                        }
-                    }
-                }
             }
         });
+
+        if(activity.getMessengerFragment().isEmpty()){
+            activity.getMessengerFragment().initializeFragmentAfterFirstRoomCreation();
+        }
+
+        if(roomObject.getUsers() != null && roomObject.getUsers().size() == 2){
+            roomObject.setName(mUsername);
+        }
+
+        setRoomObjListener(roomNumInput);
+
+        boolean isDM = false;
+        if(roomUsersHolderList.size() == 2){
+            isDM = true;
+        }
+
+        //setUpRoomInDBSpecial is called when the person at the other end already has the corresponding room, so we skip room setup and send message right away
+        for(final String mName : roomUsersHolderList){
+            if(!mName.equals(mUsername)) {
+                if(!(activity.getMessengerFragment().blockedFromUser(mName) && isDM)){
+                    String WRITE_PATH = Integer.toString(getUsernameHash(mName)) + "/" + mName + "/messages/" + roomNumInput;
+                    //final String username = usi.getUsername();
+                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                }
+            }
+        }
     }
 
 
@@ -1108,48 +1109,48 @@ public class MessageRoom extends Fragment {
                         });
 
                 }
-
-                if(activity.getMessengerFragment().isEmpty()){
-                    activity.getMessengerFragment().initializeFragmentAfterFirstRoomCreation();
-                }
-
-                if(roomObject.getUsers() != null && roomObject.getUsers().size() == 2){
-                    roomObject.setName(mUsername);
-                }
-
-                setRoomObjListener(roomNum);
-
-                boolean isDM = false;
-                if(roomUsersHolderList.size() == 2){
-                    isDM = true;
-                }
-
-                for(final String mName : roomUsersHolderList){
-                    if(!mName.equals(mUsername)) {
-                        final int usernameHash;
-                        if (mName.length() < 5) {
-                            usernameHash = mName.hashCode();
-                        } else {
-                            String hashIn = "" + mName.charAt(0) + mName.charAt(mName.length() - 2) + mName.charAt(1) + mName.charAt(mName.length() - 1);
-                            usernameHash = hashIn.hashCode();
-                        }
-
-                        String roomPath = usernameHash + "/" + mName + "/" + "r/" + roomNum;
-                        Log.d("ROOMCREATE", roomPath);
-                        if(!(activity.getMessengerFragment().blockedFromUser(mName) && isDM)){
-                            mFirebaseDatabaseReference.child(roomPath).setValue(roomObject).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    String WRITE_PATH = usernameHash + "/" + mName + "/messages/" + roomNum;
-                                    //final String username = usi.getUsername();
-                                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
-                                }
-                            });
-                        }
-                    }
-                }
             }
         });
+
+        if(activity.getMessengerFragment().isEmpty()){
+            activity.getMessengerFragment().initializeFragmentAfterFirstRoomCreation();
+        }
+
+        if(roomObject.getUsers() != null && roomObject.getUsers().size() == 2){
+            roomObject.setName(mUsername);
+        }
+
+        setRoomObjListener(roomNum);
+
+        boolean isDM = false;
+        if(roomUsersHolderList.size() == 2){
+            isDM = true;
+        }
+
+        for(final String mName : roomUsersHolderList){
+            if(!mName.equals(mUsername)) {
+                final int usernameHash;
+                if (mName.length() < 5) {
+                    usernameHash = mName.hashCode();
+                } else {
+                    String hashIn = "" + mName.charAt(0) + mName.charAt(mName.length() - 2) + mName.charAt(1) + mName.charAt(mName.length() - 1);
+                    usernameHash = hashIn.hashCode();
+                }
+
+                String roomPath = usernameHash + "/" + mName + "/" + "r/" + roomNum;
+                Log.d("ROOMCREATE", roomPath);
+                if(!(activity.getMessengerFragment().blockedFromUser(mName) && isDM)){
+                    mFirebaseDatabaseReference.child(roomPath).setValue(roomObject).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            String WRITE_PATH = usernameHash + "/" + mName + "/messages/" + roomNum;
+                            //final String username = usi.getUsername();
+                            mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                        }
+                    });
+                }
+            }
+        }
 
     }
 
