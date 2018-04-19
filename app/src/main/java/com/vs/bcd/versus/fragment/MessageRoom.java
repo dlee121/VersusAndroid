@@ -86,6 +86,15 @@ public class MessageRoom extends Fragment {
         }
     }
 
+    public static class EventMessageViewHolder extends RecyclerView.ViewHolder {
+        TextView eventMessageText;
+
+        public EventMessageViewHolder(View v) {
+            super(v);
+            eventMessageText = itemView.findViewById(R.id.event_message_text);
+        }
+    }
+
     private String MESSAGES_CHILD = "";
     private String MESSAGES_CHILD_BODY = "";
     private final int REQUEST_IMAGE = 2;
@@ -101,7 +110,7 @@ public class MessageRoom extends Fragment {
     private FirebaseAuth mFirebaseAuth;
     private FirebaseUser mFirebaseUser;
     private DatabaseReference mFirebaseDatabaseReference;
-    private FirebaseRecyclerAdapter<MessageObject, MessageViewHolder> mFirebaseAdapter;
+    private FirebaseRecyclerAdapter<MessageObject, RecyclerView.ViewHolder> mFirebaseAdapter;
     private FirebaseAnalytics mFirebaseAnalytics;
     private RecyclerView mMessageRecyclerView;
     private LinearLayoutManager mLinearLayoutManager;
@@ -110,7 +119,6 @@ public class MessageRoom extends Fragment {
     private EditText mMessageEditText;
     private ImageView mAddMessageImageView;
     private String mUsername = "";
-    private String mPhotoUrl = "";
     private String userMKey = "";
     private boolean firstMessage = false;
     private String roomNum = "";
@@ -123,6 +131,8 @@ public class MessageRoom extends Fragment {
     private boolean specialSend = false;
     private String oldRoomNum = "";
     private boolean roomIsDM = true;
+    private int VIEW_TYPE_EVENT = 0;
+    private int VIEW_TYPE_MESSAGE = 1;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -169,7 +179,6 @@ public class MessageRoom extends Fragment {
 
                             } else {
                                 //TODO: photoURL should be a link to the user's profile picture stored in firebase. If no pic then should be blank, and in the UI if photoURL is blank then use default image in-app
-                                mPhotoUrl = "https://firebasestorage.googleapis.com/v0/b/bcd-versus.appspot.com/o/vs_shadow_w_tag.png?alt=media&token=d9bda511-cd3c-4fed-8b1b-ea2dd72ca479";
                                 mFirebaseUser = mFirebaseAuth.getCurrentUser();
                                 //setUpMessenger();
                             }
@@ -177,7 +186,6 @@ public class MessageRoom extends Fragment {
                     });
         }
         else {
-            mPhotoUrl = "https://firebasestorage.googleapis.com/v0/b/bcd-versus.appspot.com/o/vs_shadow_w_tag.png?alt=media&token=d9bda511-cd3c-4fed-8b1b-ea2dd72ca479";
             //setUpMessenger();
         }
 
@@ -297,7 +305,7 @@ public class MessageRoom extends Fragment {
                 imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
 
                 final String content = mMessageEditText.getText().toString().trim();
-                MessageObject messageObject = new MessageObject(content, mUsername, mPhotoUrl, null);
+                MessageObject messageObject = new MessageObject(content, mUsername, null);
 
                 int usernameHash;
                 if(mUsername.length() < 5){
@@ -412,7 +420,7 @@ public class MessageRoom extends Fragment {
                 imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
 
                 final String content = mMessageEditText.getText().toString().trim();
-                final MessageObject messageObject = new MessageObject(content, mUsername, mPhotoUrl, null);
+                final MessageObject messageObject = new MessageObject(content, mUsername, null);
 
                 int usernameHash;
                 if(mUsername.length() < 5){
@@ -476,7 +484,7 @@ public class MessageRoom extends Fragment {
             }
         }
         else {
-            roomUsersHolderList = existingRoomUsersList;
+            roomUsersHolderList = existingRoomUsersList; //just safety, don't think this line is necessary under normal circumstances
         }
 
         if(roomUsersHolderList.size() == 1){
@@ -625,7 +633,7 @@ public class MessageRoom extends Fragment {
                 imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
 
                 final String content = mMessageEditText.getText().toString().trim();
-                MessageObject messageObject = new MessageObject(content, mUsername, mPhotoUrl, null);
+                MessageObject messageObject = new MessageObject(content, mUsername, null);
 
                 int usernameHash;
                 if (mUsername.length() < 5) {
@@ -700,8 +708,7 @@ public class MessageRoom extends Fragment {
                     final Uri uri = data.getData();
                     Log.d(TAG, "Uri: " + uri.toString());
 
-                    final MessageObject tempMessage = new MessageObject(null, mUsername, mPhotoUrl,
-                            LOADING_IMAGE_URL);
+                    final MessageObject tempMessage = new MessageObject(null, mUsername, LOADING_IMAGE_URL);
 
                     if(firstMessage){
                         if(specialSend){
@@ -759,9 +766,7 @@ public class MessageRoom extends Fragment {
                     public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
                         if (task.isSuccessful()) {
                             MessageObject messageObject =
-                                    new MessageObject(null, mUsername, mPhotoUrl,
-                                            task.getResult().getMetadata().getDownloadUrl()
-                                                    .toString());
+                                    new MessageObject(null, mUsername, task.getResult().getMetadata().getDownloadUrl().toString());
                             mFirebaseDatabaseReference.child(MESSAGES_CHILD).child(key)
                                     .setValue(messageObject);
 
@@ -858,100 +863,130 @@ public class MessageRoom extends Fragment {
                         .build();
 
 
-        mFirebaseAdapter = new FirebaseRecyclerAdapter<MessageObject, MessageViewHolder>(options) {
+        mFirebaseAdapter = new FirebaseRecyclerAdapter<MessageObject, RecyclerView.ViewHolder>(options) {
 
             @Override
-            public MessageViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-                View view = LayoutInflater.from(activity).inflate(R.layout.message_item_view, parent, false);
-                return new MessageViewHolder(view);
+            public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                if(viewType == VIEW_TYPE_MESSAGE){
+                    View view = LayoutInflater.from(activity).inflate(R.layout.message_item_view, parent, false);
+                    return new MessageViewHolder(view);
+                }
+                else{
+                    View view = LayoutInflater.from(activity).inflate(R.layout.room_event_message, parent, false);
+                    return new EventMessageViewHolder(view);
+                }
+
+
             }
 
             @Override
-            protected void onBindViewHolder(final MessageViewHolder viewHolder, int position, MessageObject friendlyMessage) {
+            public int getItemViewType(int position) {
+                MessageObject messageObject = getItem(position);
+                if (messageObject.getName() != null) {
+                    return VIEW_TYPE_MESSAGE;
+                }
+                else {
+                    return  VIEW_TYPE_EVENT;
+                }
+            }
+
+            @Override
+            protected void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int position, MessageObject messageObject) {
                 mProgressBar.setVisibility(ProgressBar.INVISIBLE);
 
-                if(friendlyMessage.getName().equals(mUsername)){
-                    RelativeLayout.LayoutParams messageContentWrapperLP = (RelativeLayout.LayoutParams) viewHolder.messageContentWrapper.getLayoutParams();
-                    messageContentWrapperLP.removeRule(RelativeLayout.ALIGN_PARENT_START);
-                    messageContentWrapperLP.addRule(RelativeLayout.ALIGN_PARENT_END);
-                    //viewHolder.messageContentWrapper.setLayoutParams(messageContentWrapperLP);
-                    viewHolder.messageContentWrapper.setGravity(Gravity.RIGHT);
-                    viewHolder.usernameTextView.setVisibility(View.GONE);
-                    GradientDrawable bgShape = (GradientDrawable)viewHolder.messageContent.getBackground();
-                    bgShape.setColor(ContextCompat.getColor(activity, R.color.messageGreen));
-                    bgShape.setStroke(0, Color.WHITE);
+                if (viewHolder instanceof MessageViewHolder){ //this is a chat message item
+                    final MessageViewHolder messageViewHolder = (MessageViewHolder) viewHolder;
+                    if(messageObject.getName() == null){
+                        //this is for safety since mesageObject.name is now nullable. Just in case a room event message object somehow makes it here.
+                        messageObject.setName("");
+                    }
 
-                    LinearLayout.LayoutParams messageContentLP = (LinearLayout.LayoutParams) viewHolder.messageContent.getLayoutParams();
-                    messageContentLP.gravity = Gravity.RIGHT;
-                    viewHolder.messageContent.setLayoutParams(messageContentLP);
-                }
-                else{
-                    RelativeLayout.LayoutParams messageContentWrapperLP = (RelativeLayout.LayoutParams) viewHolder.messageContentWrapper.getLayoutParams();
-                    messageContentWrapperLP.removeRule(RelativeLayout.ALIGN_PARENT_END);
-                    messageContentWrapperLP.addRule(RelativeLayout.ALIGN_PARENT_START);
-                    //viewHolder.messageContentWrapper.setLayoutParams(messageContentWrapperLP);
-                    viewHolder.messageContentWrapper.setGravity(Gravity.LEFT);
+                    if(messageObject.getName().equals(mUsername)){
+                        RelativeLayout.LayoutParams messageContentWrapperLP = (RelativeLayout.LayoutParams) messageViewHolder.messageContentWrapper.getLayoutParams();
+                        messageContentWrapperLP.removeRule(RelativeLayout.ALIGN_PARENT_START);
+                        messageContentWrapperLP.addRule(RelativeLayout.ALIGN_PARENT_END);
+                        //viewHolder.messageContentWrapper.setLayoutParams(messageContentWrapperLP);
+                        messageViewHolder.messageContentWrapper.setGravity(Gravity.RIGHT);
+                        messageViewHolder.usernameTextView.setVisibility(View.GONE);
+                        GradientDrawable bgShape = (GradientDrawable)messageViewHolder.messageContent.getBackground();
+                        bgShape.setColor(ContextCompat.getColor(activity, R.color.messageGreen));
+                        bgShape.setStroke(0, Color.WHITE);
 
-                    if(roomIsDM){
-                        viewHolder.usernameTextView.setVisibility(View.GONE);
+                        LinearLayout.LayoutParams messageContentLP = (LinearLayout.LayoutParams) messageViewHolder.messageContent.getLayoutParams();
+                        messageContentLP.gravity = Gravity.RIGHT;
+                        messageViewHolder.messageContent.setLayoutParams(messageContentLP);
                     }
                     else{
-                        viewHolder.usernameTextView.setVisibility(View.VISIBLE);
+                        RelativeLayout.LayoutParams messageContentWrapperLP = (RelativeLayout.LayoutParams) messageViewHolder.messageContentWrapper.getLayoutParams();
+                        messageContentWrapperLP.removeRule(RelativeLayout.ALIGN_PARENT_END);
+                        messageContentWrapperLP.addRule(RelativeLayout.ALIGN_PARENT_START);
+                        //viewHolder.messageContentWrapper.setLayoutParams(messageContentWrapperLP);
+                        messageViewHolder.messageContentWrapper.setGravity(Gravity.LEFT);
+
+                        if(roomIsDM){
+                            messageViewHolder.usernameTextView.setVisibility(View.GONE);
+                        }
+                        else{
+                            messageViewHolder.usernameTextView.setVisibility(View.VISIBLE);
+                        }
+                        GradientDrawable bgShape = (GradientDrawable)messageViewHolder.messageContent.getBackground();
+                        bgShape.setColor(Color.WHITE);
+                        bgShape.setStroke(2, ContextCompat.getColor(activity, R.color.highlightGrey));
+                        LinearLayout.LayoutParams messageContentLP = (LinearLayout.LayoutParams) messageViewHolder.messageContent.getLayoutParams();
+                        messageContentLP.gravity = Gravity.LEFT;
+                        messageViewHolder.messageContent.setLayoutParams(messageContentLP);
                     }
-                    GradientDrawable bgShape = (GradientDrawable)viewHolder.messageContent.getBackground();
-                    bgShape.setColor(Color.WHITE);
-                    bgShape.setStroke(2, ContextCompat.getColor(activity, R.color.highlightGrey));
-                    LinearLayout.LayoutParams messageContentLP = (LinearLayout.LayoutParams) viewHolder.messageContent.getLayoutParams();
-                    messageContentLP.gravity = Gravity.LEFT;
-                    viewHolder.messageContent.setLayoutParams(messageContentLP);
-                }
 
-                if (friendlyMessage.getText() != null) {
-                    viewHolder.messageTextView.setText(friendlyMessage.getText());
-                    viewHolder.messageTextView.setVisibility(TextView.VISIBLE);
-                    viewHolder.messageImageView.setVisibility(ImageView.GONE);
+                    if (messageObject.getText() != null) {
+                        messageViewHolder.messageTextView.setText(messageObject.getText());
+                        messageViewHolder.messageTextView.setVisibility(TextView.VISIBLE);
+                        messageViewHolder.messageImageView.setVisibility(ImageView.GONE);
 
-                } else {
-                    String imageUrl = friendlyMessage.getImageUrl();
-                    if (imageUrl.startsWith("gs://")) {
-                        StorageReference storageReference = FirebaseStorage.getInstance()
-                                .getReferenceFromUrl(imageUrl);
-                        storageReference.getDownloadUrl().addOnCompleteListener(
-                                new OnCompleteListener<Uri>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Uri> task) {
-                                        if (task.isSuccessful()) {
-                                            String downloadUrl = task.getResult().toString();
-                                            Glide.with(viewHolder.messageImageView.getContext())
-                                                    .load(downloadUrl)
-                                                    .into(viewHolder.messageImageView);
-                                        } else {
-                                            Log.w(TAG, "Getting download url was not successful.",
-                                                    task.getException());
-                                        }
-                                    }
-                                });
                     } else {
-                        Glide.with(viewHolder.messageImageView.getContext())
-                                .load(friendlyMessage.getImageUrl())
-                                .into(viewHolder.messageImageView);
+                        String imageUrl = messageObject.getImageUrl();
+                        if (imageUrl.startsWith("gs://")) {
+                            StorageReference storageReference = FirebaseStorage.getInstance()
+                                    .getReferenceFromUrl(imageUrl);
+                            storageReference.getDownloadUrl().addOnCompleteListener(
+                                    new OnCompleteListener<Uri>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Uri> task) {
+                                            if (task.isSuccessful()) {
+                                                String downloadUrl = task.getResult().toString();
+                                                Glide.with(messageViewHolder.messageImageView.getContext())
+                                                        .load(downloadUrl)
+                                                        .into(messageViewHolder.messageImageView);
+                                            } else {
+                                                Log.w(TAG, "Getting download url was not successful.",
+                                                        task.getException());
+                                            }
+                                        }
+                                    });
+                        } else {
+                            Glide.with(messageViewHolder.messageImageView.getContext())
+                                    .load(messageObject.getImageUrl())
+                                    .into(messageViewHolder.messageImageView);
+                        }
+                        messageViewHolder.messageImageView.setVisibility(ImageView.VISIBLE);
+                        messageViewHolder.messageTextView.setVisibility(TextView.GONE);
                     }
-                    viewHolder.messageImageView.setVisibility(ImageView.VISIBLE);
-                    viewHolder.messageTextView.setVisibility(TextView.GONE);
-                }
 
-                viewHolder.usernameTextView.setText(friendlyMessage.getName());
-                /*
-                if (friendlyMessage.getPhotoUrl() == null) {
-                    viewHolder.messageProfileView.setImageDrawable(ContextCompat.getDrawable(getActivity(),
-                            R.drawable.vs_shadow_w_tag));
-                } else {
-                    Glide.with(getActivity())
-                            .load(friendlyMessage.getPhotoUrl())
-                            .into(viewHolder.messageProfileView);
+                    messageViewHolder.usernameTextView.setText(messageObject.getName());
+                    /*
+                    if (friendlyMessage.getPhotoUrl() == null) {
+                        viewHolder.messageProfileView.setImageDrawable(ContextCompat.getDrawable(getActivity(),
+                                R.drawable.vs_shadow_w_tag));
+                    } else {
+                        Glide.with(getActivity())
+                                .load(friendlyMessage.getPhotoUrl())
+                                .into(viewHolder.messageProfileView);
+                    }
+                    */
                 }
-                */
-
+                else {
+                    //this is a room event message item
+                    ((EventMessageViewHolder) viewHolder).eventMessageText.setText(messageObject.getText());
+                }
             }
         };
 
@@ -976,6 +1011,30 @@ public class MessageRoom extends Fragment {
         mMessageRecyclerView.setAdapter(mFirebaseAdapter);
     }
 
+    private void sendRoomEventMessage(String messageText, String rnum){
+        if(existingRoomUsersList != null){
+            MessageObject messageObject = new MessageObject(messageText, null, null);
+
+            for(String username : existingRoomUsersList){
+                if(username.indexOf('*') > 0){
+                    int numberCode = Integer.parseInt(username.substring(username.indexOf('*') + 1));
+                    if(numberCode == 1 || numberCode == 3){
+                        String pureUsername = username.substring(0, username.indexOf('*'));
+
+                        String WRITE_PATH = getUsernameHash(pureUsername) + "/" + pureUsername + "/messages/" + rnum;
+                        //final String username = usi.getUsername();
+                        mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                    }
+                }
+                else{
+                    String WRITE_PATH = getUsernameHash(username) + "/" + username + "/messages/" + rnum;
+                    //final String username = usi.getUsername();
+                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                }
+            }
+        }
+    }
+
     private void setUpRoomInDB(String preview, final MessageObject messageObject, final Uri uri){
         MESSAGES_CHILD = MESSAGES_CHILD_BODY + roomNum;
         final ArrayList<String> roomUsersHolderList;
@@ -986,7 +1045,7 @@ public class MessageRoom extends Fragment {
             }
         }
         else {
-            roomUsersHolderList = existingRoomUsersList;
+            roomUsersHolderList = existingRoomUsersList; //just safety, don't think this line is necessary under normal circumstances
         }
 
         if(roomUsersHolderList.size() == 1){

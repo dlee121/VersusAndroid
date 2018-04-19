@@ -9,16 +9,14 @@ public class MessageObject {
     private String id;
     private String text;
     private String name;
-    private String photoUrl;
     private String imageUrl;
 
     public MessageObject() {
     }
 
-    public MessageObject(String text, String name, String photoUrl, String imageUrl) {
+    public MessageObject(String text, String name, String imageUrl) {
         this.text = text;
         this.name = name;
-        this.photoUrl = photoUrl;
         this.imageUrl = imageUrl;
     }
 
@@ -42,16 +40,8 @@ public class MessageObject {
         this.name = name;
     }
 
-    public String getPhotoUrl() {
-        return photoUrl;
-    }
-
     public String getText() {
         return text;
-    }
-
-    public void setPhotoUrl(String photoUrl) {
-        this.photoUrl = photoUrl;
     }
 
     public String getImageUrl() {

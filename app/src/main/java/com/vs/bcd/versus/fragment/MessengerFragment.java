@@ -51,6 +51,7 @@ import com.vs.bcd.versus.adapter.InvitedUserAdapter;
 import com.vs.bcd.versus.adapter.UserSearchAdapter;
 import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.GlideApp;
+import com.vs.bcd.versus.model.MessageObject;
 import com.vs.bcd.versus.model.RNumAndUList;
 import com.vs.bcd.versus.model.RoomObject;
 import com.vs.bcd.versus.model.SessionManager;
@@ -1281,12 +1282,29 @@ public class MessengerFragment extends Fragment {
                 }
             }
         }
-
+        MessageObject messageObject = new MessageObject(mUsername + " left", null, null);
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/users", newUsersList);
-        for (String username : roomObject.getUsers()) {
-            roomEditPath = Integer.toString(getUsernameHash(username)) + "/" + username + "/r/" + roomNum;
-            mFirebaseDatabaseReference.child(roomEditPath).updateChildren(childUpdates);
+        for (String username : newUsersList) {
+            if(username.indexOf('*') > 0){
+                int numberCode = Integer.parseInt(username.substring(username.indexOf('*')+1));
+                if(numberCode == 1 || numberCode == 3){
+                    String pureUsername = username.substring(0, username.indexOf('*'));
+
+                    roomEditPath = Integer.toString(getUsernameHash(pureUsername)) + "/" + pureUsername + "/r/" + roomNum;
+                    mFirebaseDatabaseReference.child(roomEditPath).updateChildren(childUpdates);
+
+                    String WRITE_PATH = getUsernameHash(pureUsername) + "/" + pureUsername + "/messages/" + roomNum;
+                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                }
+            }
+            else{
+                roomEditPath = Integer.toString(getUsernameHash(username)) + "/" + username + "/r/" + roomNum;
+                mFirebaseDatabaseReference.child(roomEditPath).updateChildren(childUpdates);
+
+                String WRITE_PATH = getUsernameHash(username) + "/" + username + "/messages/" + roomNum;
+                mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+            }
         }
     }
 
@@ -1614,4 +1632,5 @@ public class MessengerFragment extends Fragment {
     public boolean blockedFromUser(String username){
         return blockedfromList.contains(username);
     }
+
 }
