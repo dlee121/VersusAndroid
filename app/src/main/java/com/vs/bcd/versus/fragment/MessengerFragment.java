@@ -1251,9 +1251,36 @@ public class MessengerFragment extends Fragment {
         String messagesTarget = Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/messages";
         mFirebaseDatabaseReference.child(messagesTarget).child(roomNum).removeValue();
 
+        mFirebaseDatabaseReference.child(Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/unread/" + roomNum).removeValue();
+
         String roomEditPath;
         ArrayList<String> newUsersList = roomObject.getUsers();
-        newUsersList.remove(mUsername);
+        for(int i = 0; i < newUsersList.size(); i++){
+            String username = newUsersList.get(i);
+            if(username.contains(mUsername)){
+                int asteriskIndex = username.indexOf('*');
+                if(asteriskIndex > 0){
+                    int numberCode = Integer.parseInt(username.substring(asteriskIndex + 1));
+                    switch (numberCode){
+                        case 1:
+                            username = username.substring(0, asteriskIndex) + "*2";
+                            break;
+                        case 3:
+                            username = username.substring(0, asteriskIndex) + "*4";
+                            break;
+                        default:
+                            //safety
+                            username = username.substring(0, asteriskIndex) + "*2";
+                            break;
+                    }
+                    newUsersList.set(i, username);
+                }
+                else{
+                    username = mUsername + "*0";
+                    newUsersList.set(i, username);
+                }
+            }
+        }
 
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/users", newUsersList);

@@ -71,14 +71,14 @@ public class WhatsYourUsername extends Fragment {
                         char c = chars[i];
                         //check if the character is alphanumeric
                         if (!Character.isLetterOrDigit(c)) {
-                            if(c != '.' && c != '-' && c != '_' && c != '~' && c != '%'){
+                            if(c != '-' && c != '_' && c != '~' && c != '%'){
                                 invalidCharacterPresent = true;
                             }
                         }
                     }
                     if(invalidCharacterPresent){
                         etWarning.setTextColor(ContextCompat.getColor(activity,R.color.noticeRed));
-                        etWarning.setText("Can only contain letters, numbers, and the following special characters: '-', '_', '.', '~', and '%'");
+                        etWarning.setText("Can only contain letters, numbers, and the following special characters: '-', '_', '~', and '%'");
                     }
                     else {
                         ignoreAsync = false;

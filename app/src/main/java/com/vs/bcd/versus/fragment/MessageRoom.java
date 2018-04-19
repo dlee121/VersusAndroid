@@ -2,6 +2,8 @@ package com.vs.bcd.versus.fragment;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -12,6 +14,7 @@ import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +23,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -51,23 +55,9 @@ import com.vs.bcd.versus.model.RoomObject;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.UserSearchItem;
 
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
-import de.hdodenhof.circleimageview.CircleImageView;
-
-import static android.R.attr.data;
-import static android.R.attr.multiArch;
 import static android.content.ContentValues.TAG;
 
 /**
@@ -82,14 +72,17 @@ public class MessageRoom extends Fragment {
         TextView messageTextView;
         ImageView messageImageView;
         TextView usernameTextView;
-        CircleImageView messengerImageView;
+        LinearLayout messageContentWrapper, messageContent;
+        //CircleImageView messageProfileView;
 
         public MessageViewHolder(View v) {
             super(v);
-            messageTextView = (TextView) itemView.findViewById(R.id.messageTextView);
-            messageImageView = (ImageView) itemView.findViewById(R.id.messageImageView);
-            usernameTextView = (TextView) itemView.findViewById(R.id.usernameTextView);
-            messengerImageView = (CircleImageView) itemView.findViewById(R.id.messengerImageView);
+            usernameTextView = itemView.findViewById(R.id.usernameTextView);
+            messageContentWrapper = itemView.findViewById(R.id.message_content_wrapper);
+            messageContent = messageContentWrapper.findViewById(R.id.message_content);
+            messageTextView = messageContent.findViewById(R.id.messageTextView);
+            messageImageView = messageContent.findViewById(R.id.messageImageView);
+            //messageProfileView = (CircleImageView) itemView.findViewById(R.id.messengerImageView);
         }
     }
 
@@ -121,14 +114,15 @@ public class MessageRoom extends Fragment {
     private String userMKey = "";
     private boolean firstMessage = false;
     private String roomNum = "";
-    private ArrayList<UserSearchItem> roomUsersList;
-    private ArrayList<String> roomUsersStringList;
+    private ArrayList<UserSearchItem> newRoomInviteList;
+    private ArrayList<String> existingRoomUsersList;
     private ChildEventListener roomObjListener;
     private boolean initialRoomInfoLoaded = false;
     private String currentRoomTitle = "";
     private boolean roomVisible = false;
     private boolean specialSend = false;
     private String oldRoomNum = "";
+    private boolean roomIsDM = true;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -238,6 +232,12 @@ public class MessageRoom extends Fragment {
     }
 
     public void setUpNewRoom(final ArrayList<UserSearchItem> invitedUsers){
+        if(invitedUsers.size() == 1){
+            roomIsDM = true;
+        }
+        else{
+            roomIsDM = false;
+        }
         specialSend = false;
         mProgressBar.setVisibility(ProgressBar.INVISIBLE);
 
@@ -245,8 +245,8 @@ public class MessageRoom extends Fragment {
         final String rnum = UUID.randomUUID().toString();
         roomNum = rnum;
         MESSAGES_CHILD = MESSAGES_CHILD_BODY + rnum;
-        roomUsersList = invitedUsers;
-        roomUsersStringList = null;
+        newRoomInviteList = invitedUsers;
+        existingRoomUsersList = null;
 
         final String roomTitle;
 
@@ -348,14 +348,20 @@ public class MessageRoom extends Fragment {
     }
 
     public void setUpNewRoom(final ArrayList<UserSearchItem> invitedUsers, final String roomNumInput){
+        if(invitedUsers.size() == 1){
+            roomIsDM = true;
+        }
+        else{
+            roomIsDM = false;
+        }
         specialSend = true;
         mProgressBar.setVisibility(ProgressBar.INVISIBLE);
         firstMessage = true;
         roomNum = roomNumInput;
         oldRoomNum = roomNumInput;
         MESSAGES_CHILD = MESSAGES_CHILD_BODY + roomNumInput;
-        roomUsersList = invitedUsers;
-        roomUsersStringList = null;
+        newRoomInviteList = invitedUsers;
+        existingRoomUsersList = null;
 
         final String roomTitle;
 
@@ -463,14 +469,14 @@ public class MessageRoom extends Fragment {
         //modified version of setUpRoomInDB()
         MESSAGES_CHILD = MESSAGES_CHILD_BODY + roomNumInput;
         final ArrayList<String> roomUsersHolderList;
-        if(roomUsersList != null){
+        if(newRoomInviteList != null){
             roomUsersHolderList = new ArrayList<>();
-            for(UserSearchItem usi : roomUsersList){
+            for(UserSearchItem usi : newRoomInviteList){
                 roomUsersHolderList.add(usi.getUsername());
             }
         }
         else {
-            roomUsersHolderList = roomUsersStringList;
+            roomUsersHolderList = existingRoomUsersList;
         }
 
         if(roomUsersHolderList.size() == 1){
@@ -569,17 +575,24 @@ public class MessageRoom extends Fragment {
     public void setUpRoom(final String rnum, final ArrayList<String> usersList, String roomTitle){
         mProgressBar.setVisibility(ProgressBar.VISIBLE);
 
+        if(usersList.size() == 2){
+            roomIsDM = true;
+        }
+        else{
+            roomIsDM = false;
+        }
+
         roomNum = rnum;
         MESSAGES_CHILD = MESSAGES_CHILD_BODY + rnum;
-        roomUsersStringList = usersList;
-        roomUsersList = null;
+        existingRoomUsersList = usersList;
+        newRoomInviteList = null;
         currentRoomTitle = roomTitle;
         activity.setMessageRoomTitle(currentRoomTitle);
 
         setRoomObjListener(roomNum);
         setUpRecyclerView(rnum);
 
-        mMessageEditText = (EditText) rootView.findViewById(R.id.messageEditText);
+        mMessageEditText = rootView.findViewById(R.id.messageEditText);
         /*
         mMessageEditText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(mSharedPreferences
                 .getInt(CodelabPreferences.FRIENDLY_MSG_LENGTH, DEFAULT_MSG_LENGTH_LIMIT))});
@@ -603,7 +616,7 @@ public class MessageRoom extends Fragment {
             }
         });
 
-        mSendButton = (Button) rootView.findViewById(R.id.sendButton);
+        mSendButton = rootView.findViewById(R.id.sendButton);
 
         mSendButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -636,10 +649,23 @@ public class MessageRoom extends Fragment {
                 }
 
                 for (final String mName : usersList) {
-                    if(!(mName.equals(mUsername))){ //this condition check is necessary for when going from CreateMessage to existing room
+                    String pureUsername;
+                    if(mName.indexOf('*') > 0){
+                        int index = mName.indexOf('*');
+                        int numberCode = Integer.parseInt(mName.substring(index + 1));
+                        if(numberCode == 0 || numberCode == 2 || numberCode == 4){//first, second, or third leave, so don't send to this username
+                            Log.d("skipsend", "send skipped for user " + mName);
+                            continue;
+                        }
+                        pureUsername = mName.substring(0, index);
+                    }
+                    else{
+                        pureUsername = mName;
+                    }
 
-                        if(!(activity.getMessengerFragment().blockedFromUser(mName) && isDM)){
-                            String WRITE_PATH = Integer.toString(getUsernameHash(mName)) + "/" + mName + "/messages/" + rnum;
+                    if(!(pureUsername.equals(mUsername))){ //this condition check is necessary for when going from CreateMessage to existing room
+                        if(!(activity.getMessengerFragment().blockedFromUser(pureUsername) && isDM)){
+                            String WRITE_PATH = Integer.toString(getUsernameHash(pureUsername)) + "/" + pureUsername + "/messages/" + rnum;
                             //final String username = usi.getUsername();
                             mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
                         }
@@ -739,11 +765,11 @@ public class MessageRoom extends Fragment {
                             mFirebaseDatabaseReference.child(MESSAGES_CHILD).child(key)
                                     .setValue(messageObject);
 
-                            if(roomUsersList != null){
+                            if(newRoomInviteList != null){
 
-                                boolean isDM = roomUsersList.size() == 1;
+                                boolean isDM = newRoomInviteList.size() == 1;
 
-                                for(final UserSearchItem usi : roomUsersList){
+                                for(final UserSearchItem usi : newRoomInviteList){
 
                                     if(!(activity.getMessengerFragment().blockedFromUser(usi.getUsername()) && isDM)){
                                         String WRITE_PATH = usi.getHash() + "/" + usi.getUsername() + "/messages/" + roomNum;
@@ -754,16 +780,16 @@ public class MessageRoom extends Fragment {
                                 }
 
                             }
-                            else if(roomUsersStringList != null){
+                            else if(existingRoomUsersList != null){
                                 boolean isDM = false;
-                                if(roomUsersStringList.size() == 1){
+                                if(existingRoomUsersList.size() == 1){
                                     isDM = true;
                                 }
-                                else if(roomUsersStringList.size() == 2 && (roomUsersStringList.get(0).equals(mUsername) || roomUsersStringList.get(1).equals(mUsername))){
+                                else if(existingRoomUsersList.size() == 2 && (existingRoomUsersList.get(0).equals(mUsername) || existingRoomUsersList.get(1).equals(mUsername))){
                                     isDM = true;
                                 }
 
-                                for(final String mName : roomUsersStringList){
+                                for(final String mName : existingRoomUsersList){
 
                                     if(!(activity.getMessengerFragment().blockedFromUser(mName) && isDM)){
                                         String WRITE_PATH = getUsernameHash(mName) + "/" + mName + "/messages/" + roomNum;
@@ -843,6 +869,43 @@ public class MessageRoom extends Fragment {
             @Override
             protected void onBindViewHolder(final MessageViewHolder viewHolder, int position, MessageObject friendlyMessage) {
                 mProgressBar.setVisibility(ProgressBar.INVISIBLE);
+
+                if(friendlyMessage.getName().equals(mUsername)){
+                    RelativeLayout.LayoutParams messageContentWrapperLP = (RelativeLayout.LayoutParams) viewHolder.messageContentWrapper.getLayoutParams();
+                    messageContentWrapperLP.removeRule(RelativeLayout.ALIGN_PARENT_START);
+                    messageContentWrapperLP.addRule(RelativeLayout.ALIGN_PARENT_END);
+                    //viewHolder.messageContentWrapper.setLayoutParams(messageContentWrapperLP);
+                    viewHolder.messageContentWrapper.setGravity(Gravity.RIGHT);
+                    viewHolder.usernameTextView.setVisibility(View.GONE);
+                    GradientDrawable bgShape = (GradientDrawable)viewHolder.messageContent.getBackground();
+                    bgShape.setColor(ContextCompat.getColor(activity, R.color.messageGreen));
+                    bgShape.setStroke(0, Color.WHITE);
+
+                    LinearLayout.LayoutParams messageContentLP = (LinearLayout.LayoutParams) viewHolder.messageContent.getLayoutParams();
+                    messageContentLP.gravity = Gravity.RIGHT;
+                    viewHolder.messageContent.setLayoutParams(messageContentLP);
+                }
+                else{
+                    RelativeLayout.LayoutParams messageContentWrapperLP = (RelativeLayout.LayoutParams) viewHolder.messageContentWrapper.getLayoutParams();
+                    messageContentWrapperLP.removeRule(RelativeLayout.ALIGN_PARENT_END);
+                    messageContentWrapperLP.addRule(RelativeLayout.ALIGN_PARENT_START);
+                    //viewHolder.messageContentWrapper.setLayoutParams(messageContentWrapperLP);
+                    viewHolder.messageContentWrapper.setGravity(Gravity.LEFT);
+
+                    if(roomIsDM){
+                        viewHolder.usernameTextView.setVisibility(View.GONE);
+                    }
+                    else{
+                        viewHolder.usernameTextView.setVisibility(View.VISIBLE);
+                    }
+                    GradientDrawable bgShape = (GradientDrawable)viewHolder.messageContent.getBackground();
+                    bgShape.setColor(Color.WHITE);
+                    bgShape.setStroke(2, ContextCompat.getColor(activity, R.color.highlightGrey));
+                    LinearLayout.LayoutParams messageContentLP = (LinearLayout.LayoutParams) viewHolder.messageContent.getLayoutParams();
+                    messageContentLP.gravity = Gravity.LEFT;
+                    viewHolder.messageContent.setLayoutParams(messageContentLP);
+                }
+
                 if (friendlyMessage.getText() != null) {
                     viewHolder.messageTextView.setText(friendlyMessage.getText());
                     viewHolder.messageTextView.setVisibility(TextView.VISIBLE);
@@ -878,14 +941,16 @@ public class MessageRoom extends Fragment {
                 }
 
                 viewHolder.usernameTextView.setText(friendlyMessage.getName());
+                /*
                 if (friendlyMessage.getPhotoUrl() == null) {
-                    viewHolder.messengerImageView.setImageDrawable(ContextCompat.getDrawable(getActivity(),
+                    viewHolder.messageProfileView.setImageDrawable(ContextCompat.getDrawable(getActivity(),
                             R.drawable.vs_shadow_w_tag));
                 } else {
                     Glide.with(getActivity())
                             .load(friendlyMessage.getPhotoUrl())
-                            .into(viewHolder.messengerImageView);
+                            .into(viewHolder.messageProfileView);
                 }
+                */
 
             }
         };
@@ -914,14 +979,14 @@ public class MessageRoom extends Fragment {
     private void setUpRoomInDB(String preview, final MessageObject messageObject, final Uri uri){
         MESSAGES_CHILD = MESSAGES_CHILD_BODY + roomNum;
         final ArrayList<String> roomUsersHolderList;
-        if(roomUsersList != null){
+        if(newRoomInviteList != null){
             roomUsersHolderList = new ArrayList<>();
-            for(UserSearchItem usi : roomUsersList){
+            for(UserSearchItem usi : newRoomInviteList){
                 roomUsersHolderList.add(usi.getUsername());
             }
         }
         else {
-            roomUsersHolderList = roomUsersStringList;
+            roomUsersHolderList = existingRoomUsersList;
         }
 
         if(roomUsersHolderList.size() == 1){

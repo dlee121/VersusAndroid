@@ -17,5 +17,7 @@
     <dimen name="overflow_row_height">48dp</dimen>
     <dimen name="comment_margin">50dp</dimen>
     <dimen name="block_icon_width">19dp</dimen>
+    <dimen name="message_item_short">10dp</dimen>
+    <dimen name="message_item_long">80dp</dimen>
 
 </resources>

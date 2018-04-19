@@ -14,4 +14,5 @@
     <color name="noticeYellow">#FFDD00</color>
     <color name="noticeGreen">#18BF2F</color>
     <color name="highlightGrey">#BDBDBD</color>
+    <color name="messageGreen">#B9DD78</color>
 </resources>
