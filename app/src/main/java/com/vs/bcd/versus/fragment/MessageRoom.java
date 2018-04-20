@@ -30,6 +30,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.firebase.ui.common.ChangeEventType;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -133,6 +134,7 @@ public class MessageRoom extends Fragment {
     private boolean roomIsDM = true;
     private int VIEW_TYPE_EVENT = 0;
     private int VIEW_TYPE_MESSAGE = 1;
+    private boolean defaultRoomName = true;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -239,7 +241,14 @@ public class MessageRoom extends Fragment {
         }
     }
 
+    public void editRoomName(String roomName){
+        defaultRoomName = false;
+        currentRoomTitle = roomName;
+    }
+
     public void setUpNewRoom(final ArrayList<UserSearchItem> invitedUsers){
+        defaultRoomName = true;
+
         if(invitedUsers.size() == 1){
             roomIsDM = true;
         }
@@ -328,8 +337,20 @@ public class MessageRoom extends Fragment {
                     boolean isDM = invitedUsers.size() == 1;
 
                     for(final UserSearchItem usi : invitedUsers){
-                        if(!(activity.getMessengerFragment().blockedFromUser(usi.getUsername()) && isDM)){
-                            String WRITE_PATH = usi.getHash() + "/" + usi.getUsername() + "/messages/" + rnum;
+                        String usernameFinal = usi.getUsername();
+                        if(!isDM){
+                            if(usi.getUsername().indexOf('*') > 0){
+                                int numberCodeIndex = usi.getUsername().indexOf('*');
+                                int numberCode = Integer.parseInt(usi.getUsername().substring(numberCodeIndex+1));
+                                if(numberCode == 0 || numberCode == 2 || numberCode == 4){
+                                    continue;
+                                }
+                                usernameFinal = usi.getUsername().substring(0, numberCodeIndex);
+                            }
+                        }
+
+                        if(!(isDM && activity.getMessengerFragment().blockedFromUser(usernameFinal))){
+                            String WRITE_PATH = getUsernameHash(usernameFinal) + "/" + usernameFinal + "/messages/" + rnum;
                             //final String username = usi.getUsername();
                             mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
                         }
@@ -355,6 +376,7 @@ public class MessageRoom extends Fragment {
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(getActivity());
     }
 
+    //this is only used for DM
     public void setUpNewRoom(final ArrayList<UserSearchItem> invitedUsers, final String roomNumInput){
         if(invitedUsers.size() == 1){
             roomIsDM = true;
@@ -441,6 +463,8 @@ public class MessageRoom extends Fragment {
                     mFirebaseDatabaseReference.child(USER_PATH).push().setValue(messageObject);
 
                     boolean isDM = invitedUsers.size() == 1;
+                    //TODO: this is only used for DMs so no need to account for numberCode here.
+                    //TODO: if we do use this for group chat, then we need to account for numberCode here to make sure people who left the group don't get messages for the group without first getting re-invited
 
                     for(final UserSearchItem usi : invitedUsers){
                         if(!(activity.getMessengerFragment().blockedFromUser(usi.getUsername()) && isDM)){
@@ -556,6 +580,7 @@ public class MessageRoom extends Fragment {
         }
 
         //setUpRoomInDBSpecial is called when the person at the other end already has the corresponding room, so we skip room setup and send message right away
+        //TODO: this is for DM so don't need to account for numberCode, but if that changes and this is also used for group chat then we'll have to account for numberCode here
         for(final String mName : roomUsersHolderList){
             if(!mName.equals(mUsername)) {
                 if(!(activity.getMessengerFragment().blockedFromUser(mName) && isDM)){
@@ -658,22 +683,22 @@ public class MessageRoom extends Fragment {
                 }
 
                 for (final String mName : usersList) {
-                    String pureUsername;
-                    if(mName.indexOf('*') > 0){
-                        int index = mName.indexOf('*');
-                        int numberCode = Integer.parseInt(mName.substring(index + 1));
-                        if(numberCode == 0 || numberCode == 2 || numberCode == 4){//first, second, or third leave, so don't send to this username
-                            Log.d("skipsend", "send skipped for user " + mName);
-                            continue;
+                    String pureUsername = mName;
+
+                    if(!isDM){
+                        if(mName.indexOf('*') > 0){
+                            int index = mName.indexOf('*');
+                            int numberCode = Integer.parseInt(mName.substring(index + 1));
+                            if(numberCode == 0 || numberCode == 2 || numberCode == 4){//first, second, or third leave, so don't send to this username
+                                Log.d("skipsend", "send skipped for user " + mName);
+                                continue;
+                            }
+                            pureUsername = mName.substring(0, index);
                         }
-                        pureUsername = mName.substring(0, index);
-                    }
-                    else{
-                        pureUsername = mName;
                     }
 
                     if(!(pureUsername.equals(mUsername))){ //this condition check is necessary for when going from CreateMessage to existing room
-                        if(!(activity.getMessengerFragment().blockedFromUser(pureUsername) && isDM)){
+                        if(!(isDM && activity.getMessengerFragment().blockedFromUser(pureUsername))){
                             String WRITE_PATH = Integer.toString(getUsernameHash(pureUsername)) + "/" + pureUsername + "/messages/" + rnum;
                             //final String username = usi.getUsername();
                             mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
@@ -989,6 +1014,36 @@ public class MessageRoom extends Fragment {
                     ((EventMessageViewHolder) viewHolder).eventMessageText.setText(messageObject.getText());
                 }
             }
+
+            @Override
+            public void onChildChanged(@NonNull ChangeEventType type,
+                                       @NonNull DataSnapshot snapshot,
+                                       int newIndex,
+                                       int oldIndex) {
+                switch (type) {
+                    case ADDED:
+                        notifyItemInserted(newIndex);
+                        if(getItem(newIndex).getName() == null){
+                            String messageText = getItem(newIndex).getText();
+                            if(messageText.substring(messageText.length() - 4).equals("left")){
+                                String username = messageText.substring(0, messageText.length()-5);
+                                updateUserLeave(username); //update current room users list in use after a user leaves the current group chat
+                            }
+                        }
+                        break;
+                    case CHANGED:
+                        notifyItemChanged(newIndex);
+                        break;
+                    case REMOVED:
+                        notifyItemRemoved(newIndex);
+                        break;
+                    case MOVED:
+                        notifyItemMoved(oldIndex, newIndex);
+                        break;
+                    default:
+                        throw new IllegalStateException("Incomplete case statement");
+                }
+            }
         };
 
         mFirebaseAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
@@ -1036,6 +1091,64 @@ public class MessageRoom extends Fragment {
         }
     }
 
+    private void updateUserLeave(String username){
+        String usernameFinal = username;
+
+        if(existingRoomUsersList != null){
+            for(int i=0; i<existingRoomUsersList.size(); i++){
+                int numberCodeIndex = existingRoomUsersList.get(i).indexOf('*');
+                if(numberCodeIndex > 0){
+                    if(!existingRoomUsersList.get(i).substring(numberCodeIndex).equals(username)){
+                        continue;
+                    }
+
+                    int numberCode = Integer.parseInt(existingRoomUsersList.get(i).substring(numberCodeIndex+1));
+                    if(numberCode == 1){
+                        usernameFinal = username + "*2";
+                    }
+                    else if(numberCode == 3){
+                        usernameFinal = username + "*4";
+                    }
+                }
+                else{
+                    if(!existingRoomUsersList.get(i).equals(username)){
+                        continue;
+                    }
+                    usernameFinal = username + "*0";
+                }
+                existingRoomUsersList.set(i, usernameFinal);
+                Log.d("detectuserleave", "numbercode added to open room, exr");
+            }
+        }
+        else if(newRoomInviteList != null){
+            for(int i = 0; i < newRoomInviteList.size(); i++){
+                int numberCodeIndex = newRoomInviteList.get(i).getUsername().indexOf('*');
+                if(numberCodeIndex > 0){
+                    if(!newRoomInviteList.get(i).getUsername().substring(numberCodeIndex).equals(username)){
+                        continue;
+                    }
+
+                    int numberCode = Integer.parseInt(newRoomInviteList.get(i).getUsername().substring(numberCodeIndex+1));
+                    if(numberCode == 1){
+                        usernameFinal = username + "*2";
+                    }
+                    else if(numberCode == 3){
+                        usernameFinal = username + "*4";
+                    }
+                }
+                else{
+                    if(!newRoomInviteList.get(i).getUsername().equals(username)){
+                        continue;
+                    }
+                    usernameFinal = username + "*0";
+                }
+                newRoomInviteList.get(i).setUsername(usernameFinal);
+                Log.d("detectuserleave", "numbercode added to open room, usi");
+            }
+
+        }
+    }
+
     private void setUpRoomInDB(String preview, final MessageObject messageObject, final Uri uri){
         MESSAGES_CHILD = MESSAGES_CHILD_BODY + roomNum;
         final ArrayList<String> roomUsersHolderList;
@@ -1068,11 +1181,47 @@ public class MessageRoom extends Fragment {
 
         roomUsersHolderList.add(mUsername);
 
+        final boolean isDM = roomUsersHolderList.size() == 2;
+        String groupChatOpening;
+        final MessageObject eventMessageObject;
+        if(!isDM){
+            String head;
+            if(defaultRoomName){
+                head = mUsername + "created a group chat with ";
+            }
+            else{
+                head = mUsername + "created " + currentRoomTitle + " with ";
+            }
+            StringBuilder tail = new StringBuilder();
+
+            for (int i = 0; i<roomUsersHolderList.size() - 1; i++){ //since last item in this list is mUsername, we don't have to iterate the last item for this
+                String username = roomUsersHolderList.get(i);
+                if(i == 0){
+                    tail.append(username);
+                }
+                else if(i + 2 == roomUsersHolderList.size()) {
+                    tail.append(", and " + username + "!");
+                }
+                else {
+                    tail.append(", " + username);
+                }
+            }
+            groupChatOpening = head + tail.toString();
+            eventMessageObject = new MessageObject(groupChatOpening, null,null);
+        }
+        else{
+            eventMessageObject = null;
+        }
+
         final RoomObject roomObject = new RoomObject(currentRoomTitle, System.currentTimeMillis(), preview, roomUsersHolderList);
         String userRoomPath = activity.getUserPath() + "r/" + roomNum;
         mFirebaseDatabaseReference.child(userRoomPath).setValue(roomObject).addOnCompleteListener(activity, new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
+                if(eventMessageObject != null){
+                    mFirebaseDatabaseReference.child(activity.getUserPath()+"messages/"+roomNum).push().setValue(eventMessageObject);
+                }
+
                 if(messageObject.getText() == null){
                     mFirebaseDatabaseReference.child(MESSAGES_CHILD).push()
                         .setValue(messageObject, new DatabaseReference.CompletionListener() { //sends message with temp image holder to self. Currently, not broadcasting temp message to the room and sending just to self.
@@ -1122,11 +1271,6 @@ public class MessageRoom extends Fragment {
 
         setRoomObjListener(roomNum);
 
-        boolean isDM = false;
-        if(roomUsersHolderList.size() == 2){
-            isDM = true;
-        }
-
         for(final String mName : roomUsersHolderList){
             if(!mName.equals(mUsername)) {
                 final int usernameHash;
@@ -1139,10 +1283,15 @@ public class MessageRoom extends Fragment {
 
                 String roomPath = usernameHash + "/" + mName + "/" + "r/" + roomNum;
                 Log.d("ROOMCREATE", roomPath);
-                if(!(activity.getMessengerFragment().blockedFromUser(mName) && isDM)){
+                if(!(isDM && activity.getMessengerFragment().blockedFromUser(mName))){
                     mFirebaseDatabaseReference.child(roomPath).setValue(roomObject).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
+                            if(eventMessageObject != null){
+                                String eventMessagePath = getUsernameHash(mName) + "/" + mName + "/messages/" + roomNum;
+                                mFirebaseDatabaseReference.child(eventMessagePath).push().setValue(eventMessageObject);
+                            }
+
                             String WRITE_PATH = usernameHash + "/" + mName + "/messages/" + roomNum;
                             //final String username = usi.getUsername();
                             mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);

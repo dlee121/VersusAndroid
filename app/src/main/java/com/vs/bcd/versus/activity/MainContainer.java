@@ -964,6 +964,7 @@ public class MainContainer extends AppCompatActivity {
     }
 
     private void goToMsgRoom(final String rnum){
+        //TODO: this should go to messenger home
         Log.d("OPENROOM", "going to room# " + rnum);
         mViewPager.setCurrentItem(11);
 

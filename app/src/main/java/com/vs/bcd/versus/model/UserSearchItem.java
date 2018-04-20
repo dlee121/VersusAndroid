@@ -47,10 +47,12 @@ public class UserSearchItem {
         this.profileImage = profileImage;
     }
 
-    public boolean equals(UserSearchItem usi){
-        return this.username.equals(usi.getUsername());
+    @Override
+    public boolean equals(Object usi){
+        return this.username.equals(((UserSearchItem)usi).getUsername());
     }
 
+    @Override
     public int hashCode(){
         return username.hashCode();
     }
