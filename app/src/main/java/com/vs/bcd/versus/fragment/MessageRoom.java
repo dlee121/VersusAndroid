@@ -1187,10 +1187,10 @@ public class MessageRoom extends Fragment {
         if(!isDM){
             String head;
             if(defaultRoomName){
-                head = mUsername + "created a group chat with ";
+                head = mUsername + " created a group chat with ";
             }
             else{
-                head = mUsername + "created " + currentRoomTitle + " with ";
+                head = mUsername + " created " + currentRoomTitle + " with ";
             }
             StringBuilder tail = new StringBuilder();
 

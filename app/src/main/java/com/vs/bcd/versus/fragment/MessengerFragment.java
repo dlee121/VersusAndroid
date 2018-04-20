@@ -41,7 +41,9 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
@@ -1243,7 +1245,7 @@ public class MessengerFragment extends Fragment {
         //rNameToRNumAndUListMap.remove(roomName);
     }
 
-    private void leaveRoom(String roomNum, RoomObject roomObject){
+    private void leaveRoom(final String roomNum, RoomObject roomObject){
         //rNameToRNumAndUListMap.remove(roomObject.getName());
 
         String roomTarget = Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/r";
@@ -1255,7 +1257,7 @@ public class MessengerFragment extends Fragment {
         mFirebaseDatabaseReference.child(Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/unread/" + roomNum).removeValue();
 
         String roomEditPath;
-        ArrayList<String> newUsersList = roomObject.getUsers();
+        final ArrayList<String> newUsersList = roomObject.getUsers();
         for(int i = 0; i < newUsersList.size(); i++){
             String username = newUsersList.get(i);
             if(username.contains(mUsername)){
@@ -1282,28 +1284,70 @@ public class MessengerFragment extends Fragment {
                 }
             }
         }
-        MessageObject messageObject = new MessageObject(mUsername + " left", null, null);
+        final MessageObject messageObject = new MessageObject(mUsername + " left", null, null);
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/users", newUsersList);
         for (String username : newUsersList) {
             if(username.indexOf('*') > 0){
                 int numberCode = Integer.parseInt(username.substring(username.indexOf('*')+1));
                 if(numberCode == 1 || numberCode == 3){
-                    String pureUsername = username.substring(0, username.indexOf('*'));
+                    final String pureUsername = username.substring(0, username.indexOf('*'));
 
                     roomEditPath = Integer.toString(getUsernameHash(pureUsername)) + "/" + pureUsername + "/r/" + roomNum;
-                    mFirebaseDatabaseReference.child(roomEditPath).updateChildren(childUpdates);
+                    mFirebaseDatabaseReference.child(roomEditPath).runTransaction(new Transaction.Handler() {
+                        @Override
+                        public Transaction.Result doTransaction(MutableData mutableData) {
+                            if(mutableData.getValue() != null){
+                                RoomObject room = mutableData.getValue(RoomObject.class);
+                                if (room == null) {
+                                    return null;
+                                }
+                                else {
+                                    room.setUsers(newUsersList);
+                                    mutableData.setValue(room);
+                                    String WRITE_PATH = getUsernameHash(pureUsername) + "/" + pureUsername + "/messages/" + roomNum;
+                                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                                }
+                            }
+                            return Transaction.success(mutableData);
+                        }
 
-                    String WRITE_PATH = getUsernameHash(pureUsername) + "/" + pureUsername + "/messages/" + roomNum;
-                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                        @Override
+                        public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+
+                        }
+                    });
                 }
             }
             else{
+                final String finalUsername = username;
                 roomEditPath = Integer.toString(getUsernameHash(username)) + "/" + username + "/r/" + roomNum;
-                mFirebaseDatabaseReference.child(roomEditPath).updateChildren(childUpdates);
+                final String path = roomEditPath;
+                mFirebaseDatabaseReference.child(roomEditPath).runTransaction(new Transaction.Handler() {
+                    @Override
+                    public Transaction.Result doTransaction(MutableData mutableData) {
+                        if(mutableData.getValue() != null){
+                            RoomObject room = mutableData.getValue(RoomObject.class);
+                            if (room == null) {
+                                Log.d("howyousay", "nully at " + path);
+                                return null;
+                            }
+                            else {
+                                Log.d("howyousay", "good things" + path);
+                                room.setUsers(newUsersList);
+                                mutableData.setValue(room);
+                                String WRITE_PATH = getUsernameHash(finalUsername) + "/" + finalUsername + "/messages/" + roomNum;
+                                mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                            }
+                        }
+                        return Transaction.success(mutableData);
+                    }
 
-                String WRITE_PATH = getUsernameHash(username) + "/" + username + "/messages/" + roomNum;
-                mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                    @Override
+                    public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+
+                    }
+                });
             }
         }
     }
