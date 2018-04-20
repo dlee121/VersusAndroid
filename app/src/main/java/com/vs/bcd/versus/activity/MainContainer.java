@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.os.NetworkOnMainThreadException;
 import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
@@ -69,8 +68,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.MutableData;
-import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
@@ -623,7 +620,7 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 3: //PostPage
-                        showListPopupWindow(getCurrentPost().getAuthor().equals(currUsername));
+                        showListPopupWindowPostPage(getCurrentPost().getAuthor().equals(currUsername));
                         break;
 
                     case 4:
@@ -648,6 +645,10 @@ public class MainContainer extends AppCompatActivity {
 
                     case 9:    //Me
                         mViewPager.setCurrentItem(10);
+                        break;
+
+                    case 11: //MessageRoom
+                        showListPopupWindowMessageRoom(messageRoom.isRoomDM());
                         break;
                 }
             }
@@ -900,8 +901,9 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 11:
-                        hideToolbarButtonRight();
+                        //hideToolbarButtonRight();
                         hideToolbarTextButton();
+                        showOverflowMenu();
                         disableBottomTabs();
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
@@ -1467,7 +1469,15 @@ public class MainContainer extends AppCompatActivity {
         toolbarButtonRight.setImageResource(R.drawable.ic_overflow_vertical);
     }
 
-    private void showListPopupWindow(final boolean isAuthor){
+    private void showListPopupWindowMessageRoom(boolean isDM){
+
+
+
+
+    }
+
+
+    private void showListPopupWindowPostPage(final boolean isAuthor){
         final String [] items;
         final Integer[] icons;
 

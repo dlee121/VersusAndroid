@@ -1386,4 +1386,8 @@ public class MessageRoom extends Fragment {
             mMessageRecyclerView.setAdapter(null);
         }
     }
+
+    public boolean isRoomDM(){
+        return roomIsDM;
+    }
 }

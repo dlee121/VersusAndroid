@@ -1329,11 +1329,9 @@ public class MessengerFragment extends Fragment {
                         if(mutableData.getValue() != null){
                             RoomObject room = mutableData.getValue(RoomObject.class);
                             if (room == null) {
-                                Log.d("howyousay", "nully at " + path);
                                 return null;
                             }
                             else {
-                                Log.d("howyousay", "good things" + path);
                                 room.setUsers(newUsersList);
                                 mutableData.setValue(room);
                                 String WRITE_PATH = getUsernameHash(finalUsername) + "/" + finalUsername + "/messages/" + roomNum;
@@ -1357,6 +1355,8 @@ public class MessengerFragment extends Fragment {
         final Integer[] icons;
         final boolean muted;
         boolean blocked = false;
+        final boolean isDM;
+        boolean isRoomAdmin = false;
 
         if(muteList.contains(roomNum)){
             muted = true;
@@ -1365,19 +1365,67 @@ public class MessengerFragment extends Fragment {
             muted = false;
         }
 
-        if(roomObject.getUsers().size() > 2){
-            if(muted){
-                items = new String[]{"Unmute", "Leave"};
+        if(roomObject.getUsers().size() > 2){ //for GroupChat
+            int numberCode;
+            isDM = false;
+            ArrayList<String> usersList = roomObject.getUsers();
+            String lastItem = usersList.get(usersList.size()-1);
+            if(lastItem.indexOf('*') > 0){
+                numberCode = Integer.parseInt(lastItem.substring(lastItem.indexOf('*') + 1));
+                if(numberCode == 1 || numberCode == 3){
+                    if(lastItem.substring(0, lastItem.indexOf('*')).equals(mUsername)){
+                        isRoomAdmin = true;
+                    }
+                }
+                else{ //if original room admin left
+                    for(String username : usersList){
+                        if(username.indexOf('*') > 0){
+                            numberCode = Integer.parseInt(username.substring(username.indexOf('*') + 1));
+                            if(numberCode == 1 || numberCode == 3){
+                                if(username.substring(0, username.indexOf('*')).equals(mUsername)){
+                                    isRoomAdmin = true;
+                                }
+                                break;
+                            }
+                        }
+                        else{
+                            if(username.equals(mUsername)){
+                                isRoomAdmin = true;
+                            }
+                            break;
+                        }
+
+                    }
+                }
+            }
+            else if(lastItem.equals(mUsername)){
+                isRoomAdmin = true;
+            }
+
+            if(isRoomAdmin){
+                if(muted){
+                    items = new String[]{"Invite", "Remove", "Unmute", "Leave"};
+                }
+                else{
+                    items = new String[]{"Invite", "Remove", "Mute", "Leave"};
+                }
+
             }
             else{
-                items = new String[]{"Mute", "Leave"};
+                if(muted){
+                    items = new String[]{"Invite", "Unmute", "Leave"};
+                }
+                else{
+                    items = new String[]{"Invite", "Mute", "Leave"};
+                }
             }
 
             //icons = new Integer[]{R.drawable.ic_edit, R.drawable.ic_delete};
             icons = new Integer[]{};
 
         }
-        else{
+        else{ //for DM
+            isDM = true;
             String targetUsername = roomObject.getUsers().get(0);
             if(targetUsername.equals(mUsername)){
                 targetUsername = roomObject.getUsers().get(1);
@@ -1417,43 +1465,87 @@ public class MessengerFragment extends Fragment {
         listPopupWindow.setWidth(width);
 
         final boolean blockFinal = blocked;
+        final boolean isRoomAdminFinal = isRoomAdmin;
 
         listPopupWindow.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                switch (position){
-                    case 0:
-                        if(muted){
-                            unmuteRoom(roomNum);
-                        }
-                        else{
-                            muteRoom(roomNum);
-                        }
+                if(!isDM){ //GroupChat
+                    switch (position){
+                        case 0:
+                            inviteUser();
+                            break;
 
-                        break;
+                        case 1:
+                            if(isRoomAdminFinal){
+                                removeUser();
+                            }
+                            else{
+                                if(muted){
+                                    unmuteRoom(roomNum);
+                                }
+                                else{
+                                    muteRoom(roomNum);
+                                }
+                            }
 
-                    case 1:
-                        if(roomObject.getUsers().size() > 2){
+                            break;
+
+                        case 2:
+                            if(isRoomAdminFinal){
+                                if(muted){
+                                    unmuteRoom(roomNum);
+                                }
+                                else{
+                                    muteRoom(roomNum);
+                                }
+                            }
+                            else{
+                                leaveRoom(roomNum, roomObject);
+                                unmuteRoom(roomNum);
+                            }
+
+                            break;
+
+                        case 3: //fourth option is only shown for room admin since room admin gets one more option of Remove User inserted at index 1
                             leaveRoom(roomNum, roomObject);
-                        }
-                        else{
-                            deleteRoom(roomNum, roomObject.getName());
-                        }
-                        unmuteRoom(roomNum);
+                            unmuteRoom(roomNum);
 
-                        break;
-
-                    case 2:
-                        if(blockFinal){
-                            unblockUser(roomObject);
-                        }
-                        else{
-                            blockUser(roomObject);
-                        }
-
-                        break;
+                            break;
+                    }
                 }
+                else{ //DM
+                    switch (position){
+                        case 0:
+                            if(muted){
+                                unmuteRoom(roomNum);
+                            }
+                            else{
+                                muteRoom(roomNum);
+                            }
+
+                            break;
+
+                        case 1:
+                            deleteRoom(roomNum, roomObject.getName());
+                            unmuteRoom(roomNum);
+
+                            break;
+
+                        case 2:
+                            if(blockFinal){
+                                unblockUser(roomObject);
+                            }
+                            else{
+                                blockUser(roomObject);
+                            }
+
+                            break;
+                    }
+                }
+
+
 
                 activity.enableClicksForListPopupWindowClose();
                 listPopupWindow.dismiss();
@@ -1461,6 +1553,14 @@ public class MessengerFragment extends Fragment {
         });
         listPopupWindow.show();
         activity.disableClicksForListPopupWindowOpen();
+    }
+
+    private void inviteUser(){
+
+    }
+
+    private void removeUser(){
+
     }
 
     private void getProfileImgVersions(String payload){
