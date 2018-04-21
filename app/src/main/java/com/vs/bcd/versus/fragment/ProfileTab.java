@@ -1042,6 +1042,12 @@ public class ProfileTab extends Fragment {
                 //remove user from target's fPath
                 String targetFPath = Integer.toString(getUsernameHash(profileUsername))+"/"+profileUsername+"/f/"+activity.getUsername();
                 mFirebaseDatabaseReference.child(targetFPath).removeValue();
+
+                //remove contacts item for both users
+                String targetContactsPath = Integer.toString(getUsernameHash(profileUsername))+"/"+profileUsername+"/contacts/"+activity.getUsername();
+                mFirebaseDatabaseReference.child(targetContactsPath).removeValue();
+                String userContactsPath = activity.getUserPath()+"contacts/"+profileUsername;
+                mFirebaseDatabaseReference.child(userContactsPath).removeValue();
             }
         }
 
@@ -1130,24 +1136,30 @@ public class ProfileTab extends Fragment {
                 }
                 String followersPath = Integer.toString(usernameHash) + "/" + profileUsername + "/f";
                 mFirebaseDatabaseReference.child(followersPath).child(activity.getUsername())
-                        .setValue(true, new DatabaseReference.CompletionListener() {
-                            @Override
-                            public void onComplete(DatabaseError databaseError,
-                                                   DatabaseReference databaseReference) {
-                                if (databaseError == null) {
-                                    activity.runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            sendFollowNotification(profileUsername);
-                                            showFollowedButton();
-                                            getFGHCounts();
-                                        }
-                                    });
-                                } else {
-                                    Log.w("MESSENGER", "Unable to update followers list in Firebase.");
-                                }
+                    .setValue(true, new DatabaseReference.CompletionListener() {
+                        @Override
+                        public void onComplete(DatabaseError databaseError,
+                                               DatabaseReference databaseReference) {
+                            if (databaseError == null) {
+                                activity.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        sendFollowNotification(profileUsername);
+                                        showFollowedButton();
+                                        getFGHCounts();
+                                    }
+                                });
+                            } else {
+                                Log.w("MESSENGER", "Unable to update followers list in Firebase.");
                             }
-                        });
+                        }
+                    });
+
+                //add contacts item for both users
+                String targetContactsPath = Integer.toString(getUsernameHash(profileUsername))+"/"+profileUsername+"/contacts/"+activity.getUsername();
+                mFirebaseDatabaseReference.child(targetContactsPath).setValue(true);
+                String userContactsPath = activity.getUserPath()+"contacts/"+profileUsername;
+                mFirebaseDatabaseReference.child(userContactsPath).setValue(true);
 
             }
         }
