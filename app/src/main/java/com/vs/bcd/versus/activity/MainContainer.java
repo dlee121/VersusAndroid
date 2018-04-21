@@ -171,7 +171,7 @@ public class MainContainer extends AppCompatActivity {
     private int messengerBackTarget = 0;
     private TextView messengerButtonBadge;
     private boolean showBadge = false;
-    private int messengerBadgeCount = 0;
+    private boolean removeMode = true;
 
     private String esHost = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
     private String esRegion = "us-east-1";
@@ -1950,6 +1950,10 @@ public class MainContainer extends AppCompatActivity {
 
     public void setInitialMessengerBadgeCount(int count){
         messengerButtonBadge.setText(Integer.toString(count));
+    }
+
+    public void setRemoveMode(boolean mode){
+        removeMode = mode;
     }
 
 }

@@ -49,15 +49,11 @@ import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
 import com.vs.bcd.versus.adapter.CustomFirebaseRecyclerAdapter;
-import com.vs.bcd.versus.adapter.InvitedUserAdapter;
-import com.vs.bcd.versus.adapter.UserSearchAdapter;
 import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.GlideApp;
 import com.vs.bcd.versus.model.MessageObject;
-import com.vs.bcd.versus.model.RNumAndUList;
 import com.vs.bcd.versus.model.RoomObject;
 import com.vs.bcd.versus.model.SessionManager;
-import com.vs.bcd.versus.model.UserSearchItem;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -360,6 +356,7 @@ public class MessengerFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 //TODO: open Send New Message UI (so also implement that UI in XML) and set up related stuff
+                activity.setRemoveMode(false);
                 activity.getViewPager().setCurrentItem(13);
             }
         });
@@ -1474,12 +1471,12 @@ public class MessengerFragment extends Fragment {
                 if(!isDM){ //GroupChat
                     switch (position){
                         case 0:
-                            inviteUser();
+                            inviteToGroup();
                             break;
 
                         case 1:
                             if(isRoomAdminFinal){
-                                removeUser();
+                                removeFromGroup();
                             }
                             else{
                                 if(muted){
@@ -1555,11 +1552,13 @@ public class MessengerFragment extends Fragment {
         activity.disableClicksForListPopupWindowOpen();
     }
 
-    private void inviteUser(){
+    private void inviteToGroup(){
+        activity.setRemoveMode(false);
 
     }
 
-    private void removeUser(){
+    private void removeFromGroup(){
+        activity.setRemoveMode(true);
 
     }
 

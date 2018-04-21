@@ -116,14 +116,14 @@ public class CreateMessage extends Fragment {
             }
         });
 
-        invitedTV = (TextView) rootView.findViewById(R.id.invited_tv);
+        invitedTV = rootView.findViewById(R.id.invited_tv);
 
-        invitedUsersRV = (RecyclerView) rootView.findViewById(R.id.invited_users_rv);
+        invitedUsersRV = rootView.findViewById(R.id.invited_users_rv);
         invitedUsersLLM = new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false);
         invitedUsersLLM.setStackFromEnd(false);
         invitedUsersRV.setLayoutManager(invitedUsersLLM);
 
-        userSearchRV = (RecyclerView) rootView.findViewById(R.id.user_search_rv);
+        userSearchRV = rootView.findViewById(R.id.user_search_rv);
         userSearchLLM = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
         userSearchLLM.setStackFromEnd(true);
         userSearchRV.setLayoutManager(userSearchLLM);
@@ -148,8 +148,6 @@ public class CreateMessage extends Fragment {
 
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
-        Log.d("ORDER", "CreateMessage OnCreate finished");
-
         return rootView;
     }
 
@@ -160,8 +158,6 @@ public class CreateMessage extends Fragment {
         messageContactsCheckSet = new HashSet<>();
         addHListener();
         //addHListener() finishes and calls addFollowerListener, which finishes and calls addFollowingListener
-
-        Log.d("ORDER", "CreateMessage OnResume called");
     }
 
     @Override
@@ -180,8 +176,6 @@ public class CreateMessage extends Fragment {
         if(hListener != null){
             mFirebaseDatabaseReference.child(H_CHILD).removeEventListener(hListener);
         }
-
-        Log.d("ORDER", "CreateMessage Firebase Listeners removed");
 
     }
 
@@ -591,6 +585,13 @@ public class CreateMessage extends Fragment {
         }
 
         return  count;
+    }
+
+    public boolean followingAndFollowedBy(String username){
+        if(hList != null){
+            return hList.contains(username);
+        }
+        return false;
     }
 
     public boolean followedBy(String username){

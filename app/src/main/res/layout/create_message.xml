@@ -9,7 +9,7 @@
         android:layout_height="wrap_content"
         android:textColor="@color/vsBlue"
         android:textSize="18sp"
-        android:text="Invited" />
+        android:text="Invite" />
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/invited_users_rv"

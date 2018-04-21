@@ -16,6 +16,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.media.ExifInterface;
@@ -26,6 +27,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.system.ErrnoException;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,14 +43,14 @@ import android.widget.Toast;
 import com.amazonaws.services.dynamodbv2.model.AttributeAction;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
-import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
-import com.amazonaws.services.dynamodbv2.model.GetItemResult;
 import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -90,15 +92,13 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class ProfileTab extends Fragment {
 
     private MainContainer activity;
-    private TextView usernameTV, goldTV, silverTV, bronzeTV, pointsTV, followingTextTV, followerCountTV, followingCountTV;
-    private ImageView checkmark;
+    private TextView usernameTV, goldTV, silverTV, bronzeTV, pointsTV, followerCountTV, followingCountTV;
     private Button followButton;
     private ImageButton messageButton;
     private ProgressBar progressBar;
     private TabLayout tabLayout;
     private RelativeLayout.LayoutParams mainCaseLP, followCaseLP, medalCaseLP, progressbarLP, swipeLayoutLP, tabsLP, viewpagerLP;
-    private RelativeLayout.LayoutParams followingtextLP, followbuttonLP, checkmarkLP;
-    private LinearLayout.LayoutParams messageButtonLP;
+    private LinearLayout.LayoutParams followbuttonLP, messageButtonLP;
     private View rootView;
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
@@ -127,6 +127,8 @@ public class ProfileTab extends Fragment {
 
     private int profileImgVersion = 0;
     private Drawable defaultProfileImage;
+
+    private boolean followingThisUser = false;
 
 
     @Override
@@ -226,21 +228,20 @@ public class ProfileTab extends Fragment {
         followerCountTV = rootView.findViewById(R.id.num_followers);
         followingCountTV = rootView.findViewById(R.id.num_following);
 
-        followingTextTV = rootView.findViewById(R.id.followingtext);
-        followingtextLP = (RelativeLayout.LayoutParams) followingTextTV.getLayoutParams();
-
-        checkmark = rootView.findViewById(R.id.followingtext_checkmark);
-        checkmarkLP = (RelativeLayout.LayoutParams) checkmark.getLayoutParams();
-
         messageButton = rootView.findViewById(R.id.profile_message_button);
         messageButtonLP = (LinearLayout.LayoutParams) messageButton.getLayoutParams();
 
         followButton = rootView.findViewById(R.id.followbutton);
-        followbuttonLP = (RelativeLayout.LayoutParams) followButton.getLayoutParams();
+        followbuttonLP = (LinearLayout.LayoutParams) followButton.getLayoutParams();
         followButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                followThisUser();
+                if(followingThisUser){
+                    unfollowThisUser();
+                }
+                else{
+                    followThisUser();
+                }
             }
         });
 
@@ -783,8 +784,10 @@ public class ProfileTab extends Fragment {
                         public void run() {
                             getGSBP(activity.getUserPath());
                             usernameTV.setText(username);
-                            followingCountTV.setText(Integer.toString(activity.getFollowingNum()) + "\nFollowing");
-                            followerCountTV.setText(Integer.toString(activity.getFollowerNum()) + "\nFollowers");
+                            String followingText = Integer.toString(activity.getFollowingNum()) + "\nFollowing";
+                            followingCountTV.setText(followingText);
+                            String followersText = Integer.toString(activity.getFollowerNum()) + "\nFollowers";
+                            followerCountTV.setText(followersText);
                         }
                     });
                 }
@@ -805,7 +808,7 @@ public class ProfileTab extends Fragment {
             Log.d("ptab", "setting up my profile");
 
             if(activity.isFollowing(username)){
-                showFollowingText();
+                showFollowedButton();
             }
             else{
                 showFollowButton();
@@ -897,7 +900,8 @@ public class ProfileTab extends Fragment {
         }
     }
 
-    private void showFollowingText(){
+    private void showFollowedButton(){
+        /*
         followingTextTV.setEnabled(true);
         followingTextTV.setVisibility(View.VISIBLE);
         followingTextTV.setLayoutParams(followingtextLP);
@@ -915,9 +919,25 @@ public class ProfileTab extends Fragment {
         followButton.setClickable(false);
         followButton.setVisibility(View.INVISIBLE);
         followButton.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+        */
+
+        followingThisUser = true;
+
+        messageButton.setEnabled(true);
+        messageButton.setClickable(true);
+        messageButton.setVisibility(View.VISIBLE);
+        messageButton.setLayoutParams(messageButtonLP);
+
+        followButton.setEnabled(true);
+        followButton.setClickable(true);
+        followButton.setVisibility(View.VISIBLE);
+        followButton.setLayoutParams(followbuttonLP);
+        followButton.setText("Followed");
+        followButton.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
     }
 
     private void showFollowButton(){
+        /*
         followingTextTV.setEnabled(false);
         followingTextTV.setVisibility(View.INVISIBLE);
         followingTextTV.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
@@ -935,26 +955,97 @@ public class ProfileTab extends Fragment {
         messageButton.setClickable(true);
         messageButton.setVisibility(View.VISIBLE);
         messageButton.setLayoutParams(messageButtonLP);
+        */
+
+        followingThisUser = false;
+
+        messageButton.setEnabled(true);
+        messageButton.setClickable(true);
+        messageButton.setVisibility(View.VISIBLE);
+        messageButton.setLayoutParams(messageButtonLP);
+
+        followButton.setEnabled(true);
+        followButton.setClickable(true);
+        followButton.setVisibility(View.VISIBLE);
+        followButton.setLayoutParams(followbuttonLP);
+        followButton.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        followButton.setText("Follow");
     }
 
     private void hideFollowUI(){
-        followingTextTV.setEnabled(false);
-        followingTextTV.setVisibility(View.INVISIBLE);
-        followingTextTV.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
 
         followButton.setEnabled(false);
         followButton.setClickable(false);
         followButton.setVisibility(View.INVISIBLE);
-        followButton.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+        followButton.setLayoutParams(new LinearLayout.LayoutParams(0,0));
 
         messageButton.setEnabled(false);
         messageButton.setClickable(false);
         messageButton.setVisibility(View.INVISIBLE);
         messageButton.setLayoutParams(new LinearLayout.LayoutParams(0,0));
+    }
 
-        checkmark.setEnabled(false);
-        checkmark.setVisibility(View.INVISIBLE);
-        checkmark.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+    private int getUsernameHash(String username){
+        int usernameHash;
+        if(username.length() < 5){
+            usernameHash = username.hashCode();
+        }
+        else {
+            String hashIn = "" + username.charAt(0) + username.charAt(username.length() - 2) + username.charAt(1) + username.charAt(username.length() - 1);
+            usernameHash = hashIn.hashCode();
+        }
+
+        return usernameHash;
+    }
+
+    private void unfollowThisUser(){
+        if(profileUsername != null){
+            if(activity.getCreateMessageFragment().followingAndFollowedBy(profileUsername)) { //is in hPath
+
+                //remove target from user's h list
+                String userHPath = activity.getUserPath() + "h";
+                mFirebaseDatabaseReference.child(userHPath).child(profileUsername).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        //remove user from target's h list
+                        String targetHPath = Integer.toString(getUsernameHash(profileUsername)) + "/" + profileUsername + "/h";
+                        mFirebaseDatabaseReference.child(targetHPath).child(activity.getUsername()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                //add target to user's f list
+                                mFirebaseDatabaseReference.child(activity.getUserPath()+"f/"+profileUsername).setValue(true).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        showFollowButton();
+                                        getFGHCounts();
+                                    }
+                                });
+
+                                //add user to target's g list
+                                mFirebaseDatabaseReference.child(Integer.toString(getUsernameHash(profileUsername)) + "/" + profileUsername + "/g/" + activity.getUsername()).setValue(true);
+                            }
+                        });
+                    }
+                });
+
+            }
+            else{ //is in gPath
+                //remove target from user's gPath
+                mFirebaseDatabaseReference.child(activity.getUserPath()+"g/"+profileUsername).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        showFollowButton();
+                        getFGHCounts();
+                    }
+                });
+
+                //remove user from target's fPath
+                String targetFPath = Integer.toString(getUsernameHash(profileUsername))+"/"+profileUsername+"/f/"+activity.getUsername();
+                mFirebaseDatabaseReference.child(targetFPath).removeValue();
+            }
+        }
+
+
     }
 
     private void followThisUser(){
@@ -998,7 +1089,7 @@ public class ProfileTab extends Fragment {
                                     @Override
                                     public void run() {
                                         sendFollowNotification(profileUsername);
-                                        showFollowingText();
+                                        showFollowedButton();
                                         getFGHCounts();
                                     }
                                 });
@@ -1048,7 +1139,7 @@ public class ProfileTab extends Fragment {
                                         @Override
                                         public void run() {
                                             sendFollowNotification(profileUsername);
-                                            showFollowingText();
+                                            showFollowedButton();
                                             getFGHCounts();
                                         }
                                     });
