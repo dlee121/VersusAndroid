@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -158,17 +159,6 @@ public class CreateMessage extends Fragment {
     @Override
     public void onResume(){
         super.onResume();
-
-        if(messageContacts == null){
-            messageContacts = new ArrayList<>();
-            contactsListAdapter = new ContactsListAdapter(messageContacts, getActivity(), thisFragment);
-            userSearchRV.setAdapter(contactsListAdapter);
-        }
-        if(invitedUsers == null){
-            invitedUsers = new ArrayList<>();
-            invitedUserAdapter = new InvitedUserAdapter(invitedUsers, getActivity(), thisFragment);
-            invitedUsersRV.setAdapter(invitedUserAdapter);
-        }
         if(messageContactsCheckSet == null){
             messageContactsCheckSet = new HashSet<>();
         }
@@ -178,8 +168,17 @@ public class CreateMessage extends Fragment {
         if(localContactsSet == null){
             localContactsSet = new HashSet<>();
         }
-
-        setupInitialContactsList();
+        if(invitedUsers == null){
+            invitedUsers = new ArrayList<>();
+            invitedUserAdapter = new InvitedUserAdapter(invitedUsers, getActivity(), thisFragment);
+            invitedUsersRV.setAdapter(invitedUserAdapter);
+        }
+        if(messageContacts == null){
+            messageContacts = new ArrayList<>();
+            setupInitialContactsList();
+            contactsListAdapter = new ContactsListAdapter(messageContacts, getActivity(), thisFragment);
+            userSearchRV.setAdapter(contactsListAdapter);
+        }
 
         addHListener();
         //addHListener() finishes and calls addFollowerListener, which finishes and calls addFollowingListener
@@ -232,10 +231,13 @@ public class CreateMessage extends Fragment {
         if (isVisibleToUser) {
             if(rootView != null){
                 enableChildViews();
+                //the great piece of code that prevents keyboard from pushing toolbar up
+                activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
             }
         }
         else {
             if (rootView != null){
+                activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
                 disableChildViews();
                 if(invitedUsers != null){
                     invitedUsers.clear();
@@ -243,6 +245,7 @@ public class CreateMessage extends Fragment {
                 }
             }
         }
+
     }
 
     public void enableChildViews(){
@@ -310,7 +313,9 @@ public class CreateMessage extends Fragment {
     public void addToInvitedList(String contactUsername){
         invitedUsers.add(contactUsername);
         invitedUserAdapter.notifyItemInserted(invitedUsers.size()-1);
-        showInvitedTV();
+        if(invitedUsers.size() == 1){
+            showInvitedTV();
+        }
         if(invitedUsers.size() > 10){
             invitedUsersRV.scrollToPosition(invitedUsers.size()-1);
         }
@@ -334,7 +339,9 @@ public class CreateMessage extends Fragment {
     }
 
     private void showInvitedTV(){
+        int firstVisible = ((LinearLayoutManager)userSearchRV.getLayoutManager()).findFirstVisibleItemPosition();
         invitedTV.setLayoutParams(LPStore.get(0));  //works because invitedTV is the first child of this layout
+        userSearchRV.scrollToPosition(firstVisible);
     }
 
     public void createMessageRoom(){
