@@ -257,6 +257,9 @@ public class CreateMessage extends Fragment {
         else{
             hideInvitedTV();
         }
+        if(userSearchRV != null){
+            userSearchRV.scrollToPosition(0);
+        }
     }
 
     public void disableChildViews(){
@@ -306,9 +309,10 @@ public class CreateMessage extends Fragment {
 
     public void addToInvitedList(String contactUsername){
         invitedUsers.add(contactUsername);
-        invitedUserAdapter.notifyDataSetChanged();
-        if(!invitedUsers.isEmpty()){
-            showInvitedTV();
+        invitedUserAdapter.notifyItemInserted(invitedUsers.size()-1);
+        showInvitedTV();
+        if(invitedUsers.size() > 10){
+            invitedUsersRV.scrollToPosition(invitedUsers.size()-1);
         }
     }
 
@@ -532,7 +536,6 @@ public class CreateMessage extends Fragment {
                     else{
                         messageContactsQueryCursor = null;
                     }
-                    userSearchRV.scrollToPosition(10);
                 }
                 else{
                     messageContactsQueryCursor = null;
