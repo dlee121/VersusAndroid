@@ -23,10 +23,10 @@ import static com.vs.bcd.versus.R.string.username;
 
 public class InvitedUserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private Activity activity;
-    private List<UserSearchItem> usernameList;
+    private List<String> usernameList;
     private CreateMessage thisFragment;
 
-    public InvitedUserAdapter(List<UserSearchItem> usernameList, Activity activity, CreateMessage thisFragment) {
+    public InvitedUserAdapter(List<String> usernameList, Activity activity, CreateMessage thisFragment) {
         this.usernameList = usernameList;
         this.activity = activity;
         this.thisFragment = thisFragment;
@@ -41,17 +41,17 @@ public class InvitedUserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
-        final UserSearchItem userSearchItem = usernameList.get(position);
+        final String invitedUsername = usernameList.get(position);
         InvitedUserViewHolder invitedUserViewHolder = (InvitedUserViewHolder) holder;
 
         //invitedUserViewHolder.invitedUserPhoto.setImageResource( ***image goes here*** ); //TODO: set user profile image downloaded from S3
-        invitedUserViewHolder.invitedUsername.setText(userSearchItem.getUsername());
+        invitedUserViewHolder.invitedUsername.setText(invitedUsername);
 
         invitedUserViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                thisFragment.removeFromInvitedList(userSearchItem);
-                thisFragment.removeFromCheckedItems(userSearchItem.getUsername());
+                thisFragment.removeFromInvitedList(invitedUsername);
+                thisFragment.removeFromCheckedItems(invitedUsername);
             }
         });
     }
@@ -72,7 +72,7 @@ public class InvitedUserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         }
     }
 
-    public void updateList(List<UserSearchItem> list){
+    public void updateList(List<String> list){
         usernameList = list;
         notifyDataSetChanged();
     }

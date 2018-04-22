@@ -123,7 +123,7 @@ public class MessageRoom extends Fragment {
     private String userMKey = "";
     private boolean firstMessage = false;
     private String roomNum = "";
-    private ArrayList<UserSearchItem> newRoomInviteList;
+    private ArrayList<String> newRoomInviteList;
     private ArrayList<String> existingRoomUsersList;
     private ChildEventListener roomObjListener;
     private boolean initialRoomInfoLoaded = false;
@@ -246,7 +246,7 @@ public class MessageRoom extends Fragment {
         currentRoomTitle = roomName;
     }
 
-    public void setUpNewRoom(final ArrayList<UserSearchItem> invitedUsers){
+    public void setUpNewRoom(final ArrayList<String> invitedUsers){
         defaultRoomName = true;
 
         if(invitedUsers.size() == 1){
@@ -269,15 +269,15 @@ public class MessageRoom extends Fragment {
 
         switch(invitedUsers.size()){
             case 1:
-                roomTitle = invitedUsers.get(0).getUsername();
+                roomTitle = invitedUsers.get(0);
                 break;
 
             case 2:
-                roomTitle = invitedUsers.get(0).getUsername() + " and " + invitedUsers.get(1).getUsername();
+                roomTitle = invitedUsers.get(0) + " and " + invitedUsers.get(1);
                 break;
 
             default:
-                roomTitle = invitedUsers.get(0).getUsername() + ", " + invitedUsers.get(1).getUsername() + ", and " + Integer.toString(invitedUsers.size() - 2) + " more";
+                roomTitle = invitedUsers.get(0) + ", " + invitedUsers.get(1) + ", and " + Integer.toString(invitedUsers.size() - 2) + " more";
                 break;
         }
 
@@ -336,16 +336,16 @@ public class MessageRoom extends Fragment {
 
                     boolean isDM = invitedUsers.size() == 1;
 
-                    for(final UserSearchItem usi : invitedUsers){
-                        String usernameFinal = usi.getUsername();
+                    for(final String invitedUsername : invitedUsers){
+                        String usernameFinal = invitedUsername;
                         if(!isDM){
-                            if(usi.getUsername().indexOf('*') > 0){
-                                int numberCodeIndex = usi.getUsername().indexOf('*');
-                                int numberCode = Integer.parseInt(usi.getUsername().substring(numberCodeIndex+1));
+                            if(invitedUsername.indexOf('*') > 0){
+                                int numberCodeIndex = invitedUsername.indexOf('*');
+                                int numberCode = Integer.parseInt(invitedUsername.substring(numberCodeIndex+1));
                                 if(numberCode == 0 || numberCode == 2 || numberCode == 4){
                                     continue;
                                 }
-                                usernameFinal = usi.getUsername().substring(0, numberCodeIndex);
+                                usernameFinal = invitedUsername.substring(0, numberCodeIndex);
                             }
                         }
 
@@ -377,7 +377,7 @@ public class MessageRoom extends Fragment {
     }
 
     //this is only used for DM
-    public void setUpNewRoom(final ArrayList<UserSearchItem> invitedUsers, final String roomNumInput){
+    public void setUpNewRoom(final ArrayList<String> invitedUsers, final String roomNumInput){
         if(invitedUsers.size() == 1){
             roomIsDM = true;
         }
@@ -397,15 +397,15 @@ public class MessageRoom extends Fragment {
 
         switch(invitedUsers.size()){
             case 1:
-                roomTitle = invitedUsers.get(0).getUsername();
+                roomTitle = invitedUsers.get(0);
                 break;
 
             case 2:
-                roomTitle = invitedUsers.get(0).getUsername() + " and " + invitedUsers.get(1).getUsername();
+                roomTitle = invitedUsers.get(0) + " and " + invitedUsers.get(1);
                 break;
 
             default:
-                roomTitle = invitedUsers.get(0).getUsername() + ", " + invitedUsers.get(1).getUsername() + ", and " + Integer.toString(invitedUsers.size() - 2) + " more";
+                roomTitle = invitedUsers.get(0) + ", " + invitedUsers.get(1) + ", and " + Integer.toString(invitedUsers.size() - 2) + " more";
                 break;
         }
 
@@ -466,9 +466,9 @@ public class MessageRoom extends Fragment {
                     //TODO: this is only used for DMs so no need to account for numberCode here.
                     //TODO: if we do use this for group chat, then we need to account for numberCode here to make sure people who left the group don't get messages for the group without first getting re-invited
 
-                    for(final UserSearchItem usi : invitedUsers){
-                        if(!(activity.getMessengerFragment().blockedFromUser(usi.getUsername()) && isDM)){
-                            String WRITE_PATH = usi.getHash() + "/" + usi.getUsername() + "/messages/" + roomNumInput;
+                    for(final String invitedUsername : invitedUsers){
+                        if(!(activity.getMessengerFragment().blockedFromUser(invitedUsername) && isDM)){
+                            String WRITE_PATH = getUsernameHash(invitedUsername) + "/" + invitedUsername + "/messages/" + roomNumInput;
                             //final String username = usi.getUsername();
                             mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
                         }
@@ -504,8 +504,8 @@ public class MessageRoom extends Fragment {
         final ArrayList<String> roomUsersHolderList;
         if(newRoomInviteList != null){
             roomUsersHolderList = new ArrayList<>();
-            for(UserSearchItem usi : newRoomInviteList){
-                roomUsersHolderList.add(usi.getUsername());
+            for(String invitedUsername : newRoomInviteList){
+                roomUsersHolderList.add(invitedUsername);
             }
         }
         else {
@@ -800,10 +800,10 @@ public class MessageRoom extends Fragment {
 
                                 boolean isDM = newRoomInviteList.size() == 1;
 
-                                for(final UserSearchItem usi : newRoomInviteList){
+                                for(final String invitedUsername : newRoomInviteList){
 
-                                    if(!(activity.getMessengerFragment().blockedFromUser(usi.getUsername()) && isDM)){
-                                        String WRITE_PATH = usi.getHash() + "/" + usi.getUsername() + "/messages/" + roomNum;
+                                    if(!(activity.getMessengerFragment().blockedFromUser(invitedUsername) && isDM)){
+                                        String WRITE_PATH = getUsernameHash(invitedUsername) + "/" + invitedUsername + "/messages/" + roomNum;
                                         //final String username = usi.getUsername();
                                         mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
                                     }
@@ -1122,13 +1122,13 @@ public class MessageRoom extends Fragment {
         }
         else if(newRoomInviteList != null){
             for(int i = 0; i < newRoomInviteList.size(); i++){
-                int numberCodeIndex = newRoomInviteList.get(i).getUsername().indexOf('*');
+                int numberCodeIndex = newRoomInviteList.get(i).indexOf('*');
                 if(numberCodeIndex > 0){
-                    if(!newRoomInviteList.get(i).getUsername().substring(numberCodeIndex).equals(username)){
+                    if(!newRoomInviteList.get(i).substring(numberCodeIndex).equals(username)){
                         continue;
                     }
 
-                    int numberCode = Integer.parseInt(newRoomInviteList.get(i).getUsername().substring(numberCodeIndex+1));
+                    int numberCode = Integer.parseInt(newRoomInviteList.get(i).substring(numberCodeIndex+1));
                     if(numberCode == 1){
                         usernameFinal = username + "*2";
                     }
@@ -1137,12 +1137,12 @@ public class MessageRoom extends Fragment {
                     }
                 }
                 else{
-                    if(!newRoomInviteList.get(i).getUsername().equals(username)){
+                    if(!newRoomInviteList.get(i).equals(username)){
                         continue;
                     }
                     usernameFinal = username + "*0";
                 }
-                newRoomInviteList.get(i).setUsername(usernameFinal);
+                newRoomInviteList.set(i, usernameFinal);
                 Log.d("detectuserleave", "numbercode added to open room, usi");
             }
 
@@ -1154,8 +1154,8 @@ public class MessageRoom extends Fragment {
         final ArrayList<String> roomUsersHolderList;
         if(newRoomInviteList != null){
             roomUsersHolderList = new ArrayList<>();
-            for(UserSearchItem usi : newRoomInviteList){
-                roomUsersHolderList.add(usi.getUsername());
+            for(String invitedUsername : newRoomInviteList){
+                roomUsersHolderList.add(invitedUsername);
             }
         }
         else {

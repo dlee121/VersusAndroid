@@ -11,7 +11,7 @@
         android:layout_height="36dp"
         android:layout_marginLeft="8dp"
         android:layout_alignParentStart="true"
-        android:src="@drawable/vs_shadow_w_tag"/>
+        android:src="@drawable/default_profile"/>
 
     <TextView
         android:id="@+id/search_username"

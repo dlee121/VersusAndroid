@@ -29,15 +29,18 @@ import com.google.firebase.database.ValueEventListener;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.InvitedUserAdapter;
-import com.vs.bcd.versus.adapter.UserSearchAdapter;
+import com.vs.bcd.versus.adapter.ContactsListAdapter;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.UserSearchItem;
 
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by dlee on 8/6/17.
@@ -74,17 +77,18 @@ public class CreateMessage extends Fragment {
 
     private RecyclerView invitedUsersRV, userSearchRV;
     private EditText userSearchET;
-    private HashSet<String> following, followers, hList, messageContactsCheckSet;
-    private ArrayList<UserSearchItem> messageContacts, invitedUsers;
+    private HashSet<String> following, followers, hList, messageContactsCheckSet, newContact, localContactsSet;
+    private ArrayList<String> messageContacts, invitedUsers;
     private InvitedUserAdapter invitedUserAdapter;
-    private UserSearchAdapter userSearchAdapter;
+    private ContactsListAdapter contactsListAdapter;
     private TextView invitedTV;
     private boolean initialFollowersLoaded = false;
     private boolean initialFollowingLoaded = false;
     private boolean initialHLoaded = false;
     private String currentFilterText = "";
     private CreateMessage thisFragment;
-
+    private ArrayList<String> filteredList;
+    private String messageContactsQueryCursor = null;
     private Toast mToast;
 
 
@@ -154,8 +158,29 @@ public class CreateMessage extends Fragment {
     @Override
     public void onResume(){
         super.onResume();
-        messageContacts = new ArrayList<>();
-        messageContactsCheckSet = new HashSet<>();
+
+        if(messageContacts == null){
+            messageContacts = new ArrayList<>();
+            contactsListAdapter = new ContactsListAdapter(messageContacts, getActivity(), thisFragment);
+            userSearchRV.setAdapter(contactsListAdapter);
+        }
+        if(invitedUsers == null){
+            invitedUsers = new ArrayList<>();
+            invitedUserAdapter = new InvitedUserAdapter(invitedUsers, getActivity(), thisFragment);
+            invitedUsersRV.setAdapter(invitedUserAdapter);
+        }
+        if(messageContactsCheckSet == null){
+            messageContactsCheckSet = new HashSet<>();
+        }
+        if(newContact == null){
+            newContact = new HashSet<>();
+        }
+        if(localContactsSet == null){
+            localContactsSet = new HashSet<>();
+        }
+
+        setupInitialContactsList();
+
         addHListener();
         //addHListener() finishes and calls addFollowerListener, which finishes and calls addFollowingListener
     }
@@ -214,7 +239,7 @@ public class CreateMessage extends Fragment {
                 disableChildViews();
                 if(invitedUsers != null){
                     invitedUsers.clear();
-                    userSearchAdapter.clearCheckedItems();
+                    contactsListAdapter.clearCheckedItems();
                 }
             }
         }
@@ -242,59 +267,53 @@ public class CreateMessage extends Fragment {
         }
     }
 
-    void filter(String text){
+    void filter(final String text){
+
         currentFilterText = text;
 
-        List<UserSearchItem> tempH = new ArrayList<>();
-        for(String mName: hList){
-            if(mName.toLowerCase().contains(text.toLowerCase())){
-                tempH.add(new UserSearchItem(mName));
-            }
 
+        if(text == null || text.equals("")){
+            contactsListAdapter.updateList(messageContacts);
         }
+        else{
+            mFirebaseDatabaseReference.child(activity.getUserPath()+"contacts").orderByKey().startAt(text).endAt(text+"\uf8ff").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if(text.equals(currentFilterText)){
+                        filteredList = new ArrayList<>();
+                        for(DataSnapshot child: dataSnapshot.getChildren()){
+                            filteredList.add(child.getKey());
+                        }
+                        contactsListAdapter.updateList(filteredList);
+                        userSearchRV.scrollToPosition(0);
+                    }
+                }
 
-        List<UserSearchItem> tempFollowing = new ArrayList<>();
-        for(String mName: following){
-            if(mName.toLowerCase().contains(text.toLowerCase())){
-                tempFollowing.add(new UserSearchItem(mName));
-            }
-        }
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
 
-        List<UserSearchItem> tempFollowers = new ArrayList<>();
-        for(String mName: followers){
-            if(mName.toLowerCase().contains(text.toLowerCase())){
-                tempFollowers.add(new UserSearchItem(mName));
-            }
+                }
+            });
         }
-
-        messageContacts = new ArrayList<>();
-        for(UserSearchItem h : tempH){
-            messageContacts.add(h);
-            messageContactsCheckSet.add(h.getUsername());
-        }
-        for(UserSearchItem g : tempFollowing){
-            messageContacts.add(g);
-            messageContactsCheckSet.add(g.getUsername());
-        }
-        for(UserSearchItem f : tempFollowers){
-            messageContacts.add(f);
-            messageContactsCheckSet.add(f.getUsername());
-        }
-
-        //update recyclerview
-        userSearchAdapter.updateList(messageContacts);
     }
 
-    public void addToInvitedList(UserSearchItem usi){
-        invitedUsers.add(usi);
+    public boolean isNewContact(String username){
+        if(newContact != null){
+            return newContact.contains(username);
+        }
+        return false;
+    }
+
+    public void addToInvitedList(String contactUsername){
+        invitedUsers.add(contactUsername);
         invitedUserAdapter.notifyDataSetChanged();
         if(!invitedUsers.isEmpty()){
             showInvitedTV();
         }
     }
 
-    public void removeFromInvitedList(UserSearchItem usi){
-        invitedUsers.remove(usi);
+    public void removeFromInvitedList(String contactUsername){
+        invitedUsers.remove(contactUsername);
         invitedUserAdapter.notifyDataSetChanged();
         if(invitedUsers.isEmpty()){
             hideInvitedTV();
@@ -302,8 +321,8 @@ public class CreateMessage extends Fragment {
     }
 
     public void removeFromCheckedItems(String username){
-        userSearchAdapter.removeFromCheckedItems(username);
-        userSearchAdapter.notifyDataSetChanged();
+        contactsListAdapter.removeFromCheckedItems(username);
+        contactsListAdapter.notifyDataSetChanged();
     }
 
     private void hideInvitedTV(){
@@ -317,9 +336,9 @@ public class CreateMessage extends Fragment {
     public void createMessageRoom(){
         if(invitedUsers != null && !invitedUsers.isEmpty()){
             //set up a new message room and go into it. actual message room in DB is created with the sending of its first message.
-            ArrayList<UserSearchItem> invitedUsersFinal = new ArrayList<>();
-            for(UserSearchItem usi:invitedUsers){
-                invitedUsersFinal.add(new UserSearchItem(usi.getUsername()));
+            ArrayList<String> invitedUsersFinal = new ArrayList<>();
+            for(String invitedUsername:invitedUsers){
+                invitedUsersFinal.add(invitedUsername);
             }
             activity.getMessageRoom().setUpNewRoom(invitedUsersFinal);
             activity.getViewPager().setCurrentItem(11);
@@ -336,9 +355,9 @@ public class CreateMessage extends Fragment {
     public void createMessageRoom(String roomNum){
         if(invitedUsers != null && !invitedUsers.isEmpty()){
             //set up a new message room and go into it. actual message room in DB is created with the sending of its first message.
-            ArrayList<UserSearchItem> invitedUsersFinal = new ArrayList<>();
-            for(UserSearchItem usi:invitedUsers){
-                invitedUsersFinal.add(new UserSearchItem(usi.getUsername()));
+            ArrayList<String> invitedUsersFinal = new ArrayList<>();
+            for(String invitedUsername:invitedUsers){
+                invitedUsersFinal.add(invitedUsername);
             }
             activity.getMessageRoom().setUpNewRoom(invitedUsersFinal, roomNum);
             activity.getViewPager().setCurrentItem(11);
@@ -359,15 +378,18 @@ public class CreateMessage extends Fragment {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String prevChildKey) {
                 if(initialFollowingLoaded){ //so this is only for new updates to following list
-                    if(!followers.contains(dataSnapshot.getKey())){  //don't add if it's already in Following list
-                        following.add(dataSnapshot.getKey());
-                        if(userSearchET.getText().toString().isEmpty() || dataSnapshot.getKey().contains(currentFilterText)){
-                            messageContacts.add(new UserSearchItem(dataSnapshot.getKey()));
-                            messageContactsCheckSet.add(dataSnapshot.getKey());
-                            userSearchAdapter.updateList(messageContacts);
-                            //TODO: test that this case works (when new follower is added and their username passes current text filter, then display them in the recycler view)
-                        }
+                    following.add(dataSnapshot.getKey());
+                    messageContacts.add(0, dataSnapshot.getKey()); //adds to top of contacts as new item
+                    contactsListAdapter.notifyItemInserted(0);
+                    newContact.add(dataSnapshot.getKey());
+                    /*
+                    if(userSearchET.getText().toString().isEmpty() || dataSnapshot.getKey().contains(currentFilterText)){
+                        //messageContacts.add(new UserSearchItem(dataSnapshot.getKey()));
+                        messageContactsCheckSet.add(dataSnapshot.getKey());
+                        contactsListAdapter.updateList(messageContacts);
+                        //TODO: test that this case works (when new follower is added and their username passes current text filter, then display them in the recycler view)
                     }
+                    */
                 }
             }
 
@@ -403,21 +425,13 @@ public class CreateMessage extends Fragment {
                         }
                         else {
                             following.add(child.getKey());
-                            messageContacts.add(new UserSearchItem(child.getKey()));
-                            messageContactsCheckSet.add(child.getKey());
+                            //messageContacts.add(new UserSearchItem(child.getKey()));
+                            //messageContactsCheckSet.add(child.getKey());
                         }
                     }
                 }
 
                 initialFollowingLoaded = true;
-
-                invitedUsers = new ArrayList<>();
-
-                invitedUserAdapter = new InvitedUserAdapter(invitedUsers, getActivity(), thisFragment);
-                invitedUsersRV.setAdapter(invitedUserAdapter);
-
-                userSearchAdapter = new UserSearchAdapter(messageContacts, getActivity(), thisFragment);
-                userSearchRV.setAdapter(userSearchAdapter);
             }
 
             @Override
@@ -439,12 +453,16 @@ public class CreateMessage extends Fragment {
                 if(initialFollowersLoaded){ //so this is only for new updates to followers list
                     if(!following.contains(dataSnapshot.getKey())){  //don't add if it's already in Following list
                         followers.add(dataSnapshot.getKey());
+                        messageContacts.add(0,dataSnapshot.getKey()); //adds to top of contacts as new item
+                        contactsListAdapter.notifyItemInserted(0);
+                        newContact.add(dataSnapshot.getKey());
+                        /*
                         if(userSearchET.getText().toString().isEmpty() || dataSnapshot.getKey().contains(currentFilterText)){
                             messageContacts.add(new UserSearchItem(dataSnapshot.getKey()));
                             messageContactsCheckSet.add(dataSnapshot.getKey());
-                            userSearchAdapter.updateList(messageContacts);
-                            //TODO: test that this case works (when new follower is added and their username passes current text filter, then display them in the recycler view)
+                            contactsListAdapter.updateList(messageContacts);
                         }
+                        */
                     }
                 }
             }
@@ -477,8 +495,8 @@ public class CreateMessage extends Fragment {
                         }
                         else{
                             followers.add(child.getKey());
-                            messageContacts.add(new UserSearchItem(child.getKey()));
-                            messageContactsCheckSet.add(child.getKey());
+                            //messageContacts.add(new UserSearchItem(child.getKey()));
+                            //messageContactsCheckSet.add(child.getKey());
                         }
                     }
                 }
@@ -492,6 +510,85 @@ public class CreateMessage extends Fragment {
 
             }
         });
+    }
+
+    private void setupInitialContactsList(){
+        messageContacts.clear();
+        invitedUsers.clear();
+        localContactsSet.clear();
+        newContact.clear();
+
+        mFirebaseDatabaseReference.child(activity.getUserPath()+"contacts").orderByKey().limitToFirst(39).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot != null){
+                    for(DataSnapshot child : dataSnapshot.getChildren()){
+                        messageContacts.add(child.getKey());
+                        localContactsSet.add(child.getKey());
+                    }
+                    if(!messageContacts.isEmpty() && dataSnapshot.getChildrenCount() == 39){
+                        messageContactsQueryCursor = messageContacts.get(messageContacts.size() - 1);
+                    }
+                    else{
+                        messageContactsQueryCursor = null;
+                    }
+                    userSearchRV.scrollToPosition(10);
+                }
+                else{
+                    messageContactsQueryCursor = null;
+                }
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void loadMoreContacts(){
+        if(messageContactsQueryCursor != null){
+            mFirebaseDatabaseReference.child(activity.getUserPath()+"contacts").orderByKey().startAt(messageContactsQueryCursor).limitToFirst(40).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    boolean firstItem = true;
+                    if(dataSnapshot != null){
+                        for(DataSnapshot child : dataSnapshot.getChildren()){
+                            if(firstItem) {
+                                if(!localContactsSet.contains(child.getKey())){
+                                    messageContacts.add(child.getKey());
+                                    localContactsSet.add(child.getKey());
+                                }
+                                firstItem = false;
+                                continue;
+                            }
+                            if(!localContactsSet.contains(child.getKey())){
+                                messageContacts.add(child.getKey());
+                                localContactsSet.add(child.getKey());
+                            }
+                        }
+                        if(!messageContacts.isEmpty() && dataSnapshot.getChildrenCount() == 40){
+                            messageContactsQueryCursor = messageContacts.get(messageContacts.size() - 1);
+                        }
+                        else{
+                            messageContactsQueryCursor = null;
+                        }
+                    }
+                    else{
+                        messageContactsQueryCursor = null;
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+        }
+
+
+
     }
 
     //HListener listenes to list "h" in firebase, which is a list of users with whom the user has a two-way relationship (following and follower)
@@ -511,13 +608,13 @@ public class CreateMessage extends Fragment {
                     if(following.contains(dataSnapshot.getKey())){
                         following.remove(dataSnapshot.getKey());
                     }
-
+                    /*
                     if(!(messageContactsCheckSet.contains(dataSnapshot.getKey())) && (userSearchET.getText().toString().isEmpty() || dataSnapshot.getKey().contains(currentFilterText))){
                         messageContacts.add(new UserSearchItem(dataSnapshot.getKey()));
                         messageContactsCheckSet.add(dataSnapshot.getKey());
-                        userSearchAdapter.updateList(messageContacts);
-                        //TODO: test that this case works (when new follower is added and their username passes current text filter, then display them in the recycler view)
+                        contactsListAdapter.updateList(messageContacts);
                     }
+                    */
                 }
             }
 
@@ -545,8 +642,8 @@ public class CreateMessage extends Fragment {
                 if(dataSnapshot.hasChildren()){
                     for (DataSnapshot child : dataSnapshot.getChildren()) {
                         hList.add(child.getKey());
-                        messageContacts.add(new UserSearchItem(child.getKey()));
-                        messageContactsCheckSet.add(child.getKey());
+                        //messageContacts.add(new UserSearchItem(child.getKey()));
+                        //messageContactsCheckSet.add(child.getKey());
                     }
                 }
 
@@ -587,6 +684,8 @@ public class CreateMessage extends Fragment {
         return  count;
     }
 
+
+
     public boolean followingAndFollowedBy(String username){
         if(hList != null){
             return hList.contains(username);
@@ -612,7 +711,7 @@ public class CreateMessage extends Fragment {
     //returns empty string if not DM
     public String getDMTarget(){
         if(invitedUsers != null && invitedUsers.size() == 1){
-            return invitedUsers.get(0).getUsername();
+            return invitedUsers.get(0);
         }
         return "";
     }
