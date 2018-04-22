@@ -285,6 +285,13 @@ public class MainContainer extends AppCompatActivity {
                     messengerFragment.resetClickedRoomNum();
                     break;
 
+                case 12: //CreateMessage fragment
+                    if(createMessageFragment != null){
+                        createMessageFragment.setInitialLoadingFalse();
+                    }
+                    mViewPager.setCurrentItem(4);
+                    break;
+
                 //default might be enough to handle case 12 (CreateMessage)
                 default:
                     toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
@@ -542,10 +549,17 @@ public class MainContainer extends AppCompatActivity {
                         enableBottomTabs();
                         break;
 
-                    case 11:
+                    case 11: //MessageRoom fragment
                         mViewPager.setCurrentItem(4);
                         messageRoom.cleanUp();
                         messengerFragment.resetClickedRoomNum();
+                        break;
+
+                    case 12: //CreateMessage fragment
+                        if(createMessageFragment != null){
+                            createMessageFragment.setInitialLoadingFalse();
+                        }
+                        mViewPager.setCurrentItem(4);
                         break;
 
                     default:

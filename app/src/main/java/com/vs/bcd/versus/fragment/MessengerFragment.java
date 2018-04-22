@@ -1694,12 +1694,16 @@ public class MessengerFragment extends Fragment {
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
-            if(rootView != null)
+            if(rootView != null){
                 enableChildViews();
+                activity.getCreateMessageFragment().setupInitialContactsList();
+            }
+
         }
         else {
-            if (rootView != null)
+            if (rootView != null){
                 disableChildViews();
+            }
         }
     }
 

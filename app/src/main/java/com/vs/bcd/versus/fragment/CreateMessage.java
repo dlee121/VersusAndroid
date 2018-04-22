@@ -91,6 +91,9 @@ public class CreateMessage extends Fragment {
     private ArrayList<String> filteredList;
     private String messageContactsQueryCursor = null;
     private Toast mToast;
+    private int loadThreshold = 8;
+    private boolean nowLoading = false;
+    private boolean settingUpInitialList = false;
 
 
     @Override
@@ -132,6 +135,27 @@ public class CreateMessage extends Fragment {
         userSearchLLM = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
         userSearchLLM.setStackFromEnd(true);
         userSearchRV.setLayoutManager(userSearchLLM);
+
+        userSearchRV.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                //only if postSearchResults.size()%retrievalSize == 0, meaning it's possible there's more matching documents for this search
+                if(messageContacts != null && !messageContacts.isEmpty()) {
+                    LinearLayoutManager layoutManager = LinearLayoutManager.class.cast(recyclerView.getLayoutManager());
+                    int lastVisible = layoutManager.findLastVisibleItemPosition();
+
+                    boolean endHasBeenReached = lastVisible + loadThreshold >= messageContacts.size() - 1;  //TODO: increase the loadThreshold as we get more posts, but capping it at 5 is probably sufficient
+                    if (endHasBeenReached) {
+                        //you have reached to the bottom of your recycler view
+                        if (!nowLoading) {
+                            nowLoading = true;
+                            Log.d("loadMoreUsers", "now loading more");
+                            loadMoreContacts();
+                        }
+                    }
+                }
+            }
+        });
 
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();
@@ -201,6 +225,10 @@ public class CreateMessage extends Fragment {
             mFirebaseDatabaseReference.child(H_CHILD).removeEventListener(hListener);
         }
 
+    }
+
+    public void setInitialLoadingFalse(){
+        settingUpInitialList = false;
     }
 
     @Override
@@ -523,11 +551,17 @@ public class CreateMessage extends Fragment {
         });
     }
 
-    private void setupInitialContactsList(){
-        messageContacts.clear();
-        invitedUsers.clear();
-        localContactsSet.clear();
-        newContact.clear();
+    public void setupInitialContactsList(){
+        if(!settingUpInitialList && messageContacts != null && invitedUsers != null && localContactsSet != null && newContact != null){
+            messageContacts.clear();
+            invitedUsers.clear();
+            localContactsSet.clear();
+            newContact.clear();
+        }
+        else{
+            return;
+        }
+        settingUpInitialList = true;
 
         mFirebaseDatabaseReference.child(activity.getUserPath()+"contacts").orderByKey().limitToFirst(39).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -563,12 +597,15 @@ public class CreateMessage extends Fragment {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     boolean firstItem = true;
+                    int startingPosition = messageContacts.size();
+                    int newItemCount = 0;
                     if(dataSnapshot != null){
                         for(DataSnapshot child : dataSnapshot.getChildren()){
                             if(firstItem) {
                                 if(!localContactsSet.contains(child.getKey())){
                                     messageContacts.add(child.getKey());
                                     localContactsSet.add(child.getKey());
+                                    newItemCount++;
                                 }
                                 firstItem = false;
                                 continue;
@@ -576,13 +613,19 @@ public class CreateMessage extends Fragment {
                             if(!localContactsSet.contains(child.getKey())){
                                 messageContacts.add(child.getKey());
                                 localContactsSet.add(child.getKey());
+                                newItemCount++;
                             }
                         }
                         if(!messageContacts.isEmpty() && dataSnapshot.getChildrenCount() == 40){
                             messageContactsQueryCursor = messageContacts.get(messageContacts.size() - 1);
+                            nowLoading = false;
                         }
                         else{
                             messageContactsQueryCursor = null;
+                        }
+
+                        if(newItemCount > 0){
+                            contactsListAdapter.notifyItemRangeChanged(startingPosition, newItemCount);
                         }
                     }
                     else{
