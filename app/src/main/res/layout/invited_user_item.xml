@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
+    android:layout_width="44dp"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center">
@@ -9,12 +9,15 @@
         android:id="@+id/invited_user_photo"
         android:layout_width="@dimen/messenger_profile_image"
         android:layout_height="@dimen/messenger_profile_image"
-        android:src="@drawable/vs_shadow_w_tag"/>
+        android:src="@drawable/default_profile"/>
 
     <TextView
         android:id="@+id/invited_username"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:gravity="center"
         android:text="TextView" />
 
 

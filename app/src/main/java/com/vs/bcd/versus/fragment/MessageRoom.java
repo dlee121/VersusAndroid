@@ -221,6 +221,7 @@ public class MessageRoom extends Fragment {
         if(mFirebaseAdapter != null){
             setRoomObjListener(roomNum);
             mFirebaseAdapter.startListening();
+            mMessageRecyclerView.setAdapter(mFirebaseAdapter);
         }
         else{
             if(roomNum.length() > 1 && activity != null && activity.isInMessageRoom()){
