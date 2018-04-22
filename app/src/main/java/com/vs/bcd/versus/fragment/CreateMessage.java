@@ -495,7 +495,6 @@ public class CreateMessage extends Fragment {
                         messageContacts.add(0,dataSnapshot.getKey()); //adds to top of contacts as new item
                         contactsListAdapter.notifyItemInserted(0);
                         newContact.add(dataSnapshot.getKey());
-                        Log.d("NEWFOLLOWER", dataSnapshot.getKey() +" is added to the top");
                         /*
                         if(userSearchET.getText().toString().isEmpty() || dataSnapshot.getKey().contains(currentFilterText)){
                             messageContacts.add(new UserSearchItem(dataSnapshot.getKey()));
