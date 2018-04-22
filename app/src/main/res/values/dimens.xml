@@ -19,5 +19,6 @@
     <dimen name="block_icon_width">19dp</dimen>
     <dimen name="message_item_short">10dp</dimen>
     <dimen name="message_item_long">80dp</dimen>
+    <dimen name="messenger_profile_image">36dp</dimen>
 
 </resources>

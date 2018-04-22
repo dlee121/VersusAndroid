@@ -1,34 +1,53 @@
 package com.vs.bcd.versus.adapter;
 
 import android.app.Activity;
+import android.graphics.drawable.Drawable;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.ListPreloader;
+import com.bumptech.glide.RequestBuilder;
+import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.fragment.CreateMessage;
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.model.GlideApp;
+import com.vs.bcd.versus.model.GlideUrlCustom;
+import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.UserSearchItem;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
 
-public class ContactsListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    private Activity activity;
+public class ContactsListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>  implements ListPreloader.PreloadModelProvider<String>{
+    private MainContainer activity;
     private List<String> contactsList;
     private CreateMessage thisFragment;
     private HashSet<String> checkedItems;
+    private HashMap<String, Integer> profileImgVersions;
+    private int profileImgDimension;
+    private Drawable defaultProfileImage;
 
-    public ContactsListAdapter(List<String> contactsList, Activity activity, CreateMessage thisFragment) {
+    public ContactsListAdapter(List<String> contactsList, MainContainer activity, CreateMessage thisFragment, HashMap<String, Integer> profileImgVersions) {
         this.contactsList = contactsList;
         this.activity = activity;
         this.thisFragment = thisFragment;
         checkedItems = new HashSet<>();
+        this.profileImgVersions = profileImgVersions;
+        defaultProfileImage = ContextCompat.getDrawable(activity, R.drawable.default_profile);
+        profileImgDimension = activity.getResources().getDimensionPixelSize(R.dimen.comment_margin);
     }
 
     @Override
@@ -56,6 +75,19 @@ public class ContactsListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         }
         else {
             userSearchViewHolder.checkMark.setVisibility(View.INVISIBLE);
+        }
+
+        try{
+            Integer profileImg = profileImgVersions.get(contactUsername);
+            if(profileImg != null && profileImg.intValue() != 0){
+                GlideApp.with(activity).load(activity.getProfileImgUrl(contactUsername, profileImg)).override(profileImgDimension, profileImgDimension).into(userSearchViewHolder.contactProfileImg);
+            }
+            else{
+                GlideApp.with(activity).load(defaultProfileImage).into(userSearchViewHolder.contactProfileImg);
+            }
+
+        }catch (Throwable t){
+
         }
 
 
@@ -107,5 +139,30 @@ public class ContactsListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     public void clearCheckedItems(){
         checkedItems.clear();
         notifyDataSetChanged();
+    }
+
+    @Override
+    @NonNull
+    public List<String> getPreloadItems(int position) {
+        return Collections.singletonList(contactsList.get(position));
+    }
+
+    @Override
+    @Nullable
+    public RequestBuilder getPreloadRequestBuilder(String username) {
+        try{
+            int profileImg;
+            profileImg = profileImgVersions.get(username).intValue();
+            if(profileImg == 0){
+                return null;
+            }
+            return GlideApp.with(activity).load( activity.getProfileImgUrl(username, profileImgVersions.get(username).intValue()) ).override(profileImgDimension, profileImgDimension);
+
+        }
+        catch (Throwable t){
+
+        }
+
+        return null;
     }
 }

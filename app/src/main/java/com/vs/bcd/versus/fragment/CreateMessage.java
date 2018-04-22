@@ -18,6 +18,10 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.ListPreloader;
+import com.bumptech.glide.integration.recyclerview.RecyclerViewPreloader;
+import com.bumptech.glide.util.FixedPreloadSizeProvider;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -31,9 +35,15 @@ import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.InvitedUserAdapter;
 import com.vs.bcd.versus.adapter.ContactsListAdapter;
+import com.vs.bcd.versus.model.AWSV4Auth;
+import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.UserSearchItem;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
@@ -42,6 +52,18 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+
+import cz.msebera.android.httpclient.HttpEntity;
+import cz.msebera.android.httpclient.HttpResponse;
+import cz.msebera.android.httpclient.client.ClientProtocolException;
+import cz.msebera.android.httpclient.client.ResponseHandler;
+import cz.msebera.android.httpclient.client.methods.HttpPost;
+import cz.msebera.android.httpclient.entity.ContentType;
+import cz.msebera.android.httpclient.entity.StringEntity;
+import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
+import cz.msebera.android.httpclient.impl.client.HttpClients;
+import cz.msebera.android.httpclient.util.EntityUtils;
 
 /**
  * Created by dlee on 8/6/17.
@@ -94,6 +116,7 @@ public class CreateMessage extends Fragment {
     private int loadThreshold = 8;
     private boolean nowLoading = false;
     private boolean settingUpInitialList = false;
+    private HashMap<String, Integer> profileImgVersions = new HashMap<>();
 
 
     @Override
@@ -200,7 +223,16 @@ public class CreateMessage extends Fragment {
         if(messageContacts == null){
             messageContacts = new ArrayList<>();
             setupInitialContactsList();
-            contactsListAdapter = new ContactsListAdapter(messageContacts, getActivity(), thisFragment);
+            if(activity != null){
+                contactsListAdapter = new ContactsListAdapter(messageContacts, activity, thisFragment, profileImgVersions);
+                //recyclerview preloader setup
+                ListPreloader.PreloadSizeProvider sizeProvider =
+                        new FixedPreloadSizeProvider(activity.getResources().getDimensionPixelSize(R.dimen.messenger_profile_image), activity.getResources().getDimensionPixelSize(R.dimen.messenger_profile_image));
+                RecyclerViewPreloader<String> preloader =
+                        new RecyclerViewPreloader<>(Glide.with(activity), contactsListAdapter, sizeProvider, 20);
+                userSearchRV.addOnScrollListener(preloader);
+            }
+
             userSearchRV.setAdapter(contactsListAdapter);
         }
 
@@ -569,10 +601,30 @@ public class CreateMessage extends Fragment {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot != null){
+                    StringBuilder strBuilder = new StringBuilder((56*(int)dataSnapshot.getChildrenCount()) - 1);
+                    int i = 0;
                     for(DataSnapshot child : dataSnapshot.getChildren()){
                         messageContacts.add(child.getKey());
                         localContactsSet.add(child.getKey());
+                        if(i == 0){
+                            strBuilder.append("{\"_id\":\""+child.getKey()+"\",\"_source\":\"pi\"}");
+                        }
+                        else{
+                            strBuilder.append(",{\"_id\":\""+child.getKey()+"\",\"_source\":\"pi\"}");
+                        }
+                        i++;
                     }
+                    if(strBuilder.length() > 0){
+                        final String payload = "{\"docs\":["+strBuilder.toString()+"]}";
+                        Runnable runnable = new Runnable() {
+                            public void run() {
+                                getProfileImgVersions(payload);
+                            }
+                        };
+                        Thread mythread = new Thread(runnable);
+                        mythread.start();
+                    }
+
                     if(!messageContacts.isEmpty() && dataSnapshot.getChildrenCount() == 39){
                         messageContactsQueryCursor = messageContacts.get(messageContacts.size() - 1);
                     }
@@ -602,7 +654,18 @@ public class CreateMessage extends Fragment {
                     int startingPosition = messageContacts.size();
                     int newItemCount = 0;
                     if(dataSnapshot != null){
+                        StringBuilder strBuilder = new StringBuilder((56*(int)dataSnapshot.getChildrenCount()) - 1);
+                        int i = 0;
                         for(DataSnapshot child : dataSnapshot.getChildren()){
+
+                            if(i == 0){
+                                strBuilder.append("{\"_id\":\""+child.getKey()+"\",\"_source\":\"pi\"}");
+                            }
+                            else{
+                                strBuilder.append(",{\"_id\":\""+child.getKey()+"\",\"_source\":\"pi\"}");
+                            }
+                            i++;
+
                             if(firstItem) {
                                 if(!localContactsSet.contains(child.getKey())){
                                     messageContacts.add(child.getKey());
@@ -618,6 +681,19 @@ public class CreateMessage extends Fragment {
                                 newItemCount++;
                             }
                         }
+
+                        if(strBuilder.length() > 0){
+                            final String payload = "{\"docs\":["+strBuilder.toString()+"]}";
+
+                            Runnable runnable = new Runnable() {
+                                public void run() {
+                                    getProfileImgVersions(payload);
+                                }
+                            };
+                            Thread mythread = new Thread(runnable);
+                            mythread.start();
+                        }
+
                         if(!messageContacts.isEmpty() && dataSnapshot.getChildrenCount() == 40){
                             messageContactsQueryCursor = messageContacts.get(messageContacts.size() - 1);
                             nowLoading = false;
@@ -769,6 +845,81 @@ public class CreateMessage extends Fragment {
             return invitedUsers.get(0);
         }
         return "";
+    }
+
+    private void getProfileImgVersions(String payload){
+        String query = "/user/user_type/_mget";
+        String host = activity.getESHost();
+        String region = activity.getESRegion();
+        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
+        awsHeaders.put("host", host);
+        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
+                .regionName(region)
+                .serviceName("es") // es - elastic search. use your service name
+                .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
+                .canonicalURI(query) //end point
+                .queryParametes(null) //query parameters if any
+                .awsHeaders(awsHeaders) //aws header parameters
+                .payload(payload) // payload if any
+                .debug() // turn on the debug mode
+                .build();
+
+        String url = "https://" + host + query;
+
+        HttpPost httpPost = new HttpPost(url);
+        StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
+        httpPost.setEntity(requestEntity);
+
+		        /* Get header calculated for request */
+        Map<String, String> header = aWSV4Auth.getHeaders();
+        for (Map.Entry<String, String> entrySet : header.entrySet()) {
+            String key = entrySet.getKey();
+            String value = entrySet.getValue();
+
+			    /* Attach header in your request */
+			    /* Simple get request */
+
+            httpPost.addHeader(key, value);
+        }
+
+        /* Create object of CloseableHttpClient */
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+		/* Response handler for after request execution */
+        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
+
+            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+				/* Get status code */
+                int status = response.getStatusLine().getStatusCode();
+                if (status >= 200 && status < 300) {
+					/* Convert response to String */
+                    HttpEntity entity = response.getEntity();
+                    return entity != null ? EntityUtils.toString(entity) : null;
+                } else {
+                    throw new ClientProtocolException("Unexpected response status: " + status);
+                }
+            }
+        };
+
+        try {
+			/* Execute URL and attach after execution response handler */
+
+            String strResponse = httpClient.execute(httpPost, responseHandler);
+
+            //iterate through hits and put the info in postInfoMap
+            JSONObject obj = new JSONObject(strResponse);
+            JSONArray hits = obj.getJSONArray("docs");
+            for(int i = 0; i<hits.length(); i++){
+                JSONObject item = hits.getJSONObject(i);
+                JSONObject src = item.getJSONObject("_source");
+                profileImgVersions.put(item.getString("_id"), src.getInt("pi"));
+            }
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
 }
