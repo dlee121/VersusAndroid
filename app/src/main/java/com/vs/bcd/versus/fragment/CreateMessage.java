@@ -347,6 +347,38 @@ public class CreateMessage extends Fragment {
         }
     }
 
+    public void setUpRemovePage(ArrayList<String> removalCandidates){
+        nowLoading = true; //since we have all the users we need to list, we can disable onScroll loading
+
+        StringBuilder strBuilder = new StringBuilder();
+        int i = 0;
+        for(String username: removalCandidates){
+            if(profileImgVersions.get(username) == null){
+                if(i == 0){
+                    strBuilder.append("{\"_id\":\""+username+"\",\"_source\":\"pi\"}");
+                }
+                else{
+                    strBuilder.append(",{\"_id\":\""+username+"\",\"_source\":\"pi\"}");
+                }
+                i++;
+            }
+        }
+
+        if(strBuilder.length() > 0){
+            final String payload = "{\"docs\":["+strBuilder.toString()+"]}";
+            Runnable runnable = new Runnable() {
+                public void run() {
+                    getProfileImgVersions(payload);
+                }
+            };
+            Thread mythread = new Thread(runnable);
+            mythread.start();
+        }
+
+        contactsListAdapter = new ContactsListAdapter(removalCandidates, activity, thisFragment, profileImgVersions);
+        userSearchRV.setAdapter(contactsListAdapter);
+    }
+
     void filter(final String text){
 
         currentFilterText = text;
@@ -1097,6 +1129,14 @@ public class CreateMessage extends Fragment {
                 profileImgVersions.put(item.getString("_id"), src.getInt("pi"));
             }
 
+            if(contactsListAdapter != null){
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        contactsListAdapter.notifyDataSetChanged();
+                    }
+                });
+            }
 
         } catch (Exception e) {
             e.printStackTrace();

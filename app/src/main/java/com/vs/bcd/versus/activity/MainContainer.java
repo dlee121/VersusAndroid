@@ -256,6 +256,8 @@ public class MainContainer extends AppCompatActivity {
                     break;
 
                 case 4: //messenger
+
+                    Log.d("currentPage", ""+messengerBackTarget);
                     mViewPager.setCurrentItem(messengerBackTarget);
                     break;
 

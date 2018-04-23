@@ -1552,7 +1552,7 @@ public class MessengerFragment extends Fragment {
 
                         case 1:
                             if(isRoomAdminFinal){
-                                removeFromGroup();
+                                removeFromGroup(roomObject);
                             }
                             else{
                                 if(muted){
@@ -1637,10 +1637,25 @@ public class MessengerFragment extends Fragment {
 
     }
 
-    private void removeFromGroup(){
+    private void removeFromGroup(RoomObject roomObject){
         activity.getCreateMessageFragment().setInviteTargetUsersListNull();
         activity.setRemoveMode(true);
         activity.setInviteMode(false);
+        ArrayList<String> usersList = roomObject.getUsers();
+        ArrayList<String> removalCandidates = new ArrayList<>();
+        for(String username : usersList) {
+            if (username.indexOf('*') > 0) {
+                int numberCode = Integer.parseInt(username.substring(username.indexOf('*') + 1));
+                if (numberCode == 1 || numberCode == 3) {
+                    removalCandidates.add(username.substring(0, username.indexOf('*')));
+                }
+            } else {
+                removalCandidates.add(username);
+            }
+        }
+        activity.getCreateMessageFragment().setUpRemovePage(removalCandidates);
+        activity.getViewPager().setCurrentItem(12);
+
 
     }
 
