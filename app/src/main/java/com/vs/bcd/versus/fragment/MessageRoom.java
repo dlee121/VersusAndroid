@@ -274,11 +274,11 @@ public class MessageRoom extends Fragment {
                 break;
 
             case 2:
-                roomTitle = invitedUsers.get(0) + " and " + invitedUsers.get(1);
+                roomTitle = mUsername + ", " + invitedUsers.get(0) + ", and " + invitedUsers.get(1);
                 break;
 
             default:
-                roomTitle = invitedUsers.get(0) + ", " + invitedUsers.get(1) + ", and " + Integer.toString(invitedUsers.size() - 2) + " more";
+                roomTitle = mUsername + ", " + invitedUsers.get(0) + ", and " + Integer.toString(invitedUsers.size() - 1) + " more";
                 break;
         }
 
@@ -499,6 +499,8 @@ public class MessageRoom extends Fragment {
     //for when you delete your copy of the dm room and want to dm the same person and that person hasn't deleted their copy of the dm room
     //so this is only for that special dm case
     public void setUpRoomInDBSpecial(final String roomNumInput, String preview, final MessageObject messageObject, final Uri uri){
+        activity.getMessengerFragment().setClickedRoomNum(roomNumInput);
+        Log.d("badgeInc", "clickedRoomNum set: " + roomNumInput);
 
         //modified version of setUpRoomInDB()
         MESSAGES_CHILD = MESSAGES_CHILD_BODY + roomNumInput;
@@ -1151,6 +1153,7 @@ public class MessageRoom extends Fragment {
     }
 
     private void setUpRoomInDB(String preview, final MessageObject messageObject, final Uri uri){
+        activity.getMessengerFragment().setClickedRoomNum(roomNum);
         MESSAGES_CHILD = MESSAGES_CHILD_BODY + roomNum;
         final ArrayList<String> roomUsersHolderList;
         if(newRoomInviteList != null){
@@ -1195,12 +1198,12 @@ public class MessageRoom extends Fragment {
             }
             StringBuilder tail = new StringBuilder();
 
-            for (int i = 0; i<roomUsersHolderList.size() - 1; i++){ //since last item in this list is mUsername, we don't have to iterate the last item for this
+            for (int i = 1; i<roomUsersHolderList.size(); i++){ //since last item in this list is mUsername, we don't have to iterate the last item for this
                 String username = roomUsersHolderList.get(i);
-                if(i == 0){
+                if(i == 1){
                     tail.append(username);
                 }
-                else if(i + 2 == roomUsersHolderList.size()) {
+                else if(i + 1 == roomUsersHolderList.size()) {
                     tail.append(", and " + username + "!");
                 }
                 else {

@@ -497,24 +497,38 @@ public class CreateMessage extends Fragment {
     public void inviteToGroupSubmit(HashSet<String> numberCodeIncrementList){
         if(invitedUsers != null && !invitedUsers.isEmpty()){
             int i = 0;
+            HashMap<String, String> usernameToUsernameWithNumberCode = new HashMap<>();
+            ArrayList<String> newUsersList = new ArrayList<>();
             for(String username : inviteTargetRoom.getUsers()){
                 if(username.indexOf('*') > 0){
                     String pureUsername = username.substring(0, username.indexOf('*'));
                     if(numberCodeIncrementList.contains(pureUsername)){
                         int numberCode = Integer.parseInt(username.substring(username.indexOf('*')+1));
-                        inviteTargetRoom.getUsers().set(i, pureUsername+"*"+Integer.toString(numberCode+1));
+                        //inviteTargetRoom.getUsers().set(i, pureUsername+"*"+Integer.toString(numberCode+1));
+                        usernameToUsernameWithNumberCode.put(pureUsername, pureUsername+"*"+Integer.toString(numberCode+1));
                     }
+                    else{
+                        newUsersList.add(username);
+                    }
+                }
+                else{
+                    newUsersList.add(username);
                 }
                 i++;
             }
 
             for(String invitedUsername:invitedUsers){
                 if(!numberCodeIncrementList.contains(invitedUsername)){ //skip users in this hash set because they're already in the usersList
-                    inviteTargetRoom.getUsers().add(invitedUsername);
+                    newUsersList.add(invitedUsername);
+                }
+                else{
+                    newUsersList.add(usernameToUsernameWithNumberCode.get(invitedUsername));
                 }
             }
 
-            final String targetRoomNum = inviteTargetRoomNum;
+            inviteTargetRoom.setUsers(newUsersList);
+
+            //final String targetRoomNum = inviteTargetRoomNum;
 
             StringBuilder strBuilder = new StringBuilder();
             int j = 0;

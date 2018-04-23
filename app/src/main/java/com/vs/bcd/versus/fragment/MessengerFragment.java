@@ -1841,4 +1841,8 @@ public class MessengerFragment extends Fragment {
         return blockedfromList.contains(username);
     }
 
+    public void setClickedRoomNum(String roomNumInput){
+        clickedRoomNum = roomNumInput;
+    }
+
 }
