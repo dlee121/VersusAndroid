@@ -519,7 +519,7 @@ public class MessageRoom extends Fragment {
             mFirebaseDatabaseReference.child(activity.getUserPath() + "dm/"+dmTarget).setValue(roomNumInput);
         }
 
-        roomUsersHolderList.add(mUsername);
+        roomUsersHolderList.add(0, mUsername);
 
         final RoomObject roomObject = new RoomObject(currentRoomTitle, System.currentTimeMillis(), preview, roomUsersHolderList);
         String userRoomPath = activity.getUserPath() + "r/" + roomNumInput;
@@ -1180,7 +1180,7 @@ public class MessageRoom extends Fragment {
             mFirebaseDatabaseReference.child(Integer.toString(targetHash) + "/" + dmTarget + "/dm/" + mUsername).setValue(roomNum);
         }
 
-        roomUsersHolderList.add(mUsername);
+        roomUsersHolderList.add(0, mUsername);
 
         final boolean isDM = roomUsersHolderList.size() == 2;
         String groupChatOpening;

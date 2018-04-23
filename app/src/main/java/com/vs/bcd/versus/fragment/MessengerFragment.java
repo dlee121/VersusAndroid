@@ -1434,37 +1434,23 @@ public class MessengerFragment extends Fragment {
             int numberCode;
             isDM = false;
             ArrayList<String> usersList = roomObject.getUsers();
-            String lastItem = usersList.get(usersList.size()-1);
-            if(lastItem.indexOf('*') > 0){
-                numberCode = Integer.parseInt(lastItem.substring(lastItem.indexOf('*') + 1));
-                if(numberCode == 1 || numberCode == 3){
-                    if(lastItem.substring(0, lastItem.indexOf('*')).equals(mUsername)){
+            for(String username : usersList){
+                if(username.indexOf('*') > 0){
+                    numberCode = Integer.parseInt(username.substring(username.indexOf('*') + 1));
+                    if(numberCode == 1 || numberCode == 3){
+                        if(username.substring(0, username.indexOf('*')).equals(mUsername)){
+                            isRoomAdmin = true;
+                        }
+                        break;
+                    }
+                }
+                else{
+                    if(username.equals(mUsername)){
                         isRoomAdmin = true;
                     }
+                    break;
                 }
-                else{ //if original room admin left
-                    for(String username : usersList){
-                        if(username.indexOf('*') > 0){
-                            numberCode = Integer.parseInt(username.substring(username.indexOf('*') + 1));
-                            if(numberCode == 1 || numberCode == 3){
-                                if(username.substring(0, username.indexOf('*')).equals(mUsername)){
-                                    isRoomAdmin = true;
-                                }
-                                break;
-                            }
-                        }
-                        else{
-                            if(username.equals(mUsername)){
-                                isRoomAdmin = true;
-                            }
-                            break;
-                        }
 
-                    }
-                }
-            }
-            else if(lastItem.equals(mUsername)){
-                isRoomAdmin = true;
             }
 
             if(isRoomAdmin){

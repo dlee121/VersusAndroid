@@ -312,6 +312,7 @@ public class CreateMessage extends Fragment {
             if (rootView != null){
                 activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
                 disableChildViews();
+                userSearchET.setText("");
                 if(invitedUsers != null){
                     invitedUsers.clear();
                     contactsListAdapter.clearCheckedItems();
@@ -360,12 +361,37 @@ public class CreateMessage extends Fragment {
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     if(text.equals(currentFilterText)){
                         filteredList = new ArrayList<>();
+                        StringBuilder strBuilder = new StringBuilder((56*(int)dataSnapshot.getChildrenCount()) - 1);
+                        int i = 0;
                         for(DataSnapshot child: dataSnapshot.getChildren()){
                             filteredList.add(child.getKey());
+                            messageContacts.add(child.getKey());
+                            localContactsSet.add(child.getKey());
+                            if(i == 0){
+                                strBuilder.append("{\"_id\":\""+child.getKey()+"\",\"_source\":\"pi\"}");
+                            }
+                            else{
+                                strBuilder.append(",{\"_id\":\""+child.getKey()+"\",\"_source\":\"pi\"}");
+                            }
+                            i++;
                         }
+
+                        if(strBuilder.length() > 0){
+                            final String payload = "{\"docs\":["+strBuilder.toString()+"]}";
+                            Runnable runnable = new Runnable() {
+                                public void run() {
+                                    getProfileImgVersions(payload);
+                                }
+                            };
+                            Thread mythread = new Thread(runnable);
+                            mythread.start();
+                        }
+
                         contactsListAdapter.updateList(filteredList);
                         userSearchRV.scrollToPosition(0);
                     }
+
+
                 }
 
                 @Override
@@ -470,7 +496,6 @@ public class CreateMessage extends Fragment {
 
     public void inviteToGroupSubmit(HashSet<String> numberCodeIncrementList){
         if(invitedUsers != null && !invitedUsers.isEmpty()){
-            int secondToLastIndex = inviteTargetRoom.getUsers().size() - 2;
             int i = 0;
             for(String username : inviteTargetRoom.getUsers()){
                 if(username.indexOf('*') > 0){
@@ -485,7 +510,7 @@ public class CreateMessage extends Fragment {
 
             for(String invitedUsername:invitedUsers){
                 if(!numberCodeIncrementList.contains(invitedUsername)){ //skip users in this hash set because they're already in the usersList
-                    inviteTargetRoom.getUsers().add(secondToLastIndex, invitedUsername); //inserting to second-to-last index, to keep the room creator as last entry in the list
+                    inviteTargetRoom.getUsers().add(invitedUsername);
                 }
             }
 
@@ -743,7 +768,7 @@ public class CreateMessage extends Fragment {
         mFirebaseDatabaseReference.child(activity.getUserPath()+"contacts").orderByKey().limitToFirst(39).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if(dataSnapshot != null){
+                if(dataSnapshot != null && dataSnapshot.getChildrenCount() > 0){
                     StringBuilder strBuilder = new StringBuilder((56*(int)dataSnapshot.getChildrenCount()) - 1);
                     int i = 0;
                     for(DataSnapshot child : dataSnapshot.getChildren()){
@@ -796,7 +821,7 @@ public class CreateMessage extends Fragment {
                     boolean firstItem = true;
                     int startingPosition = messageContacts.size();
                     int newItemCount = 0;
-                    if(dataSnapshot != null){
+                    if(dataSnapshot != null && dataSnapshot.getChildrenCount() > 0){
                         StringBuilder strBuilder = new StringBuilder((56*(int)dataSnapshot.getChildrenCount()) - 1);
                         int i = 0;
                         for(DataSnapshot child : dataSnapshot.getChildren()){
