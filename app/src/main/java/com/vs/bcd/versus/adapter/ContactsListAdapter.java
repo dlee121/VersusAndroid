@@ -69,6 +69,12 @@ public class ContactsListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
         final String contactUsername = contactsList.get(position);
         final UserSearchViewHolder userSearchViewHolder = (UserSearchViewHolder) holder;
+        if (getItemCount() == 1){
+            userSearchViewHolder.divider.setVisibility(View.INVISIBLE);
+        }
+        else{
+            userSearchViewHolder.divider.setVisibility(View.VISIBLE);
+        }
 
 
         if(activity.isInviteMode()){
@@ -195,12 +201,14 @@ public class ContactsListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         CircleImageView contactProfileImg;
         TextView contactName;
         ImageView checkMark;
+        View divider;
 
         public UserSearchViewHolder(View v) {
             super(v);
             contactProfileImg = (CircleImageView) itemView.findViewById(R.id.search_user_photo);
             contactName = (TextView) itemView.findViewById(R.id.search_username);
             checkMark = (ImageView) itemView.findViewById(R.id.check_circle);
+            divider = itemView.findViewById(R.id.user_item_divider);
         }
     }
 

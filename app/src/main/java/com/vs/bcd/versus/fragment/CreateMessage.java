@@ -519,7 +519,7 @@ public class CreateMessage extends Fragment {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             String messagePath = Integer.toString(getUsernameHash(pureUsername))+"/"+pureUsername+"/messages/"+inviteTargetRoomNum;
-                            mFirebaseDatabaseReference.child(messagePath).setValue(eventMessage);
+                            mFirebaseDatabaseReference.child(messagePath).push().setValue(eventMessage);
                         }
                     });
                 }
@@ -530,7 +530,7 @@ public class CreateMessage extends Fragment {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             String messagePath = Integer.toString(getUsernameHash(username))+"/"+username+"/messages/"+inviteTargetRoomNum;
-                            mFirebaseDatabaseReference.child(messagePath).setValue(eventMessage);
+                            mFirebaseDatabaseReference.child(messagePath).push().setValue(eventMessage);
                         }
                     });
                 }

@@ -36,8 +36,10 @@
         app:srcCompat="@drawable/ic_check_circle_unchecked_24dp" />
 
     <View
+        android:id="@+id/user_item_divider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
+        android:visibility="visible"
         android:background="@android:color/darker_gray"
         android:layout_below="@id/search_user_photo"
         android:layout_marginTop="4dp"/>

@@ -5,6 +5,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -1256,19 +1257,30 @@ public class MessengerFragment extends Fragment {
         mFirebaseDatabaseReference.child(Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/unread/" + roomNum).removeValue();
 
         String roomEditPath;
+        int leaveCount = 1;
         final ArrayList<String> newUsersList = roomObject.getUsers();
         for(int i = 0; i < newUsersList.size(); i++){
             String username = newUsersList.get(i);
-            if(username.contains(mUsername)){
+            String pureUsername;
+            if(username.indexOf('*')>0){
+                pureUsername = username.substring(0, username.indexOf('*'));
+            }
+            else{
+                pureUsername = username;
+            }
+
+            if(pureUsername.equals(mUsername)){
                 int asteriskIndex = username.indexOf('*');
                 if(asteriskIndex > 0){
                     int numberCode = Integer.parseInt(username.substring(asteriskIndex + 1));
                     switch (numberCode){
                         case 1:
                             username = username.substring(0, asteriskIndex) + "*2";
+                            leaveCount = 2;
                             break;
                         case 3:
                             username = username.substring(0, asteriskIndex) + "*4";
+                            leaveCount = 3;
                             break;
                         default:
                             //safety
@@ -1279,11 +1291,39 @@ public class MessengerFragment extends Fragment {
                 }
                 else{
                     username = mUsername + "*0";
+                    leaveCount = 1;
                     newUsersList.set(i, username);
                 }
+                break;
             }
         }
-        final MessageObject messageObject = new MessageObject(mUsername + " left", null, null);
+        String eventMessageString;
+        String secondString = ".";
+        switch (leaveCount){
+            case 1:
+                eventMessageString = mUsername + " left";
+                break;
+            case 2:
+                eventMessageString = mUsername + " left the group again";
+                secondString = mUsername + " has one invite left";
+                break;
+            case 3:
+                eventMessageString = mUsername + " left the group indefinitely";
+                break;
+            default:
+                eventMessageString = mUsername + " left";
+                break;
+        }
+
+        final int leaveCountFinal = leaveCount;
+        final MessageObject messageObject = new MessageObject(eventMessageString, null, null);
+        final MessageObject secondMessage;
+        if(leaveCount == 2){
+            secondMessage = new MessageObject(secondString, null, null);
+        }
+        else{
+            secondMessage = null;
+        }
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/users", newUsersList);
         for (String username : newUsersList) {
@@ -1304,8 +1344,22 @@ public class MessengerFragment extends Fragment {
                                 else {
                                     room.setUsers(newUsersList);
                                     mutableData.setValue(room);
-                                    String WRITE_PATH = getUsernameHash(pureUsername) + "/" + pureUsername + "/messages/" + roomNum;
-                                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                                    if(leaveCountFinal == 2){
+                                        final String WRITE_PATH = getUsernameHash(pureUsername) + "/" + pureUsername + "/messages/" + roomNum;
+                                        mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+                                                if(secondMessage != null){
+                                                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(secondMessage);
+                                                }
+                                            }
+                                        });
+                                    }
+                                    else{
+                                        String WRITE_PATH = getUsernameHash(pureUsername) + "/" + pureUsername + "/messages/" + roomNum;
+                                        mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                                    }
+
                                 }
                             }
                             return Transaction.success(mutableData);
@@ -1333,8 +1387,20 @@ public class MessengerFragment extends Fragment {
                             else {
                                 room.setUsers(newUsersList);
                                 mutableData.setValue(room);
-                                String WRITE_PATH = getUsernameHash(finalUsername) + "/" + finalUsername + "/messages/" + roomNum;
-                                mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                                final String WRITE_PATH = getUsernameHash(finalUsername) + "/" + finalUsername + "/messages/" + roomNum;
+                                if(leaveCountFinal == 2){
+                                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if(secondMessage != null){
+                                                mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(secondMessage);
+                                            }
+                                        }
+                                    });
+                                }
+                                else{
+                                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                                }
                             }
                         }
                         return Transaction.success(mutableData);
