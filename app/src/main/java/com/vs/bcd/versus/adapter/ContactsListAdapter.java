@@ -70,16 +70,13 @@ public class ContactsListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         final String contactUsername = contactsList.get(position);
         final UserSearchViewHolder userSearchViewHolder = (UserSearchViewHolder) holder;
 
-        Log.d("inviteMode", "yoy?" + getItemCount());
 
         if(activity.isInviteMode()){
-            Log.d("inviteMode", "yes");
             if(inviteTargetUsersList == null){
                 inviteTargetUsersList = thisFragment.getInviteTargetRoomUsersList();
             }
             if(inviteTargetUsersList != null){
                 Integer numberCode = inviteTargetUsersList.get(contactUsername);
-                Log.d("diidi", contactUsername+" "+numberCode);
                 if(numberCode == null){ //this user is not yet in the room, so eligible for invite
                     userSearchViewHolder.contactName.setTextColor(Color.BLACK);
                     userSearchViewHolder.contactProfileImg.setColorFilter(null);
@@ -139,7 +136,6 @@ public class ContactsListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             }
         }
         else{
-            Log.d("inviteMode", "noy");
             userSearchViewHolder.contactName.setTextColor(Color.BLACK);
             userSearchViewHolder.contactProfileImg.setColorFilter(null);
 

@@ -2,6 +2,7 @@ package com.vs.bcd.versus.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -22,6 +23,8 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.ListPreloader;
 import com.bumptech.glide.integration.recyclerview.RecyclerViewPreloader;
 import com.bumptech.glide.util.FixedPreloadSizeProvider;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -36,6 +39,7 @@ import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.InvitedUserAdapter;
 import com.vs.bcd.versus.adapter.ContactsListAdapter;
 import com.vs.bcd.versus.model.AWSV4Auth;
+import com.vs.bcd.versus.model.MessageObject;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.RoomObject;
 import com.vs.bcd.versus.model.SessionManager;
@@ -119,6 +123,7 @@ public class CreateMessage extends Fragment {
     private boolean settingUpInitialList = false;
     private HashMap<String, Integer> profileImgVersions = new HashMap<>();
     private RoomObject inviteTargetRoom = null;
+    private String inviteTargetRoomNum = null;
 
 
     @Override
@@ -389,8 +394,9 @@ public class CreateMessage extends Fragment {
         }
     }
 
-    public void setInviteTargetRoom(RoomObject targetRoom){
+    public void setInviteTargetRoom(RoomObject targetRoom, String roomNum){
         inviteTargetRoom = targetRoom;
+        inviteTargetRoomNum = roomNum;
     }
 
     public void notifyDataSetChanged(){
@@ -448,6 +454,99 @@ public class CreateMessage extends Fragment {
         userSearchRV.scrollToPosition(firstVisible);
     }
 
+    private int getUsernameHash(String username){
+        int usernameHash;
+        if(username.length() < 5){
+            usernameHash = username.hashCode();
+        }
+        else {
+            String hashIn = "" + username.charAt(0) + username.charAt(username.length() - 2) + username.charAt(1) + username.charAt(username.length() - 1);
+            usernameHash = hashIn.hashCode();
+        }
+
+        return usernameHash;
+    }
+
+
+    public void inviteToGroupSubmit(HashSet<String> numberCodeIncrementList){
+        if(invitedUsers != null && !invitedUsers.isEmpty()){
+            int secondToLastIndex = inviteTargetRoom.getUsers().size() - 2;
+            int i = 0;
+            for(String username : inviteTargetRoom.getUsers()){
+                if(username.indexOf('*') > 0){
+                    String pureUsername = username.substring(0, username.indexOf('*'));
+                    if(numberCodeIncrementList.contains(pureUsername)){
+                        int numberCode = Integer.parseInt(username.substring(username.indexOf('*')+1));
+                        inviteTargetRoom.getUsers().set(i, pureUsername+"*"+Integer.toString(numberCode+1));
+                    }
+                }
+                i++;
+            }
+
+            for(String invitedUsername:invitedUsers){
+                if(!numberCodeIncrementList.contains(invitedUsername)){ //skip users in this hash set because they're already in the usersList
+                    inviteTargetRoom.getUsers().add(secondToLastIndex, invitedUsername); //inserting to second-to-last index, to keep the room creator as last entry in the list
+                }
+            }
+
+            final String targetRoomNum = inviteTargetRoomNum;
+
+            StringBuilder strBuilder = new StringBuilder();
+            int j = 0;
+            for(String username: invitedUsers){
+                if(j == invitedUsers.size()-1){
+                    strBuilder.append(username).append("!");
+                }
+                else{
+                    strBuilder.append(username).append(", ");
+                }
+                j++;
+            }
+
+            String eventMessageString = mUsername + " invited " + strBuilder.toString();
+            inviteTargetRoom.setPreview(eventMessageString);
+            inviteTargetRoom.setTime(System.currentTimeMillis());
+
+            //TODO: this can be further optimized by instead of sending a whole room object, we only update the users list for existing users and only set up new room for new user.
+            //TODO: also the preview and time would be set twice since we're also sending an event message after setting up the room. So getting rid of that intersection would further optimize the process, if it is done safely and reliably.
+            final MessageObject eventMessage = new MessageObject(eventMessageString, null, null);
+            for(final String username : inviteTargetRoom.getUsers()){
+                if(username.indexOf('*') > 0){
+                    final String pureUsername = username.substring(0, username.indexOf('*'));
+                    String roomPath = Integer.toString(getUsernameHash(pureUsername))+"/"+pureUsername+"/r/"+inviteTargetRoomNum;
+
+                    mFirebaseDatabaseReference.child(roomPath).setValue(inviteTargetRoom).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            String messagePath = Integer.toString(getUsernameHash(pureUsername))+"/"+pureUsername+"/messages/"+inviteTargetRoomNum;
+                            mFirebaseDatabaseReference.child(messagePath).setValue(eventMessage);
+                        }
+                    });
+                }
+                else{
+                    String roomPath = Integer.toString(getUsernameHash(username))+"/"+username+"/r/"+inviteTargetRoomNum;
+
+                    mFirebaseDatabaseReference.child(roomPath).setValue(inviteTargetRoom).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            String messagePath = Integer.toString(getUsernameHash(username))+"/"+username+"/messages/"+inviteTargetRoomNum;
+                            mFirebaseDatabaseReference.child(messagePath).setValue(eventMessage);
+                        }
+                    });
+                }
+            }
+
+            activity.getMessageRoom().setUpRoom(inviteTargetRoomNum, inviteTargetRoom.getUsers(), inviteTargetRoom.getName());
+            activity.getViewPager().setCurrentItem(11);
+        } else{
+            if(mToast != null){
+                mToast.cancel();
+            }
+            mToast = Toast.makeText(activity, "No user selected.", Toast.LENGTH_SHORT);
+            mToast.show();
+        }
+    }
+
     public void createMessageRoom(){
         if(invitedUsers != null && !invitedUsers.isEmpty()){
             //set up a new message room and go into it. actual message room in DB is created with the sending of its first message.
@@ -461,7 +560,7 @@ public class CreateMessage extends Fragment {
             if(mToast != null){
                 mToast.cancel();
             }
-            mToast = Toast.makeText(activity, "Please add recipient(s).", Toast.LENGTH_SHORT);
+            mToast = Toast.makeText(activity, "No user selected.", Toast.LENGTH_SHORT);
             mToast.show();
         }
     }

@@ -1473,7 +1473,7 @@ public class MessengerFragment extends Fragment {
                 if(!isDM){ //GroupChat
                     switch (position){
                         case 0:
-                            activity.getCreateMessageFragment().setInviteTargetRoom(roomObject);
+                            activity.getCreateMessageFragment().setInviteTargetRoom(roomObject, roomNum);
                             inviteToGroup();
                             break;
 
@@ -1561,7 +1561,6 @@ public class MessengerFragment extends Fragment {
         activity.setInviteMode(true);
         activity.getCreateMessageFragment().notifyDataSetChanged();
         activity.getViewPager().setCurrentItem(12);
-
 
     }
 

@@ -100,6 +100,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 
 
 public class MainContainer extends AppCompatActivity {
@@ -173,7 +174,7 @@ public class MainContainer extends AppCompatActivity {
     private boolean showBadge = false;
     private boolean removeMode = false;
     private boolean inviteMode = false;
-    private ArrayList<String> inviteNumberCodeUpdateList = new ArrayList<>();
+    private HashSet<String> inviteNumberCodeUpdateList = new HashSet<>();
 
     private String esHost = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
     private String esRegion = "us-east-1";
@@ -690,56 +691,69 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 12:    //CreateMessage fragment
-                        final String dmTarget = createMessageFragment.getDMTarget();
-                        if(!(dmTarget.equals(""))){
-                            mFirebaseDatabaseReference.child(getUserPath()+"dm/"+dmTarget).addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(DataSnapshot dataSnapshot) {
-                                    if (dataSnapshot.exists()) {
-                                        ArrayList<String> usersList = new ArrayList<>();
-                                        usersList.add(dmTarget);
-                                        usersList.add(currUsername);
-                                        setUpAndOpenMessageRoom(dataSnapshot.getValue(String.class), usersList, dmTarget);
-                                    }
-                                    else {
-                                        int dmTargetHash;
-                                        if(dmTarget.length() < 5){
-                                            dmTargetHash = dmTarget.hashCode();
+                        if(inviteMode){
+                            createMessageFragment.inviteToGroupSubmit(inviteNumberCodeUpdateList);
+                            inviteMode = false;
+                        }
+                        else if(removeMode){
+
+
+
+
+                        }
+                        else{ //actual Create Message
+                            final String dmTarget = createMessageFragment.getDMTarget();
+                            if(!(dmTarget.equals(""))){
+                                mFirebaseDatabaseReference.child(getUserPath()+"dm/"+dmTarget).addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        if (dataSnapshot.exists()) {
+                                            ArrayList<String> usersList = new ArrayList<>();
+                                            usersList.add(dmTarget);
+                                            usersList.add(currUsername);
+                                            setUpAndOpenMessageRoom(dataSnapshot.getValue(String.class), usersList, dmTarget);
                                         }
                                         else {
-                                            String hashIn = "" + dmTarget.charAt(0) + dmTarget.charAt(dmTarget.length() - 2) + dmTarget.charAt(1) + dmTarget.charAt(dmTarget.length() - 1);
-                                            dmTargetHash = hashIn.hashCode();
+                                            int dmTargetHash;
+                                            if(dmTarget.length() < 5){
+                                                dmTargetHash = dmTarget.hashCode();
+                                            }
+                                            else {
+                                                String hashIn = "" + dmTarget.charAt(0) + dmTarget.charAt(dmTarget.length() - 2) + dmTarget.charAt(1) + dmTarget.charAt(dmTarget.length() - 1);
+                                                dmTargetHash = hashIn.hashCode();
+                                            }
+
+                                            String targetDMPath = Integer.toString(dmTargetHash) + "/" + dmTarget + "/dm/" + getUsername();
+                                            mFirebaseDatabaseReference.child(targetDMPath).addListenerForSingleValueEvent(new ValueEventListener() {
+                                                @Override
+                                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                                    if(dataSnapshot.exists()){
+                                                        getCreateMessageFragment().createMessageRoom(dataSnapshot.getValue(String.class));
+                                                    }
+                                                    else{
+                                                        getCreateMessageFragment().createMessageRoom();
+                                                    }
+                                                }
+
+                                                @Override
+                                                public void onCancelled(DatabaseError databaseError) {
+
+                                                }
+                                            });
                                         }
-
-                                        String targetDMPath = Integer.toString(dmTargetHash) + "/" + dmTarget + "/dm/" + getUsername();
-                                        mFirebaseDatabaseReference.child(targetDMPath).addListenerForSingleValueEvent(new ValueEventListener() {
-                                            @Override
-                                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                                if(dataSnapshot.exists()){
-                                                    getCreateMessageFragment().createMessageRoom(dataSnapshot.getValue(String.class));
-                                                }
-                                                else{
-                                                    getCreateMessageFragment().createMessageRoom();
-                                                }
-                                            }
-
-                                            @Override
-                                            public void onCancelled(DatabaseError databaseError) {
-
-                                            }
-                                        });
                                     }
-                                }
 
-                                @Override
-                                public void onCancelled(DatabaseError databaseError) {
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
 
-                                }
-                            });
+                                    }
+                                });
+                            }
+                            else{
+                                createMessageFragment.createMessageRoom();
+                            }
                         }
-                        else{
-                            createMessageFragment.createMessageRoom();
-                        }
+
                         break;
                 }
             }
@@ -1976,7 +1990,7 @@ public class MainContainer extends AppCompatActivity {
         inviteMode = mode;
         if(mode == true){
             if(inviteNumberCodeUpdateList == null){
-                inviteNumberCodeUpdateList = new ArrayList<>();
+                inviteNumberCodeUpdateList = new HashSet<>();
             }
             else{
                 inviteNumberCodeUpdateList.clear();
