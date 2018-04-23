@@ -1866,4 +1866,14 @@ public class MessengerFragment extends Fragment {
         clickedRoomNum = roomNumInput;
     }
 
+    public boolean closeListPopupWindow(){
+        if(listPopupWindow != null && listPopupWindow.isShowing()){
+            listPopupWindow.dismiss();
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
 }

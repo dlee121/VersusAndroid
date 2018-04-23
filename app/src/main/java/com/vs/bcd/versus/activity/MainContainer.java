@@ -193,6 +193,9 @@ public class MainContainer extends AppCompatActivity {
             enableClicksForListPopupWindowClose();
             return;
         }
+        if(messengerFragment != null && messengerFragment.closeListPopupWindow()){
+            return;
+        }
         meClicked = false;
         int mainContainerCurrentItem = mViewPager.getCurrentItem();
         int mainActivityCurrentItem = getMainFrag().getViewPager().getCurrentItem();
