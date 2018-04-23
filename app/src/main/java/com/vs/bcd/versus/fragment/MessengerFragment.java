@@ -1245,7 +1245,7 @@ public class MessengerFragment extends Fragment {
         //rNameToRNumAndUListMap.remove(roomName);
     }
 
-    private void leaveRoom(final String roomNum, RoomObject roomObject){
+    private void leaveRoom(final String roomNum, RoomObject roomObject, boolean isAdmin){
         //rNameToRNumAndUListMap.remove(roomObject.getName());
 
         String roomTarget = Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/r";
@@ -1299,6 +1299,28 @@ public class MessengerFragment extends Fragment {
         }
         String eventMessageString;
         String secondString = ".";
+        String thirdString = ".";
+
+        if(isAdmin){
+            //find next available room admin
+            int numberCode;
+            for(String username : newUsersList){
+                if(username.indexOf('*') > 0){
+                    numberCode = Integer.parseInt(username.substring(username.indexOf('*') + 1));
+                    if(numberCode == 1 || numberCode == 3){
+                        thirdString = username.substring(0, username.indexOf('*')) + " is the new room admin!";
+                        break;
+                    }
+                }
+                else{
+                    thirdString = username + " is the new room admin!";
+                    break;
+                }
+
+            }
+
+        }
+
         switch (leaveCount){
             case 1:
                 eventMessageString = mUsername + " left";
@@ -1318,11 +1340,18 @@ public class MessengerFragment extends Fragment {
         final int leaveCountFinal = leaveCount;
         final MessageObject messageObject = new MessageObject(eventMessageString, null, null);
         final MessageObject secondMessage;
+        final MessageObject thirdMessage;
         if(leaveCount == 2){
             secondMessage = new MessageObject(secondString, null, null);
         }
         else{
             secondMessage = null;
+        }
+        if(isAdmin){
+            thirdMessage = new MessageObject(thirdString, null, null);
+        }
+        else{
+            thirdMessage = null;
         }
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/users", newUsersList);
@@ -1344,22 +1373,14 @@ public class MessengerFragment extends Fragment {
                                 else {
                                     room.setUsers(newUsersList);
                                     mutableData.setValue(room);
-                                    if(leaveCountFinal == 2){
-                                        final String WRITE_PATH = getUsernameHash(pureUsername) + "/" + pureUsername + "/messages/" + roomNum;
-                                        mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                            @Override
-                                            public void onComplete(@NonNull Task<Void> task) {
-                                                if(secondMessage != null){
-                                                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(secondMessage);
-                                                }
-                                            }
-                                        });
+                                    String WRITE_PATH = getUsernameHash(pureUsername) + "/" + pureUsername + "/messages/" + roomNum;
+                                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                                    if(secondMessage != null){
+                                        mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(secondMessage);
                                     }
-                                    else{
-                                        String WRITE_PATH = getUsernameHash(pureUsername) + "/" + pureUsername + "/messages/" + roomNum;
-                                        mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
+                                    if(thirdMessage != null){
+                                        mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(thirdMessage);
                                     }
-
                                 }
                             }
                             return Transaction.success(mutableData);
@@ -1554,14 +1575,14 @@ public class MessengerFragment extends Fragment {
                                 }
                             }
                             else{
-                                leaveRoom(roomNum, roomObject);
+                                leaveRoom(roomNum, roomObject, isRoomAdminFinal);
                                 unmuteRoom(roomNum);
                             }
 
                             break;
 
                         case 3: //fourth option is only shown for room admin since room admin gets one more option of Remove User inserted at index 1
-                            leaveRoom(roomNum, roomObject);
+                            leaveRoom(roomNum, roomObject, isRoomAdminFinal);
                             unmuteRoom(roomNum);
 
                             break;
