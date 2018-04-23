@@ -1,6 +1,7 @@
 package com.vs.bcd.versus.adapter;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -21,6 +22,7 @@ import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.model.GlideApp;
 import com.vs.bcd.versus.model.GlideUrlCustom;
 import com.vs.bcd.versus.model.Post;
+import com.vs.bcd.versus.model.RoomObject;
 import com.vs.bcd.versus.model.UserSearchItem;
 
 import java.util.Collections;
@@ -39,6 +41,8 @@ public class ContactsListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     private HashMap<String, Integer> profileImgVersions;
     private int profileImgDimension;
     private Drawable defaultProfileImage;
+    private RoomObject inviteTargetRoom = null;
+    private HashMap<String, Integer> inviteTargetUsersList = null;
 
     public ContactsListAdapter(List<String> contactsList, MainContainer activity, CreateMessage thisFragment, HashMap<String, Integer> profileImgVersions) {
         this.contactsList = contactsList;
@@ -56,11 +60,106 @@ public class ContactsListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         return new UserSearchViewHolder(view);
     }
 
+    public void setInviteTargetUsersListNull(){
+        inviteTargetUsersList = null;
+    }
+
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
         final String contactUsername = contactsList.get(position);
         final UserSearchViewHolder userSearchViewHolder = (UserSearchViewHolder) holder;
+
+        Log.d("inviteMode", "yoy?" + getItemCount());
+
+        if(activity.isInviteMode()){
+            Log.d("inviteMode", "yes");
+            if(inviteTargetUsersList == null){
+                inviteTargetUsersList = thisFragment.getInviteTargetRoomUsersList();
+            }
+            if(inviteTargetUsersList != null){
+                Integer numberCode = inviteTargetUsersList.get(contactUsername);
+                Log.d("diidi", contactUsername+" "+numberCode);
+                if(numberCode == null){ //this user is not yet in the room, so eligible for invite
+                    userSearchViewHolder.contactName.setTextColor(Color.BLACK);
+                    userSearchViewHolder.contactProfileImg.setColorFilter(null);
+
+                    userSearchViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            if(!checkedItems.contains(contactUsername)){
+                                userSearchViewHolder.checkMark.setVisibility(View.VISIBLE);
+                                checkedItems.add(contactUsername);
+                                thisFragment.addToInvitedList(contactUsername);
+                            }
+                            else {
+                                userSearchViewHolder.checkMark.setVisibility(View.INVISIBLE);
+                                checkedItems.remove(contactUsername);
+                                thisFragment.removeFromInvitedList(contactUsername);
+                            }
+                        }
+                    });
+
+                }
+                else if(numberCode.intValue() < 0 || numberCode.intValue() == 1 || numberCode.intValue() == 3){ //this user is already in the room so not eligible for invite
+                    userSearchViewHolder.contactName.setTextColor(Color.GRAY);
+                    userSearchViewHolder.contactProfileImg.setColorFilter(Color.argb(180, 136, 136, 136));
+                    userSearchViewHolder.itemView.setOnClickListener(null);
+                }
+                else if(numberCode.intValue() == 0 || numberCode.intValue() == 2){ //this user left the room once or twice, so increment their numberCode once they're added to the room in DB
+                    userSearchViewHolder.contactName.setTextColor(Color.BLACK);
+                    userSearchViewHolder.contactProfileImg.setColorFilter(null);
+
+                    userSearchViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            if(!checkedItems.contains(contactUsername)){
+                                userSearchViewHolder.checkMark.setVisibility(View.VISIBLE);
+                                checkedItems.add(contactUsername);
+                                thisFragment.addToInvitedList(contactUsername);
+
+                                activity.addToInviteNumberCodeUpdateList(contactUsername);
+                            }
+                            else {
+                                userSearchViewHolder.checkMark.setVisibility(View.INVISIBLE);
+                                checkedItems.remove(contactUsername);
+                                thisFragment.removeFromInvitedList(contactUsername);
+
+                                activity.removeFromInviteNumberCodeUpdateList(contactUsername);
+                            }
+                        }
+                    });
+
+                }
+                else{ //this means numberCode == 4, meaning the user is not eligible for invite because they left the room three times
+                    userSearchViewHolder.contactName.setTextColor(Color.GRAY);
+                    userSearchViewHolder.contactProfileImg.setColorFilter(Color.argb(180, 136, 136, 136));
+                    userSearchViewHolder.itemView.setOnClickListener(null);
+                }
+            }
+        }
+        else{
+            Log.d("inviteMode", "noy");
+            userSearchViewHolder.contactName.setTextColor(Color.BLACK);
+            userSearchViewHolder.contactProfileImg.setColorFilter(null);
+
+            userSearchViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(!checkedItems.contains(contactUsername)){
+                        userSearchViewHolder.checkMark.setVisibility(View.VISIBLE);
+                        checkedItems.add(contactUsername);
+                        thisFragment.addToInvitedList(contactUsername);
+                    }
+                    else {
+                        userSearchViewHolder.checkMark.setVisibility(View.INVISIBLE);
+                        checkedItems.remove(contactUsername);
+                        thisFragment.removeFromInvitedList(contactUsername);
+                    }
+                }
+            });
+        }
+
         if(thisFragment.isNewContact(contactUsername)){
             String contactString = contactUsername + "\tNEW";
             userSearchViewHolder.contactName.setText(contactString);
@@ -89,23 +188,6 @@ public class ContactsListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         }catch (Throwable t){
 
         }
-
-
-        userSearchViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(!checkedItems.contains(contactUsername)){
-                    userSearchViewHolder.checkMark.setVisibility(View.VISIBLE);
-                    checkedItems.add(contactUsername);
-                    thisFragment.addToInvitedList(contactUsername);
-                }
-                else {
-                    userSearchViewHolder.checkMark.setVisibility(View.INVISIBLE);
-                    checkedItems.remove(contactUsername);
-                    thisFragment.removeFromInvitedList(contactUsername);
-                }
-            }
-        });
     }
 
     @Override

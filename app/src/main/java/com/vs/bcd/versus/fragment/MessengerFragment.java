@@ -357,6 +357,8 @@ public class MessengerFragment extends Fragment {
             public void onClick(View view) {
                 //TODO: open Send New Message UI (so also implement that UI in XML) and set up related stuff
                 activity.setRemoveMode(false);
+                activity.setInviteMode(false);
+                activity.getCreateMessageFragment().setInviteTargetUsersListNull();
                 activity.getViewPager().setCurrentItem(13);
             }
         });
@@ -1471,6 +1473,7 @@ public class MessengerFragment extends Fragment {
                 if(!isDM){ //GroupChat
                     switch (position){
                         case 0:
+                            activity.getCreateMessageFragment().setInviteTargetRoom(roomObject);
                             inviteToGroup();
                             break;
 
@@ -1553,12 +1556,19 @@ public class MessengerFragment extends Fragment {
     }
 
     private void inviteToGroup(){
+        activity.getCreateMessageFragment().setInviteTargetUsersListNull();
         activity.setRemoveMode(false);
+        activity.setInviteMode(true);
+        activity.getCreateMessageFragment().notifyDataSetChanged();
+        activity.getViewPager().setCurrentItem(12);
+
 
     }
 
     private void removeFromGroup(){
+        activity.getCreateMessageFragment().setInviteTargetUsersListNull();
         activity.setRemoveMode(true);
+        activity.setInviteMode(false);
 
     }
 

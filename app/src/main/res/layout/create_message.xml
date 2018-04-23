@@ -9,13 +9,14 @@
         android:layout_height="wrap_content"
         android:textColor="@color/vsBlue"
         android:textSize="18sp"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="4dp"
         android:text="Invite" />
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/invited_users_rv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="4dp"
         android:layout_below="@id/invited_tv"/>
 
     <EditText

@@ -171,7 +171,9 @@ public class MainContainer extends AppCompatActivity {
     private int messengerBackTarget = 0;
     private TextView messengerButtonBadge;
     private boolean showBadge = false;
-    private boolean removeMode = true;
+    private boolean removeMode = false;
+    private boolean inviteMode = false;
+    private ArrayList<String> inviteNumberCodeUpdateList = new ArrayList<>();
 
     private String esHost = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
     private String esRegion = "us-east-1";
@@ -1968,6 +1970,38 @@ public class MainContainer extends AppCompatActivity {
 
     public void setRemoveMode(boolean mode){
         removeMode = mode;
+    }
+
+    public void setInviteMode(boolean mode){
+        inviteMode = mode;
+        if(mode == true){
+            if(inviteNumberCodeUpdateList == null){
+                inviteNumberCodeUpdateList = new ArrayList<>();
+            }
+            else{
+                inviteNumberCodeUpdateList.clear();
+            }
+        }
+    }
+
+    public void addToInviteNumberCodeUpdateList(String username){
+        if(inviteNumberCodeUpdateList != null){
+            inviteNumberCodeUpdateList.add(username);
+        }
+    }
+
+    public void removeFromInviteNumberCodeUpdateList(String username){
+        if(inviteNumberCodeUpdateList != null){
+            inviteNumberCodeUpdateList.remove(username);
+        }
+    }
+
+    public boolean isRemoveMode(){
+        return removeMode;
+    }
+
+    public boolean isInviteMode(){
+        return inviteMode;
     }
 
 }

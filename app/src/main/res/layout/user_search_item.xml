@@ -23,6 +23,7 @@
         android:layout_toEndOf="@id/search_user_photo"
         android:layout_toStartOf="@+id/check_circle"
         android:layout_centerVertical="true"
+        android:textColor="#000"
         android:text="TextView" />
 
     <ImageView

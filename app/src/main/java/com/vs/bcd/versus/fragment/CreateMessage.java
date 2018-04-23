@@ -37,6 +37,7 @@ import com.vs.bcd.versus.adapter.InvitedUserAdapter;
 import com.vs.bcd.versus.adapter.ContactsListAdapter;
 import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.Post;
+import com.vs.bcd.versus.model.RoomObject;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.UserSearchItem;
 
@@ -117,6 +118,7 @@ public class CreateMessage extends Fragment {
     private boolean nowLoading = false;
     private boolean settingUpInitialList = false;
     private HashMap<String, Integer> profileImgVersions = new HashMap<>();
+    private RoomObject inviteTargetRoom = null;
 
 
     @Override
@@ -217,7 +219,13 @@ public class CreateMessage extends Fragment {
         }
         if(invitedUsers == null){
             invitedUsers = new ArrayList<>();
-            invitedUserAdapter = new InvitedUserAdapter(invitedUsers, getActivity(), thisFragment);
+            if(activity != null){
+                invitedUserAdapter = new InvitedUserAdapter(invitedUsers, activity, thisFragment, profileImgVersions);
+            }
+            else{
+                invitedUserAdapter = new InvitedUserAdapter(invitedUsers, (MainContainer) getActivity(), thisFragment, profileImgVersions);
+            }
+
             invitedUsersRV.setAdapter(invitedUserAdapter);
         }
         if(messageContacts == null){
@@ -376,9 +384,45 @@ public class CreateMessage extends Fragment {
         if(invitedUsers.size() == 1){
             showInvitedTV();
         }
-        if(invitedUsers.size() > 10){
+        if(invitedUsers.size() > 8){
             invitedUsersRV.scrollToPosition(invitedUsers.size()-1);
         }
+    }
+
+    public void setInviteTargetRoom(RoomObject targetRoom){
+        inviteTargetRoom = targetRoom;
+    }
+
+    public void notifyDataSetChanged(){
+        if(contactsListAdapter != null){
+            contactsListAdapter.notifyDataSetChanged();
+        }
+    }
+
+    public RoomObject getInviteTargetRoom(){
+        return inviteTargetRoom;
+    }
+
+    public void setInviteTargetUsersListNull(){
+        if(contactsListAdapter != null){
+            contactsListAdapter.setInviteTargetUsersListNull();
+        }
+    }
+
+    public HashMap<String, Integer> getInviteTargetRoomUsersList(){
+        HashMap<String, Integer> inviteTargetRoomUsersMap = new HashMap<>();
+        for(String usernameAndNumberCode : inviteTargetRoom.getUsers()){
+            Log.d("thisgroup", usernameAndNumberCode);
+            int numberCodeIndex = usernameAndNumberCode.indexOf('*');
+            if(numberCodeIndex > 0){
+                inviteTargetRoomUsersMap.put(usernameAndNumberCode
+                        .substring(0, numberCodeIndex), Integer.parseInt(usernameAndNumberCode.substring(numberCodeIndex+1)));
+            }
+            else{
+                inviteTargetRoomUsersMap.put(usernameAndNumberCode, -1); //no numberCode
+            }
+        }
+        return inviteTargetRoomUsersMap;
     }
 
     public void removeFromInvitedList(String contactUsername){
