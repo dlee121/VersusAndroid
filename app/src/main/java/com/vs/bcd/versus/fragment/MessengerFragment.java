@@ -167,6 +167,7 @@ public class MessengerFragment extends Fragment {
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
             if(clickedRoomNum.equals(dataSnapshot.getKey())){
                 mFirebaseDatabaseReference.child(activity.getUserPath()+"unread/"+dataSnapshot.getKey()).removeValue();
+                mFirebaseDatabaseReference.child(activity.getUserPath()+"push/m/"+dataSnapshot.getKey()).removeValue();
                 ignoreThisRemoval.add(clickedRoomNum);
             }
             else{
@@ -194,7 +195,6 @@ public class MessengerFragment extends Fragment {
             if(mFirebaseAdapter != null && mFirebaseAdapter.getItemCount() > 0){
                 mFirebaseAdapter.notifyDataSetChanged();
             }
-            mFirebaseDatabaseReference.child(activity.getUserPath()+"push/m/"+dataSnapshot.getKey()).removeValue();
         }
 
         @Override
@@ -360,6 +360,7 @@ public class MessengerFragment extends Fragment {
                 activity.setRemoveMode(false);
                 activity.setInviteMode(false);
                 activity.getCreateMessageFragment().setInviteTargetUsersListNull();
+                activity.getCreateMessageFragment().setupInitialContactsList();
                 activity.getViewPager().setCurrentItem(13);
             }
         });
@@ -1241,6 +1242,7 @@ public class MessengerFragment extends Fragment {
         });
 
         mFirebaseDatabaseReference.child(Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/unread/" + roomNum).removeValue();
+        mFirebaseDatabaseReference.child(activity.getUserPath()+"push/m/"+roomNum).removeValue();
 
         //rNameToRNumAndUListMap.remove(roomName);
     }
@@ -1255,7 +1257,7 @@ public class MessengerFragment extends Fragment {
         mFirebaseDatabaseReference.child(messagesTarget).child(roomNum).removeValue();
 
         mFirebaseDatabaseReference.child(Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/unread/" + roomNum).removeValue();
-
+        mFirebaseDatabaseReference.child(activity.getUserPath()+"push/m/"+roomNum).removeValue();
         String roomEditPath;
         int leaveCount = 1;
         final ArrayList<String> newUsersList = roomObject.getUsers();
@@ -1336,23 +1338,26 @@ public class MessengerFragment extends Fragment {
                 eventMessageString = mUsername + " left";
                 break;
         }
-
-        final int leaveCountFinal = leaveCount;
-        final MessageObject messageObject = new MessageObject(eventMessageString, null, null);
-        final MessageObject secondMessage;
-        final MessageObject thirdMessage;
+        String finalString;
         if(leaveCount == 2){
-            secondMessage = new MessageObject(secondString, null, null);
+            if(isAdmin){
+                finalString = eventMessageString + "\n\n" + secondString + "\n\n" + thirdString;
+            }
+            else{
+                finalString = eventMessageString + "\n\n" + secondString;
+            }
         }
         else{
-            secondMessage = null;
+            if(isAdmin){
+                finalString = eventMessageString + "\n\n" + thirdString;
+            }
+            else{
+                finalString = eventMessageString;
+            }
         }
-        if(isAdmin){
-            thirdMessage = new MessageObject(thirdString, null, null);
-        }
-        else{
-            thirdMessage = null;
-        }
+
+        final MessageObject messageObject = new MessageObject(finalString, null, null);
+
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/users", newUsersList);
         for (String username : newUsersList) {
@@ -1375,12 +1380,6 @@ public class MessengerFragment extends Fragment {
                                     mutableData.setValue(room);
                                     String WRITE_PATH = getUsernameHash(pureUsername) + "/" + pureUsername + "/messages/" + roomNum;
                                     mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
-                                    if(secondMessage != null){
-                                        mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(secondMessage);
-                                    }
-                                    if(thirdMessage != null){
-                                        mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(thirdMessage);
-                                    }
                                 }
                             }
                             return Transaction.success(mutableData);
@@ -1396,7 +1395,6 @@ public class MessengerFragment extends Fragment {
             else{
                 final String finalUsername = username;
                 roomEditPath = Integer.toString(getUsernameHash(username)) + "/" + username + "/r/" + roomNum;
-                final String path = roomEditPath;
                 mFirebaseDatabaseReference.child(roomEditPath).runTransaction(new Transaction.Handler() {
                     @Override
                     public Transaction.Result doTransaction(MutableData mutableData) {
@@ -1409,19 +1407,7 @@ public class MessengerFragment extends Fragment {
                                 room.setUsers(newUsersList);
                                 mutableData.setValue(room);
                                 final String WRITE_PATH = getUsernameHash(finalUsername) + "/" + finalUsername + "/messages/" + roomNum;
-                                if(leaveCountFinal == 2){
-                                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<Void> task) {
-                                            if(secondMessage != null){
-                                                mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(secondMessage);
-                                            }
-                                        }
-                                    });
-                                }
-                                else{
-                                    mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
-                                }
+                                mFirebaseDatabaseReference.child(WRITE_PATH).push().setValue(messageObject);
                             }
                         }
                         return Transaction.success(mutableData);
@@ -1552,6 +1538,7 @@ public class MessengerFragment extends Fragment {
 
                         case 1:
                             if(isRoomAdminFinal){
+                                activity.getCreateMessageFragment().setRemovalTargetRoom(roomObject, roomNum);
                                 removeFromGroup(roomObject);
                             }
                             else{
@@ -1630,6 +1617,7 @@ public class MessengerFragment extends Fragment {
 
     private void inviteToGroup(){
         activity.getCreateMessageFragment().setInviteTargetUsersListNull();
+        activity.getCreateMessageFragment().setupInitialContactsList();
         activity.setRemoveMode(false);
         activity.setInviteMode(true);
         activity.getCreateMessageFragment().notifyDataSetChanged();
@@ -1638,19 +1626,22 @@ public class MessengerFragment extends Fragment {
     }
 
     private void removeFromGroup(RoomObject roomObject){
-        activity.getCreateMessageFragment().setInviteTargetUsersListNull();
+        //activity.getCreateMessageFragment().setInviteTargetUsersListNull();
+        activity.getCreateMessageFragment().setRemoveText();
         activity.setRemoveMode(true);
         activity.setInviteMode(false);
         ArrayList<String> usersList = roomObject.getUsers();
         ArrayList<String> removalCandidates = new ArrayList<>();
         for(String username : usersList) {
-            if (username.indexOf('*') > 0) {
-                int numberCode = Integer.parseInt(username.substring(username.indexOf('*') + 1));
-                if (numberCode == 1 || numberCode == 3) {
-                    removalCandidates.add(username.substring(0, username.indexOf('*')));
+            if(!username.equals(mUsername)){
+                if (username.indexOf('*') > 0) {
+                    int numberCode = Integer.parseInt(username.substring(username.indexOf('*') + 1));
+                    if (numberCode == 1 || numberCode == 3) {
+                        removalCandidates.add(username.substring(0, username.indexOf('*')));
+                    }
+                } else {
+                    removalCandidates.add(username);
                 }
-            } else {
-                removalCandidates.add(username);
             }
         }
         activity.getCreateMessageFragment().setUpRemovePage(removalCandidates);
@@ -1793,7 +1784,7 @@ public class MessengerFragment extends Fragment {
         if (isVisibleToUser) {
             if(rootView != null){
                 enableChildViews();
-                activity.getCreateMessageFragment().setupInitialContactsList();
+                //activity.getCreateMessageFragment().setupInitialContactsList();
             }
 
         }

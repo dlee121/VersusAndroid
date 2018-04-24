@@ -701,10 +701,8 @@ public class MainContainer extends AppCompatActivity {
                             inviteMode = false;
                         }
                         else if(removeMode){
-
-
-
-
+                            createMessageFragment.removeFromGroupSubmit();
+                            removeMode = false;
                         }
                         else{ //actual Create Message
                             final String dmTarget = createMessageFragment.getDMTarget();
@@ -1717,6 +1715,7 @@ public class MainContainer extends AppCompatActivity {
     public void setUpAndOpenMessageRoom(final String rnum, final ArrayList<String> usersMap, final String roomTitle){
         mViewPager.setCurrentItem(11);
         if(messengerFragment.roomIsUnread(rnum)){
+            mFirebaseDatabaseReference.child(getUserPath()+"push/m/"+rnum).removeValue();
             mFirebaseDatabaseReference.child(getUserPath()+"unread/"+rnum).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {

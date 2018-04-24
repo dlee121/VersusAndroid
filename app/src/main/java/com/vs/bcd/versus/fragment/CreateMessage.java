@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
@@ -124,6 +125,8 @@ public class CreateMessage extends Fragment {
     private HashMap<String, Integer> profileImgVersions = new HashMap<>();
     private RoomObject inviteTargetRoom = null;
     private String inviteTargetRoomNum = null;
+    private RoomObject removalTargetRoom = null;
+    private String removalTargetRoomNum = null;
 
 
     @Override
@@ -377,7 +380,9 @@ public class CreateMessage extends Fragment {
 
         contactsListAdapter = new ContactsListAdapter(removalCandidates, activity, thisFragment, profileImgVersions);
         userSearchRV.setAdapter(contactsListAdapter);
+
     }
+
 
     void filter(final String text){
 
@@ -393,30 +398,32 @@ public class CreateMessage extends Fragment {
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     if(text.equals(currentFilterText)){
                         filteredList = new ArrayList<>();
-                        StringBuilder strBuilder = new StringBuilder((56*(int)dataSnapshot.getChildrenCount()) - 1);
-                        int i = 0;
-                        for(DataSnapshot child: dataSnapshot.getChildren()){
-                            filteredList.add(child.getKey());
-                            messageContacts.add(child.getKey());
-                            localContactsSet.add(child.getKey());
-                            if(i == 0){
-                                strBuilder.append("{\"_id\":\""+child.getKey()+"\",\"_source\":\"pi\"}");
-                            }
-                            else{
-                                strBuilder.append(",{\"_id\":\""+child.getKey()+"\",\"_source\":\"pi\"}");
-                            }
-                            i++;
-                        }
-
-                        if(strBuilder.length() > 0){
-                            final String payload = "{\"docs\":["+strBuilder.toString()+"]}";
-                            Runnable runnable = new Runnable() {
-                                public void run() {
-                                    getProfileImgVersions(payload);
+                        if(dataSnapshot.hasChildren()){
+                            StringBuilder strBuilder = new StringBuilder((56*(int)dataSnapshot.getChildrenCount()) - 1);
+                            int i = 0;
+                            for(DataSnapshot child: dataSnapshot.getChildren()){
+                                filteredList.add(child.getKey());
+                                //messageContacts.add(child.getKey());
+                                localContactsSet.add(child.getKey());
+                                if(i == 0){
+                                    strBuilder.append("{\"_id\":\""+child.getKey()+"\",\"_source\":\"pi\"}");
                                 }
-                            };
-                            Thread mythread = new Thread(runnable);
-                            mythread.start();
+                                else{
+                                    strBuilder.append(",{\"_id\":\""+child.getKey()+"\",\"_source\":\"pi\"}");
+                                }
+                                i++;
+                            }
+
+                            if(strBuilder.length() > 0){
+                                final String payload = "{\"docs\":["+strBuilder.toString()+"]}";
+                                Runnable runnable = new Runnable() {
+                                    public void run() {
+                                        getProfileImgVersions(payload);
+                                    }
+                                };
+                                Thread mythread = new Thread(runnable);
+                                mythread.start();
+                            }
                         }
 
                         contactsListAdapter.updateList(filteredList);
@@ -525,10 +532,177 @@ public class CreateMessage extends Fragment {
         return usernameHash;
     }
 
+    public void setInviteText(){
+        invitedTV.setTextColor(ContextCompat.getColor(activity, R.color.vsBlue));
+        invitedTV.setText("Invite");
+    }
+
+    public void setRemoveText(){
+        invitedTV.setTextColor(ContextCompat.getColor(activity, R.color.vsRed));
+        invitedTV.setText("Remove");
+    }
+
+    public void setRemovalTargetRoom(RoomObject targetRoom, String targetRoomNum){
+        removalTargetRoom = targetRoom;
+        removalTargetRoomNum = targetRoomNum;
+    }
+
+    public void removeFromGroupSubmit(){
+        if(invitedUsers != null && !invitedUsers.isEmpty()){
+            HashSet<String> removalCandidates = new HashSet<>(invitedUsers);
+            ArrayList<String> secondTimeLeaving = new ArrayList<>();
+            ArrayList<String> thirdTimeLeaving = new ArrayList<>();
+            int secondCount = 0;
+            int thirdCount = 0;
+
+            for(int i = 0; i<removalTargetRoom.getUsers().size(); i++){
+                String username = removalTargetRoom.getUsers().get(i);
+                if(username.indexOf('*') > 0){
+                    String pureUsername = username.substring(0, username.indexOf('*'));
+                    if(removalCandidates.contains(pureUsername)){
+                        int numberCode = Integer.parseInt(username.substring(username.indexOf('*')+1));
+                        removalTargetRoom.getUsers().set(i, pureUsername+"*"+Integer.toString(numberCode + 1));
+                        switch (numberCode){
+                            case 1:
+                                secondTimeLeaving.add(pureUsername);
+                                secondCount++;
+                                break;
+
+                            case 3:
+                                thirdTimeLeaving.add(pureUsername);
+                                thirdCount++;
+                                break;
+                        }
+                    }
+                }
+                else if(removalCandidates.contains(username)){
+                    removalTargetRoom.getUsers().set(i, username+"*0");
+                }
+            }
+
+            String firstString, secondString, thirdString;
+
+            StringBuilder stringBuilder1 = new StringBuilder();
+            if(invitedUsers.size() == 1){
+                firstString = mUsername + " removed " + invitedUsers.get(0);
+            }
+            else if(invitedUsers.size() == 2){
+                firstString = mUsername + " removed " + invitedUsers.get(0) + " and " + invitedUsers.get(1);
+            }
+            else{
+                for(int i = 0; i<invitedUsers.size() - 1; i++){
+                    stringBuilder1.append(invitedUsers.get(i)).append(", ");
+                }
+                stringBuilder1.append("and ").append(invitedUsers.get(invitedUsers.size()-1));
+                firstString = mUsername + " removed " + stringBuilder1.toString();
+            }
+
+            if(!secondTimeLeaving.isEmpty()){
+                if(secondCount == 1){
+                    secondString = secondTimeLeaving.get(0) + " has one invite left";
+                }
+                else if(secondCount == 2){
+                    secondString = secondTimeLeaving.get(0) + " and " + secondTimeLeaving.get(1) + " have one invite left";
+                }
+                else{
+                    StringBuilder stringBuilder2 = new StringBuilder();
+                    for(int i=0; i<secondTimeLeaving.size()-1; i++){
+                        stringBuilder2.append(secondTimeLeaving.get(i)).append(", ");
+                    }
+                    stringBuilder2.append("and ").append(secondTimeLeaving.get(secondCount-1));
+                    secondString = stringBuilder2.toString() + " have one invite left";
+                }
+            }
+            else{
+                secondString = null;
+            }
+
+            if(!thirdTimeLeaving.isEmpty()){
+                if(thirdCount == 1){
+                    thirdString = thirdTimeLeaving.get(0) + " has been removed indefinitely";
+                }
+                else if(thirdCount == 2){
+                    thirdString = thirdTimeLeaving.get(0) + " and " + thirdTimeLeaving.get(1) + " have been removed indefinitely";
+                }
+                else{
+                    StringBuilder stringBuilder3 = new StringBuilder();
+                    for(int i=0; i<thirdTimeLeaving.size()-1; i++){
+                        stringBuilder3.append(thirdTimeLeaving.get(i)).append(", ");
+                    }
+                    stringBuilder3.append("and ").append(thirdTimeLeaving.get(thirdCount-1));
+                    thirdString = stringBuilder3.toString() + " have been removed indefinitely";
+                }
+            }
+            else{
+                thirdString = null;
+            }
+
+
+            String finalString;
+            if(secondString != null && thirdString != null){
+                finalString = firstString+"\n\n"+secondString+"\n\n"+thirdString;
+            }
+            else if(secondString != null){
+                finalString = firstString+"\n\n"+secondString;
+            }
+            else if(thirdString != null){
+                finalString = firstString+"\n\n"+thirdString;
+            }
+            else{
+                finalString = firstString;
+            }
+
+            final MessageObject eventMessage = new MessageObject(finalString, null, null);
+            activity.getMessengerFragment().setClickedRoomNum(removalTargetRoomNum);
+            for(String username : removalTargetRoom.getUsers()){
+                if(username.indexOf('*') > 0){
+                    int numberCode = Integer.parseInt(username.substring(username.indexOf('*')+1));
+                    if(numberCode == 1 || numberCode == 3){
+                        String pureUsername = username.substring(0, username.indexOf('*'));
+                        final String writePath = getUsernameHash(pureUsername)+"/"+pureUsername;
+                        mFirebaseDatabaseReference.child(writePath+"/r/"+removalTargetRoomNum).setValue(removalTargetRoom).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                mFirebaseDatabaseReference.child(writePath+"/messages/"+removalTargetRoomNum).push().setValue(eventMessage);
+                            }
+                        });
+                    }
+                }
+                else{
+                    final String writePath = getUsernameHash(username)+"/"+username;
+                    mFirebaseDatabaseReference.child(writePath+"/r/"+removalTargetRoomNum).setValue(removalTargetRoom).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            mFirebaseDatabaseReference.child(writePath+"/messages/"+removalTargetRoomNum).push().setValue(eventMessage);
+                        }
+                    });
+                }
+            }
+
+            for(String username : removalCandidates){
+                final String writePath = getUsernameHash(username)+"/"+username;
+                mFirebaseDatabaseReference.child(writePath+"/r/"+removalTargetRoomNum).removeValue();
+                mFirebaseDatabaseReference.child(writePath+"/messages/"+removalTargetRoomNum).removeValue();
+                mFirebaseDatabaseReference.child(writePath+"/unread/"+removalTargetRoomNum).removeValue();
+                mFirebaseDatabaseReference.child(writePath+"/push/m/"+removalTargetRoomNum).removeValue();
+            }
+
+            activity.getMessageRoom().setUpRoom(removalTargetRoomNum, removalTargetRoom.getUsers(), removalTargetRoom.getName());
+            activity.getViewPager().setCurrentItem(11);
+        }
+        else{
+            if(mToast != null){
+                mToast.cancel();
+            }
+            mToast = Toast.makeText(activity, "No user selected.", Toast.LENGTH_SHORT);
+            mToast.show();
+        }
+        //setInviteText();
+    }
+
 
     public void inviteToGroupSubmit(HashSet<String> numberCodeIncrementList){
         if(invitedUsers != null && !invitedUsers.isEmpty()){
-            int i = 0;
             HashMap<String, String> usernameToUsernameWithNumberCode = new HashMap<>();
             ArrayList<String> newUsersList = new ArrayList<>();
             for(String username : inviteTargetRoom.getUsers()){
@@ -546,7 +720,6 @@ public class CreateMessage extends Fragment {
                 else{
                     newUsersList.add(username);
                 }
-                i++;
             }
 
             for(String invitedUsername:invitedUsers){
@@ -561,26 +734,29 @@ public class CreateMessage extends Fragment {
             inviteTargetRoom.setUsers(newUsersList);
 
             //final String targetRoomNum = inviteTargetRoomNum;
-
-            StringBuilder strBuilder = new StringBuilder();
-            int j = 0;
-            for(String username: invitedUsers){
-                if(j == invitedUsers.size()-1){
-                    strBuilder.append(username).append("!");
+            String eventMessageString;
+            if(invitedUsers.size() == 1){
+                eventMessageString = mUsername + " invited " + invitedUsers.get(0);
+            }
+            else if(invitedUsers.size() == 2){
+                eventMessageString = mUsername + " invited " + invitedUsers.get(0) + " and " + invitedUsers.get(1);
+            }
+            else{
+                StringBuilder strBuilder = new StringBuilder();
+                for(int i = 0; i<invitedUsers.size()-1; i++){
+                    strBuilder.append(invitedUsers.get(i)).append(", ");
                 }
-                else{
-                    strBuilder.append(username).append(", ");
-                }
-                j++;
+                strBuilder.append("and ").append(invitedUsers.get(invitedUsers.size()-1)).append("!");
+                eventMessageString = mUsername + " invited " + strBuilder.toString();
             }
 
-            String eventMessageString = mUsername + " invited " + strBuilder.toString();
             inviteTargetRoom.setPreview(eventMessageString);
             inviteTargetRoom.setTime(System.currentTimeMillis());
 
             //TODO: this can be further optimized by instead of sending a whole room object, we only update the users list for existing users and only set up new room for new user.
             //TODO: also the preview and time would be set twice since we're also sending an event message after setting up the room. So getting rid of that intersection would further optimize the process, if it is done safely and reliably.
             final MessageObject eventMessage = new MessageObject(eventMessageString, null, null);
+            activity.getMessengerFragment().setClickedRoomNum(inviteTargetRoomNum);
             for(final String username : inviteTargetRoom.getUsers()){
                 if(username.indexOf('*') > 0){
                     final String pureUsername = username.substring(0, username.indexOf('*'));
@@ -798,6 +974,7 @@ public class CreateMessage extends Fragment {
     }
 
     public void setupInitialContactsList(){
+        setInviteText();
         if(!settingUpInitialList && messageContacts != null && invitedUsers != null && localContactsSet != null && newContact != null){
             messageContacts.clear();
             invitedUsers.clear();

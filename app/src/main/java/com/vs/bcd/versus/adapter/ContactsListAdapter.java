@@ -230,7 +230,12 @@ public class ContactsListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     @Override
     @NonNull
     public List<String> getPreloadItems(int position) {
-        return Collections.singletonList(contactsList.get(position));
+        try{//TODO: eventually we wanna fix the bug that's causing the exception
+            return Collections.singletonList(contactsList.get(position));
+        }
+        catch (Throwable t){
+            return Collections.emptyList();
+        }
     }
 
     @Override
