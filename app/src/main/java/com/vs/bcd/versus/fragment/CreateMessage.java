@@ -391,8 +391,10 @@ public class CreateMessage extends Fragment {
 
         if(text == null || text.equals("")){
             contactsListAdapter.updateList(messageContacts);
+            nowLoading = false; //enable onScroll loading
         }
         else{
+            nowLoading = true; //disable onScroll loading
             mFirebaseDatabaseReference.child(activity.getUserPath()+"contacts").orderByKey().startAt(text).endAt(text+"\uf8ff").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
