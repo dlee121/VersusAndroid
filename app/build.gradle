@@ -26,9 +26,7 @@ android {
 }
 
 dependencies {
-
     compile 'com.android.support:multidex:1.0.3'
-
     compile fileTree(include: ['*.jar'], dir: 'libs')
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
@@ -38,26 +36,20 @@ dependencies {
     compile 'com.android.support:cardview-v7:27.1.1'
     compile 'com.android.support:recyclerview-v7:27.1.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
-
     //circular imageview for profile pictures
     compile 'de.hdodenhof:circleimageview:2.1.0'
-
     //image cropper
     compile 'com.theartofdev.edmodo:android-image-cropper:2.6.+'
-
     //bottom navigation bar (bottom tabs)
-    compile 'com.aurelhubert:ahbottomnavigation:2.1.0'
-
+    //compile 'com.aurelhubert:ahbottomnavigation:2.1.0'
     //dynamodb dependencies
     compile 'com.amazonaws:aws-android-sdk-core:2.2.22'
     compile 'com.amazonaws:aws-android-sdk-s3:2.2.22'
     compile 'com.amazonaws:aws-android-sdk-ddb:2.2.22'
     compile 'com.amazonaws:aws-android-sdk-ddb-mapper:2.2.22'
     testCompile 'junit:junit:4.12'
-
     // Google
     compile 'com.google.android.gms:play-services-auth:12.0.1'
-
     // Firebase
     compile 'com.google.firebase:firebase-analytics:12.0.1'
     compile 'com.google.firebase:firebase-database:12.0.1'
@@ -69,18 +61,18 @@ dependencies {
     compile 'com.google.firebase:firebase-crash:12.0.1'
     compile 'com.google.firebase:firebase-ads:12.0.1'
     //compile 'com.google.android.gms:play-services-ads:11.8.0'
-
     compile 'com.github.bumptech.glide:glide:4.6.1'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.6.1'
-    compile ("com.github.bumptech.glide:recyclerview-integration:4.6.1") {
+    compile('com.github.bumptech.glide:recyclerview-integration:4.6.1') {
         // Excludes the support library because it's already included by Glide.
         transitive = false
     }
-
     // Firebase UI
     compile 'com.firebaseui:firebase-ui-database:3.3.0'
-
     compile 'com.loopj.android:android-async-http:1.4.9'
+
+    //custom bottom navigation from forked ahbottomnavigation repo
+    implementation project(':ahbottomnavigation')
 }
 
 apply plugin: 'com.google.gms.google-services'

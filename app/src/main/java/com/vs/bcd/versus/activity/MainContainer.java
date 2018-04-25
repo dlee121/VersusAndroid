@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.NetworkOnMainThreadException;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v7.app.AppCompatActivity;
@@ -763,14 +764,16 @@ public class MainContainer extends AppCompatActivity {
         });
 
         bottomNavigation = findViewById(R.id.bottom_navigation);
+        bottomNavigation.setForceTint(false);
+        bottomNavigation.setAccentColor(ContextCompat.getColor(this, R.color.vsRed_light));
 
         bottomNavLP = (RelativeLayout.LayoutParams) bottomNavigation.getLayoutParams();
-
         // Create items
-        AHBottomNavigationItem item1 = new AHBottomNavigationItem("Main", R.drawable.goldmedal);
-        AHBottomNavigationItem item2 = new AHBottomNavigationItem("Leaderboard", R.drawable.goldmedal);
-        AHBottomNavigationItem item3 = new AHBottomNavigationItem("Notifications", R.drawable.goldmedal);
-        AHBottomNavigationItem item4 = new AHBottomNavigationItem("Me", R.drawable.goldmedal);
+        AHBottomNavigationItem item1 = new AHBottomNavigationItem("Main", R.drawable.home_grey);
+        AHBottomNavigationItem item2 = new AHBottomNavigationItem("Leaderboard", R.drawable.leaderboard_icon_grey);
+        AHBottomNavigationItem item3 = new AHBottomNavigationItem("Notifications", R.drawable.notifications_grey);
+        AHBottomNavigationItem item4 = new AHBottomNavigationItem("Me", R.drawable.default_profile);
+
 
         // Add items
         bottomNavigation.addItem(item1);
