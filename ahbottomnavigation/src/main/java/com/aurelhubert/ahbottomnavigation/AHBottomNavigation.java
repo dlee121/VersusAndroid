@@ -121,6 +121,9 @@ public class AHBottomNavigation extends FrameLayout {
 	private int notificationActiveMarginTop, notificationInactiveMarginTop;
 	private long notificationAnimationDuration;
 
+	private Drawable selectedME, selectedHOME, selectedLeaderboard, selectedNotifications;
+	private boolean first;
+
 	/**
 	 * Constructors
 	 */
@@ -193,6 +196,13 @@ public class AHBottomNavigation extends FrameLayout {
 	private void init(Context context, AttributeSet attrs) {
 		this.context = context;
 		resources = this.context.getResources();
+
+		first = true;
+
+		selectedME = ContextCompat.getDrawable(context, R.drawable.me_red);
+		selectedHOME = ContextCompat.getDrawable(context, R.drawable.home_red);
+		selectedLeaderboard = ContextCompat.getDrawable(context, R.drawable.podium);
+		selectedNotifications = ContextCompat.getDrawable(context, R.drawable.notifications_red);
 		
 		// Item colors
 		titleColorActive = ContextCompat.getColor(context, R.color.colorBottomNavigationAccent);
@@ -466,14 +476,15 @@ public class AHBottomNavigation extends FrameLayout {
 					}
 				});
 				icon.setImageDrawable(AHHelper.getTintDrawable(items.get(i).getDrawable(context),
-						current ? itemActiveColor : itemInactiveColor, forceTint));
+						current ? itemActiveColor : itemInactiveColor, forceTint, first));
 				title.setTextColor(current ? itemActiveColor : itemInactiveColor);
 				view.setSoundEffectsEnabled(soundEffectsEnabled);
 			} else {
 				icon.setImageDrawable(AHHelper.getTintDrawable(items.get(i).getDrawable(context),
-						itemDisableColor, forceTint));
+						itemDisableColor, forceTint, first));
 				title.setTextColor(itemDisableColor);
 			}
+			first = false;
 
 			LayoutParams params = new LayoutParams((int) itemWidth, (int) height);
 			linearLayout.addView(view, params);
@@ -583,7 +594,7 @@ public class AHBottomNavigation extends FrameLayout {
 
 			if (itemsEnabledStates[i]) {
 				icon.setImageDrawable(AHHelper.getTintDrawable(items.get(i).getDrawable(context),
-						currentItem == i ? itemActiveColor : itemInactiveColor, forceTint));
+						currentItem == i ? itemActiveColor : itemInactiveColor, forceTint, first));
 				title.setTextColor(currentItem == i ? itemActiveColor : itemInactiveColor);
 				title.setAlpha(currentItem == i ? 1 : 0);
 				view.setOnClickListener(new OnClickListener() {
@@ -595,10 +606,11 @@ public class AHBottomNavigation extends FrameLayout {
 				view.setSoundEffectsEnabled(soundEffectsEnabled);
 			} else {
 				icon.setImageDrawable(AHHelper.getTintDrawable(items.get(i).getDrawable(context),
-						itemDisableColor, forceTint));
+						itemDisableColor, forceTint, first));
 				title.setTextColor(itemDisableColor);
 				title.setAlpha(0);
 			}
+			first = false;
 			
 			int width = i == currentItem ? (int) selectedItemWidth :
 					(int) itemWidth;
@@ -667,8 +679,25 @@ public class AHBottomNavigation extends FrameLayout {
 				AHHelper.updateLeftMargin(notification, notificationInactiveMarginLeft, notificationActiveMarginLeft);
 				AHHelper.updateTextColor(title, itemInactiveColor, itemActiveColor);
 				AHHelper.updateTextSize(title, inactiveSize, activeSize);
-				AHHelper.updateDrawableColor(context, items.get(itemIndex).getDrawable(context), icon,
-						itemInactiveColor, itemActiveColor, forceTint);
+
+				switch (itemIndex){
+					case 0: //Home
+						AHHelper.updateDrawableColorCustom(selectedHOME, icon);
+						break;
+					case 1: //Leaderboard
+						AHHelper.updateDrawableColorCustom(selectedLeaderboard, icon);
+						break;
+					case 2: //Notifications
+						AHHelper.updateDrawableColorCustom(selectedNotifications, icon);
+						break;
+					case 3: //ME
+						AHHelper.updateDrawableColorCustom(selectedME, icon);
+						break;
+					default:
+						AHHelper.updateDrawableColor(context, items.get(itemIndex).getDrawable(context), icon,
+								itemInactiveColor, itemActiveColor, forceTint);
+						break;
+				}
 
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && colored) {
 
@@ -923,11 +952,12 @@ public class AHBottomNavigation extends FrameLayout {
 					Drawable defautlDrawable = ContextCompat.getDrawable(context, R.drawable.notification_background);
 					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
 						notification.setBackground(AHHelper.getTintDrawable(defautlDrawable,
-								currentBackgroundColor, forceTint));
+								currentBackgroundColor, forceTint, first));
 					} else {
 						notification.setBackgroundDrawable(AHHelper.getTintDrawable(defautlDrawable,
-								currentBackgroundColor, forceTint));
+								currentBackgroundColor, forceTint, first));
 					}
+					first = false;
 				}
 			}
 

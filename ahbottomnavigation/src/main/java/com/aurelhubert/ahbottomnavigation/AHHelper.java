@@ -9,6 +9,7 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.annotation.ColorInt;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
@@ -32,7 +33,7 @@ public class AHHelper {
 	 * @param forceTint
 	 * @return
 	 */
-	public static Drawable getTintDrawable(Drawable drawable, @ColorInt int color, boolean forceTint) {
+	public static Drawable getTintDrawable(Drawable drawable, @ColorInt int color, boolean forceTint, boolean first) {
 		if (forceTint) {
 			drawable.clearColorFilter();
 			drawable.setColorFilter(color, PorterDuff.Mode.SRC_IN);
@@ -40,7 +41,11 @@ public class AHHelper {
 			return drawable;
 		}
 		Drawable wrapDrawable = DrawableCompat.wrap(drawable).mutate();
-		//DrawableCompat.setTint(wrapDrawable, color);
+		if(first){
+			DrawableCompat.setTint(wrapDrawable, color);
+			first = false;
+		}
+
 		return wrapDrawable;
 	}
 
@@ -180,11 +185,16 @@ public class AHHelper {
 			@Override
 			public void onAnimationUpdate(ValueAnimator animator) {
 				imageView.setImageDrawable(AHHelper.getTintDrawable(drawable,
-						(Integer) animator.getAnimatedValue(), forceTint));
+						(Integer) animator.getAnimatedValue(), forceTint, false));
 				imageView.requestLayout();
 			}
 		});
 		colorAnimation.start();
+	}
+
+	public static void updateDrawableColorCustom(final Drawable drawable, final ImageView imageView) {
+		imageView.setImageDrawable(drawable);
+		imageView.requestLayout();
 	}
 
 	/**
