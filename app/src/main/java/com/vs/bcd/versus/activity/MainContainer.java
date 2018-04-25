@@ -1345,30 +1345,28 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public void setUpCategoriesList(ArrayList<CategoryObject> categories){
-        categories.add(new CategoryObject("Cars", R.drawable.goldmedal, 0));  //TODO: set actual icons, for now gold medal as placeholder
-        categories.add(new CategoryObject("Celebrities", R.drawable.goldmedal, 1));
-        categories.add(new CategoryObject("Culture", R.drawable.goldmedal, 2));
-        categories.add(new CategoryObject("Education", R.drawable.goldmedal, 3));
-        categories.add(new CategoryObject("Ethics/Morality", R.drawable.goldmedal, 4));
-        categories.add(new CategoryObject("Fashion", R.drawable.goldmedal, 5));
-        categories.add(new CategoryObject("Fiction", R.drawable.goldmedal, 6));
-        categories.add(new CategoryObject("Finance", R.drawable.goldmedal, 7));
-        categories.add(new CategoryObject("Food", R.drawable.goldmedal, 8));
-        categories.add(new CategoryObject("Game", R.drawable.goldmedal, 9));
-        categories.add(new CategoryObject("Law", R.drawable.goldmedal, 10));
-        categories.add(new CategoryObject("Movies", R.drawable.goldmedal, 11));
-        categories.add(new CategoryObject("Music/Artists", R.drawable.goldmedal, 12));
-        categories.add(new CategoryObject("Politics", R.drawable.goldmedal, 13));
-        categories.add(new CategoryObject("Porn", R.drawable.goldmedal, 14));
-        categories.add(new CategoryObject("Religion", R.drawable.goldmedal, 15));
-        categories.add(new CategoryObject("Restaurants", R.drawable.goldmedal, 16));
-        categories.add(new CategoryObject("Science", R.drawable.goldmedal, 17));
-        categories.add(new CategoryObject("Sex", R.drawable.goldmedal, 18));
-        categories.add(new CategoryObject("Sports", R.drawable.goldmedal, 19));
-        categories.add(new CategoryObject("Technology", R.drawable.goldmedal, 20));
-        categories.add(new CategoryObject("Travel", R.drawable.goldmedal, 21));
-        categories.add(new CategoryObject("TV Shows", R.drawable.goldmedal, 22));
-        categories.add(new CategoryObject("Weapons", R.drawable.goldmedal, 23));
+        categories.add(new CategoryObject("Automobiles", R.drawable.automobiles, 0));
+        categories.add(new CategoryObject("Cartoon/Anime/Fiction", R.drawable.cartoons_anime_fiction, 1));
+        categories.add(new CategoryObject("Celebrity/Gossip", R.drawable.celebrity_gossip, 2));
+        categories.add(new CategoryObject("Culture", R.drawable.culture, 3));
+        categories.add(new CategoryObject("Education", R.drawable.education, 4));
+        categories.add(new CategoryObject("Electronics", R.drawable.electronics, 5));
+        categories.add(new CategoryObject("Fashion", R.drawable.fashion, 6));
+        categories.add(new CategoryObject("Finance", R.drawable.finance, 7));
+        categories.add(new CategoryObject("Food/Restaurant", R.drawable.food_restaurant, 8));
+        categories.add(new CategoryObject("Game/Entertainment", R.drawable.games_entertainment, 9));
+        categories.add(new CategoryObject("Morality/Ethics/Law", R.drawable.morality_ethics_law, 10));
+        categories.add(new CategoryObject("Movies/TV", R.drawable.movies_tv, 11));
+        categories.add(new CategoryObject("Music/Artists", R.drawable.music_artists, 12));
+        categories.add(new CategoryObject("Politics", R.drawable.politics, 13));
+        categories.add(new CategoryObject("Random", R.drawable.random, 14));
+        categories.add(new CategoryObject("Religion", R.drawable.religion, 15));
+        categories.add(new CategoryObject("Science", R.drawable.science, 16));
+        categories.add(new CategoryObject("Sex/Porn", R.drawable.sex_porn, 17));
+        categories.add(new CategoryObject("Social Issues", R.drawable.social_issues, 18));
+        categories.add(new CategoryObject("Sports", R.drawable.sports, 19));
+        categories.add(new CategoryObject("Technology", R.drawable.technology, 20));
+        categories.add(new CategoryObject("Weapons", R.drawable.weapons_icon, 21));
     }
 
     //disables click events in PostPage when ListPopupWindow is open

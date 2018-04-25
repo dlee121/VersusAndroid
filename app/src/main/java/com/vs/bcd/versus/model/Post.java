@@ -45,30 +45,28 @@ public class Post {
     /***
      * constants representing CATEGORIES
      */
-    public static int CARS = 0;
-    public static int CELEBRITIES = 1;
-    public static int CULTURE = 2;
-    public static int EDUCATION = 3;
-    public static int ETHICS_AND_MORALITY = 4;
-    public static int FASHION = 5;
-    public static int FICTION = 6;
+    public static int AUTOMOBILES = 0;
+    public static int CARTOON = 1;
+    public static int CELEB = 2;
+    public static int CULTURE = 3;
+    public static int EDUCATION = 4;
+    public static int ELECTRONICS = 5;
+    public static int FASHION = 6;
     public static int FINANCE = 7;
     public static int FOOD = 8;
-    public static int GAME = 9;
-    public static int LAW = 10;
+    public static int GAMES = 9;
+    public static int MORALITY = 10;
     public static int MOVIES = 11;
-    public static int MUSIC_AND_ARTISTS = 12;
+    public static int MUSIC = 12;
     public static int POLITICS = 13;
-    public static int PORN = 14;
+    public static int RANDOM = 14;
     public static int RELIGION = 15;
-    public static int RESTAURANTS = 16;
-    public static int SCIENCE = 17;
-    public static int SEX = 18;
+    public static int SCIENCE = 16;
+    public static int SEX = 17;
+    public static int SOCIAL = 18;
     public static int SPORTS = 19;
     public static int TECHNOLOGY = 20;
-    public static int TRAVEL = 21;
-    public static int TV_SHOWS = 22;
-    public static int WEAPONS = 23;
+    public static int WEAPONS = 21;
 
     private SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
 
@@ -77,52 +75,48 @@ public class Post {
     public String getCategoryString(){
         switch(category){
             case 0:
-                return "Cars";
+                return "Automobiles";
             case 1:
-                return "Celebrities";
+                return "Cartoon/Anime/Fiction";
             case 2:
-                return "Culture";
+                return "Celebrity/Gossip";
             case 3:
-                return "Education";
+                return "Culture";
             case 4:
-                return "Ethics/Morality";
+                return "Education";
             case 5:
-                return "Fashion";
+                return "Electronics";
             case 6:
-                return "Fiction";
+                return "Fashion";
             case 7:
-                return "Finanace";
+                return "Finance";
             case 8:
-                return "Food";
+                return "Food/Restaurant";
             case 9:
-                return "Game";
+                return "Game/Entertainment";
             case 10:
-                return "Law";
+                return "Morality/Ethics/Law";
             case 11:
-                return "Movies";
+                return "Movies/TV";
             case 12:
                 return "Music/Artists";
             case 13:
                 return "Politics";
             case 14:
-                return "Porn";
+                return "Random";
             case 15:
                 return "Religion";
             case 16:
-                return "Restaurants";
-            case 17:
                 return "Science";
+            case 17:
+                return "Sex/Porn";
             case 18:
-                return "Sex";
+                return "Social Issues";
             case 19:
                 return "Sports";
             case 20:
                 return "Technology";
             case 21:
-                return "Travel";
-            case 22:
-                return "TV Shows";
-            case 23:
                 return "Weapons";
             case 42069:
                 return "NATIVE APP INSTALL AD";
