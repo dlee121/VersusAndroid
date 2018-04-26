@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     tools:context="com.vs.bcd.versus.activity.MainActivity">
 
-
+    <!--
     <EditText
         android:id="@+id/tab3catselect_filterbox"
         android:layout_width="match_parent"
@@ -14,12 +14,11 @@
         android:inputType="textPersonName"
         android:layout_margin="8dp"
         android:hint="Search Categories"/>
+    -->
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/category_selection_rvt3"
-        android:layout_below="@id/tab3catselect_filterbox"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="8dp"/>
+        android:layout_height="match_parent" />
 
 </RelativeLayout>

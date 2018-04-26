@@ -36,7 +36,7 @@ public class Tab3Categories extends Fragment {
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
     private CategoriesAdapter mCategoriesAdapter;
-    private EditText categoryFilterET;
+    //private EditText categoryFilterET;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -50,7 +50,7 @@ public class Tab3Categories extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mCategoriesAdapter = new CategoriesAdapter(recyclerView, categories, getActivity(), 1);
         recyclerView.setAdapter(mCategoriesAdapter);
-
+        /*
         categoryFilterET = (EditText)rootView.findViewById(R.id.tab3catselect_filterbox);
         categoryFilterET.addTextChangedListener(new TextWatcher() {
             @Override
@@ -71,6 +71,7 @@ public class Tab3Categories extends Fragment {
                 //you can use runnable postDelayed like 500 ms to delay search text
             }
         });
+        */
 
 
         childViews = new ArrayList<>();
@@ -113,7 +114,7 @@ public class Tab3Categories extends Fragment {
             childViews.get(i).setLayoutParams(new RelativeLayout.LayoutParams(0,0));
         }
     }
-
+    /*
     void filter(String text){
         List<CategoryObject> temp = new ArrayList<>();
         for(CategoryObject co: categories){
@@ -125,5 +126,6 @@ public class Tab3Categories extends Fragment {
         mCategoriesAdapter.updateList(temp);
         Log.d("Categories", "still has same " + Integer.toString(categories.size()) + "items");
     }
+    */
 
 }
