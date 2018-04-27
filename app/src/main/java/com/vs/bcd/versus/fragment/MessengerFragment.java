@@ -1588,7 +1588,7 @@ public class MessengerFragment extends Fragment {
                             break;
 
                         case 1:
-                            deleteRoom(roomNum, roomObject.getName());
+                            deleteRoom(roomNum, roomObject.getUsers().get(1));
                             unmuteRoom(roomNum);
 
                             break;
@@ -1614,6 +1614,22 @@ public class MessengerFragment extends Fragment {
         listPopupWindow.show();
         activity.disableClicksForListPopupWindowOpen();
     }
+
+    public boolean inBlockList(String username){
+        if(blockList != null){
+            return blockList.contains(username);
+        }
+        return false;
+    }
+
+    public boolean inMuteList(String roomNumber){
+        if(muteList != null){
+            return muteList.contains(roomNumber);
+        }
+        return false;
+    }
+
+
 
     private void inviteToGroup(){
         activity.getCreateMessageFragment().setInviteTargetUsersListNull();
@@ -1868,8 +1884,12 @@ public class MessengerFragment extends Fragment {
         return blockedfromList.contains(username);
     }
 
-    public void setClickedRoomNum(String roomNumInput){
+    public void setClickedRoomNum(String roomNumInput) {
         clickedRoomNum = roomNumInput;
+    }
+
+    public String getClickedRoomNum(){
+        return clickedRoomNum;
     }
 
     public boolean closeListPopupWindow(){

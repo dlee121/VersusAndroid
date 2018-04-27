@@ -979,7 +979,7 @@ public class MainContainer extends AppCompatActivity {
         if(getIntent() != null && getIntent().getExtras() != null && getIntent().getExtras().get("rnum") != null){
             String intentRNum = getIntent().getExtras().get("rnum").toString();
             getIntent().removeExtra("rnum");
-            goToMsgRoom(intentRNum);
+            goToMsgRoom(intentRNum); //TODO: now, push notification click for messages all take you to messenger home not the message room
         }
         else if(goToMainActivityOnResume){
             mViewPager.setCurrentItem(0);
@@ -1504,8 +1504,229 @@ public class MainContainer extends AppCompatActivity {
     }
 
     private void showListPopupWindowMessageRoom(boolean isDM){
+        final String [] items;
+        final Integer[] icons;
+        final boolean muted;
+        boolean blocked = false;
+        boolean isRoomAdmin = false;
+        final String roomNum = messengerFragment.getClickedRoomNum();
+
+        ArrayList<String> usersList = messageRoom.getUsersList();
+        final RoomObject roomObject = new RoomObject(".", (long) 42069, "", usersList);
+
+        if(messengerFragment.inMuteList(roomNum)){
+            muted = true;
+        }
+        else{
+            muted = false;
+        }
+
+        if(roomObject.getUsers().size() > 2){ //for GroupChat
+            int numberCode;
+            isDM = false;
+            for(String username : usersList){
+                if(username.indexOf('*') > 0){
+                    numberCode = Integer.parseInt(username.substring(username.indexOf('*') + 1));
+                    if(numberCode == 1 || numberCode == 3){
+                        if(username.substring(0, username.indexOf('*')).equals(currUsername)){
+                            isRoomAdmin = true;
+                        }
+                        break;
+                    }
+                }
+                else{
+                    if(username.equals(currUsername)){
+                        isRoomAdmin = true;
+                    }
+                    break;
+                }
+
+            }
+
+            if(isRoomAdmin){
+                if(muted){
+                    items = new String[]{"Invite", "Remove", "Unmute", "Leave"};
+                }
+                else{
+                    items = new String[]{"Invite", "Remove", "Mute", "Leave"};
+                }
+
+            }
+            else{
+                if(muted){
+                    items = new String[]{"Invite", "Unmute", "Leave"};
+                }
+                else{
+                    items = new String[]{"Invite", "Mute", "Leave"};
+                }
+            }
+
+            //icons = new Integer[]{R.drawable.ic_edit, R.drawable.ic_delete};
+            icons = new Integer[]{};
+
+        }
+        else{ //for DM
+            isDM = true;
+            String targetUsername = roomObject.getUsers().get(0);
+            if(targetUsername.equals(currUsername)){
+                targetUsername = roomObject.getUsers().get(1);
+            }
+
+            if(messengerFragment.inBlockList(targetUsername)){
+                blocked = true;
+            }
+
+            if(blocked){
+                if(muted){
+                    items = new String[]{"Unmute", "Delete", "Unblock"};
+                }
+                else{
+                    items = new String[]{"Mute", "Delete", "Unblock"};
+                }
+            }
+            else if(muted){
+                items = new String[]{"Unmute", "Delete", "Block"};
+            }
+            else{
+                items = new String[]{"Mute", "Delete", "Block"};
+            }
+
+            //icons = new Integer[]{R.drawable.ic_edit, R.drawable.ic_delete};
+            icons = new Integer[]{};
+        }
+
+        int width = getResources().getDimensionPixelSize(R.dimen.overflow_width);
 
 
+        ListAdapter adapter = new ArrayAdapterWithIcon(this, items, icons);
+
+        listPopupWindow = new ListPopupWindow(this);
+        listPopupWindow.setAnchorView(toolbarButtonRight);
+        listPopupWindow.setAdapter(adapter);
+        listPopupWindow.setWidth(width);
+
+        final boolean blockFinal = blocked;
+        final boolean isRoomAdminFinal = isRoomAdmin;
+        final boolean isDMFinal = isDM;
+
+        listPopupWindow.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if(!isDMFinal){ //GroupChat
+                    switch (position){
+                        case 0:
+                            getCreateMessageFragment().setInviteTargetRoom(roomObject, roomNum);
+                            inviteToGroup();
+                            break;
+
+                        case 1:
+                            if(isRoomAdminFinal){
+                                getCreateMessageFragment().setRemovalTargetRoom(roomObject, roomNum);
+                                removeFromGroup(roomObject);
+                            }
+                            else{
+                                if(muted){
+                                    unmuteRoom(roomNum);
+                                }
+                                else{
+                                    muteRoom(roomNum);
+                                }
+                            }
+
+                            break;
+
+                        case 2:
+                            if(isRoomAdminFinal){
+                                if(muted){
+                                    unmuteRoom(roomNum);
+                                }
+                                else{
+                                    muteRoom(roomNum);
+                                }
+                            }
+                            else{
+                                leaveRoom(roomNum, roomObject, isRoomAdminFinal);
+                                unmuteRoom(roomNum);
+                            }
+
+                            break;
+
+                        case 3: //fourth option is only shown for room admin since room admin gets one more option of Remove User inserted at index 1
+                            leaveRoom(roomNum, roomObject, isRoomAdminFinal);
+                            unmuteRoom(roomNum);
+
+                            break;
+                    }
+                }
+                else{ //DM
+                    switch (position){
+                        case 0:
+                            if(muted){
+                                unmuteRoom(roomNum);
+                            }
+                            else{
+                                muteRoom(roomNum);
+                            }
+
+                            break;
+
+                        case 1:
+                            deleteRoom(roomNum, roomObject.getName());
+                            unmuteRoom(roomNum);
+
+                            break;
+
+                        case 2:
+                            if(blockFinal){
+                                unblockUser(roomObject);
+                            }
+                            else{
+                                blockUser(roomObject);
+                            }
+
+                            break;
+                    }
+                }
+
+
+
+                enableClicksForListPopupWindowClose();
+                listPopupWindow.dismiss();
+            }
+        });
+        listPopupWindow.show();
+        disableClicksForListPopupWindowOpen();
+    }
+
+    private void blockUser(RoomObject roomObject){
+
+    }
+    private void unblockUser(RoomObject roomObject){
+
+    }
+
+    private void muteRoom(String rnum){
+
+    }
+
+    private void unmuteRoom(String rnum){
+
+    }
+
+    private void inviteToGroup(){
+
+    }
+
+    private void deleteRoom(String rnum, String dmTarget){
+
+    }
+
+    private void leaveRoom(String rnum, RoomObject roomObject, boolean isRoomAdmin){
+
+    }
+
+    private void removeFromGroup(RoomObject roomObject){
 
 
     }
