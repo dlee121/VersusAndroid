@@ -1216,7 +1216,7 @@ public class MessengerFragment extends Fragment {
         mFirebaseDatabaseReference.child(blockedFromTarget).child(mUsername).removeValue();
     }
 
-    public void deleteRoom(final String roomNum, final String dmTarget){
+    public void deleteRoom(final String roomNum, final String dmTarget, final boolean fromRoom){
         mFirebaseDatabaseReference.child(activity.getUserPath()+"dm/"+dmTarget).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
@@ -1234,7 +1234,14 @@ public class MessengerFragment extends Fragment {
                 */
 
                 String roomTarget = Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/r";
-                mFirebaseDatabaseReference.child(roomTarget).child(roomNum).removeValue();
+                mFirebaseDatabaseReference.child(roomTarget).child(roomNum).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if(fromRoom){
+                            activity.getViewPager().setCurrentItem(4);
+                        }
+                    }
+                });
 
                 String messagesTarget = Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/messages";
                 mFirebaseDatabaseReference.child(messagesTarget).child(roomNum).removeValue();
@@ -1247,11 +1254,18 @@ public class MessengerFragment extends Fragment {
         //rNameToRNumAndUListMap.remove(roomName);
     }
 
-    public void leaveRoom(final String roomNum, RoomObject roomObject, boolean isAdmin){
+    public void leaveRoom(final String roomNum, RoomObject roomObject, boolean isAdmin, final boolean fromRoom){
         //rNameToRNumAndUListMap.remove(roomObject.getName());
 
         String roomTarget = Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/r";
-        mFirebaseDatabaseReference.child(roomTarget).child(roomNum).removeValue();
+        mFirebaseDatabaseReference.child(roomTarget).child(roomNum).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if(fromRoom){
+                    activity.getViewPager().setCurrentItem(4);
+                }
+            }
+        });
 
         String messagesTarget = Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/messages";
         mFirebaseDatabaseReference.child(messagesTarget).child(roomNum).removeValue();
@@ -1562,14 +1576,14 @@ public class MessengerFragment extends Fragment {
                                 }
                             }
                             else{
-                                leaveRoom(roomNum, roomObject, isRoomAdminFinal);
+                                leaveRoom(roomNum, roomObject, isRoomAdminFinal, false);
                                 unmuteRoom(roomNum);
                             }
 
                             break;
 
                         case 3: //fourth option is only shown for room admin since room admin gets one more option of Remove User inserted at index 1
-                            leaveRoom(roomNum, roomObject, isRoomAdminFinal);
+                            leaveRoom(roomNum, roomObject, isRoomAdminFinal, false);
                             unmuteRoom(roomNum);
 
                             break;
@@ -1588,7 +1602,7 @@ public class MessengerFragment extends Fragment {
                             break;
 
                         case 1:
-                            deleteRoom(roomNum, roomObject.getUsers().get(1));
+                            deleteRoom(roomNum, roomObject.getUsers().get(1), false);
                             unmuteRoom(roomNum);
 
                             break;

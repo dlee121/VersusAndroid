@@ -1738,12 +1738,12 @@ public class MainContainer extends AppCompatActivity {
 
     private void deleteRoom(String rnum, String dmTarget){
         backToMessageRoom = true;
-        messengerFragment.deleteRoom(rnum, dmTarget);
+        messengerFragment.deleteRoom(rnum, dmTarget, true);
     }
 
     private void leaveRoom(String rnum, RoomObject roomObject, boolean isRoomAdmin){
         backToMessageRoom = true;
-        messengerFragment.leaveRoom(rnum, roomObject, isRoomAdmin);
+        messengerFragment.leaveRoom(rnum, roomObject, isRoomAdmin, true);
     }
 
     private void removeFromGroup(RoomObject roomObject){
