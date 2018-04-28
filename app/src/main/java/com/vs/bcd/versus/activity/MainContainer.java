@@ -177,6 +177,7 @@ public class MainContainer extends AppCompatActivity {
     private boolean inviteMode = false;
     private HashSet<String> inviteNumberCodeUpdateList = new HashSet<>();
     private boolean backToMessageRoom = false;
+    private boolean showMessageRoomOverflowMenu = true;
 
     private String esHost = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
     private String esRegion = "us-east-1";
@@ -729,6 +730,7 @@ public class MainContainer extends AppCompatActivity {
                                             setUpAndOpenMessageRoom(dataSnapshot.getValue(String.class), usersList, dmTarget);
                                         }
                                         else {
+                                            hideToolbarButtonRight();
                                             int dmTargetHash;
                                             if(dmTarget.length() < 5){
                                                 dmTargetHash = dmTarget.hashCode();
@@ -765,6 +767,7 @@ public class MainContainer extends AppCompatActivity {
                                 });
                             }
                             else{
+                                hideToolbarButtonRight();
                                 createMessageFragment.createMessageRoom();
                             }
                         }
@@ -950,7 +953,7 @@ public class MainContainer extends AppCompatActivity {
                     case 11:
                         //hideToolbarButtonRight();
                         hideToolbarTextButton();
-                        showOverflowMenu();
+                        //showOverflowMenu();
                         disableBottomTabs();
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
@@ -1507,7 +1510,7 @@ public class MainContainer extends AppCompatActivity {
         toolbarButtonRight.setImageResource(R.drawable.ic_chat_bubble);
     }
 
-    private  void showOverflowMenu() {
+    public void showOverflowMenu() {
         showMessegerButtonBadge(false);
         toolbarButtonRight.setEnabled(true);
         toolbarButtonRight.setLayoutParams(toolbarButtonRightLP);
@@ -1956,6 +1959,7 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public void setUpAndOpenMessageRoom(final String rnum, final ArrayList<String> usersMap, final String roomTitle){
+        showOverflowMenu();
         mViewPager.setCurrentItem(11);
         if(messengerFragment.roomIsUnread(rnum)){
             mFirebaseDatabaseReference.child(getUserPath()+"push/m/"+rnum).removeValue();

@@ -1328,6 +1328,7 @@ public class MessageRoom extends Fragment {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 initialUsersListLoaded = true;
+                activity.showOverflowMenu();
             }
 
             @Override
