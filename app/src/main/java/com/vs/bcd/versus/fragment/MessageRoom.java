@@ -247,6 +247,10 @@ public class MessageRoom extends Fragment {
         currentRoomTitle = roomName;
     }
 
+    public String getCurrentRoomTitle(){
+        return currentRoomTitle;
+    }
+
     public void setUpNewRoom(final ArrayList<String> invitedUsers){
         defaultRoomName = true;
 
@@ -865,7 +869,7 @@ public class MessageRoom extends Fragment {
         }
     }
 
-    public ArrayList<String> getUsersList(){
+    public ArrayList<String> getSyncedUsersList(){
         return syncedUsersList; //the unified list, synced by RoomObjListner
     }
 
@@ -1291,11 +1295,11 @@ public class MessageRoom extends Fragment {
                     int index = Integer.parseInt(dataSnapshot.getKey());
                     if(index >= syncedUsersList.size()){
                         syncedUsersList.add(dataSnapshot.getValue(String.class));
-                        Log.d("listchangefirebase", "added " + dataSnapshot.getValue(String.class));
+                        //Log.d("listchangefirebase", "added " + dataSnapshot.getValue(String.class));
                     }
                     else if(index < syncedUsersList.size()){
                         syncedUsersList.add(index, dataSnapshot.getValue(String.class));
-                        Log.d("listchangefirebase", "inserted " + dataSnapshot.getValue(String.class));
+                        //Log.d("listchangefirebase", "inserted " + dataSnapshot.getValue(String.class));
                     }
                 }
             }
@@ -1305,7 +1309,7 @@ public class MessageRoom extends Fragment {
                 int index = Integer.parseInt(dataSnapshot.getKey());
                 if(index < syncedUsersList.size()){
                     syncedUsersList.set(index, dataSnapshot.getValue(String.class));
-                    Log.d("listchangefirebase", "updated " + dataSnapshot.getValue(String.class));
+                    //Log.d("listchangefirebase", "updated " + dataSnapshot.getValue(String.class));
                 }
             }
 

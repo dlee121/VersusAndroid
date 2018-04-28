@@ -1179,7 +1179,7 @@ public class MessengerFragment extends Fragment {
         return usernameHash;
     }
 
-    private void muteRoom(String roomNum){
+    public void muteRoom(String roomNum){
         if(unreadRooms.contains(roomNum)){
             activity.decrementMessengerBadge();
         }
@@ -1187,12 +1187,12 @@ public class MessengerFragment extends Fragment {
         mFirebaseDatabaseReference.child(target).child(roomNum).setValue(true);
     }
 
-    private void unmuteRoom(String roomNum){
+    public void unmuteRoom(String roomNum){
         String target = Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/mute";
         mFirebaseDatabaseReference.child(target).child(roomNum).removeValue();
     }
 
-    private void blockUser(RoomObject roomObject){
+    public void blockUser(RoomObject roomObject){
         String username = roomObject.getUsers().get(0);
         if(username.equals(mUsername)){
             username = roomObject.getUsers().get(1);
@@ -1204,7 +1204,7 @@ public class MessengerFragment extends Fragment {
         mFirebaseDatabaseReference.child(blockedFromTarget).child(mUsername).setValue(true);
     }
 
-    private void unblockUser(RoomObject roomObject){
+    public void unblockUser(RoomObject roomObject){
         String username = roomObject.getUsers().get(0);
         if(username.equals(mUsername)){
             username = roomObject.getUsers().get(1);
@@ -1216,7 +1216,7 @@ public class MessengerFragment extends Fragment {
         mFirebaseDatabaseReference.child(blockedFromTarget).child(mUsername).removeValue();
     }
 
-    private void deleteRoom(final String roomNum, final String dmTarget){
+    public void deleteRoom(final String roomNum, final String dmTarget){
         mFirebaseDatabaseReference.child(activity.getUserPath()+"dm/"+dmTarget).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
@@ -1247,7 +1247,7 @@ public class MessengerFragment extends Fragment {
         //rNameToRNumAndUListMap.remove(roomName);
     }
 
-    private void leaveRoom(final String roomNum, RoomObject roomObject, boolean isAdmin){
+    public void leaveRoom(final String roomNum, RoomObject roomObject, boolean isAdmin){
         //rNameToRNumAndUListMap.remove(roomObject.getName());
 
         String roomTarget = Integer.toString(getUsernameHash(mUsername)) + "/" + mUsername + "/r";
@@ -1631,7 +1631,7 @@ public class MessengerFragment extends Fragment {
 
 
 
-    private void inviteToGroup(){
+    public void inviteToGroup(){
         activity.getCreateMessageFragment().setInviteTargetUsersListNull();
         activity.getCreateMessageFragment().setupInitialContactsList();
         activity.setRemoveMode(false);
@@ -1641,7 +1641,7 @@ public class MessengerFragment extends Fragment {
 
     }
 
-    private void removeFromGroup(RoomObject roomObject){
+    public void removeFromGroup(RoomObject roomObject){
         //activity.getCreateMessageFragment().setInviteTargetUsersListNull();
         activity.getCreateMessageFragment().setRemoveText();
         activity.setRemoveMode(true);
@@ -1800,6 +1800,7 @@ public class MessengerFragment extends Fragment {
         if (isVisibleToUser) {
             if(rootView != null){
                 enableChildViews();
+                activity.setBackToMessageRoom(false);
                 //activity.getCreateMessageFragment().setupInitialContactsList();
             }
 

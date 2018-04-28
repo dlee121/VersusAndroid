@@ -176,6 +176,7 @@ public class MainContainer extends AppCompatActivity {
     private boolean removeMode = false;
     private boolean inviteMode = false;
     private HashSet<String> inviteNumberCodeUpdateList = new HashSet<>();
+    private boolean backToMessageRoom = false;
 
     private String esHost = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
     private String esRegion = "us-east-1";
@@ -298,7 +299,12 @@ public class MainContainer extends AppCompatActivity {
                     if(createMessageFragment != null){
                         createMessageFragment.setInitialLoadingFalse();
                     }
-                    mViewPager.setCurrentItem(4);
+                    if(backToMessageRoom){
+                        mViewPager.setCurrentItem(11);
+                    }
+                    else{
+                        mViewPager.setCurrentItem(4);
+                    }
                     break;
 
                 //default might be enough to handle case 12 (CreateMessage)
@@ -568,7 +574,12 @@ public class MainContainer extends AppCompatActivity {
                         if(createMessageFragment != null){
                             createMessageFragment.setInitialLoadingFalse();
                         }
-                        mViewPager.setCurrentItem(4);
+                        if(backToMessageRoom){
+                            mViewPager.setCurrentItem(11);
+                        }
+                        else{
+                            mViewPager.setCurrentItem(4);
+                        }
                         break;
 
                     default:
@@ -1511,8 +1522,8 @@ public class MainContainer extends AppCompatActivity {
         boolean isRoomAdmin = false;
         final String roomNum = messengerFragment.getClickedRoomNum();
 
-        ArrayList<String> usersList = messageRoom.getUsersList();
-        final RoomObject roomObject = new RoomObject(".", (long) 42069, "", usersList);
+        ArrayList<String> usersList = messageRoom.getSyncedUsersList();
+        final RoomObject roomObject = new RoomObject(messageRoom.getCurrentRoomTitle(), System.currentTimeMillis(), "", usersList);
 
         if(messengerFragment.inMuteList(roomNum)){
             muted = true;
@@ -1689,8 +1700,6 @@ public class MainContainer extends AppCompatActivity {
                     }
                 }
 
-
-
                 enableClicksForListPopupWindowClose();
                 listPopupWindow.dismiss();
             }
@@ -1700,35 +1709,47 @@ public class MainContainer extends AppCompatActivity {
     }
 
     private void blockUser(RoomObject roomObject){
+        backToMessageRoom = true;
+        messengerFragment.blockUser(roomObject);
 
     }
     private void unblockUser(RoomObject roomObject){
-
+        backToMessageRoom = true;
+        messengerFragment.unblockUser(roomObject);
     }
 
     private void muteRoom(String rnum){
-
+        backToMessageRoom = true;
+        messengerFragment.muteRoom(rnum);
     }
 
     private void unmuteRoom(String rnum){
-
+        backToMessageRoom = true;
+        messengerFragment.unmuteRoom(rnum);
     }
 
     private void inviteToGroup(){
-
+        backToMessageRoom = true;
+        messengerFragment.inviteToGroup();
     }
 
     private void deleteRoom(String rnum, String dmTarget){
-
+        backToMessageRoom = true;
+        messengerFragment.deleteRoom(rnum, dmTarget);
     }
 
     private void leaveRoom(String rnum, RoomObject roomObject, boolean isRoomAdmin){
-
+        backToMessageRoom = true;
+        messengerFragment.leaveRoom(rnum, roomObject, isRoomAdmin);
     }
 
     private void removeFromGroup(RoomObject roomObject){
+        backToMessageRoom = true;
+        messengerFragment.removeFromGroup(roomObject);
+    }
 
-
+    public void setBackToMessageRoom(boolean setting){
+        backToMessageRoom = setting;
     }
 
 
