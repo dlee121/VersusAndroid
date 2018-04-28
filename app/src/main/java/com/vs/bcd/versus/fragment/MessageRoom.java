@@ -135,6 +135,7 @@ public class MessageRoom extends Fragment {
     private int VIEW_TYPE_MESSAGE = 1;
     private boolean defaultRoomName = true;
     private ArrayList<String> syncedUsersList;
+    private String adapterRNum = "";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -218,17 +219,19 @@ public class MessageRoom extends Fragment {
     @Override
     public void onResume(){
         super.onResume();
-        if(mFirebaseAdapter != null){
+        if(adapterRNum.equals(roomNum) && mFirebaseAdapter != null){
             setRoomObjListner(roomNum);
-            mFirebaseAdapter.startListening();
+            //mFirebaseAdapter.startListening();
             mMessageRecyclerView.setAdapter(mFirebaseAdapter);
         }
+        /*
         else{
             if(roomNum.length() > 1 && activity != null && activity.isInMessageRoom()){
                 setRoomObjListner(roomNum);
                 setUpRecyclerView(roomNum);
             }
         }
+        */
     }
 
     @Override
@@ -890,6 +893,7 @@ public class MessageRoom extends Fragment {
     }
 
     private void setUpRecyclerView(String rnum){
+        adapterRNum = rnum;
         MESSAGES_CHILD = MESSAGES_CHILD_BODY + rnum;
 
         Query query = mFirebaseDatabaseReference.child(MESSAGES_CHILD).limitToLast(15); //TODO: increase the limit number
@@ -1282,7 +1286,7 @@ public class MessageRoom extends Fragment {
 
     private void setRoomObjListner(String roomNum){
         String rPath = activity.getUserPath()+"r/" + roomNum;
-        //Log.d("ROLT", "rolt added to roomNum: " + roomNum);
+        Log.d("ROLT", "rolt added to roomNum: " + roomNum);
         initialUsersListLoaded = true;
         activity.getMessengerFragment().setClickedRoomNum(roomNum);
         initialUsersListLoaded = false;
@@ -1372,7 +1376,7 @@ public class MessageRoom extends Fragment {
 
     private void closeRoomObjListener(String roomNum){
         if(roomNameListener != null){
-            Log.d("ROL", "ROL removed for roomNum: " + roomNum);
+            Log.d("ROLT", "ROL removed for roomNum: " + roomNum);
 
             String namePath = activity.getUserPath()+"r/" + roomNum + "/name";
             mFirebaseDatabaseReference.child(namePath).removeEventListener(roomNameListener);
