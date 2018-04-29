@@ -1525,7 +1525,7 @@ public class MainContainer extends AppCompatActivity {
         boolean isRoomAdmin = false;
         final String roomNum = messengerFragment.getClickedRoomNum();
 
-        ArrayList<String> usersList = messageRoom.getSyncedUsersList();
+        ArrayList<String> usersList = messageRoom.getUsersList();
         final RoomObject roomObject = new RoomObject(messageRoom.getCurrentRoomTitle(), System.currentTimeMillis(), "", usersList);
 
         if(messengerFragment.inMuteList(roomNum)){
