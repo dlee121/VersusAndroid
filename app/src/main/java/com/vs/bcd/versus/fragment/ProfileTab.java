@@ -32,7 +32,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -94,7 +93,7 @@ public class ProfileTab extends Fragment {
     private MainContainer activity;
     private TextView usernameTV, goldTV, silverTV, bronzeTV, pointsTV, followerCountTV, followingCountTV;
     private Button followButton;
-    private ImageButton messageButton;
+    //private ImageButton messageButton;
     private ProgressBar progressBar;
     private TabLayout tabLayout;
     private RelativeLayout.LayoutParams mainCaseLP, followCaseLP, medalCaseLP, progressbarLP, swipeLayoutLP, tabsLP, viewpagerLP;
@@ -123,10 +122,12 @@ public class ProfileTab extends Fragment {
     private RelativeLayout.LayoutParams profileImgCancelLP, profileImgConfirmLP, uploadProgressBarLP;
     private ProgressBar uploadProgressBar;
 
+    private ImageView fghIconView;
+
     private String host, region;
 
     private int profileImgVersion = 0;
-    private Drawable defaultProfileImage;
+    private Drawable defaultProfileImage, fIcon, gIcon, hIcon;
 
     private boolean followingThisUser = false;
 
@@ -183,6 +184,11 @@ public class ProfileTab extends Fragment {
             }
         });
 
+        fghIconView = rootView.findViewById(R.id.fgh_icon);
+        fIcon = ContextCompat.getDrawable(activity, R.drawable.profile_icon_f);
+        gIcon = ContextCompat.getDrawable(activity, R.drawable.profile_icon_g);
+        hIcon = ContextCompat.getDrawable(activity, R.drawable.profile_icon_h);
+
         defaultProfileImage = ContextCompat.getDrawable(activity, R.drawable.default_profile);
 
         profileImageView = rootView.findViewById(R.id.profile_image_pt);
@@ -227,9 +233,6 @@ public class ProfileTab extends Fragment {
 
         followerCountTV = rootView.findViewById(R.id.num_followers);
         followingCountTV = rootView.findViewById(R.id.num_following);
-
-        messageButton = rootView.findViewById(R.id.profile_message_button);
-        messageButtonLP = (LinearLayout.LayoutParams) messageButton.getLayoutParams();
 
         followButton = rootView.findViewById(R.id.followbutton);
         followbuttonLP = (LinearLayout.LayoutParams) followButton.getLayoutParams();
@@ -755,6 +758,30 @@ public class ProfileTab extends Fragment {
         return 0;
     }
 
+    public void setProfileFGHIcon(char fghn){
+        switch (fghn){
+            case 'f':
+                Glide.with(this).load(fIcon).into(fghIconView);
+                break;
+
+            case 'g':
+                Glide.with(this).load(gIcon).into(fghIconView);
+                break;
+
+            case 'h':
+                Glide.with(this).load(hIcon).into(fghIconView);
+                break;
+
+            case 'n':
+                fghIconView.setImageResource(android.R.color.transparent);
+                break;
+
+            default:
+                fghIconView.setImageResource(android.R.color.transparent);
+                break;
+        }
+    }
+
     //for accessing another user's profile page
     public void setUpProfile(final String username, boolean myProfile){
 
@@ -766,6 +793,7 @@ public class ProfileTab extends Fragment {
         postsTab.setProfileUsername(username);
 
         if(myProfile){
+            fghIconView.setImageResource(android.R.color.transparent);
             //this is setting up the profile page for the logged-in user, as in "Me" page
             //disable toolbarButtonLeft
             //use projection attribute to reduce network traffic; get posts list and comments list from SharedPref
@@ -901,6 +929,12 @@ public class ProfileTab extends Fragment {
     }
 
     private void showFollowedButton(){
+        if(activity.followedBy(profileUsername)){
+            setProfileFGHIcon('h');
+        }
+        else{
+            setProfileFGHIcon('g');
+        }
         /*
         followingTextTV.setEnabled(true);
         followingTextTV.setVisibility(View.VISIBLE);
@@ -923,11 +957,6 @@ public class ProfileTab extends Fragment {
 
         followingThisUser = true;
 
-        messageButton.setEnabled(true);
-        messageButton.setClickable(true);
-        messageButton.setVisibility(View.VISIBLE);
-        messageButton.setLayoutParams(messageButtonLP);
-
         followButton.setEnabled(true);
         followButton.setClickable(true);
         followButton.setVisibility(View.VISIBLE);
@@ -937,6 +966,12 @@ public class ProfileTab extends Fragment {
     }
 
     private void showFollowButton(){
+        if(activity.followedBy(profileUsername)){
+            setProfileFGHIcon('f');
+        }
+        else{
+            setProfileFGHIcon('n');
+        }
         /*
         followingTextTV.setEnabled(false);
         followingTextTV.setVisibility(View.INVISIBLE);
@@ -959,11 +994,6 @@ public class ProfileTab extends Fragment {
 
         followingThisUser = false;
 
-        messageButton.setEnabled(true);
-        messageButton.setClickable(true);
-        messageButton.setVisibility(View.VISIBLE);
-        messageButton.setLayoutParams(messageButtonLP);
-
         followButton.setEnabled(true);
         followButton.setClickable(true);
         followButton.setVisibility(View.VISIBLE);
@@ -979,10 +1009,6 @@ public class ProfileTab extends Fragment {
         followButton.setVisibility(View.INVISIBLE);
         followButton.setLayoutParams(new LinearLayout.LayoutParams(0,0));
 
-        messageButton.setEnabled(false);
-        messageButton.setClickable(false);
-        messageButton.setVisibility(View.INVISIBLE);
-        messageButton.setLayoutParams(new LinearLayout.LayoutParams(0,0));
     }
 
     private int getUsernameHash(String username){
