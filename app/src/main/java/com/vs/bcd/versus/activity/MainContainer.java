@@ -19,6 +19,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.DisplayMetrics;
@@ -33,6 +34,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListPopupWindow;
 import android.widget.ProgressBar;
@@ -178,6 +180,8 @@ public class MainContainer extends AppCompatActivity {
     private HashSet<String> inviteNumberCodeUpdateList = new HashSet<>();
     private boolean backToMessageRoom = false;
     private boolean showMessageRoomOverflowMenu = true;
+    private boolean enableTitleClick = false;
+    private int profileBackDestination = 0;
 
     private String esHost = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
     private String esRegion = "us-east-1";
@@ -278,7 +282,10 @@ public class MainContainer extends AppCompatActivity {
 
                 case 9: //Me (ProfileTab with user == me)
                     toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
-                    mViewPager.setCurrentItem(0);
+                    mViewPager.setCurrentItem(profileBackDestination);
+                    if(profileBackDestination == 11){
+                        messageRoom.setRoomObjListener(messageRoom.getAdapterRNum());
+                    }
                     profileTab.clearProfilePage();
                     break;
 
@@ -413,7 +420,22 @@ public class MainContainer extends AppCompatActivity {
         actionBar.setCustomView(mActionBarView);
         actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
         actionBar.setElevation(0);
+
+        Toolbar parent =(Toolbar) mActionBarView.getParent();
+        parent.setPadding(0,0,0,0);//for tab otherwise give space in tab
+        parent.setContentInsetsAbsolute(0,0);
+
         titleTxtView = (TextView) mActionBarView.findViewById(R.id.textView);
+
+        titleTxtView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(enableTitleClick && messageRoom != null){
+                    messageRoom.roomTitleClick();
+                }
+            }
+        });
+
         toolbarProgressbar = mActionBarView.findViewById(R.id.toolbar_progressbar);
         toolbarButtonLeft = (ImageButton) mActionBarView.findViewById(R.id.btn_slide);
         toolbarButtonLeft.setOnClickListener(new View.OnClickListener() {
@@ -551,9 +573,12 @@ public class MainContainer extends AppCompatActivity {
                     */
 
 
-                    case 9: //Me (ProfileTab with user == me)
+                    case 9: //ME & Profile page
                         toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
-                        mViewPager.setCurrentItem(0);
+                        mViewPager.setCurrentItem(profileBackDestination);
+                        if(profileBackDestination == 11){
+                            messageRoom.setRoomObjListener(messageRoom.getAdapterRNum());
+                        }
                         profileTab.clearProfilePage();
                         break;
 
@@ -853,6 +878,8 @@ public class MainContainer extends AppCompatActivity {
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                         hideToolbarProgressbar();
+                        hideRightChevron();
+                        profileBackDestination = 0;
                         break;
 
                     case 1: //SearchPage
@@ -861,6 +888,8 @@ public class MainContainer extends AppCompatActivity {
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         disableBottomTabs();
                         titleTxtView.setText("Search");
+                        hideRightChevron();
+                        profileBackDestination = 1;
                         break;
 
                     case 2: //CreatePost
@@ -879,6 +908,7 @@ public class MainContainer extends AppCompatActivity {
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         hideToolbarProgressbar();
+                        profileBackDestination = 3;
                         break;
 
                     case 4: //messenger
@@ -886,6 +916,8 @@ public class MainContainer extends AppCompatActivity {
                         showMessengerSearchButton();
                         hideToolbarTextButton();
                         disableBottomTabs();
+                        hideRightChevron();
+                        profileBackDestination = 4;
                         break;
 
                     case 5: //SelectCategory
@@ -902,6 +934,7 @@ public class MainContainer extends AppCompatActivity {
                         bottomNavigation.setCurrentItem(0, false);
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+                        profileBackDestination = 6;
                         break;
 
                     case 7: //LeaderboardTab
@@ -911,6 +944,7 @@ public class MainContainer extends AppCompatActivity {
                         hideToolbarButtonLeft();
                         titleTxtView.setText("Leaderboard");
                         bottomNavigation.setCurrentItem(1, false);
+                        profileBackDestination = 7;
                         break;
 
                     case 8: //NotificationsTab
@@ -939,6 +973,8 @@ public class MainContainer extends AppCompatActivity {
                             disableBottomTabs();
                         }
 
+                        hideRightChevron();
+
                         break;
 
                     case 10: //SettingsFragment
@@ -950,21 +986,24 @@ public class MainContainer extends AppCompatActivity {
                         disableBottomTabs();
                         break;
 
-                    case 11:
+                    case 11: //MessageRoom
                         //hideToolbarButtonRight();
                         hideToolbarTextButton();
                         //showOverflowMenu();
                         disableBottomTabs();
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+                        showRightChevron();
+                        profileBackDestination = 11;
                         break;
 
-                    case 12:
+                    case 12: //CreateMessage
                         hideToolbarButtonRight();
                         showToolbarTextButton("OK");
                         disableBottomTabs();
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+                        hideRightChevron();
                         break;
 
                     default:
@@ -2267,6 +2306,16 @@ public class MainContainer extends AppCompatActivity {
 
     public boolean isInviteMode(){
         return inviteMode;
+    }
+
+    public void showRightChevron(){
+        enableTitleClick = true;
+        titleTxtView.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_right_chevron, 0);
+    }
+
+    public void hideRightChevron(){
+        enableTitleClick = false;
+        titleTxtView.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0);
     }
 
 }

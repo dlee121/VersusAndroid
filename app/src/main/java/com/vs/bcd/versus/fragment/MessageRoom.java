@@ -867,6 +867,22 @@ public class MessageRoom extends Fragment {
         }
     }
 
+    public void roomTitleClick(){
+        if(getUsersList().size() == 2){
+            if(getUsersList().get(0).equals(mUsername)){
+                activity.goToProfile(getUsersList().get(1), true);
+
+            }
+            else{
+                activity.goToProfile(getUsersList().get(0), true);
+            }
+        }
+        else{
+            //show group members list
+
+        }
+    }
+
     public void enableChildViews(){
         for(int i = 0; i<childViews.size(); i++){
             childViews.get(i).setEnabled(true);
@@ -1435,7 +1451,14 @@ public class MessageRoom extends Fragment {
         return currentRoomTitle;
     }
 
-    private void setRoomObjListener(String roomNum){
+    public String getAdapterRNum(){
+        return adapterRNum;
+    }
+
+    public void setRoomObjListener(String roomNum){
+        if(roomObjListener != null){
+            return;
+        }
         String rPath = activity.getUserPath()+"r/" + roomNum;
         Log.d("ROLT", "rolt added to roomNum: " + roomNum);
         initialRoomInfoLoaded = false;
@@ -1506,7 +1529,7 @@ public class MessageRoom extends Fragment {
 
     private void closeRoomObjListener(String roomNum){
         if(roomObjListener != null){
-            Log.d("ROL", "ROL removed for roomNum: " + roomNum);
+            Log.d("ROLT", "ROLT removed for roomNum: " + roomNum);
             String rPath = activity.getUserPath()+"r/" + roomNum;
             mFirebaseDatabaseReference.child(rPath).removeEventListener(roomObjListener);
             roomObjListener = null;
