@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.os.Message;
 import android.os.NetworkOnMainThreadException;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
@@ -24,6 +25,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -33,13 +35,14 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListPopupWindow;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
@@ -78,6 +81,7 @@ import com.vs.bcd.versus.adapter.MyFirebaseMessagingService;
 import com.vs.bcd.versus.fragment.CategoryFragment;
 import com.vs.bcd.versus.fragment.CommentEnterFragment;
 import com.vs.bcd.versus.fragment.CreateMessage;
+import com.vs.bcd.versus.fragment.GroupMembersPage;
 import com.vs.bcd.versus.fragment.LeaderboardTab;
 import com.vs.bcd.versus.fragment.MessageRoom;
 import com.vs.bcd.versus.fragment.MessengerFragment;
@@ -90,6 +94,7 @@ import com.vs.bcd.versus.fragment.Tab1Newsfeed;
 import com.vs.bcd.versus.fragment.Tab2Trending;
 import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.model.GlideUrlCustom;
+import com.vs.bcd.versus.model.MessageObject;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.RoomObject;
 import com.vs.bcd.versus.model.SessionManager;
@@ -182,6 +187,11 @@ public class MainContainer extends AppCompatActivity {
     private boolean showMessageRoomOverflowMenu = true;
     private boolean enableTitleClick = false;
     private int profileBackDestination = 0;
+    private boolean enableTitleEdit = false;
+    private boolean inEditTitleMode = false;
+    private EditText titleEditText;
+    private String titleBeforeEdit = "";
+    private Toast mToast;
 
     private String esHost = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
     private String esRegion = "us-east-1";
@@ -315,6 +325,17 @@ public class MainContainer extends AppCompatActivity {
                     }
                     break;
 
+                case 13: //Group Members Page
+                    if(inEditTitleMode){
+                        closeEditRoomTitle();
+                    }
+                    else{
+                        titleTxtView.setText(titleBeforeEdit);
+                        messageRoom.setRoomObjListener(messageRoom.getAdapterRNum());
+                        mViewPager.setCurrentItem(11);
+                    }
+                    break;
+
                 //default might be enough to handle case 12 (CreateMessage)
                 default:
                     toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
@@ -425,14 +446,28 @@ public class MainContainer extends AppCompatActivity {
         parent.setPadding(0,0,0,0);//for tab otherwise give space in tab
         parent.setContentInsetsAbsolute(0,0);
 
+        titleEditText = mActionBarView.findViewById(R.id.title_edit_text);
+        titleEditText.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View view, int i, KeyEvent keyEvent) {
+                return (i == KeyEvent.KEYCODE_ENTER);
+            }
+        });
+
         titleTxtView = (TextView) mActionBarView.findViewById(R.id.textView);
 
         titleTxtView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(enableTitleClick && messageRoom != null){
-                    messageRoom.roomTitleClick();
+                if(messageRoom != null){
+                    if(enableTitleClick){
+                        messageRoom.roomTitleClick();
+                    }
+                    else if(enableTitleEdit){
+                        editRoomTitle(titleTxtView.getText().toString());
+                    }
                 }
+
             }
         });
 
@@ -606,6 +641,19 @@ public class MainContainer extends AppCompatActivity {
                         else{
                             mViewPager.setCurrentItem(4);
                         }
+                        break;
+
+                    case 13: //Group Members Page
+                        if(inEditTitleMode){
+                            closeEditRoomTitle();
+                            imm.hideSoftInputFromWindow(toolbarButtonLeft.getWindowToken(), 0);
+                        }
+                        else{
+                            titleTxtView.setText(titleBeforeEdit);
+                            messageRoom.setRoomObjListener(messageRoom.getAdapterRNum());
+                            mViewPager.setCurrentItem(11);
+                        }
+
                         break;
 
                     default:
@@ -798,6 +846,11 @@ public class MainContainer extends AppCompatActivity {
                         }
 
                         break;
+
+                    case 13:
+                        submitRoomTitleChange();
+
+                        break;
                 }
             }
         });
@@ -878,8 +931,8 @@ public class MainContainer extends AppCompatActivity {
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                         hideToolbarProgressbar();
-                        hideRightChevron();
                         profileBackDestination = 0;
+                        hideTitleRightButton();
                         break;
 
                     case 1: //SearchPage
@@ -888,8 +941,8 @@ public class MainContainer extends AppCompatActivity {
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         disableBottomTabs();
                         titleTxtView.setText("Search");
-                        hideRightChevron();
                         profileBackDestination = 1;
+                        hideTitleRightButton();
                         break;
 
                     case 2: //CreatePost
@@ -898,6 +951,7 @@ public class MainContainer extends AppCompatActivity {
                         disableBottomTabs();
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+                        hideTitleRightButton();
                         break;
 
                     case 3: //PostPage
@@ -909,6 +963,7 @@ public class MainContainer extends AppCompatActivity {
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         hideToolbarProgressbar();
                         profileBackDestination = 3;
+                        hideTitleRightButton();
                         break;
 
                     case 4: //messenger
@@ -916,8 +971,8 @@ public class MainContainer extends AppCompatActivity {
                         showMessengerSearchButton();
                         hideToolbarTextButton();
                         disableBottomTabs();
-                        hideRightChevron();
                         profileBackDestination = 4;
+                        hideTitleRightButton();
                         break;
 
                     case 5: //SelectCategory
@@ -935,6 +990,7 @@ public class MainContainer extends AppCompatActivity {
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         profileBackDestination = 6;
+                        hideTitleRightButton();
                         break;
 
                     case 7: //LeaderboardTab
@@ -945,6 +1001,7 @@ public class MainContainer extends AppCompatActivity {
                         titleTxtView.setText("Leaderboard");
                         bottomNavigation.setCurrentItem(1, false);
                         profileBackDestination = 7;
+                        hideTitleRightButton();
                         break;
 
                     case 8: //NotificationsTab
@@ -955,6 +1012,7 @@ public class MainContainer extends AppCompatActivity {
                         hideToolbarButtonLeft();
                         titleTxtView.setText("Notifications");
                         bottomNavigation.setCurrentItem(2, false);
+                        hideTitleRightButton();
                         break;
 
                     case 9: //Me (ProfileTab with user == me)
@@ -973,7 +1031,7 @@ public class MainContainer extends AppCompatActivity {
                             disableBottomTabs();
                         }
 
-                        hideRightChevron();
+                        hideTitleRightButton();
 
                         break;
 
@@ -984,6 +1042,7 @@ public class MainContainer extends AppCompatActivity {
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         disableBottomTabs();
+                        hideTitleRightButton();
                         break;
 
                     case 11: //MessageRoom
@@ -993,7 +1052,13 @@ public class MainContainer extends AppCompatActivity {
                         disableBottomTabs();
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
-                        showRightChevron();
+                        if(messageRoom.firstMessageSent()){
+                            showRightChevron();
+                        }
+                        else{
+                            hideTitleRightButton();
+                        }
+
                         profileBackDestination = 11;
                         break;
 
@@ -1003,7 +1068,18 @@ public class MainContainer extends AppCompatActivity {
                         disableBottomTabs();
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
-                        hideRightChevron();
+                        hideTitleRightButton();
+                        break;
+
+                    case 13: //Group Members Page
+                        hideToolbarButtonRight();
+                        if(messageRoom.isRoomAdmin()){
+                            enableTitleEdit();
+                        }
+                        else{
+                            hideTitleRightButton();
+                        }
+                        profileBackDestination = 13;
                         break;
 
                     default:
@@ -1018,6 +1094,7 @@ public class MainContainer extends AppCompatActivity {
         goToMainActivityOnResume = true;
         showMessengerButton();
         showMessegerButtonBadge(true);
+        hideTitleRightButton();
 
         //Log.d("USER_INFO", sessionManager.getUserDetails().get(SessionManager.KEY_USERNAME));
         Log.d("ORDER", "MainContainer OnCreate finished");
@@ -1038,6 +1115,10 @@ public class MainContainer extends AppCompatActivity {
             mViewPager.setCurrentItem(0);
             goToMainActivityOnResume = false;
         }
+        if(mViewPager != null && (mViewPager.getCurrentItem() != 13 && mViewPager.getCurrentItem() != 11)){
+            hideTitleRightButton();
+        }
+
     }
 
     @Override
@@ -1208,13 +1289,15 @@ public class MainContainer extends AppCompatActivity {
                 case 12:
                     createMessageFragment = new CreateMessage();
                     return createMessageFragment;
+                case 13:
+                    return new GroupMembersPage();
                 default:
                     return null;
             }
         }
         @Override
         public int getCount() {
-            return 13;
+            return 14;
         }
 
         @Override
@@ -1246,6 +1329,8 @@ public class MainContainer extends AppCompatActivity {
                     return "MESSENGER";
                 case 12:
                     return "NEW MESSAGE";
+                case 13:
+                    return "MEMBERS";
             }
             return null;
         }
@@ -2310,12 +2395,130 @@ public class MainContainer extends AppCompatActivity {
 
     public void showRightChevron(){
         enableTitleClick = true;
+        enableTitleEdit = false;
         titleTxtView.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_right_chevron, 0);
     }
 
-    public void hideRightChevron(){
+    public void hideTitleRightButton(){
         enableTitleClick = false;
+        enableTitleEdit = false;
         titleTxtView.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0);
+    }
+
+    public void enableTitleEdit(){
+        enableTitleClick = false;
+        enableTitleEdit = true;
+        titleTxtView.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_edit_20padding, 0);
+    }
+
+    private void editRoomTitle(String titleText){
+        inEditTitleMode = true;
+        titleTxtView.setVisibility(View.GONE);
+        titleEditText.setVisibility(View.VISIBLE);
+        titleEditText.setText(titleText);
+        titleEditText.requestFocus();
+        imm.showSoftInput(titleEditText, 0);
+        titleBeforeEdit = titleText;
+        showToolbarTextButton("OK");
+    }
+
+    private void closeEditRoomTitle(){
+        if(mToast != null){
+            mToast.cancel();
+        }
+        titleEditText.clearFocus();
+        titleTxtView.setVisibility(View.VISIBLE);
+        titleEditText.setText("");
+        titleEditText.setVisibility(View.GONE);
+        enableTitleEdit();
+        hideToolbarTextButton();
+        inEditTitleMode = false;
+        imm.hideSoftInputFromWindow(titleTxtView.getWindowToken(), 0);
+    }
+
+    private void submitRoomTitleChange(){
+        String input = titleEditText.getText().toString().trim();
+
+        if(input.length() > 0){
+            if(input.length() > 45){
+                if(mToast != null){
+                    mToast.cancel();
+                }
+                mToast = Toast.makeText(this, "Must be 45 characters or less", Toast.LENGTH_LONG);
+                mToast.show();
+                return;
+            }
+            char[] chars = input.toCharArray();
+            boolean invalidCharacterPresent = false;
+            //iterate over characters
+            for (int i = 0; i < chars.length; i++) {
+                char c = chars[i];
+                //check if the character is alphanumeric
+                if (!Character.isLetterOrDigit(c)) {
+                    if(c != '-' && c != '_' && c != '~' && c != '%' && c != ' '){
+                        invalidCharacterPresent = true;
+                    }
+                }
+            }
+            if(invalidCharacterPresent){
+                if(mToast != null){
+                    mToast.cancel();
+                }
+                mToast = Toast.makeText(this, "No special characters except '-', '_', '~', and '%'", Toast.LENGTH_LONG);
+                mToast.show();
+                return;
+            }
+        }
+        else{
+            if(mToast != null){
+                mToast.cancel();
+            }
+            mToast = Toast.makeText(this, "Must be at least 1 character", Toast.LENGTH_LONG);
+            mToast.show();
+            return;
+        }
+
+        if(input.equals(titleBeforeEdit)){
+            closeEditRoomTitle();
+        }
+        else{
+            String rnum = messageRoom.getAdapterRNum();
+            String eventString = currUsername + " named the group " + input + ".";
+            MessageObject eventMessage = new MessageObject(eventString, null, null);
+            for(String username : messageRoom.getUsersList()){
+                String usernameFinal = username;
+                if(username.indexOf('*') > 0){
+                    int numberCode = Integer.parseInt(username.substring(username.indexOf('*')+1));
+                    if(numberCode == 1 || numberCode == 3){
+                        usernameFinal = username.substring(0, username.indexOf('*'));
+                    }
+                    else{
+                        continue;
+                    }
+                }
+
+                String namePath = Integer.toString(getUsernameHash(usernameFinal))+"/"+usernameFinal+"/r/"+rnum+"/name";
+                String messagePath = Integer.toString(getUsernameHash(usernameFinal))+"/"+usernameFinal+"/messages/"+rnum;
+                mFirebaseDatabaseReference.child(namePath).setValue(input);
+                mFirebaseDatabaseReference.child(messagePath).push().setValue(eventMessage);
+            }
+
+            titleTxtView.setText(input);
+            closeEditRoomTitle();
+        }
+    }
+
+    private int getUsernameHash(String username){
+        int usernameHash;
+        if(username.length() < 5){
+            usernameHash = username.hashCode();
+        }
+        else {
+            String hashIn = "" + username.charAt(0) + username.charAt(username.length() - 2) + username.charAt(1) + username.charAt(username.length() - 1);
+            usernameHash = hashIn.hashCode();
+        }
+
+        return usernameHash;
     }
 
 }

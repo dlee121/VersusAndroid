@@ -361,7 +361,7 @@ public class MessengerFragment extends Fragment {
                 activity.setInviteMode(false);
                 activity.getCreateMessageFragment().setInviteTargetUsersListNull();
                 activity.getCreateMessageFragment().setupInitialContactsList();
-                activity.getViewPager().setCurrentItem(13);
+                activity.getViewPager().setCurrentItem(12);
             }
         });
 

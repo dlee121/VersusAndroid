@@ -245,9 +245,8 @@ public class MessageRoom extends Fragment {
         }
     }
 
-    public void editRoomName(String roomName){
-        defaultRoomName = false;
-        currentRoomTitle = roomName;
+    public boolean firstMessageSent(){
+        return !firstMessage;
     }
 
     public void setUpNewRoom(final ArrayList<String> invitedUsers){
@@ -867,6 +866,34 @@ public class MessageRoom extends Fragment {
         }
     }
 
+    public boolean isRoomAdmin(){
+        int numberCode;
+        boolean isRoomAdmin = false;
+        for(String username : getUsersList()){
+            if(username.indexOf('*') > 0){
+                numberCode = Integer.parseInt(username.substring(username.indexOf('*') + 1));
+                if(numberCode == 1 || numberCode == 3){
+                    if(username.substring(0, username.indexOf('*')).equals(mUsername)){
+                        isRoomAdmin = true;
+                    }
+                    break;
+                }
+            }
+            else{
+                if(username.equals(mUsername)){
+                    isRoomAdmin = true;
+                }
+                break;
+            }
+        }
+
+        return isRoomAdmin;
+    }
+
+    public void editRoomTitle(){
+
+    }
+
     public void roomTitleClick(){
         if(getUsersList().size() == 2){
             if(getUsersList().get(0).equals(mUsername)){
@@ -879,6 +906,7 @@ public class MessageRoom extends Fragment {
         }
         else{
             //show group members list
+            activity.getViewPager().setCurrentItem(13);
 
         }
     }
@@ -1515,7 +1543,10 @@ public class MessageRoom extends Fragment {
                             }
                         }
                     }
-                    activity.showOverflowMenu();
+                    if(activity.getViewPager().getCurrentItem() == 11){
+                        activity.showOverflowMenu();
+                        activity.showRightChevron();
+                    }
                 }
                 initialRoomInfoLoaded = true;
             }
@@ -1544,6 +1575,7 @@ public class MessageRoom extends Fragment {
         if(mMessageRecyclerView != null){
             mMessageRecyclerView.setAdapter(null);
         }
+        adapterRNum = "";
     }
 
     public boolean isRoomDM(){
