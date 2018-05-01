@@ -302,6 +302,11 @@ public class MainContainer extends AppCompatActivity {
                     if(profileBackDestination == 13){
                         titleTxtView.setText(titleBeforeProfile);
                     }
+                    if(profileBackDestination == 3){
+                        profileBackDestination = 0;
+                    }
+                    myAdapterFragInt = 0;
+
                     break;
 
                 case 10: //currently in SettingsFragment
@@ -623,6 +628,9 @@ public class MainContainer extends AppCompatActivity {
                         if(profileBackDestination == 13){
                             titleTxtView.setText(titleBeforeProfile);
                         }
+
+                        profileBackDestination = 0;
+                        myAdapterFragInt = 0;
                         break;
 
                     case 10: //currently in SettingsFragment
@@ -970,7 +978,6 @@ public class MainContainer extends AppCompatActivity {
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         hideToolbarProgressbar();
-                        profileBackDestination = 3;
                         hideTitleRightButton();
                         break;
 
@@ -2542,6 +2549,10 @@ public class MainContainer extends AppCompatActivity {
 
     public void setToolbarTitleText(String title){
         titleTxtView.setText(title);
+    }
+
+    public void setProfileBackDestination(int destination){
+        profileBackDestination = destination;
     }
 
 }
