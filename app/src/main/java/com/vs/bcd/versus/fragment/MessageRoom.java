@@ -910,6 +910,7 @@ public class MessageRoom extends Fragment {
         else{
             //show group members list
             activity.getViewPager().setCurrentItem(13);
+            activity.getGroupMembersPage().setUpMembersList();
 
         }
     }

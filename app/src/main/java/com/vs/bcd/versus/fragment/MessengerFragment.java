@@ -1917,4 +1917,10 @@ public class MessengerFragment extends Fragment {
         }
     }
 
+    public HashMap<String, Integer> getProfileImgVersionsArray(){
+        return profileImgVersions;
+    }
+
+
+
 }

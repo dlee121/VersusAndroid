@@ -192,6 +192,7 @@ public class MainContainer extends AppCompatActivity {
     private EditText titleEditText;
     private String titleBeforeEdit = "";
     private Toast mToast;
+    private GroupMembersPage groupMembersPage;
 
     private String esHost = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
     private String esRegion = "us-east-1";
@@ -1290,7 +1291,8 @@ public class MainContainer extends AppCompatActivity {
                     createMessageFragment = new CreateMessage();
                     return createMessageFragment;
                 case 13:
-                    return new GroupMembersPage();
+                    groupMembersPage = new GroupMembersPage();
+                    return groupMembersPage;
                 default:
                     return null;
             }
@@ -2521,6 +2523,10 @@ public class MainContainer extends AppCompatActivity {
         }
 
         return usernameHash;
+    }
+
+    public GroupMembersPage getGroupMembersPage(){
+        return groupMembersPage;
     }
 
 }
