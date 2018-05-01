@@ -37,6 +37,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListPopupWindow;
 import android.widget.ProgressBar;
@@ -194,6 +195,7 @@ public class MainContainer extends AppCompatActivity {
     private Toast mToast;
     private GroupMembersPage groupMembersPage;
     private String titleBeforeProfile = "";
+    private LinearLayout badgeContainer;
 
     private String esHost = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
     private String esRegion = "us-east-1";
@@ -346,7 +348,7 @@ public class MainContainer extends AppCompatActivity {
                     }
                     break;
 
-                //default might be enough to handle case 12 (CreateMessage)
+                //currently used for Leaderboard (7) and Notifications (8)
                 default:
                     toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                     mViewPager.setCurrentItem(0);
@@ -455,6 +457,20 @@ public class MainContainer extends AppCompatActivity {
         Toolbar parent =(Toolbar) mActionBarView.getParent();
         parent.setPadding(0,0,0,0);//for tab otherwise give space in tab
         parent.setContentInsetsAbsolute(0,0);
+
+        badgeContainer = mActionBarView.findViewById(R.id.badge_container);
+        badgeContainer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //MainActivity
+                if(mViewPager.getCurrentItem() == 0){
+                    mViewPager.setCurrentItem(4); //go to messenger
+                    messengerBackTarget = 0;
+                    titleTxtView.setText("Messenger");
+                    setLeftChevron();
+                }
+            }
+        });
 
         titleEditText = mActionBarView.findViewById(R.id.title_edit_text);
         titleEditText.setOnKeyListener(new View.OnKeyListener() {
@@ -680,7 +696,7 @@ public class MainContainer extends AppCompatActivity {
             }
         });
 
-        messengerButtonBadge = mActionBarView.findViewById(R.id.messenger_button_badge);
+        messengerButtonBadge = badgeContainer.findViewById(R.id.messenger_button_badge);
         messengerButtonBadge.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -692,16 +708,18 @@ public class MainContainer extends AppCompatActivity {
                 try{
                     int badgeContent = Integer.parseInt(charSequence.toString());
                     if(badgeContent > 0){
-                        messengerButtonBadge.setBackgroundResource(R.drawable.badge_circle);
+                        //messengerButtonBadge.setBackgroundResource(R.drawable.badge_circle);
                         if(showBadge){
                             messengerButtonBadge.setVisibility(View.VISIBLE);
+                            badgeContainer.setVisibility(View.VISIBLE);
                         }
                     }
                     else{
                         if(badgeContent == 0){
-                            messengerButtonBadge.setBackground(null);
+                            //messengerButtonBadge.setBackground(null);
                             if(showBadge){
-                                messengerButtonBadge.setVisibility(View.INVISIBLE);
+                                messengerButtonBadge.setVisibility(View.GONE);
+                                badgeContainer.setVisibility(View.GONE);
                             }
                         }
                         else {
@@ -1040,6 +1058,7 @@ public class MainContainer extends AppCompatActivity {
                             bottomNavigation.setCurrentItem(3, false);
                         }
                         else{
+                            showMessegerButtonBadge(false);
                             hideToolbarButtonRight();
                             showToolbarButtonLeft();
                             toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
@@ -2352,11 +2371,13 @@ public class MainContainer extends AppCompatActivity {
         if(show){
             if(!(messengerButtonBadge.getText().toString().equals("0") || messengerButtonBadge.getText().toString().equals(""))){
                 messengerButtonBadge.setVisibility(View.VISIBLE);
+                badgeContainer.setVisibility(View.VISIBLE);
             }
             showBadge = true;
         }
         else{
-            messengerButtonBadge.setVisibility(View.INVISIBLE);
+            messengerButtonBadge.setVisibility(View.GONE);
+            badgeContainer.setVisibility(View.GONE);
             showBadge = false;
         }
     }
