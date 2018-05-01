@@ -893,10 +893,6 @@ public class MessageRoom extends Fragment {
         return isRoomAdmin;
     }
 
-    public void editRoomTitle(){
-
-    }
-
     public void roomTitleClick(){
         if(getUsersList().size() == 2){
             if(getUsersList().get(0).equals(mUsername)){

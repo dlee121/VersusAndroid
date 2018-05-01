@@ -52,6 +52,7 @@ public class GroupMembersPage extends Fragment {
     private GroupMembersAdapter groupMembersAdapter;
     private HashMap<String, Integer> profileImgVersions;
     private ArrayList<String> membersList = new ArrayList<>();
+    private String mUsername;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -81,6 +82,8 @@ public class GroupMembersPage extends Fragment {
     public void setUpMembersList(){
         membersList.clear();
 
+        mUsername = activity.getUsername();
+
         if(profileImgVersions == null){
             profileImgVersions = activity.getMessengerFragment().getProfileImgVersionsArray();
         }
@@ -95,6 +98,9 @@ public class GroupMembersPage extends Fragment {
                 int numberCode = Integer.parseInt(username.substring(username.indexOf('*')+1));
                 if(numberCode == 1 || numberCode == 3){
                     username = username.substring(0, username.indexOf('*'));
+                    if(username.equals(mUsername)){
+                        continue;
+                    }
                     membersList.add(username);
                     if(profileImgVersions.get(username) == null){
                         if(i == 0){
@@ -111,6 +117,9 @@ public class GroupMembersPage extends Fragment {
                 }
             }
             else{
+                if(username.equals(mUsername)){
+                    continue;
+                }
                 membersList.add(username);
                 if(profileImgVersions.get(username) == null){
                     if(i == 0){
@@ -153,6 +162,7 @@ public class GroupMembersPage extends Fragment {
         if (isVisibleToUser) {
             if(rootView != null){
                 enableChildViews();
+                //activity.setToolbarTitleText(activity.getMessageRoom().getCurrentRoomTitle());
                 activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
             }
         }

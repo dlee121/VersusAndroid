@@ -47,7 +47,7 @@ public class GroupMembersAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
-        String memberUsername = membersList.get(position);
+        final String memberUsername = membersList.get(position);
         GroupMemberViewHolder groupMemberViewHolder = (GroupMemberViewHolder) holder;
 
         groupMemberViewHolder.memberName.setText(memberUsername);
@@ -64,6 +64,17 @@ public class GroupMembersAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         }catch (Throwable t){
 
         }
+
+        groupMemberViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                activity.closeEditRoomTitle();
+                activity.hideTitleRightButton();
+                activity.goToProfile(memberUsername, true);
+            }
+        });
+
+
     }
 
     public void setProfileImgVersions(HashMap<String, Integer> profileImgVersions){

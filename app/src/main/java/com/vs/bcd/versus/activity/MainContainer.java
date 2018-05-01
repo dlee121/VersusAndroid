@@ -193,6 +193,7 @@ public class MainContainer extends AppCompatActivity {
     private String titleBeforeEdit = "";
     private Toast mToast;
     private GroupMembersPage groupMembersPage;
+    private String titleBeforeProfile = "";
 
     private String esHost = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
     private String esRegion = "us-east-1";
@@ -298,6 +299,9 @@ public class MainContainer extends AppCompatActivity {
                         messageRoom.setRoomObjListener(messageRoom.getAdapterRNum());
                     }
                     profileTab.clearProfilePage();
+                    if(profileBackDestination == 13){
+                        titleTxtView.setText(titleBeforeProfile);
+                    }
                     break;
 
                 case 10: //currently in SettingsFragment
@@ -616,6 +620,9 @@ public class MainContainer extends AppCompatActivity {
                             messageRoom.setRoomObjListener(messageRoom.getAdapterRNum());
                         }
                         profileTab.clearProfilePage();
+                        if(profileBackDestination == 13){
+                            titleTxtView.setText(titleBeforeProfile);
+                        }
                         break;
 
                     case 10: //currently in SettingsFragment
@@ -1584,6 +1591,10 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public void goToProfile(String username, boolean resetTabSelection){
+        if(profileBackDestination == 13){
+            titleBeforeProfile = titleTxtView.getText().toString();
+        }
+
         if(username.equals(sessionManager.getCurrentUsername())){
             meClicked = true;
             profileTab.setUpProfile(username, true);
@@ -2424,7 +2435,7 @@ public class MainContainer extends AppCompatActivity {
         showToolbarTextButton("OK");
     }
 
-    private void closeEditRoomTitle(){
+    public void closeEditRoomTitle(){
         if(mToast != null){
             mToast.cancel();
         }
@@ -2527,6 +2538,10 @@ public class MainContainer extends AppCompatActivity {
 
     public GroupMembersPage getGroupMembersPage(){
         return groupMembersPage;
+    }
+
+    public void setToolbarTitleText(String title){
+        titleTxtView.setText(title);
     }
 
 }
