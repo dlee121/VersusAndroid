@@ -2448,6 +2448,7 @@ public class MainContainer extends AppCompatActivity {
                 mToast.show();
                 return;
             }
+            /*
             char[] chars = input.toCharArray();
             boolean invalidCharacterPresent = false;
             //iterate over characters
@@ -2468,6 +2469,7 @@ public class MainContainer extends AppCompatActivity {
                 mToast.show();
                 return;
             }
+            */
         }
         else{
             if(mToast != null){

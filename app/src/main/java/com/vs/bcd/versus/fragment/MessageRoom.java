@@ -852,6 +852,9 @@ public class MessageRoom extends Fragment {
             if(rootView != null){
                 //the great piece of code that prevents keyboard from pushing toolbar up
                 getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+                if(currentRoomTitle != null && currentRoomTitle.length() > 0){
+                    activity.setMessageRoomTitle(currentRoomTitle);
+                }
                 enableChildViews();
             }
         }
@@ -1512,6 +1515,7 @@ public class MessageRoom extends Fragment {
                 if(dataSnapshot.getKey().equals("name")){
                     currentRoomTitle = dataSnapshot.getValue(String.class);
                     if(activity!=null){
+                        Log.d("nameChange", "childChange: " + dataSnapshot.getValue(String.class));
                         activity.setMessageRoomTitle(currentRoomTitle);
                     }
                 }
@@ -1540,6 +1544,7 @@ public class MessageRoom extends Fragment {
                             currentRoomTitle = child.getValue(String.class);
                             if(activity!=null){
                                 activity.setMessageRoomTitle(currentRoomTitle);
+                                Log.d("nameChange", "childChange: " + child.getValue(String.class));
                             }
                         }
                     }
