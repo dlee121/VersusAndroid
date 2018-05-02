@@ -50,27 +50,19 @@
             android:layout_marginEnd="8dp"
             android:layout_marginTop="8dp"
             android:ellipsize="end"
-            android:gravity="center"
+            android:gravity="end"
             android:maxLines="1"
             android:scrollHorizontally="true"
             android:textSize="18sp"
             android:text="numVotes" />
 
-        <View
-            android:id="@+id/horizdivider1_t"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="4dp"
-            android:background="@android:color/darker_gray"
-            android:layout_below="@id/author_t"/>
-
         <TextView
             android:id="@+id/question_t"
             android:layout_width="match_parent"
             android:layout_height="25dp"
+            android:layout_marginBottom="8dp"
             android:gravity="center"
-            android:layout_below="@id/horizdivider1_t"
+            android:layout_below="@id/profile_image_t"
             android:layout_centerHorizontal="true"
             android:textColor="#FF000000"
             android:text="question"
@@ -144,23 +136,23 @@
             android:id="@+id/category_t"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
+            android:gravity="start"
             android:layout_marginStart="8dp"
             android:layout_below="@id/only_texts"
             android:layout_alignParentStart="true"
             android:text="Category"
-            android:textSize="18sp" />
+            android:textSize="14sp" />
 
         <TextView
             android:id="@+id/time_t"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
-            android:gravity="center"
+            android:gravity="end"
             android:layout_below="@id/only_texts"
             android:layout_alignParentEnd="true"
             android:text="59 minutes ago"
-            android:textSize="18sp" />
+            android:textSize="14sp" />
 
     </RelativeLayout>
 

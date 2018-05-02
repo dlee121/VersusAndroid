@@ -982,6 +982,7 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 2: //CreatePost
+                        showMessegerButtonBadge(false);
                         hideToolbarButtonRight();
                         showToolbarTextButton("POST");
                         disableBottomTabs();
@@ -991,6 +992,7 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 3: //PostPage
+                        showMessegerButtonBadge(false);
                         titleTxtView.setText("");
                         showOverflowMenu();
                         hideToolbarTextButton();
@@ -1002,6 +1004,7 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 4: //messenger
+                        showMessegerButtonBadge(false);
                         titleTxtView.setText("Messenger");
                         showMessengerSearchButton();
                         hideToolbarTextButton();
@@ -1015,6 +1018,7 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 6: //CategoryFragment
+                        //showMessengerButton();
                         if(cftitle != null && !cftitle.equals("")){
                             titleTxtView.setText(cftitle);
                         }
@@ -1052,6 +1056,7 @@ public class MainContainer extends AppCompatActivity {
 
                     case 9: //Me (ProfileTab with user == me)
                         titleTxtView.setText("");
+                        showMessegerButtonBadge(false);
                         hideToolbarTextButton();
                         if(meClicked){
                             showSettingsButton();
@@ -1060,7 +1065,6 @@ public class MainContainer extends AppCompatActivity {
                             bottomNavigation.setCurrentItem(3, false);
                         }
                         else{
-                            showMessegerButtonBadge(false);
                             hideToolbarButtonRight();
                             showToolbarButtonLeft();
                             toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
@@ -1073,6 +1077,7 @@ public class MainContainer extends AppCompatActivity {
 
                     case 10: //SettingsFragment
                         titleTxtView.setText("Settings");
+                        showMessegerButtonBadge(false);
                         hideToolbarButtonRight();
                         hideToolbarTextButton();
                         showToolbarButtonLeft();
@@ -1083,6 +1088,7 @@ public class MainContainer extends AppCompatActivity {
 
                     case 11: //MessageRoom
                         //hideToolbarButtonRight();
+                        showMessegerButtonBadge(false);
                         hideToolbarTextButton();
                         //showOverflowMenu();
                         disableBottomTabs();
@@ -1099,6 +1105,7 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 12: //CreateMessage
+                        showMessegerButtonBadge(false);
                         hideToolbarButtonRight();
                         showToolbarTextButton("OK");
                         disableBottomTabs();
@@ -1108,6 +1115,7 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 13: //Group Members Page
+                        showMessegerButtonBadge(false);
                         hideToolbarButtonRight();
                         if(messageRoom.isRoomAdmin()){
                             enableTitleEdit();
@@ -2286,7 +2294,7 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public int getImageHeightPixels(){
-        return 747;
+        return 696;
     }
 
     public void closeSoftKeyboard(){

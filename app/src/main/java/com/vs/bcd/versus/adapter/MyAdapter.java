@@ -32,6 +32,7 @@ import com.vs.bcd.versus.model.GlideApp;
 import com.vs.bcd.versus.model.GlideUrlCustom;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.model.SquareImageView;
 
 import org.json.JSONObject;
 
@@ -630,7 +631,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
 
         public TextView rname, bname, txtV, txtS; //for images+text version TODO: if we only have one image then put a placeholder image in the iv without image
         public CircleImageView circView;
-        public ImageView leftIV, rightIV;
+        public SquareImageView leftIV, rightIV;
 
         //TODO: thumbnails
 
