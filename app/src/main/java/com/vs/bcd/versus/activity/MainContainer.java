@@ -661,6 +661,7 @@ public class MainContainer extends AppCompatActivity {
                         mViewPager.setCurrentItem(4);
                         messageRoom.cleanUp();
                         messengerFragment.resetClickedRoomNum();
+                        imm.hideSoftInputFromWindow(toolbarButtonLeft.getWindowToken(), 0);
                         break;
 
                     case 12: //CreateMessage fragment
@@ -673,6 +674,7 @@ public class MainContainer extends AppCompatActivity {
                         else{
                             mViewPager.setCurrentItem(4);
                         }
+                        imm.hideSoftInputFromWindow(toolbarButtonLeft.getWindowToken(), 0);
                         break;
 
                     case 13: //Group Members Page
@@ -1850,7 +1852,7 @@ public class MainContainer extends AppCompatActivity {
 
                         case 1:
                             deleteRoom(roomNum, roomObject.getName());
-                            unmuteRoom(roomNum);
+                            //unmuteRoom(roomNum);
 
                             break;
 
@@ -2386,17 +2388,35 @@ public class MainContainer extends AppCompatActivity {
         return messengerButtonBadge.getText().toString();
     }
 
+    public void setMessengerBadge(int numUnread){
+        if(numUnread > 0){
+            messengerButtonBadge.setText(Integer.toString(numUnread));
+        }
+        else{
+            messengerButtonBadge.setText("0");
+        }
+
+    }
+    /*
     public void incrementMessengerBadge(){
         messengerButtonBadge.setText(Integer.toString(Integer.parseInt(messengerButtonBadge.getText().toString()) + 1));
     }
 
     public void decrementMessengerBadge(){
-        messengerButtonBadge.setText(Integer.toString(Integer.parseInt(messengerButtonBadge.getText().toString()) - 1));
+        int count = Integer.parseInt(messengerButtonBadge.getText().toString());
+        if(count > 0){
+            count--;
+        }
+        else{
+            count = 0;
+        }
+        messengerButtonBadge.setText(Integer.toString(count));
     }
 
     public void setInitialMessengerBadgeCount(int count){
         messengerButtonBadge.setText(Integer.toString(count));
     }
+    */
 
     public void setRemoveMode(boolean mode){
         removeMode = mode;

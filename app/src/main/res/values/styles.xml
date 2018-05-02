@@ -6,6 +6,7 @@
         <item name="colorPrimary">@color/vsRed</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:actionBarSize">@dimen/toolbar_height</item>
     </style>
 
     <style name="AppTheme.NoActionBar">

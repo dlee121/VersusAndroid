@@ -20,5 +20,6 @@
     <dimen name="message_item_short">10dp</dimen>
     <dimen name="message_item_long">80dp</dimen>
     <dimen name="messenger_profile_image">36dp</dimen>
+    <dimen name="toolbar_height">42dp</dimen>
 
 </resources>

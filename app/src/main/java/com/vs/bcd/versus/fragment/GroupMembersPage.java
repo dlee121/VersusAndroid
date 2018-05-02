@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +20,7 @@ import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.GroupMembersAdapter;
 import com.vs.bcd.versus.model.AWSV4Auth;
+import com.vs.bcd.versus.model.CategoryObject;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -25,6 +28,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -68,6 +72,28 @@ public class GroupMembersPage extends Fragment {
         }
 
         membersFilter = rootView.findViewById(R.id.group_members_filter);
+        membersFilter.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                // TODO Auto-generated method stub
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                // TODO Auto-generated method stub
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                filter(s.toString());
+                //you can use runnable postDelayed like 500 ms to delay search text
+            }
+        });
+
+
+
         membersRV = rootView.findViewById(R.id.group_members_rv);
         mLinearLayoutManager = new LinearLayoutManager(activity);
         membersRV.setLayoutManager(mLinearLayoutManager);
@@ -81,6 +107,8 @@ public class GroupMembersPage extends Fragment {
 
     public void setUpMembersList(){
         membersList.clear();
+        membersFilter.setText("");
+        groupMembersAdapter.notifyDataSetChanged();
 
         mUsername = activity.getUsername();
 
@@ -268,6 +296,23 @@ public class GroupMembersPage extends Fragment {
 
         } catch (Exception e) {
             e.printStackTrace();
+        }
+
+    }
+
+    private void filter(String text){
+        if(text.isEmpty()){
+            groupMembersAdapter.updateList(membersList);
+        }
+        else{
+            ArrayList<String> temp = new ArrayList<>();
+            for(String username: membersList) {
+                if (username.toLowerCase().contains(text.toLowerCase())) {
+                    temp.add(username);
+                }
+            }
+
+            groupMembersAdapter.updateList(temp);
         }
 
     }
