@@ -57,21 +57,12 @@
             android:textSize="18sp"
             android:text="numVotes" />
 
-        <View
-            android:id="@+id/horizdivider1_pc"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="4dp"
-            android:background="@android:color/darker_gray"
-            android:layout_below="@id/author_pc"/>
-
-
         <TextView
             android:id="@+id/post_page_question"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/horizdivider1_pc"
+            android:layout_below="@id/profile_image_pc"
+            android:layout_marginBottom="8dp"
             android:text="Question"
             android:textSize="18sp"
             android:textColor="#000000"
@@ -90,20 +81,24 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="5"
+                android:paddingStart="14dp"
+                android:paddingEnd="12dp"
                 android:clickable="true">
 
-                <ImageView
+                <com.vs.bcd.versus.model.SquareImageView
                     android:id="@+id/rediv"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:adjustViewBounds="true"
+                    android:scaleType="centerCrop"
                     app:srcCompat="@drawable/default_background" />
 
-                <ImageView
+                <com.vs.bcd.versus.model.SquareImageView
                     android:id="@+id/rediv_mask"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:adjustViewBounds="true"/>
+                    android:adjustViewBounds="true"
+                    android:scaleType="centerCrop"/>
 
             </RelativeLayout>
 
@@ -120,20 +115,24 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="5"
+                android:paddingStart="12dp"
+                android:paddingEnd="14dp"
                 android:clickable="true">
 
-                <ImageView
+                <com.vs.bcd.versus.model.SquareImageView
                     android:id="@+id/blackiv"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:adjustViewBounds="true"
+                    android:scaleType="centerCrop"
                     app:srcCompat="@drawable/default_background" />
 
-                <ImageView
+                <com.vs.bcd.versus.model.SquareImageView
                     android:id="@+id/blkiv_mask"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:adjustViewBounds="true"/>
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:scaleType="centerCrop"/>
 
             </RelativeLayout>
 
