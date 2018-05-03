@@ -59,7 +59,6 @@
             android:id="@+id/question_pcto"
             android:layout_width="match_parent"
             android:layout_height="25dp"
-            android:layout_marginBottom="8dp"
             android:gravity="center"
             android:layout_below="@id/profile_image_pcto"
             android:layout_centerHorizontal="true"
@@ -72,50 +71,76 @@
         <LinearLayout
             android:id="@+id/only_texts"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:baselineAligned="false"
+            android:layout_height="136dp"
             android:orientation="horizontal"
-            android:layout_below="@id/question_pcto"
+            android:layout_alignTop="@id/question_pcto"
             android:weightSum="11">
 
-            <TextView
-                android:id="@+id/vsc_r_pcto"
+            <RelativeLayout
+                android:id="@+id/left_box"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:text="redname"
-                android:layout_weight="5"
-                android:textSize="25sp"
-                android:textColor="#000000"
-                android:gravity="center" />
+                android:layout_weight="5">
 
-            <LinearLayout
+                <TextView
+                    android:id="@+id/vsc_r_pcto"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="redname"
+                    android:textSize="25sp"
+                    android:textColor="#000000"
+                    android:gravity="center"/>
+
+                <ImageView
+                    android:id="@+id/check_red"
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
+                    android:layout_centerHorizontal="true"
+                    android:layout_alignParentBottom="true"
+                    android:src="@drawable/check_circle_gray"/>
+
+            </RelativeLayout>
+
+            <RelativeLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:layout_marginTop="12dp"
-                android:layout_marginBottom="12dp"
-                android:gravity="center"
-                android:orientation="horizontal">
+                android:layout_weight="1">
 
                 <TextView
                     android:id="@+id/vstextpcto"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:text="VS"
-                    android:layout_weight="1"
+                    android:text="vs"
+                    android:textSize="18sp"
                     android:gravity="center"/>
 
-            </LinearLayout>
+            </RelativeLayout>
 
-            <TextView
-                android:id="@+id/vsc_b_pcto"
+
+            <RelativeLayout
+                android:id="@+id/right_box"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:text="blackname"
-                android:textColor="#000000"
-                android:layout_weight="5"
-                android:textSize="25sp"
-                android:gravity="center" />
+                android:layout_weight="5">
+
+                <TextView
+                    android:id="@+id/vsc_b_pcto"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="blackname"
+                    android:textColor="#000000"
+                    android:textSize="25sp"
+                    android:gravity="center"/>
+
+                <ImageView
+                    android:id="@+id/check_blue"
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
+                    android:layout_centerHorizontal="true"
+                    android:layout_alignParentBottom="true"
+                    android:src="@drawable/check_circle_gray"/>
+
+            </RelativeLayout>
 
         </LinearLayout>
 

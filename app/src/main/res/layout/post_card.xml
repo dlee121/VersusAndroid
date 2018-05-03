@@ -102,10 +102,11 @@
                     android:scaleType="centerCrop"/>
                 <ImageView
                     android:id="@+id/check_circle_leftimg"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
                     android:layout_alignParentBottom="true"
                     android:layout_centerHorizontal="true"
+                    android:layout_marginBottom="4dp"
                     android:src="@drawable/check_circle_white"/>
 
             </RelativeLayout>
@@ -145,10 +146,11 @@
 
                 <ImageView
                     android:id="@+id/check_circle_rightimg"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
                     android:layout_alignParentBottom="true"
                     android:layout_centerHorizontal="true"
+                    android:layout_marginBottom="4dp"
                     android:src="@drawable/check_circle_white"/>
 
             </RelativeLayout>
