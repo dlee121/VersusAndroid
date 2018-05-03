@@ -128,7 +128,7 @@ public class MainActivity extends Fragment {
             public void onClick(View view) {
                 mainContainer.setOriginFragNum(mViewPager.getCurrentItem());
                 mainContainer.getViewPager().setCurrentItem(2);
-                mainContainer.getToolbarTitleText().setText("Create Post");
+                mainContainer.getToolbarTitleText().setText("Create a Post");
                 mainContainer.getToolbarButtonLeft().setImageResource(R.drawable.ic_left_chevron);
             }
         });

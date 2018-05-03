@@ -51,7 +51,7 @@
             android:layout_marginEnd="8dp"
             android:layout_marginTop="8dp"
             android:ellipsize="end"
-            android:gravity="center"
+            android:gravity="center|end"
             android:maxLines="1"
             android:scrollHorizontally="true"
             android:textSize="18sp"
@@ -98,7 +98,15 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:adjustViewBounds="true"
+                    android:background="#AF303030"
                     android:scaleType="centerCrop"/>
+                <ImageView
+                    android:id="@+id/check_circle_leftimg"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true"
+                    android:layout_centerHorizontal="true"
+                    android:src="@drawable/check_circle_white"/>
 
             </RelativeLayout>
 
@@ -132,7 +140,16 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:adjustViewBounds="true"
+                    android:background="#AF303030"
                     android:scaleType="centerCrop"/>
+
+                <ImageView
+                    android:id="@+id/check_circle_rightimg"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true"
+                    android:layout_centerHorizontal="true"
+                    android:src="@drawable/check_circle_white"/>
 
             </RelativeLayout>
 
@@ -249,7 +266,7 @@
                 android:layout_height="match_parent"
                 android:layout_alignParentRight="true"
                 android:layout_toRightOf="@id/redgraphview"
-                android:background="@drawable/blackgraph"/>
+                android:background="@drawable/bluegraph"/>
 
         </RelativeLayout>
 

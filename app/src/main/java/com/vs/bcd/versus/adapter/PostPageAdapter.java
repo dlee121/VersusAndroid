@@ -42,6 +42,7 @@ import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.GlideUrlCustom;
 import com.vs.bcd.versus.model.Post;
+import com.vs.bcd.versus.model.SquareImageView;
 import com.vs.bcd.versus.model.TopCardObject;
 import com.vs.bcd.versus.model.UserAction;
 import com.vs.bcd.versus.model.VSComment;
@@ -133,7 +134,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         this.pageLevel = pageLevel;
         userAction = activity.getPostPage().getUserAction();
         actionMap = userAction.getActionRecord();
-        graphBoxParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, 20);
+        graphBoxParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, 10);
         graphBoxParams.addRule(RelativeLayout.BELOW, R.id.left_percentage);
         seeMoreContainerLP = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         seeMoreContainerLP.addRule(RelativeLayout.ALIGN_END, R.id.usercomment);
@@ -465,8 +466,12 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     if(!lockButtons){
                         if (!userAction.getVotedSide().equals("RED")) {
                             activity.getPostPage().redVotePressed();
-                            setImageMask(TINTCHECK, RED);
-                            setImageMask(TINT, BLK);
+
+                            postCard.redMask.setVisibility(View.VISIBLE);
+                            postCard.checkCircleLeft.setVisibility(View.VISIBLE);
+
+                            postCard.blkMask.setVisibility(View.INVISIBLE);
+                            postCard.checkCircleRight.setVisibility(View.INVISIBLE);
 
                             if (mToast != null) {
                                 mToast.cancel();
@@ -484,8 +489,12 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     if(!lockButtons){
                         if (!userAction.getVotedSide().equals("BLK")) {
                             activity.getPostPage().blackVotePressed();
-                            setImageMask(TINTCHECK, BLK);
-                            setImageMask(TINT, RED);
+
+                            postCard.redMask.setVisibility(View.INVISIBLE);
+                            postCard.checkCircleLeft.setVisibility(View.INVISIBLE);
+
+                            postCard.blkMask.setVisibility(View.VISIBLE);
+                            postCard.checkCircleRight.setVisibility(View.VISIBLE);
 
                             if (mToast != null) {
                                 mToast.cancel();
@@ -543,7 +552,31 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             } else {
                 postCard.blkIV.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
             }
-            setInitialMask();
+
+            //set initial image mask;
+            if(userAction.getVotedSide().equals("RED")){
+                postCard.redMask.setVisibility(View.VISIBLE);
+                postCard.checkCircleLeft.setVisibility(View.VISIBLE);
+
+                postCard.blkMask.setVisibility(View.INVISIBLE);
+                postCard.checkCircleRight.setVisibility(View.INVISIBLE);
+            }
+            else if(userAction.getVotedSide().equals("BLK")){
+                postCard.redMask.setVisibility(View.INVISIBLE);
+                postCard.checkCircleLeft.setVisibility(View.INVISIBLE);
+
+                postCard.blkMask.setVisibility(View.VISIBLE);
+                postCard.checkCircleRight.setVisibility(View.VISIBLE);
+            }
+            else{
+                postCard.redMask.setVisibility(View.INVISIBLE);
+                postCard.checkCircleLeft.setVisibility(View.INVISIBLE);
+
+                postCard.blkMask.setVisibility(View.INVISIBLE);
+                postCard.checkCircleRight.setVisibility(View.INVISIBLE);
+            }
+
+
 
         } else if(holder instanceof TopCardViewHolder){
 
@@ -733,34 +766,6 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
     }
 
-    private void setInitialMask(){
-        switch (userAction.getVotedSide()){
-            case "none":
-                setImageMask(NOMASK, RED);
-                setImageMask(NOMASK, BLK);
-                postCard.rednameTV.setTypeface(null, Typeface.NORMAL);
-                postCard.blacknameTV.setTypeface(null, Typeface.NORMAL);
-                break;
-
-            case "RED":
-                setImageMask(TINTCHECK, RED);
-                setImageMask(TINT, BLK);
-                postCard.rednameTV.setTypeface(null, Typeface.BOLD);
-                postCard.blacknameTV.setTypeface(null, Typeface.NORMAL);
-                break;
-
-            case "BLK":
-                setImageMask(TINT, RED);
-                setImageMask(TINTCHECK, BLK);
-                postCard.rednameTV.setTypeface(null, Typeface.NORMAL);
-                postCard.blacknameTV.setTypeface(null, Typeface.BOLD);
-                break;
-
-            default:
-                return;
-        }
-    }
-
     public void clearList(){
         masterList.clear();
         notifyDataSetChanged();
@@ -782,13 +787,14 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private class PostCardViewHolder extends RecyclerView.ViewHolder {
 
         public TextView questionTV, rednameTV, blacknameTV, leftPercentage, rightPercentage, author, votecount;
-        public ImageView redIV, blkIV, redMask, blkMask;
+        public SquareImageView redIV, blkIV, redMask, blkMask;
         public View redgraphView;
         public RelativeLayout graphBox;
         public Button sortTypeSelector;
         public RelativeLayout redimgBox, blkimgBox;
         public LinearLayout sortTypeBackground;
         public CircleImageView profileImg;
+        public ImageView checkCircleLeft, checkCircleRight;
 
 
         public PostCardViewHolder (View view){
@@ -800,9 +806,11 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             rednameTV = view.findViewById(R.id.rednametvpc);
             blacknameTV = view.findViewById(R.id.blacknametvpc);
             redimgBox = view.findViewById(R.id.redimgbox);
+            checkCircleLeft = redimgBox.findViewById(R.id.check_circle_leftimg);
             redMask = redimgBox.findViewById(R.id.rediv_mask);
             redIV = redimgBox.findViewById(R.id.rediv);
             blkimgBox = view.findViewById(R.id.blkimgbox);
+            checkCircleRight = blkimgBox.findViewById(R.id.check_circle_rightimg);
             blkMask = blkimgBox.findViewById(R.id.blkiv_mask);
             blkIV = blkimgBox.findViewById(R.id.blackiv);
             redgraphView = view.findViewById(R.id.redgraphview);
@@ -973,70 +981,6 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             default:
                 return "";
         }
-    }
-
-    //sets mask and also sets the drawable to corresponding imageview
-    private void setImageMask(int maskCode, int redOrBlack){
-
-        //Log.d("input", "maskCode = " + Integer.toString(maskCode) + ", redOrBlack = " + Integer.toString(redOrBlack));
-        switch (redOrBlack){
-            case RED:
-                switch (maskCode){
-                    case NOMASK:
-                        redLayers[0].setAlpha(0);
-                        redLayers[1].setAlpha(0);
-                        hideGraph();
-                        postCard.rednameTV.setTypeface(null, Typeface.NORMAL);
-                        break;
-                    case TINT:
-                        redLayers[0].setAlpha(175);
-                        redLayers[1].setAlpha(0);
-                        showGraph();
-                        postCard.rednameTV.setTypeface(null, Typeface.NORMAL);;
-                        break;
-                    case TINTCHECK:
-                        redLayers[0].setAlpha(175);
-                        redLayers[1].setAlpha(255);
-                        showGraph();
-                        postCard.rednameTV.setTypeface(null, Typeface.BOLD);
-                        break;
-                    default:
-                        return;
-                }
-                redLayerDrawable = new LayerDrawable(redLayers);
-                postCard.redMask.setImageDrawable(redLayerDrawable);
-                postCard.redMask.invalidate();
-                break;
-
-            case BLK:
-                switch (maskCode){
-                    case NOMASK:
-                        blackLayers[0].setAlpha(0);
-                        blackLayers[1].setAlpha(0);
-                        postCard.blacknameTV.setTypeface(null, Typeface.NORMAL);
-                        break;
-                    case TINT:
-                        blackLayers[0].setAlpha(175);
-                        blackLayers[1].setAlpha(0);
-                        postCard.blacknameTV.setTypeface(null, Typeface.NORMAL);
-                        break;
-                    case TINTCHECK:
-                        blackLayers[0].setAlpha(175);
-                        blackLayers[1].setAlpha(255);
-                        postCard.blacknameTV.setTypeface(null, Typeface.BOLD);
-                        break;
-                    default:
-                        return;
-                }
-                blackLayerDrawable = new LayerDrawable(blackLayers);
-                postCard.blkMask.setImageDrawable(blackLayerDrawable);
-                postCard.blkMask.invalidate();
-                break;
-
-            default:
-                return;
-        }
-
     }
 
     private void hideGraph(){

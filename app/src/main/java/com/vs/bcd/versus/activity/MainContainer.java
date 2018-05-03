@@ -1353,7 +1353,7 @@ public class MainContainer extends AppCompatActivity {
                 case 1:
                     return "SEARCH";
                 case 2:
-                    return "CREATE POST";
+                    return "CREATE A POST";
                 case 3:
                     return "POST PAGE";
                 case 4:

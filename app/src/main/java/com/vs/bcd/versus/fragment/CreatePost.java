@@ -59,6 +59,7 @@ import com.vs.bcd.versus.model.GlideUrlCustom;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.model.Post;
+import com.vs.bcd.versus.model.SquareImageView;
 
 /**
  * Created by dlee on 5/19/17.
@@ -70,7 +71,7 @@ public class CreatePost extends Fragment {
     private TextView rednameTV, blacknameTV, questionTV;
     //private CropImageView cropper1;
     //private CropImageView cropper2;
-    private ImageView ivLeft, ivRight;
+    private SquareImageView ivLeft, ivRight;
     private String redStr;
     private String blackStr;
     private String questiongStr;
@@ -998,8 +999,8 @@ public class CreatePost extends Fragment {
         cropperNumber = 1;
         redimgSet = DEFAULT;
         blackimgSet = DEFAULT;
-        ivLeft.setImageResource(R.drawable.ic_add_24dp);
-        ivRight.setImageResource(R.drawable.ic_add_24dp);
+        ivLeft.setImageResource(R.drawable.plus_blue);
+        ivRight.setImageResource(R.drawable.plus_blue);
 
         questionET.setLayoutParams(qETLP);
         questionET.setFocusableInTouchMode(true);
@@ -1076,7 +1077,7 @@ public class CreatePost extends Fragment {
 
         ivLeft.setDrawingCacheEnabled(false);
         ivLeft.setDrawingCacheEnabled(true);
-        ivLeft.setImageResource(R.drawable.ic_add_24dp);
+        ivLeft.setImageResource(R.drawable.plus_blue);
     }
 
     private void clearRightImage() {
@@ -1096,7 +1097,7 @@ public class CreatePost extends Fragment {
 
         ivRight.setDrawingCacheEnabled(false);
         ivRight.setDrawingCacheEnabled(true);
-        ivRight.setImageResource(R.drawable.ic_add_24dp);
+        ivRight.setImageResource(R.drawable.plus_blue);
     }
 
 }
