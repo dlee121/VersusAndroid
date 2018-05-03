@@ -153,7 +153,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         if(position  == 0){
             if(masterList.get(0) instanceof Post){
                 Post thisPost = (Post) masterList.get(0);
-                if(thisPost.getRedimg() == DEFAULT && thisPost.getRedimg() == DEFAULT){
+                if(thisPost.getRedimg() % 10 == DEFAULT && thisPost.getBlackimg() % 10 == DEFAULT){
                     return VIEW_TYPE_POSTCARD_TEXTONLY;
                 }
                 else{

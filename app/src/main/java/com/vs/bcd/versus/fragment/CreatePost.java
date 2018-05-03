@@ -247,6 +247,7 @@ public class CreatePost extends Fragment {
             showLeftClearButton();
             try{
                 GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI(post, 0));
+                setScaleTypeForImageLoadLeft();
                 Glide.with(this).load(gurlLeft).into(ivLeft);
             } catch (Exception e) {
                 ivLeft.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
@@ -256,6 +257,7 @@ public class CreatePost extends Fragment {
             showRightClearButton();
             try{
                 GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI(post, 1));
+                setScaleTypeForImageLoadRight();
                 Glide.with(this).load(gurlRight).into(ivRight);
             } catch (Exception e) {
                 ivRight.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
@@ -813,6 +815,7 @@ public class CreatePost extends Fragment {
 
                 if(cropperNumber == 1) {
                     //cropper1.setImageUriAsync(imageUri);
+                    setScaleTypeForImageLoadLeft();
                     Glide.with(this).load(imageUri).apply(requestOptions).into(ivLeft);
                     redimgSet = S3;
                     leftImgEdited = true;
@@ -830,6 +833,7 @@ public class CreatePost extends Fragment {
 
                 else {
                     //cropper2.setImageUriAsync(imageUri);
+                    setScaleTypeForImageLoadRight();
                     Glide.with(this).load(imageUri).apply(requestOptions).into(ivRight);
                     blackimgSet = S3;
                     rightImgEdited = true;
@@ -856,6 +860,7 @@ public class CreatePost extends Fragment {
 
             if(cropperNumber == 1){
                 //cropper1.setImageUriAsync(mCropImageUri);
+                setScaleTypeForImageLoadLeft();
                 Glide.with(this).load(mCropImageUri).apply(requestOptions).into(ivLeft);
                 redimgSet = S3;
                 leftImgEdited = true;
@@ -872,6 +877,7 @@ public class CreatePost extends Fragment {
 
             }
             else{
+                setScaleTypeForImageLoadRight();
                 Glide.with(this).load(mCropImageUri).apply(requestOptions).into(ivRight);
                 blackimgSet = S3;
                 rightImgEdited = true;
@@ -999,7 +1005,9 @@ public class CreatePost extends Fragment {
         cropperNumber = 1;
         redimgSet = DEFAULT;
         blackimgSet = DEFAULT;
+        setScaleTypeForEmptyViewLeft();
         ivLeft.setImageResource(R.drawable.plus_blue);
+        setScaleTypeForEmptyViewRight();
         ivRight.setImageResource(R.drawable.plus_blue);
 
         questionET.setLayoutParams(qETLP);
@@ -1077,6 +1085,7 @@ public class CreatePost extends Fragment {
 
         ivLeft.setDrawingCacheEnabled(false);
         ivLeft.setDrawingCacheEnabled(true);
+        setScaleTypeForEmptyViewLeft();
         ivLeft.setImageResource(R.drawable.plus_blue);
     }
 
@@ -1097,7 +1106,21 @@ public class CreatePost extends Fragment {
 
         ivRight.setDrawingCacheEnabled(false);
         ivRight.setDrawingCacheEnabled(true);
+        setScaleTypeForEmptyViewRight();
         ivRight.setImageResource(R.drawable.plus_blue);
+    }
+
+    private void setScaleTypeForImageLoadLeft(){
+        ivLeft.setScaleType(ImageView.ScaleType.FIT_XY);
+    }
+    private void setScaleTypeForImageLoadRight(){
+        ivRight.setScaleType(ImageView.ScaleType.FIT_XY);
+    }
+    private void setScaleTypeForEmptyViewLeft(){
+        ivLeft.setScaleType(ImageView.ScaleType.CENTER);
+    }
+    private void setScaleTypeForEmptyViewRight(){
+        ivRight.setScaleType(ImageView.ScaleType.CENTER);
     }
 
 }
