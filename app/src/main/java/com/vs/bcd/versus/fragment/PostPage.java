@@ -1876,7 +1876,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     private void setPostCardSortTypeHint(){
         if(PPAdapter != null){
-            PPAdapter.setSortTypeHint(sortType);
+            //PPAdapter.setSortTypeHint(sortType);
         }
     }
 

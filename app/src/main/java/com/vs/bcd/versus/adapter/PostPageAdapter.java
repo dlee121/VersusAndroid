@@ -86,6 +86,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private final int VIEW_TYPE_LOADING = 1;
     private final int VIEW_TYPE_POSTCARD = 2;
     private final int VIEW_TYPE_TOPCARD = 3;
+    private final int VIEW_TYPE_POSTCARD_TEXTONLY = 4;
     private boolean isLoading;
     private MainContainer activity;
     private Post post;
@@ -93,7 +94,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private List<VSComment> childrenList = new ArrayList<>();
     private int visibleThreshold = 8;
     private int lastVisibleItem, totalItemCount;
-    private PostCardViewHolder postCard;
+    private RecyclerView.ViewHolder postCard;
     private Bitmap redBMP = null;
     private Bitmap blackBMP = null;
     private int pageLevel;
@@ -146,7 +147,13 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public int getItemViewType(int position) {
         if(position  == 0){
             if(masterList.get(0) instanceof Post){
-                return VIEW_TYPE_POSTCARD;
+                Post thisPost = (Post) masterList.get(0);
+                if(thisPost.getRedimg() == DEFAULT && thisPost.getRedimg() == DEFAULT){
+                    return VIEW_TYPE_POSTCARD_TEXTONLY;
+                }
+                else{
+                    return VIEW_TYPE_POSTCARD;
+                }
             }
             return VIEW_TYPE_TOPCARD;
         }
@@ -170,6 +177,9 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         } else if(viewType == VIEW_TYPE_TOPCARD){
             View view = LayoutInflater.from(activity).inflate(R.layout.top_card, parent, false);
             return new TopCardViewHolder(view);
+        } else if(viewType == VIEW_TYPE_POSTCARD_TEXTONLY){
+            View view = LayoutInflater.from(activity).inflate(R.layout.post_card_textonly, parent, false);
+            return new PostCardTextOnlyViewHolder(view);
         }
         return null;
     }
@@ -414,14 +424,16 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         } else if (holder instanceof PostCardViewHolder) {
             //Log.d("DEBUG", "BIND EVENT");
-            postCard = (PostCardViewHolder) holder;
-            postCard.author.setText(post.getAuthor());
-            postCard.votecount.setText(Integer.toString(post.getVotecount()) + " votes");
-            postCard.questionTV.setText(post.getQuestion());
-            postCard.rednameTV.setText(post.getRedname());
-            postCard.blacknameTV.setText(post.getBlackname());
+            postCard = holder;
 
-            postCard.author.setOnClickListener(new View.OnClickListener() {
+            final PostCardViewHolder postCardViewHolder = (PostCardViewHolder) holder;
+            postCardViewHolder.author.setText(post.getAuthor());
+            postCardViewHolder.votecount.setText(Integer.toString(post.getVotecount()) + " votes");
+            postCardViewHolder.questionTV.setText(post.getQuestion());
+            postCardViewHolder.rednameTV.setText(post.getRedname());
+            postCardViewHolder.blacknameTV.setText(post.getBlackname());
+
+            postCardViewHolder.author.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     if (!post.getAuthor().equals("[deleted]")) {
@@ -431,7 +443,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 }
             });
 
-            postCard.profileImg.setOnClickListener(new View.OnClickListener() {
+            postCardViewHolder.profileImg.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     if (!post.getAuthor().equals("[deleted]")) {
@@ -441,37 +453,39 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 }
             });
 
-            profileImageView = postCard.profileImg;
+            profileImageView = postCardViewHolder.profileImg;
             loadProfileImage(post.getAuthor());
 
             redTint = new ShapeDrawable(new RectShape());
-            redTint.setIntrinsicWidth(postCard.redIV.getWidth());
-            redTint.setIntrinsicHeight(postCard.redIV.getHeight());
+            redTint.setIntrinsicWidth(postCardViewHolder.redIV.getWidth());
+            redTint.setIntrinsicHeight(postCardViewHolder.redIV.getHeight());
             redTint.getPaint().setColor(Color.argb(175, 165, 35, 57));
             //redLayers[0] = ContextCompat.getDrawable(activity, R.drawable.default_background);
             redLayers[0] = redTint;
             redLayers[1] = ContextCompat.getDrawable(activity, R.drawable.ic_check_overlay);
 
             blackTint = new ShapeDrawable(new RectShape());
-            blackTint.setIntrinsicWidth(postCard.blkIV.getWidth());
-            blackTint.setIntrinsicHeight(postCard.blkIV.getHeight());
+            blackTint.setIntrinsicWidth(postCardViewHolder.blkIV.getWidth());
+            blackTint.setIntrinsicHeight(postCardViewHolder.blkIV.getHeight());
             blackTint.getPaint().setColor(Color.argb(175, 48, 48, 48));
             //blackLayers[0] = ContextCompat.getDrawable(activity, R.drawable.default_background);
             blackLayers[0] = blackTint;
             blackLayers[1] = ContextCompat.getDrawable(activity, R.drawable.ic_check_overlay_2);
 
-            postCard.redimgBox.setOnClickListener(new View.OnClickListener() {
+            postCardViewHolder.redimgBox.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if(!lockButtons){
                         if (!userAction.getVotedSide().equals("RED")) {
                             activity.getPostPage().redVotePressed();
 
-                            postCard.redMask.setVisibility(View.VISIBLE);
-                            postCard.checkCircleLeft.setVisibility(View.VISIBLE);
+                            postCardViewHolder.redMask.setVisibility(View.VISIBLE);
+                            postCardViewHolder.checkCircleLeft.setVisibility(View.VISIBLE);
 
-                            postCard.blkMask.setVisibility(View.INVISIBLE);
-                            postCard.checkCircleRight.setVisibility(View.INVISIBLE);
+                            postCardViewHolder.blkMask.setVisibility(View.INVISIBLE);
+                            postCardViewHolder.checkCircleRight.setVisibility(View.INVISIBLE);
+
+                            showGraph();
 
                             if (mToast != null) {
                                 mToast.cancel();
@@ -483,18 +497,20 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 }
             });
 
-            postCard.blkimgBox.setOnClickListener(new View.OnClickListener() {
+            postCardViewHolder.blkimgBox.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if(!lockButtons){
                         if (!userAction.getVotedSide().equals("BLK")) {
                             activity.getPostPage().blackVotePressed();
 
-                            postCard.redMask.setVisibility(View.INVISIBLE);
-                            postCard.checkCircleLeft.setVisibility(View.INVISIBLE);
+                            postCardViewHolder.redMask.setVisibility(View.INVISIBLE);
+                            postCardViewHolder.checkCircleLeft.setVisibility(View.INVISIBLE);
 
-                            postCard.blkMask.setVisibility(View.VISIBLE);
-                            postCard.checkCircleRight.setVisibility(View.VISIBLE);
+                            postCardViewHolder.blkMask.setVisibility(View.VISIBLE);
+                            postCardViewHolder.checkCircleRight.setVisibility(View.VISIBLE);
+
+                            showGraph();
 
                             if (mToast != null) {
                                 mToast.cancel();
@@ -506,7 +522,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 }
             });
 
-            postCard.sortTypeSelector.setOnClickListener(new View.OnClickListener() {
+            postCardViewHolder.sortTypeSelector.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     if(!lockButtons){
@@ -517,16 +533,16 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
             switch (activity.getPostPageSortType()) {
                 case MOST_RECENT:
-                    postCard.sortTypeSelector.setText("MOST RECENT");
-                    postCard.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_new_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                    postCardViewHolder.sortTypeSelector.setText("MOST RECENT");
+                    postCardViewHolder.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_new_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
                     break;
                 case POPULAR:
-                    postCard.sortTypeSelector.setText("POPULAR");
-                    postCard.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_thumb_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                    postCardViewHolder.sortTypeSelector.setText("POPULAR");
+                    postCardViewHolder.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_thumb_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
                     break;
                 case CHRONOLOGICAL:
-                    postCard.sortTypeSelector.setText("CHRONOLOGICAL");
-                    postCard.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_chrono_20small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                    postCardViewHolder.sortTypeSelector.setText("CHRONOLOGICAL");
+                    postCardViewHolder.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_chrono_20small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
                     break;
             }
 
@@ -534,26 +550,116 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             if (post.getRedimg() % 10 == S3) {
                 try {
                     GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI(post, 0));
-                    Glide.with(activity).load(gurlLeft).into(postCard.redIV);
+                    Glide.with(activity).load(gurlLeft).into(postCardViewHolder.redIV);
                 } catch (Exception e) {
-                    postCard.redIV.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
+                    postCardViewHolder.redIV.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
                 }
             } else {
-                postCard.redIV.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
+                postCardViewHolder.redIV.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
             }
 
             if (post.getBlackimg() % 10 == S3) {
                 try {
                     GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI(post, 1));
-                    Glide.with(activity).load(gurlRight).into(postCard.blkIV);
+                    Glide.with(activity).load(gurlRight).into(postCardViewHolder.blkIV);
                 } catch (Exception e) {
-                    postCard.blkIV.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
+                    postCardViewHolder.blkIV.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
                 }
             } else {
-                postCard.blkIV.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
+                postCardViewHolder.blkIV.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_background));
             }
 
             //set initial image mask;
+            if(userAction.getVotedSide().equals("RED")){
+                postCardViewHolder.redMask.setVisibility(View.VISIBLE);
+                postCardViewHolder.checkCircleLeft.setVisibility(View.VISIBLE);
+
+                postCardViewHolder.blkMask.setVisibility(View.INVISIBLE);
+                postCardViewHolder.checkCircleRight.setVisibility(View.INVISIBLE);
+
+                showGraph();
+            }
+            else if(userAction.getVotedSide().equals("BLK")){
+                postCardViewHolder.redMask.setVisibility(View.INVISIBLE);
+                postCardViewHolder.checkCircleLeft.setVisibility(View.INVISIBLE);
+
+                postCardViewHolder.blkMask.setVisibility(View.VISIBLE);
+                postCardViewHolder.checkCircleRight.setVisibility(View.VISIBLE);
+
+                showGraph();
+            }
+            else{
+                postCardViewHolder.redMask.setVisibility(View.INVISIBLE);
+                postCardViewHolder.checkCircleLeft.setVisibility(View.INVISIBLE);
+
+                postCardViewHolder.blkMask.setVisibility(View.INVISIBLE);
+                postCardViewHolder.checkCircleRight.setVisibility(View.INVISIBLE);
+
+                hideGraph();
+            }
+
+
+
+        } else if(holder instanceof PostCardTextOnlyViewHolder){
+            postCard = holder;
+
+            final PostCardTextOnlyViewHolder postCardTextOnlyViewHolder = (PostCardTextOnlyViewHolder) holder;
+
+            postCardTextOnlyViewHolder.author.setText(post.getAuthor());
+            postCardTextOnlyViewHolder.votecount.setText(Integer.toString(post.getVotecount()) + " votes");
+            postCardTextOnlyViewHolder.questionTV.setText(post.getQuestion());
+            postCardTextOnlyViewHolder.rednameTV.setText(post.getRedname());
+            postCardTextOnlyViewHolder.blacknameTV.setText(post.getBlackname());
+
+            postCardTextOnlyViewHolder.author.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (!post.getAuthor().equals("[deleted]")) {
+                        activity.goToProfile(post.getAuthor(), true);
+                        activity.setProfileBackDestination(3);
+                    }
+                }
+            });
+
+            postCardTextOnlyViewHolder.profileImg.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (!post.getAuthor().equals("[deleted]")) {
+                        activity.goToProfile(post.getAuthor(), true);
+                        activity.setProfileBackDestination(3);
+                    }
+                }
+            });
+
+            profileImageView = postCardTextOnlyViewHolder.profileImg;
+            loadProfileImage(post.getAuthor());
+
+            postCardTextOnlyViewHolder.sortTypeSelector.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(!lockButtons){
+                        activity.getPostPage().selectSortType("p");
+                    }
+                }
+            });
+
+            switch (activity.getPostPageSortType()) {
+                case MOST_RECENT:
+                    postCardTextOnlyViewHolder.sortTypeSelector.setText("MOST RECENT");
+                    postCardTextOnlyViewHolder.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_new_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                    break;
+                case POPULAR:
+                    postCardTextOnlyViewHolder.sortTypeSelector.setText("POPULAR");
+                    postCardTextOnlyViewHolder.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_thumb_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                    break;
+                case CHRONOLOGICAL:
+                    postCardTextOnlyViewHolder.sortTypeSelector.setText("CHRONOLOGICAL");
+                    postCardTextOnlyViewHolder.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_chrono_20small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                    break;
+            }
+
+            //set initial image mask;
+            /*
             if(userAction.getVotedSide().equals("RED")){
                 postCard.redMask.setVisibility(View.VISIBLE);
                 postCard.checkCircleLeft.setVisibility(View.VISIBLE);
@@ -575,8 +681,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 postCard.blkMask.setVisibility(View.INVISIBLE);
                 postCard.checkCircleRight.setVisibility(View.INVISIBLE);
             }
-
-
+            */
 
         } else if(holder instanceof TopCardViewHolder){
 
@@ -822,6 +927,33 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
     }
 
+    private class PostCardTextOnlyViewHolder extends RecyclerView.ViewHolder {
+
+        public TextView questionTV, rednameTV, blacknameTV, leftPercentage, rightPercentage, author, votecount;
+        public View redgraphView;
+        public RelativeLayout graphBox;
+        public Button sortTypeSelector;
+        public LinearLayout sortTypeBackground;
+        public CircleImageView profileImg;
+
+
+        public PostCardTextOnlyViewHolder (View view){
+            super(view);
+            author = view.findViewById(R.id.author_pcto);
+            votecount = view.findViewById(R.id.votecount_pcto);
+            profileImg = view.findViewById(R.id.profile_image_pcto);
+            questionTV = view.findViewById(R.id.question_pcto);
+            rednameTV = view.findViewById(R.id.vsc_r_pcto);
+            blacknameTV = view.findViewById(R.id.vsc_b_pcto);
+            redgraphView = view.findViewById(R.id.redgraphview_pcto);
+            graphBox = view.findViewById(R.id.graphbox_pcto);
+            sortTypeSelector = view.findViewById(R.id.sort_type_selector_pcto);
+            sortTypeBackground = view.findViewById(R.id.sort_type_background_pcto);
+            leftPercentage = view.findViewById(R.id.left_percentage_pcto);
+            rightPercentage = view.findViewById(R.id.right_percentage_pcto);
+        }
+    }
+
     private class LoadingViewHolder extends RecyclerView.ViewHolder {
         public ProgressBar progressBar;
 
@@ -985,63 +1117,91 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     private void hideGraph(){
         //Log.d("graph", "hide");
-        postCard.leftPercentage.setVisibility(View.INVISIBLE);
-        postCard.rightPercentage.setVisibility(View.INVISIBLE);
-        postCard.graphBox.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT,0));
+        if(postCard instanceof  PostCardViewHolder){
+            PostCardViewHolder currentPostCard = (PostCardViewHolder) postCard;
+            currentPostCard.leftPercentage.setVisibility(View.INVISIBLE);
+            currentPostCard.rightPercentage.setVisibility(View.INVISIBLE);
+            currentPostCard.graphBox.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT,0));
+        }
+        else{
+            PostCardTextOnlyViewHolder currentPostCard = (PostCardTextOnlyViewHolder) postCard;
+            currentPostCard.leftPercentage.setVisibility(View.INVISIBLE);
+            currentPostCard.rightPercentage.setVisibility(View.INVISIBLE);
+            currentPostCard.graphBox.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT,0));
+        }
+
+
     }
 
     private void showGraph(){
+        if(postCard == null){
+            return;
+        }
 
-        if(postCard != null){
-            sortBackgroundLowerLP = (RelativeLayout.LayoutParams) postCard.sortTypeBackground.getLayoutParams();
+        if(postCard instanceof PostCardViewHolder){
+            PostCardViewHolder currentViewHolder = (PostCardViewHolder) postCard;
+
+            sortBackgroundLowerLP = (RelativeLayout.LayoutParams) currentViewHolder.sortTypeBackground.getLayoutParams();
             sortBackgroundLowerLP.addRule(RelativeLayout.BELOW, R.id.graphbox);
-            postCard.sortTypeBackground.setLayoutParams(sortBackgroundLowerLP);
+            currentViewHolder.sortTypeBackground.setLayoutParams(sortBackgroundLowerLP);
 
-            sortSelectorLowerLP = (RelativeLayout.LayoutParams) postCard.sortTypeSelector.getLayoutParams();
+            sortSelectorLowerLP = (RelativeLayout.LayoutParams) currentViewHolder.sortTypeSelector.getLayoutParams();
             sortSelectorLowerLP.addRule(RelativeLayout.BELOW, R.id.graphbox);
-            postCard.sortTypeSelector.setLayoutParams(sortSelectorLowerLP);
-        }
+            currentViewHolder.sortTypeSelector.setLayoutParams(sortSelectorLowerLP);
 
-        float leftFloat, rightFloat;
-        leftFloat = (float)post.getRedcount() / (float)(post.getRedcount() + post.getBlackcount());
+            float leftFloat, rightFloat;
+            leftFloat = (float)post.getRedcount() / (float)(post.getRedcount() + post.getBlackcount());
 
-        int redWidth = (int)(activity.getWindowWidth() * leftFloat);
-        RelativeLayout.LayoutParams redgraphParams = new RelativeLayout.LayoutParams(redWidth, RelativeLayout.LayoutParams.MATCH_PARENT);
-        redgraphParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-        postCard.redgraphView.setLayoutParams(redgraphParams);
-        postCard.redgraphView.setBackground(ContextCompat.getDrawable(activity, R.drawable.redgraph));
-        postCard.graphBox.setLayoutParams(graphBoxParams);
+            int redWidth = (int)(activity.getWindowWidth() * leftFloat);
+            RelativeLayout.LayoutParams redgraphParams = new RelativeLayout.LayoutParams(redWidth, RelativeLayout.LayoutParams.MATCH_PARENT);
+            redgraphParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+            currentViewHolder.redgraphView.setLayoutParams(redgraphParams);
+            currentViewHolder.redgraphView.setBackground(ContextCompat.getDrawable(activity, R.drawable.redgraph));
+            currentViewHolder.graphBox.setLayoutParams(graphBoxParams);
 
-        String leftPercentageText, rightPercentageText;
+            String leftPercentageText, rightPercentageText;
 
-        leftPercentageText = Integer.toString((int)(leftFloat * 100)) + "%";
-        rightPercentageText = Integer.toString((int)((1-leftFloat) * 100)) + "%";
+            leftPercentageText = Integer.toString((int)(leftFloat * 100)) + "%";
+            rightPercentageText = Integer.toString((int)((1-leftFloat) * 100)) + "%";
 
-        /*
-        BigDecimal strippedVal;
+            currentViewHolder.leftPercentage.setText(leftPercentageText);
+            currentViewHolder.leftPercentage.setVisibility(View.VISIBLE);
+            currentViewHolder.rightPercentage.setText(rightPercentageText);
+            currentViewHolder.rightPercentage.setVisibility(View.VISIBLE);
 
-        if(leftFloat == 0){
-            leftPercentageText = "0%";
-        }
-        else{
-            strippedVal= new BigDecimal(leftFloat * (float)100.0).setScale(2, BigDecimal.ROUND_HALF_UP).stripTrailingZeros();
-            leftPercentageText = strippedVal.toPlainString() + "%";
-        }
-
-        rightFloat = (float)100.0 - (leftFloat * (float)100.0);
-        if(rightFloat == 0){
-            rightPercentageText = "0%";
         }
         else{
-            strippedVal = new BigDecimal(rightFloat).setScale(2, BigDecimal.ROUND_HALF_UP).stripTrailingZeros();
-            rightPercentageText = strippedVal.toPlainString() + "%";
-        }
-        */
+            PostCardTextOnlyViewHolder currentViewHolder = (PostCardTextOnlyViewHolder) postCard;
 
-        postCard.leftPercentage.setText(leftPercentageText);
-        postCard.leftPercentage.setVisibility(View.VISIBLE);
-        postCard.rightPercentage.setText(rightPercentageText);
-        postCard.rightPercentage.setVisibility(View.VISIBLE);
+            sortBackgroundLowerLP = (RelativeLayout.LayoutParams) currentViewHolder.sortTypeBackground.getLayoutParams();
+            sortBackgroundLowerLP.addRule(RelativeLayout.BELOW, R.id.graphbox);
+            currentViewHolder.sortTypeBackground.setLayoutParams(sortBackgroundLowerLP);
+
+            sortSelectorLowerLP = (RelativeLayout.LayoutParams) currentViewHolder.sortTypeSelector.getLayoutParams();
+            sortSelectorLowerLP.addRule(RelativeLayout.BELOW, R.id.graphbox);
+            currentViewHolder.sortTypeSelector.setLayoutParams(sortSelectorLowerLP);
+
+            float leftFloat, rightFloat;
+            leftFloat = (float)post.getRedcount() / (float)(post.getRedcount() + post.getBlackcount());
+
+            int redWidth = (int)(activity.getWindowWidth() * leftFloat);
+            RelativeLayout.LayoutParams redgraphParams = new RelativeLayout.LayoutParams(redWidth, RelativeLayout.LayoutParams.MATCH_PARENT);
+            redgraphParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+            currentViewHolder.redgraphView.setLayoutParams(redgraphParams);
+            currentViewHolder.redgraphView.setBackground(ContextCompat.getDrawable(activity, R.drawable.redgraph));
+            currentViewHolder.graphBox.setLayoutParams(graphBoxParams);
+
+            String leftPercentageText, rightPercentageText;
+
+            leftPercentageText = Integer.toString((int)(leftFloat * 100)) + "%";
+            rightPercentageText = Integer.toString((int)((1-leftFloat) * 100)) + "%";
+
+            currentViewHolder.leftPercentage.setText(leftPercentageText);
+            currentViewHolder.leftPercentage.setVisibility(View.VISIBLE);
+            currentViewHolder.rightPercentage.setText(rightPercentageText);
+            currentViewHolder.rightPercentage.setVisibility(View.VISIBLE);
+
+        }
 
     }
 
@@ -1051,22 +1211,45 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     }
 
     public void setSortTypeHint(int sortTypeNum){
-        if(postCard != null){
+        if(postCard instanceof PostCardViewHolder){
+            PostCardViewHolder currentViewHolder = (PostCardViewHolder) postCard;
+
             switch (sortTypeNum){
                 case MOST_RECENT:
-                    postCard.sortTypeSelector.setText("MOST RECENT");
-                    postCard.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_new_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                    currentViewHolder.sortTypeSelector.setText("MOST RECENT");
+                    currentViewHolder.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_new_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
                     break;
                 case POPULAR:
-                    postCard.sortTypeSelector.setText("POPULAR");
-                    postCard.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_thumb_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                    currentViewHolder.sortTypeSelector.setText("POPULAR");
+                    currentViewHolder.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_thumb_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
                     break;
                 case CHRONOLOGICAL:
-                    postCard.sortTypeSelector.setText("CHRONOLOGICAL");
-                    postCard.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_chrono_20small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                    currentViewHolder.sortTypeSelector.setText("CHRONOLOGICAL");
+                    currentViewHolder.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_chrono_20small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
                     break;
             }
         }
+        else{
+            PostCardTextOnlyViewHolder currentViewHolder = (PostCardTextOnlyViewHolder) postCard;
+
+            switch (sortTypeNum){
+                case MOST_RECENT:
+                    currentViewHolder.sortTypeSelector.setText("MOST RECENT");
+                    currentViewHolder.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_new_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                    break;
+                case POPULAR:
+                    currentViewHolder.sortTypeSelector.setText("POPULAR");
+                    currentViewHolder.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_thumb_10small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                    break;
+                case CHRONOLOGICAL:
+                    currentViewHolder.sortTypeSelector.setText("CHRONOLOGICAL");
+                    currentViewHolder.sortTypeSelector.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_chrono_20small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                    break;
+            }
+        }
+
+
+
     }
 
     private void showListPopupWindow(final boolean isAuthor, ImageButton anchorPoint, final int index){
