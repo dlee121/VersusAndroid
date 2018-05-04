@@ -181,6 +181,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private InputMethodManager imm;
 
     private double commentPSI = 3.0; //ps increment per comment
+    private String postRefreshCode = ""; //r == increment red, b == increment blue, rb == increment red, decrement blue, br == increment blue, decrement red
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -538,6 +539,20 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         dbWriteComplete = false;
 
+        final boolean writingPostVoteToDB = (!lastSubmittedVote.equals(userAction.getVotedSide()));
+
+        if (redIncrementedLast) {
+            postRefreshCode = "r";
+            if (lastSubmittedVote.equals("BLK")) {
+                postRefreshCode = "rb";
+            }
+        } else {
+            postRefreshCode = "b";
+            if (lastSubmittedVote.equals("RED")) {
+                postRefreshCode = "br";
+            }
+        }
+
         writeActionsToDB();
 
         mSwipeRefreshLayout.setRefreshing(true);
@@ -560,7 +575,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                     //update post card if atRootLevel, else update top card
                     if(atRootLevel){
-                        post = getPost(postID);
+                        post = getPost(postID, writingPostVoteToDB);
                         postTopic = post.getQuestion();
                         postX = post.getRedname();
                         postY = post.getBlackname();
@@ -1652,6 +1667,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             updates.put("ps", psu);
 
                             sendPostVoteNotification();
+
+                            activity.updateTargetVotecount();
                         }
 
 
@@ -2661,7 +2678,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         return topCardContent;
     }
 
-    private Post getPost(String post_id){
+    private Post getPost(String post_id, final boolean writingPostVoteToDB){
 
         String query = "/post/post_type/"+post_id;
         String url = "https://" + host + query;
@@ -2720,7 +2737,19 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
             JSONObject obj = new JSONObject(strResponse);
             JSONObject item = obj.getJSONObject("_source");
-            return new Post(item, false);
+
+            final Post refreshedPost = new Post(item, false);
+
+            if(post != null){
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        activity.applyPostRefreshToMyAdapter(refreshedPost, writingPostVoteToDB);
+                    }
+                });
+            }
+
+            return refreshedPost;
 
             //System.out.println("Response: " + strResponse);
         } catch (Exception e) {
@@ -2736,6 +2765,20 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         //first handle writing user actions to db and refreshing post card or top card
         nowLoading = false;
         dbWriteComplete = false;
+        final boolean writingPostVoteToDB = (!lastSubmittedVote.equals(userAction.getVotedSide()));
+
+        if (redIncrementedLast) {
+            postRefreshCode = "r";
+            if (lastSubmittedVote.equals("BLK")) {
+                postRefreshCode = "rb";
+            }
+        } else {
+            postRefreshCode = "b";
+            if (lastSubmittedVote.equals("RED")) {
+                postRefreshCode = "br";
+            }
+        }
+
         writeActionsToDB();
         try{
             long end = System.currentTimeMillis() + 8*1000; // 8 seconds * 1000 ms/sec
@@ -2753,7 +2796,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
             //update post card if atRootLevel, else update top card
             if(atRootLevel){
-                post = getPost(postID);
+                post = getPost(postID, writingPostVoteToDB);
                 postTopic = post.getQuestion();
                 postX = post.getRedname();
                 postY = post.getBlackname();
@@ -3362,7 +3405,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         Runnable runnable = new Runnable() {
             public void run() {
-                final Post subjectPost = getPost(clickedComment.getPost_id());
+                final Post subjectPost = getPost(clickedComment.getPost_id(), false);
 
                 activity.runOnUiThread(new Runnable() {
                     @Override
@@ -3471,7 +3514,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         Runnable runnable = new Runnable() {
             public void run() {
-                final Post subjectPost = getPost(clickedRootComment.getPost_id());
+                final Post subjectPost = getPost(clickedRootComment.getPost_id(), false);
 
                 activity.runOnUiThread(new Runnable() {
                     @Override
@@ -3624,6 +3667,10 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
         PPAdapter.editCommentLocal(index, text, commentID);
         Log.d("editComment", "adapter content updated");
+    }
+
+    public String getPostRefreshCode(){
+        return postRefreshCode;
     }
 
 }

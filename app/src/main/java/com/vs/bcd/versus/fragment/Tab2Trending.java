@@ -425,5 +425,8 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
 
     }
 
+    public MyAdapter getMyAdapter() {
+        return myAdapter;
+    }
 
 }

@@ -69,7 +69,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
     private List<Post> posts;
     private int visibleThreshold = 8;
     private int lastVisibleItem, totalItemCount;
-    private final int fragmentInt; //0 = MainActivity, 1 = Search, 6 = Category, 9 = Me (Profile). Default value of 0.
+    private final int fragmentInt; //0 = MainActivity, 1 = Search, 9 = Me (Profile). Default value of 0.
     private String GAID;
     private boolean gaidWait;
 
@@ -85,6 +85,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
 
     Drawable defaultImage, defaultProfileImage;
 
+    //constructor for Profile Post History posts list
     public MyAdapter(List<Post> posts, MainContainer activity, int fragmentInt) {
         this.posts = posts;
         this.activity = activity;
@@ -92,11 +93,6 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
 
         VSRED = ContextCompat.getColor(this.activity, R.color.vsRed);
         VSBLUE = ContextCompat.getColor(this.activity, R.color.vsBlue);
-
-        if(fragmentInt == 0 || fragmentInt == 6){
-            defaultImage = ContextCompat.getDrawable(activity, R.drawable.default_background);
-            //defaultProfileImage = ContextCompat.getDrawable(activity, R.drawable.default_profile);
-        }
 
     }
 
@@ -109,10 +105,10 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
         VSRED = ContextCompat.getColor(this.activity, R.color.vsRed);
         VSBLUE = ContextCompat.getColor(this.activity, R.color.vsBlue);
 
-        if(fragmentInt == 0 || fragmentInt == 6){
+        if(fragmentInt == 0){ //MainActivity
             defaultImage = ContextCompat.getDrawable(activity, R.drawable.default_background);
         }
-        if(fragmentInt != 9){
+        if(fragmentInt != 9){ //if not from Profile page
             defaultProfileImage = ContextCompat.getDrawable(activity, R.drawable.default_profile);
         }
 
@@ -478,7 +474,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
             compactViewHolder.question.setText(compactPost.getQuestion());
             compactViewHolder.rname.setText(compactPost.getRedname());
             compactViewHolder.bname.setText(compactPost.getBlackname());
-            compactViewHolder.votecount.setText(Integer.toString(compactPost.getVotecount()));
+            compactViewHolder.votecount.setText(Integer.toString(compactPost.getVotecount())+ " votes");
 
 
             compactViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -876,72 +872,109 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
     @Override
     @Nullable
     public RequestBuilder getPreloadRequestBuilder(Post post) {
-        try{
+        try {
             int profileImg;
-            switch (fragmentInt){
+            switch (fragmentInt) {
                 case 1:
                     profileImg = profileImgVersions.get(post.getAuthor()).intValue();
-                    if(profileImg == 0){
+                    if (profileImg == 0) {
                         return null;
                     }
-                    return GlideApp.with(activity).load( activity.getProfileImgUrl(post.getAuthor(),profileImgVersions.get(post.getAuthor()).intValue()) );
+                    return GlideApp.with(activity).load(activity.getProfileImgUrl(post.getAuthor(), profileImgVersions.get(post.getAuthor()).intValue()));
 
                 case 9:
                     return null;
 
                 default:
                     profileImg = profileImgVersions.get(post.getAuthor()).intValue();
-                    if(profileImg == 0){
-                        if(post.getRedimg()%10 == S3){
-                            if(post.getBlackimg()%10 == S3){
+                    if (profileImg == 0) {
+                        if (post.getRedimg() % 10 == S3) {
+                            if (post.getBlackimg() % 10 == S3) {
                                 GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI(post, 0));
                                 GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI(post, 1));
                                 return GlideApp.with(activity).load(gurlLeft).override(imageWidthPixels, imageHeightPixels).load(gurlRight).override(imageWidthPixels, imageHeightPixels);
-                            }
-                            else{
+                            } else {
                                 GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI(post, 0));
                                 return GlideApp.with(activity).load(gurlLeft).override(imageWidthPixels, imageHeightPixels).load(defaultImage).override(imageWidthPixels, imageHeightPixels);
                             }
-                        }
-                        else if(post.getBlackimg()%10 == S3){
+                        } else if (post.getBlackimg() % 10 == S3) {
                             GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI(post, 1));
                             return GlideApp.with(activity).load(defaultImage).override(imageWidthPixels, imageHeightPixels).load(gurlRight).override(imageWidthPixels, imageHeightPixels);
-                        }
-                        else{
+                        } else {
                             return GlideApp.with(activity).load(defaultImage).override(imageWidthPixels, imageHeightPixels).load(defaultImage).override(imageWidthPixels, imageHeightPixels);
 
                         }
-                    }
-                    else{
+                    } else {
                         GlideUrlCustom gurlProfile = activity.getProfileImgUrl(post.getAuthor(), profileImg);
-                        if(post.getRedimg()%10 == S3){
-                            if(post.getBlackimg()%10 == S3){
+                        if (post.getRedimg() % 10 == S3) {
+                            if (post.getBlackimg() % 10 == S3) {
                                 GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI(post, 0));
                                 GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI(post, 1));
                                 return GlideApp.with(activity).load(gurlProfile).load(gurlLeft).override(imageWidthPixels, imageHeightPixels).load(gurlRight).override(imageWidthPixels, imageHeightPixels);
-                            }
-                            else{
+                            } else {
                                 GlideUrlCustom gurlLeft = new GlideUrlCustom(activity.getImgURI(post, 0));
                                 return GlideApp.with(activity).load(gurlProfile).load(gurlLeft).override(imageWidthPixels, imageHeightPixels).load(defaultImage).override(imageWidthPixels, imageHeightPixels);
                             }
-                        }
-                        else if(post.getBlackimg()%10 == S3){
+                        } else if (post.getBlackimg() % 10 == S3) {
                             GlideUrlCustom gurlRight = new GlideUrlCustom(activity.getImgURI(post, 1));
                             return GlideApp.with(activity).load(gurlProfile).load(defaultImage).override(imageWidthPixels, imageHeightPixels).load(gurlRight).override(imageWidthPixels, imageHeightPixels);
-                        }
-                        else{
+                        } else {
                             return GlideApp.with(activity).load(gurlProfile).load(defaultImage).override(imageWidthPixels, imageHeightPixels).load(defaultImage).override(imageWidthPixels, imageHeightPixels);
                         }
                     }
             }
 
 
-        }
-        catch (Throwable t){
+        } catch (Throwable t) {
 
         }
 
         return null;
+    }
+
+    public void postRefreshUpdate(int index, String targetID, Post refreshedPost, boolean writingPostVoteToDB){
+        if(posts.get(index).getPost_id().equals(targetID)){
+
+            if(writingPostVoteToDB){
+                Post finalPost = refreshedPost;
+                if(refreshedPost.getVotecount() <= posts.get(index).getVotecount()){
+                    finalPost.setRedcount(posts.get(index).getRedcount());
+                    finalPost.setBlackcount(posts.get(index).getBlackcount());
+                }
+                else{
+                    String postRefreshCode = activity.getPostPage().getPostRefreshCode();
+                    switch (postRefreshCode){
+                        case "r":
+                            finalPost.setRedcount(finalPost.getRedcount()+1);
+                            break;
+                        case "b":
+                            finalPost.setBlackcount(finalPost.getBlackcount()+1);
+                            break;
+                        case "rb":
+                            finalPost.setRedcount(finalPost.getRedcount()+1);
+                            finalPost.setBlackcount(finalPost.getBlackcount()-1);
+                            break;
+                        case "br":
+                            finalPost.setBlackcount(finalPost.getBlackcount()+1);
+                            finalPost.setRedcount(finalPost.getRedcount()-1);
+                            break;
+                    }
+                }
+                posts.set(index, finalPost);
+                notifyItemChanged(index);
+            }
+            else{
+                posts.set(index, refreshedPost);
+                notifyItemChanged(index);
+            }
+            activity.getPostPage().getPPAdapter().notifyItemChanged(0);
+        }
+    }
+
+    public void incrementItemVotecount(int index, String targetID){
+        if(posts.get(index).getPost_id().equals(targetID)){
+            notifyItemChanged(index);
+        }
     }
 
 }

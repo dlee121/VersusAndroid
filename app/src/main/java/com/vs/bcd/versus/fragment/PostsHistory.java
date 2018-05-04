@@ -265,7 +265,8 @@ public class PostsHistory extends Fragment implements SwipeRefreshLayout.OnRefre
         }
     }
 
-
-
+    public MyAdapter getMyAdapter() {
+        return myAdapter;
+    }
 }
 

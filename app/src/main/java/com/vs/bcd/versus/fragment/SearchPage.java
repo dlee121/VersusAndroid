@@ -392,5 +392,9 @@ public class SearchPage extends Fragment {
 
     }
 
+    public MyAdapter getSearchResultsPostsAdapter(){
+        return searchResultsPostsAdapter;
+    }
+
 }
 

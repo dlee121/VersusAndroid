@@ -200,6 +200,14 @@ public class MainContainer extends AppCompatActivity {
     private String esHost = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
     private String esRegion = "us-east-1";
 
+    //for incrementing votecount in local posts list when user casts a fresh vote
+    private int voteUpdateTargetIndex = 0;
+    private String voteUpdateTargetID = "";
+    private int voteUpdateFragNum = 0;
+    private int voteUpdateTabNum = 0;
+
+
+
     private BroadcastReceiver myReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -1430,6 +1438,8 @@ public class MainContainer extends AppCompatActivity {
         postParentProfileUsername = post.getAuthor();
         mViewPager.setCurrentItem(3);
         clickedPostIndex = index;
+
+        setVoteUpdateTarget(index, post.getPost_id(), fragmentInt);
     }
 
     public void addToCentralProfileImgVersionMap(HashMap<String, Integer> imageVersions){
@@ -2336,6 +2346,7 @@ public class MainContainer extends AppCompatActivity {
     public void addPostToTop(Post post, int originFragNum) {
         if(mainActivityFragRef != null){
             mainActivityFragRef.addPostToTop(post, originFragNum);
+            setVoteUpdateTarget(0, post.getPost_id(), 0);
         }
     }
 
@@ -2614,6 +2625,87 @@ public class MainContainer extends AppCompatActivity {
 
     public void setProfileBackDestination(int destination){
         profileBackDestination = destination;
+    }
+
+    private void setVoteUpdateTarget(int targetIndex, String targetID, int targetFragNum){
+        voteUpdateTargetIndex = targetIndex;
+        voteUpdateTargetID = targetID;
+        voteUpdateFragNum = targetFragNum;
+        if(voteUpdateFragNum == 0){
+            voteUpdateTabNum = mainActivityFragRef.getViewPager().getCurrentItem();
+        }
+        else{
+            voteUpdateTabNum = 0;
+        }
+    }
+
+    public void applyPostRefreshToMyAdapter(Post refreshedPost, boolean writingPostVoteToDB){
+        try{
+            switch (voteUpdateFragNum){
+                case 0: //MainActivity
+                    switch (voteUpdateTabNum){
+                        case 0: //Newsfeed
+                            mainActivityFragRef.getTab1().getMyAdapter().postRefreshUpdate(voteUpdateTargetIndex, voteUpdateTargetID, refreshedPost, writingPostVoteToDB);
+                            break;
+                        case 1: //Trending
+                            mainActivityFragRef.getTab2().getMyAdapter().postRefreshUpdate(voteUpdateTargetIndex, voteUpdateTargetID, refreshedPost, writingPostVoteToDB);
+                            break;
+                        case 2: //Categories
+                            mainActivityFragRef.getTab3().getMyAdapter().postRefreshUpdate(voteUpdateTargetIndex, voteUpdateTargetID, refreshedPost, writingPostVoteToDB);
+                            break;
+                    }
+
+                    break;
+
+                case 1: //Search
+                    searchPage.getSearchResultsPostsAdapter().postRefreshUpdate(voteUpdateTargetIndex, voteUpdateTargetID, refreshedPost, writingPostVoteToDB);
+                    break;
+
+                case 9: //Profile post history
+                    profileTab.getPostsHistoryFragment().getMyAdapter().postRefreshUpdate(voteUpdateTargetIndex, voteUpdateTargetID, refreshedPost, writingPostVoteToDB);
+                    break;
+            }
+        }
+        catch (Throwable t){
+
+        }
+    }
+
+    public void updateTargetVotecount(){
+        if(voteUpdateTargetIndex < 0 || voteUpdateTargetID == null || voteUpdateFragNum < 0 || voteUpdateTabNum < 0){
+            return;
+        }
+
+        try{
+            switch (voteUpdateFragNum){
+                case 0: //MainActivity
+                    switch (voteUpdateTabNum){
+                        case 0: //Newsfeed
+                            mainActivityFragRef.getTab1().getMyAdapter().incrementItemVotecount(voteUpdateTargetIndex, voteUpdateTargetID);
+                            break;
+                        case 1: //Trending
+                            mainActivityFragRef.getTab2().getMyAdapter().incrementItemVotecount(voteUpdateTargetIndex, voteUpdateTargetID);
+                            break;
+                        case 2: //Categories
+                            mainActivityFragRef.getTab3().getMyAdapter().incrementItemVotecount(voteUpdateTargetIndex, voteUpdateTargetID);
+                            break;
+                    }
+
+                    break;
+
+                case 1: //Search
+                    searchPage.getSearchResultsPostsAdapter().incrementItemVotecount(voteUpdateTargetIndex, voteUpdateTargetID);
+                    break;
+
+                case 9: //Profile post history
+                    profileTab.getPostsHistoryFragment().getMyAdapter().incrementItemVotecount(voteUpdateTargetIndex, voteUpdateTargetID);
+                    break;
+            }
+        }
+        catch (Throwable t){
+
+        }
+
     }
 
 }

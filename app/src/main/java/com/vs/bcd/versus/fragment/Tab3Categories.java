@@ -703,6 +703,8 @@ public class Tab3Categories extends Fragment implements SwipeRefreshLayout.OnRef
 
     }
 
-
+    public MyAdapter getMyAdapter() {
+        return myAdapter;
+    }
 
 }

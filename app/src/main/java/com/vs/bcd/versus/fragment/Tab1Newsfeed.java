@@ -445,6 +445,8 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
 
     }
 
-
+    public MyAdapter getMyAdapter() {
+        return myAdapter;
+    }
 }
 

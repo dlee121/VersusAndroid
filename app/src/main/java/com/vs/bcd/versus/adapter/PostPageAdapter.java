@@ -137,9 +137,9 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         userAction = activity.getPostPage().getUserAction();
         actionMap = userAction.getActionRecord();
 
-        graphBoxParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, 15);
+        graphBoxParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, activity.getResources().getDimensionPixelSize(R.dimen.graph_thickness));
         graphBoxParams.addRule(RelativeLayout.BELOW, R.id.left_percentage);
-        graphBoxParamsTextOnly = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, 15);
+        graphBoxParamsTextOnly = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, activity.getResources().getDimensionPixelSize(R.dimen.graph_thickness));
         graphBoxParamsTextOnly.addRule(RelativeLayout.BELOW, R.id.left_percentage_pcto);
 
         seeMoreContainerLP = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
