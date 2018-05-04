@@ -527,12 +527,7 @@ public class CreatePost extends Fragment {
                                 if(originFragNum == HOME || originFragNum == CATEGORY){
                                     activity.addPostToTop(post, originFragNum);
                                 }
-                                if(originFragNum == HOME || originFragNum == TRENDING){
-                                    activity.setMyAdapterFragInt(0);
-                                }
-                                else if(originFragNum == CATEGORY){
-                                    activity.setMyAdapterFragInt(6);
-                                }
+                                activity.setMyAdapterFragInt(0);
                                 activity.getPostPage().setContent(post);
                                 activity.hideToolbarProgressbar();
                                 activity.getViewPager().setCurrentItem(3);
@@ -717,12 +712,7 @@ public class CreatePost extends Fragment {
                                     if(originFragNum == HOME || originFragNum == CATEGORY){
                                         activity.addPostToTop(postToEdit, originFragNum);
                                     }
-                                    if(originFragNum == HOME || originFragNum == TRENDING){
-                                        activity.setMyAdapterFragInt(0);
-                                    }
-                                    else if(originFragNum == CATEGORY){
-                                        activity.setMyAdapterFragInt(6);
-                                    }
+                                    activity.setMyAdapterFragInt(0);
                                     activity.getPostPage().setContent(postToEdit);
                                     activity.hideToolbarProgressbar();
                                     activity.getViewPager().setCurrentItem(3);
@@ -742,12 +732,7 @@ public class CreatePost extends Fragment {
                                 else if(originFragNum == POSTPAGE){
                                     activity.updateEditedPost(postToEdit);
                                 }
-                                if(originFragNum == HOME || originFragNum == TRENDING){
-                                    activity.setMyAdapterFragInt(0);
-                                }
-                                else if(originFragNum == CATEGORY){
-                                    activity.setMyAdapterFragInt(6);
-                                }
+                                activity.setMyAdapterFragInt(0);
                                 activity.getPostPage().setContent(postToEdit);
                                 activity.hideToolbarProgressbar();
                                 activity.getViewPager().setCurrentItem(3);
@@ -1111,10 +1096,10 @@ public class CreatePost extends Fragment {
     }
 
     private void setScaleTypeForImageLoadLeft(){
-        ivLeft.setScaleType(ImageView.ScaleType.FIT_XY);
+        ivLeft.setScaleType(ImageView.ScaleType.CENTER_CROP);
     }
     private void setScaleTypeForImageLoadRight(){
-        ivRight.setScaleType(ImageView.ScaleType.FIT_XY);
+        ivRight.setScaleType(ImageView.ScaleType.CENTER_CROP);
     }
     private void setScaleTypeForEmptyViewLeft(){
         ivLeft.setScaleType(ImageView.ScaleType.CENTER);

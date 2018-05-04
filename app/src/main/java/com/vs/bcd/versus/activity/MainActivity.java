@@ -39,6 +39,7 @@ public class MainActivity extends Fragment {
     private FloatingActionButton fab;
     private Tab1Newsfeed tab1;
     private Tab2Trending tab2;
+    private Tab3Categories tab3;
 
 
     @Override
@@ -77,6 +78,8 @@ public class MainActivity extends Fragment {
                         if(!tab1.postsLoaded()){
                             tab1.newsfeedESQuery(0);
                         }
+                        //mainContainer.setLeftSearchButton();
+
                         break;
                     case 1: //trending
                         tab.setIcon(R.drawable.fire_red);
@@ -86,11 +89,19 @@ public class MainActivity extends Fragment {
                         if(!tab2.postsLoaded()){
                             tab2.trendingESQuery(0);
                         }
+                        //mainContainer.setLeftSearchButton();
                         break;
                     case 2: //categories
                         tab.setIcon(R.drawable.categoried_red);
-                        mainContainer.setToolbarTitleTextForTabs("Categories");
                         disableCPFab();
+                        if(tab3.isCategoryPostsListOpen()){
+                            //mainContainer.setLeftChevron();
+                            mainContainer.setToolbarTitleTextForTabs(tab3.getCurrentCategoryTitle());
+                        }
+                        else{
+                            //mainContainer.setLeftSearchButton();
+                            mainContainer.setToolbarTitleTextForTabs("Categories");
+                        }
                         break;
                     default:
                         tab.setIcon(R.drawable.newsfeed_red);
@@ -181,7 +192,7 @@ public class MainActivity extends Fragment {
                     tab2 = new Tab2Trending();
                     return tab2;
                 case 2:
-                    Tab3Categories tab3 = new Tab3Categories();
+                    tab3 = new Tab3Categories();
                     return tab3;
                 default:
                     return null;
@@ -266,10 +277,21 @@ public class MainActivity extends Fragment {
         return tab2;
     }
 
-    public void addPostToTop(Post post){
-        if(tab1 != null){
-            tab1.addPostToTop(post);
+    public void addPostToTop(Post post, int tabNum){
+        if(tabNum == 0){
+            if(tab1 != null){
+                tab1.addPostToTop(post);
+            }
         }
+        else if(tabNum == 2){
+            if(tab3 != null){
+                tab3.addPostToTop(post);
+            }
+        }
+
     }
 
+    public Tab3Categories getTab3() {
+        return tab3;
+    }
 }

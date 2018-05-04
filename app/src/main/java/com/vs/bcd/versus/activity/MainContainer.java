@@ -226,6 +226,11 @@ public class MainContainer extends AppCompatActivity {
                 super.onBackPressed();  //call superclass's onBackPressed, closing the app
             }
             else {  //MainActivity fragment's current fragment is not Tab1Newsfeed, so we need to first navigate to Tab1Newsfeed on MainActivity fragment
+                if(mainActivityCurrentItem == 2 && mainActivityFragRef.getTab3().isCategoryPostsListOpen()) { //currently in Tab3Categories
+                    mainActivityFragRef.getTab3().closeCategoryPostsList();
+                    titleTxtView.setText("Categories");
+                    return;
+                }
                 getMainFrag().getViewPager().setCurrentItem(0);
             }
         }
@@ -240,7 +245,7 @@ public class MainContainer extends AppCompatActivity {
                     else{
                         if(!fromCategoryFragment){
                             mViewPager.setCurrentItem(0);
-                            toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                            //toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                         }
                         else{
                             mViewPager.setCurrentItem(6);
@@ -289,13 +294,13 @@ public class MainContainer extends AppCompatActivity {
 
                 case 6: //currently in CategoryFragment
                     categoryFragment.clearPosts();
-                    toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                    //toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                     mViewPager.setCurrentItem(0);
                     categoryFragmentOut();
                     break;
 
                 case 9: //Me (ProfileTab with user == me)
-                    toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                    //toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                     mViewPager.setCurrentItem(profileBackDestination);
                     if(profileBackDestination == 11){
                         messageRoom.setRoomObjListener(messageRoom.getAdapterRNum());
@@ -350,7 +355,7 @@ public class MainContainer extends AppCompatActivity {
 
                 //currently used for Leaderboard (7) and Notifications (8)
                 default:
-                    toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                    //toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                     mViewPager.setCurrentItem(0);
                     break;
             }
@@ -467,7 +472,7 @@ public class MainContainer extends AppCompatActivity {
                     mViewPager.setCurrentItem(4); //go to messenger
                     messengerBackTarget = 0;
                     titleTxtView.setText("Messenger");
-                    setLeftChevron();
+                    //setLeftChevron();
                 }
             }
         });
@@ -506,12 +511,17 @@ public class MainContainer extends AppCompatActivity {
                 meClicked = false;
                 switch (i) {
                     case 0: //MainActivity Fragment
-                        toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+                        if(mainActivityFragRef.getViewPager().getCurrentItem() == 2 && mainActivityFragRef.getTab3().isCategoryPostsListOpen()) { //currently in Tab3Categories
+                            mainActivityFragRef.getTab3().closeCategoryPostsList();
+                            titleTxtView.setText("Categories");
+                            return;
+                        }
+                        //toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         mViewPager.setCurrentItem(1);
                         break;
 
                     case 1: //SearchPage
-                        toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                        //toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                         mViewPager.setCurrentItem(0);
                         break;
 
@@ -525,7 +535,7 @@ public class MainContainer extends AppCompatActivity {
                         else{
                             if(!fromCategoryFragment){
                                 mViewPager.setCurrentItem(0);
-                                toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                                //toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                             }
                             else{
                                 mViewPager.setCurrentItem(6);
@@ -617,7 +627,7 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 6: //CategoryFragment
-                        toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                        //toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                         mViewPager.setCurrentItem(0);
                         categoryFragmentOut();
                         categoryFragment.clearPosts();
@@ -635,7 +645,7 @@ public class MainContainer extends AppCompatActivity {
 
 
                     case 9: //ME & Profile page
-                        toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                        //toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                         mViewPager.setCurrentItem(profileBackDestination);
                         if(profileBackDestination == 11){
                             messageRoom.setRoomObjListener(messageRoom.getAdapterRNum());
@@ -691,7 +701,7 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     default:
-                        toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                        //toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                         mViewPager.setCurrentItem(0);
                         break;
                 }
@@ -754,7 +764,7 @@ public class MainContainer extends AppCompatActivity {
                         mViewPager.setCurrentItem(4); //go to messenger
                         messengerBackTarget = 0;
                         titleTxtView.setText("Messenger");
-                        setLeftChevron();
+                        //setLeftChevron();
                         break;
 
                     case 1: //Search
@@ -775,7 +785,7 @@ public class MainContainer extends AppCompatActivity {
                         mViewPager.setCurrentItem(4);
                         messengerBackTarget = 7;
                         titleTxtView.setText("Messenger");
-                        setLeftChevron();
+                        //setLeftChevron();
                         showToolbarButtonLeft();
                         break;
 
@@ -783,7 +793,7 @@ public class MainContainer extends AppCompatActivity {
                         mViewPager.setCurrentItem(4);
                         messengerBackTarget = 8;
                         titleTxtView.setText("Messenger");
-                        setLeftChevron();
+                        //setLeftChevron();
                         showToolbarButtonLeft();
                         break;
 
@@ -965,7 +975,13 @@ public class MainContainer extends AppCompatActivity {
                         titleTxtView.setText(lastSetTitle);
                         bottomNavigation.setCurrentItem(0, false);
                         showToolbarButtonLeft();
-                        toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                        //toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                        if(mainActivityFragRef.getViewPager().getCurrentItem() == 2 && mainActivityFragRef.getTab3().isCategoryPostsListOpen()){
+                            toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+                        }
+                        else{
+                            toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                        }
                         hideToolbarProgressbar();
                         profileBackDestination = 0;
                         hideTitleRightButton();
@@ -1011,10 +1027,12 @@ public class MainContainer extends AppCompatActivity {
                         disableBottomTabs();
                         profileBackDestination = 4;
                         hideTitleRightButton();
+                        toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         break;
 
                     case 5: //SelectCategory
                         //disableBottomTabs(); //accessed from CreatePost which already disables bottom tabs
+                        toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         break;
 
                     case 6: //CategoryFragment
@@ -1124,6 +1142,7 @@ public class MainContainer extends AppCompatActivity {
                             hideTitleRightButton();
                         }
                         profileBackDestination = 13;
+                        toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         break;
 
                     default:
@@ -1250,6 +1269,9 @@ public class MainContainer extends AppCompatActivity {
 
     public void setLeftChevron(){
         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+    }
+    public void setLeftSearchButton(){
+        toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
     }
 
     public void setToolbarTitleForCF(String titleForCF){
@@ -1403,7 +1425,7 @@ public class MainContainer extends AppCompatActivity {
             postPage.clearList();
             postPage.setContent(post);
         }
-        toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+        //toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
         myAdapterFragInt = fragmentInt;
         postParentProfileUsername = post.getAuthor();
         mViewPager.setCurrentItem(3);
@@ -2312,18 +2334,8 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public void addPostToTop(Post post, int originFragNum) {
-        switch (originFragNum){
-            case 0: //HOME
-                if(mainActivityFragRef != null){
-                    mainActivityFragRef.addPostToTop(post);
-                }
-                break;
-
-            case 2: //CategoryFragment
-                if(categoryFragment != null){
-                    categoryFragment.addPostToTop(post);
-                }
-                break;
+        if(mainActivityFragRef != null){
+            mainActivityFragRef.addPostToTop(post, originFragNum);
         }
     }
 
@@ -2360,7 +2372,7 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public void commentHistoryClickHelper(String commentAuthor){
-        toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+        //toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
         myAdapterFragInt = 9; //profile page
         postParentProfileUsername = commentAuthor;
         clickedPostIndex = -1;
