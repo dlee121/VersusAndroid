@@ -870,8 +870,10 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             topCardViewHolder.replyButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    activity.getCommentEnterFragment().setContentReplyToComment(topCardObject, 0);
-                    activity.getViewPager().setCurrentItem(4);
+                    //TODO: hook this up to the comment input edit text
+                    //hoyhoy
+                    //activity.getCommentEnterFragment().setContentReplyToComment(topCardObject, 0);
+                    //activity.getViewPager().setCurrentItem(4);
                 }
             });
 

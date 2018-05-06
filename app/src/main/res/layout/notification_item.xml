@@ -1,62 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <LinearLayout
+
+    <RelativeLayout
+        android:id="@+id/notification_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:background="@drawable/notification_background">
 
         <ImageView
             android:id="@+id/notification_icon"
-            android:layout_width="54dp"
-            android:layout_height="54dp"
-            app:srcCompat="@drawable/vs_shadow_w_tag" />
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="2dp"
+            android:layout_marginTop="6dp"
+            app:srcCompat="@drawable/vs_launcher_icon_v2" />
+
+        <ImageView
+            android:id="@+id/secondary_icon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="2dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="2dp"
+            android:layout_below="@id/notification_icon"/>
 
         <TextView
             android:id="@+id/notification_body"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="8dp"
-            android:gravity="center_vertical"
-            android:text="notification_body" />
-
-
-    </LinearLayout>
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:id="@+id/notification_time"
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="4dp"
-            android:gravity="center_vertical|start"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
-            android:text="" />
-
-        <Button
-            android:id="@+id/button4"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:textSize="8sp"
-            android:minWidth="0dp"
-            android:minHeight="0dp"
-            android:text="Mark Read" />
+            android:layout_toEndOf="@id/notification_icon"
+            android:layout_marginStart="6dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:textSize="14sp"
+            android:textColor="#000"
+            android:text="You got a notification" />
 
     </RelativeLayout>
 
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/vsBlue" />
+    <TextView
+        android:id="@+id/notification_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:gravity="center_vertical|start"
+        android:layout_alignParentStart="true"
+        android:textSize="10sp"
+        android:layout_below="@id/notification_container"
+        android:text="1 day ago" />
 
-</LinearLayout>
+
+    <ImageButton
+        android:id="@+id/button4"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:scaleType="fitCenter"
+        android:background="@null"
+        android:src="@drawable/notification_close"/>
+
+
+
+</RelativeLayout>

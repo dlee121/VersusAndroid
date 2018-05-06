@@ -50,28 +50,28 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
 
         switch (notificationItem.getType()){
             case TYPE_U:
-                notificationViewHolder.icon.setImageResource(R.drawable.vs_shadow_w_tag);   //TODO: use type specific icon instead of default VS icon
-                break;
-
-            case TYPE_C:
-                notificationViewHolder.icon.setImageResource(R.drawable.vs_shadow_w_tag);   //TODO: use type specific icon instead of default VS icon
-                break;
-
-            case TYPE_V:
-                notificationViewHolder.icon.setImageResource(R.drawable.vs_shadow_w_tag);   //TODO: use type specific icon instead of default VS icon
-                break;
-
-            case TYPE_R:
-                notificationViewHolder.icon.setImageResource(R.drawable.vs_shadow_w_tag);   //TODO: use type specific icon instead of default VS icon
-                break;
-
-            case TYPE_F:
-                notificationViewHolder.icon.setImageResource(R.drawable.vs_shadow_w_tag);   //TODO: use type specific icon instead of default VS icon
+                notificationViewHolder.secondaryIcon.setImageResource(R.drawable.ic_heart_highlighted);
                 break;
 
             case TYPE_M:
-                notificationViewHolder.icon.setImageResource(R.drawable.vs_shadow_w_tag);   //TODO: use type specific icon instead of default VS icon
+                switch (notificationItem.getMedalType()){
+                    case "g": //gold
+
+                        break;
+                    case "s": //silver
+
+                        break;
+                    case "b": //bronze
+
+                        break;
+                }
+                notificationViewHolder.secondaryIcon.setImageResource(R.drawable.vs_shadow_w_tag);
                 break;
+
+            default:
+                notificationViewHolder.secondaryIcon.setImageResource(android.R.color.transparent);
+                break;
+
         }
 
         notificationViewHolder.body.setText(notificationItem.getBody());
@@ -85,13 +85,13 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
 
     private class NotificationViewHolder extends RecyclerView.ViewHolder {
 
-        public ImageView icon;   //maybe switch to circular colorful icons
+        public ImageView secondaryIcon;   //maybe switch to circular colorful icons
         public TextView body;
         public TextView time;
 
         public NotificationViewHolder(View view) {
             super(view);
-            icon = (ImageView) view.findViewById(R.id.notification_icon);
+            secondaryIcon = (ImageView) view.findViewById(R.id.secondary_icon);
             body = (TextView) view.findViewById(R.id.notification_body);
             time = (TextView) view.findViewById(R.id.notification_time);
         }

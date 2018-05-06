@@ -17,6 +17,8 @@ public class NotificationItem {
     private int type;
     private String payload;
     private long timestamp;
+    private String medalType = "";
+    private String identifier = "";
 
     public NotificationItem(String body, int type, String payload, long timestamp){
         this.body = body;
@@ -29,6 +31,22 @@ public class NotificationItem {
         this.body = body;
         this.type = type;
         this.timestamp = timestamp;
+    }
+
+    public void setMedalType(String medalType) {
+        this.medalType = medalType;
+    }
+
+    public String getMedalType() {
+        return medalType;
+    }
+
+    public void setIdentifier(String identifier) {
+        this.identifier = identifier;
+    }
+
+    public String getIdentifier() {
+        return identifier;
     }
 
     public String getBody(){
