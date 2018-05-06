@@ -77,14 +77,133 @@ public class NotificationsTab extends Fragment {
     private ChildEventListener nListener = new ChildEventListener() {
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            switch (dataSnapshot.getKey()){
+                case "c": //comment reply notification
+                    /*
+                    Log.d("fbkeys", "Comment Reply Notifications:");
+                    for(DataSnapshot child : dataSnapshot.getChildren()){
+                        String[] args = child.getKey().split(":",2);
+                        String commentID = args[0];
+                        String commentContent = args[1];
+                        Log.d("fbkeys", "CommentID: " + commentID);
+                        Log.d("fbkeys", "CommentContent: " + commentContent);
+                        for(DataSnapshot grandchildren : child.getChildren()){
+                            String username = grandchildren.getKey();
+                            long gTimeValue = grandchildren.getValue(Long.class);
+                            Log.d("fbkeys", "username: " + username);
+                            Log.d("fbkeys", "TimeValue: " + gTimeValue);
+                        }
+                    }
+                    */
+
+                    break;
+                case "f": //follower notification
+                    /*
+                    Log.d("fbkeys", "Follower Notifications:");
+                    for(DataSnapshot child : dataSnapshot.getChildren()){
+                        String followerUsername = child.getKey();
+                        long timeValue = child.getValue(Long.class);
+                        Log.d("fbkeys", "Username: " + followerUsername);
+                        Log.d("fbkeys", "TimeValue: " + timeValue);
+                    }
+                    */
+
+                    break;
+                case "m": //medal notification
+                    /*
+                    Log.d("fbkeys", "Medal Notifications:");
+                    for(DataSnapshot child : dataSnapshot.getChildren()){
+                        String commentID = child.getKey();
+                        String[] args = child.getValue(String.class).split(":",2);
+                        String medalType = args[0];
+                        long timeValue = Long.parseLong(args[1]);
+                        Log.d("fbkeys", "commentID: " + commentID);
+                        Log.d("fbkeys", "medalType: " + medalType);
+                        Log.d("fbkeys", "timeValue: " + timeValue);
+                    }
+                    */
+
+                    break;
+                case "r": //root comment (comment to post) notification
+                    /*
+                    Log.d("fbkeys", "Root Comment Notifications:");
+                    for(DataSnapshot child : dataSnapshot.getChildren()){
+                        String[] args = child.getKey().split(":",4);
+
+                        String postID = args[0];
+                        String redName = args[1];
+                        String blueName = args[2];
+                        String question = args[3];
+
+                        for(DataSnapshot grandChild : child.getChildren()){
+                            String voterUsername = grandChild.getKey();
+                            long timeValue = grandChild.getValue(Long.class);
+                            Log.d("fbkeys", "PostID: " + postID);
+                            Log.d("fbkeys", "redName: " + redName);
+                            Log.d("fbkeys", "blueName: " + blueName);
+                            Log.d("fbkeys", "question: " + question);
+                            Log.d("fbkeys", "Username: " + voterUsername);
+                            Log.d("fbkeys", "TimeValue: " + timeValue);
+                        }
+                    }
+                    */
+
+                    break;
+                case "u": //hearts notification (comment upvote)
+                    /*
+                    Log.d("fbkeys", "Hearts Notifications:");
+                    for(DataSnapshot child : dataSnapshot.getChildren()){
+                        String[] args = child.getKey().split(":",2);
+                        String commentID = args[0];
+                        String commentContent = args[1];
+                        Log.d("fbkeys", "CommentID: " + commentID);
+                        Log.d("fbkeys", "CommentContent: " + commentContent);
+                        for(DataSnapshot grandchildren : child.getChildren()){
+                            String username = grandchildren.getKey();
+                            long gTimeValue = grandchildren.getValue(Long.class);
+                            Log.d("fbkeys", "username: " + username);
+                            Log.d("fbkeys", "TimeValue: " + gTimeValue);
+                        }
+                    }
+                    */
 
 
+                    break;
+                case "v": //post vote notification
+                    /*
+                    Log.d("fbkeys", "Post Vote Notifications:");
+                    for(DataSnapshot child : dataSnapshot.getChildren()){
+                        String[] args = child.getKey().split(":",4);
 
+                        String postID = args[0];
+                        String redName = args[1];
+                        String blueName = args[2];
+                        String question = args[3];
 
+                        for(DataSnapshot grandChild : child.getChildren()){
+                            String voterUsername = grandChild.getKey();
+                            long timeValue = grandChild.getValue(Long.class);
+                            Log.d("fbkeys", "PostID: " + postID);
+                            Log.d("fbkeys", "redName: " + redName);
+                            Log.d("fbkeys", "blueName: " + blueName);
+                            Log.d("fbkeys", "question: " + question);
+                            Log.d("fbkeys", "Username: " + voterUsername);
+                            Log.d("fbkeys", "TimeValue: " + timeValue);
+                        }
+                    }
+                    */
+
+                    break;
+            }
         }
 
         @Override
         public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+            for(DataSnapshot child : dataSnapshot.getChildren()){
+                Log.d("key", child.getKey());
+
+
+            }
 
         }
 
