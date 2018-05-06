@@ -33,6 +33,14 @@ public class NotificationItem {
         this.timestamp = timestamp;
     }
 
+    public NotificationItem(String body, int type, String payload, long timestamp, String medalType){
+        this.body = body;
+        this.type = type;
+        this.payload = payload;
+        this.timestamp = timestamp;
+        this.medalType = medalType;
+    }
+
     public void setMedalType(String medalType) {
         this.medalType = medalType;
     }

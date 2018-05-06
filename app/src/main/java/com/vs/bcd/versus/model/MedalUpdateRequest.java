@@ -12,16 +12,16 @@ import static android.R.attr.name;
 public class MedalUpdateRequest {
 
     private int p; //points increment
-    private String id; //postID
     private long t; //timestamp in seconds from epoch
+    private String c; //sanitized comment content
 
     public MedalUpdateRequest() {
     }
 
-    public MedalUpdateRequest(int p, String id, long t) {
+    public MedalUpdateRequest(int p, long t, String c) {
         this.p = p;
-        this.id = id;
         this.t = t;
+        this.c = c;
     }
 
 
@@ -33,14 +33,6 @@ public class MedalUpdateRequest {
         this.p = p;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
     public long getT(){
         return t;
     }
@@ -48,4 +40,11 @@ public class MedalUpdateRequest {
         this.t = t;
     }
 
+    public String getC() {
+        return c;
+    }
+
+    public void setC(String c) {
+        this.c = c;
+    }
 }

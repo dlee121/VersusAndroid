@@ -2,6 +2,7 @@ package com.vs.bcd.versus.adapter;
 
 import android.app.Activity;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -56,16 +57,18 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
             case TYPE_M:
                 switch (notificationItem.getMedalType()){
                     case "g": //gold
-
+                        notificationViewHolder.secondaryIcon.setImageResource(R.drawable.ic_gold_medal);
                         break;
                     case "s": //silver
-
+                        notificationViewHolder.secondaryIcon.setImageResource(R.drawable.ic_silver_medal);
                         break;
                     case "b": //bronze
-
+                        notificationViewHolder.secondaryIcon.setImageResource(R.drawable.ic_bronze_medal);
+                        break;
+                    default:
+                        notificationViewHolder.secondaryIcon.setImageResource(android.R.color.transparent);
                         break;
                 }
-                notificationViewHolder.secondaryIcon.setImageResource(R.drawable.vs_shadow_w_tag);
                 break;
 
             default:

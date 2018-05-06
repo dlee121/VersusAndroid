@@ -2321,7 +2321,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             int timeValue = ((timeValueSecs / 60 )/ 60 )/ 24; //now timeValue is in days since epoch
                             //submit update request to firebase updates path, the first submission will trigger Cloud Functions operation to update user medals and points
                             String updateRequest = "updates/" + Integer.toString(timeValue) + "/" + Integer.toString(usernameHash)  + "/" + mUsername + "/" + entry.getValue().getComment_id() + "/" + medalType;
-                            MedalUpdateRequest medalUpdateRequest = new MedalUpdateRequest(pointsIncrement, entry.getValue().getParent_id(), timeValueSecs);
+                            MedalUpdateRequest medalUpdateRequest = new MedalUpdateRequest(pointsIncrement, timeValueSecs, sanitizeContentForURL(entry.getValue().getContent()));
                             mFirebaseDatabaseReference.child(updateRequest).setValue(medalUpdateRequest);
 
                             //update topmedal on local comment object in nodeMap

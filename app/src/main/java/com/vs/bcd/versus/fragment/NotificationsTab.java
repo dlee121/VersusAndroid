@@ -79,49 +79,111 @@ public class NotificationsTab extends Fragment {
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
             switch (dataSnapshot.getKey()){
                 case "c": //comment reply notification
-                    /*
-                    Log.d("fbkeys", "Comment Reply Notifications:");
+
                     for(DataSnapshot child : dataSnapshot.getChildren()){
                         String[] args = child.getKey().split(":",2);
-                        String commentID = args[0];
-                        String commentContent = args[1];
-                        Log.d("fbkeys", "CommentID: " + commentID);
-                        Log.d("fbkeys", "CommentContent: " + commentContent);
-                        for(DataSnapshot grandchildren : child.getChildren()){
-                            String username = grandchildren.getKey();
-                            long gTimeValue = grandchildren.getValue(Long.class);
-                            Log.d("fbkeys", "username: " + username);
-                            Log.d("fbkeys", "TimeValue: " + gTimeValue);
-                        }
+                        final String commentID = args[0];
+                        final String commentContent = args[1];
+
+                        mFirebaseDatabaseReference.child(userNotificationsPath+"c/"+child.getKey()).orderByValue().limitToLast(8).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                StringBuilder usernames = new StringBuilder();
+                                int i = 0;
+                                long timeValue = System.currentTimeMillis();
+
+                                for(DataSnapshot grandchildren : dataSnapshot.getChildren()){
+                                    usernames.insert(0, grandchildren.getKey()+", ");
+                                    if(i == 0){
+                                        timeValue = grandchildren.getValue(Long.class);
+                                    }
+                                    i++;
+                                }
+                                String usernamesString = usernames.toString();
+                                if(usernamesString.length() >= 26){
+                                    usernamesString = usernamesString.substring(0, 26);
+                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                    usernamesString = usernamesString + "...";
+                                }
+                                else{
+                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                }
+                                String body = usernamesString + "\nreplied to your comment, \"" + commentContent.replace('^', ' ') + "\"";
+                                notificationItems.add(new NotificationItem(body, TYPE_C, commentID, timeValue));
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+
                     }
-                    */
 
                     break;
                 case "f": //follower notification
-                    /*
-                    Log.d("fbkeys", "Follower Notifications:");
-                    for(DataSnapshot child : dataSnapshot.getChildren()){
-                        String followerUsername = child.getKey();
-                        long timeValue = child.getValue(Long.class);
-                        Log.d("fbkeys", "Username: " + followerUsername);
-                        Log.d("fbkeys", "TimeValue: " + timeValue);
-                    }
-                    */
+
+                    mFirebaseDatabaseReference.child(userNotificationsPath+"f/").orderByValue().limitToLast(8).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            StringBuilder usernames = new StringBuilder();
+                            int i = 0;
+                            long timeValue = System.currentTimeMillis();
+
+                            for(DataSnapshot grandchildren : dataSnapshot.getChildren()){
+                                usernames.insert(0, grandchildren.getKey()+", ");
+                                if(i == 0){
+                                    timeValue = grandchildren.getValue(Long.class);
+                                }
+                                i++;
+                            }
+                            String usernamesString = usernames.toString();
+                            if(usernamesString.length() >= 26){
+                                usernamesString = usernamesString.substring(0, 26);
+                                usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                usernamesString = usernamesString + "...";
+                            }
+                            else{
+                                usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                            }
+                            String body = usernamesString + "\nstarted following you!";
+                            notificationItems.add(new NotificationItem(body, TYPE_F, timeValue));
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
 
                     break;
                 case "m": //medal notification
-                    /*
-                    Log.d("fbkeys", "Medal Notifications:");
+
                     for(DataSnapshot child : dataSnapshot.getChildren()){
                         String commentID = child.getKey();
-                        String[] args = child.getValue(String.class).split(":",2);
+                        String[] args = child.getValue(String.class).split(":",3);
                         String medalType = args[0];
                         long timeValue = Long.parseLong(args[1]);
-                        Log.d("fbkeys", "commentID: " + commentID);
-                        Log.d("fbkeys", "medalType: " + medalType);
-                        Log.d("fbkeys", "timeValue: " + timeValue);
+                        String commentContent = args[2];
+                        String header;
+                        switch (medalType){
+                            case "g":
+                                header = "Congratulations! You won a Gold Medal for,";
+                                break;
+                            case "s":
+                                header = "Congratulations! You won a Silver Medal for,";
+                                break;
+                            case "b":
+                                header = "Congratulations! You won a Bronze Medal for,";
+                                break;
+                            default:
+                                header = "Congratulations! You won a medal for,";
+                                break;
+                        }
+
+                        String body = header + "\n\""+commentContent+"\"";
+                        notificationItems.add(new NotificationItem(body, TYPE_M, commentID, timeValue, medalType));
                     }
-                    */
 
                     break;
                 case "r": //root comment (comment to post) notification
@@ -199,11 +261,7 @@ public class NotificationsTab extends Fragment {
 
         @Override
         public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-            for(DataSnapshot child : dataSnapshot.getChildren()){
-                Log.d("key", child.getKey());
-
-
-            }
+            //TODO: just copy the code over from onChildAdded
 
         }
 
@@ -254,6 +312,9 @@ public class NotificationsTab extends Fragment {
         mLayoutManager.setStackFromEnd(true);
         recyclerView.setLayoutManager(mLayoutManager);
 
+        mNotificationsAdapter = new NotificationsAdapter(notificationItems, activity);
+        recyclerView.setAdapter(mNotificationsAdapter);
+
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
@@ -280,6 +341,7 @@ public class NotificationsTab extends Fragment {
             }
         });
 
+
         disableChildViews();
         return rootView;
     }
@@ -293,6 +355,7 @@ public class NotificationsTab extends Fragment {
     @Override
     public void onResume(){
         super.onResume();
+        notificationItems.clear();
         mFirebaseDatabaseReference.child(userNotificationsPath).addChildEventListener(nListener);
     }
 
