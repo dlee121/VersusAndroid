@@ -376,19 +376,19 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                                 //send appropriate notification
                                 if(replyTarget == null){ //if root comment
-                                    if(pageLevel == 0 && post != null && !post.getAuthor().equals("[deleted]")){
+                                    if(pageLevel == 0 && post != null && !post.getAuthor().equals("[deleted]") && !post.getAuthor().equals(activity.getUsername())){
                                         String nKey = postID+":"+sanitizeContentForURL(post.getRedname())+":"+sanitizeContentForURL(post.getBlackname());
                                         String postAuthorPath = getUsernameHash(post.getAuthor()) + "/" + post.getAuthor() + "/n/r/" + nKey;
                                         mFirebaseDatabaseReference.child(postAuthorPath).child(activity.getUsername()).setValue(System.currentTimeMillis()/1000);  //set value = timestamp as seconds from epoch
                                     }
-                                    else if(topCardContent != null && !topCardContent.getAuthor().equals("[deleted]")){
+                                    else if(topCardContent != null && !topCardContent.getAuthor().equals("[deleted]") && !topCardContent.getAuthor().equals(activity.getUsername())){
                                         String payloadContent = sanitizeContentForURL(topCardContent.getContent());
                                         String subjectAuthorPath = getUsernameHash(topCardContent.getAuthor()) + "/" + topCardContent.getAuthor() + "/n/c/"
                                                 + topCardContent.getComment_id() + ":" + payloadContent;
                                         mFirebaseDatabaseReference.child(subjectAuthorPath).child(activity.getUsername()).setValue(System.currentTimeMillis()/1000);
                                     }
                                 }
-                                else if(trueReplyTarget != null && !trueReplyTarget.getAuthor().equals("[deleted]")){ //reply to a comment
+                                else if(trueReplyTarget != null && !trueReplyTarget.getAuthor().equals("[deleted]") && !trueReplyTarget.getAuthor().equals(activity.getUsername())){ //reply to a comment
                                     String payloadContent = sanitizeContentForURL(trueReplyTarget.getContent());
                                     String subjectAuthorPath = getUsernameHash(trueReplyTarget.getAuthor()) + "/" + trueReplyTarget.getAuthor() + "/n/c/"
                                             + trueReplyTarget.getComment_id() + ":" + payloadContent;

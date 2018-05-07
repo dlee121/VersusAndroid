@@ -57,18 +57,7 @@ public class NotificationsTab extends Fragment {
     private LinearLayoutManager mLayoutManager;
 
     private DatabaseReference mFirebaseDatabaseReference;
-    private ChildEventListener uListener, cListener, vListener, rListener, fListener, mListener;
     private String uPath, cPath, vPath, rPath, fPath, mPath;
-    private HashMap<String, Long> newFollowers;
-    private int gnew, snew, bnew;
-    private HashMap<String, String> medalComments;
-    private NotificationItem fNotification, gNotification, sNotification, bNotification;
-    private boolean initialFLoaded = false;
-    private boolean fNotificationAdded = false;
-    private boolean initialMLoaded = false;
-    private boolean gAdded, sAdded, bAdded;
-    private long fTime, gTime, sTime, bTime;
-    private boolean initialULoaded, initialVLoaded, initialCLoaded, initialRLoaded;
     private boolean topUnread = false;
     private boolean fragmentVisible = false;
     private boolean initialLoadComplete = false;
@@ -387,10 +376,174 @@ public class NotificationsTab extends Fragment {
     };
 
 
-    private ChildEventListener nListener = new ChildEventListener() {
+    private ChildEventListener cListener = new ChildEventListener() {
         @Override
         public void onChildAdded(DataSnapshot typeChild, String s) {
+            if(initialLoadComplete){
 
+
+
+            }
+        }
+
+        @Override
+        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+
+        }
+
+        @Override
+        public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+        }
+
+        @Override
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+
+        }
+    };
+
+    private ChildEventListener fListener = new ChildEventListener() {
+        @Override
+        public void onChildAdded(DataSnapshot typeChild, String s) {
+            if(initialLoadComplete){
+
+
+
+            }
+        }
+
+        @Override
+        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+
+        }
+
+        @Override
+        public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+        }
+
+        @Override
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+
+        }
+    };
+
+    private ChildEventListener mListener = new ChildEventListener() {
+        @Override
+        public void onChildAdded(DataSnapshot typeChild, String s) {
+            if(initialLoadComplete){
+
+
+
+            }
+        }
+
+        @Override
+        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+
+        }
+
+        @Override
+        public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+        }
+
+        @Override
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+
+        }
+    };
+
+    private ChildEventListener rListener = new ChildEventListener() {
+        @Override
+        public void onChildAdded(DataSnapshot typeChild, String s) {
+            if(initialLoadComplete){
+
+
+
+            }
+        }
+
+        @Override
+        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+
+        }
+
+        @Override
+        public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+        }
+
+        @Override
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+
+        }
+    };
+
+    private ChildEventListener uListener = new ChildEventListener() {
+        @Override
+        public void onChildAdded(DataSnapshot typeChild, String s) {
+            if(initialLoadComplete){
+
+
+
+            }
+        }
+
+        @Override
+        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+
+        }
+
+        @Override
+        public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+        }
+
+        @Override
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+
+        }
+    };
+
+    private ChildEventListener vListener = new ChildEventListener() {
+        @Override
+        public void onChildAdded(DataSnapshot typeChild, String s) {
+            if(initialLoadComplete){
+
+
+
+            }
         }
 
         @Override
@@ -434,11 +587,6 @@ public class NotificationsTab extends Fragment {
 
         notificationItems = new ArrayList<>();
         notificationItemsMap = new HashMap<>();
-        newFollowers = new HashMap<>();
-        medalComments = new HashMap<>();
-        gnew = 0;
-        snew = 0;
-        bnew = 0;
 
         recyclerView = rootView.findViewById(R.id.notifications_rv);
         mLayoutManager = new LinearLayoutManager(activity);
@@ -465,7 +613,7 @@ public class NotificationsTab extends Fragment {
             LPStore.add(childViews.get(i).getLayoutParams());
         }
 
-        newNotificationsButton = (Button) rootView.findViewById(R.id.new_notifications);
+        newNotificationsButton = rootView.findViewById(R.id.new_notifications);
         nnbLP = (RelativeLayout.LayoutParams) newNotificationsButton.getLayoutParams();
 
         newNotificationsButton.setOnClickListener(new View.OnClickListener() {
