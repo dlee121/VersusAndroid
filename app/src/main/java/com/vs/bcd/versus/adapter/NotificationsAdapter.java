@@ -52,8 +52,8 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
         switch (notificationItem.getType()){
             case TYPE_U:
                 notificationViewHolder.secondaryIcon.setImageResource(R.drawable.ic_heart_highlighted);
-                notificationViewHolder.secondaryIcon.setScaleX(1.3f);
-                notificationViewHolder.secondaryIcon.setScaleY(1.3f);
+                notificationViewHolder.secondaryIcon.setScaleX(1.5f);
+                notificationViewHolder.secondaryIcon.setScaleY(1.5f);
                 break;
 
             case TYPE_M:

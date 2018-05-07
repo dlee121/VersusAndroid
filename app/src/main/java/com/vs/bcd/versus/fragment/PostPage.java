@@ -2358,7 +2358,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     private void sendCommentUpvoteNotification(VSComment content){
-        if(!content.getAuthor().equals("[deleted]")){
+        if(!content.getAuthor().equals("[deleted]") && !content.getAuthor().equals(activity.getUsername())){
             String payloadContent = sanitizeContentForURL(content.getContent());
             String commentAuthorPath = getUsernameHash(content.getAuthor()) + "/" + content.getAuthor() + "/n/u/" +content.getComment_id() + ":" + payloadContent;
             mFirebaseDatabaseReference.child(commentAuthorPath).child(activity.getUsername()).setValue(System.currentTimeMillis()/1000);
@@ -2366,7 +2366,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     private void sendPostVoteNotification(){
-        if(!post.getAuthor().equals("[deleted]")){
+        if(!post.getAuthor().equals("[deleted]") && !post.getAuthor().equals(activity.getUsername())){
             String nKey = postID+":"+sanitizeContentForURL(post.getRedname())+":"+sanitizeContentForURL(post.getBlackname())+":"+sanitizeContentForURL(post.getQuestion());
             String postAuthorPath = getUsernameHash(post.getAuthor()) + "/" + post.getAuthor() + "/n/v/" + nKey;
             mFirebaseDatabaseReference.child(postAuthorPath).child(activity.getUsername()).setValue(System.currentTimeMillis()/1000);
