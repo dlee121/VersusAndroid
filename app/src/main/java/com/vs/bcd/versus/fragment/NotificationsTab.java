@@ -187,73 +187,122 @@ public class NotificationsTab extends Fragment {
 
                     break;
                 case "r": //root comment (comment to post) notification
-                    /*
-                    Log.d("fbkeys", "Root Comment Notifications:");
+
                     for(DataSnapshot child : dataSnapshot.getChildren()){
-                        String[] args = child.getKey().split(":",4);
+                        String[] args = child.getKey().split(":",3);
 
-                        String postID = args[0];
-                        String redName = args[1];
-                        String blueName = args[2];
-                        String question = args[3];
+                        final String postID = args[0];
+                        final String redName = args[1].replace('^', ' ');
+                        final String blueName = args[2].replace('^', ' ');
 
-                        for(DataSnapshot grandChild : child.getChildren()){
-                            String voterUsername = grandChild.getKey();
-                            long timeValue = grandChild.getValue(Long.class);
-                            Log.d("fbkeys", "PostID: " + postID);
-                            Log.d("fbkeys", "redName: " + redName);
-                            Log.d("fbkeys", "blueName: " + blueName);
-                            Log.d("fbkeys", "question: " + question);
-                            Log.d("fbkeys", "Username: " + voterUsername);
-                            Log.d("fbkeys", "TimeValue: " + timeValue);
-                        }
+
+                        mFirebaseDatabaseReference.child(userNotificationsPath+"r/"+child.getKey()).orderByValue().limitToLast(8).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                StringBuilder usernames = new StringBuilder();
+                                int i = 0;
+                                long timeValue = System.currentTimeMillis();
+
+                                for(DataSnapshot grandchildren : dataSnapshot.getChildren()){
+                                    usernames.insert(0, grandchildren.getKey()+", ");
+                                    if(i == 0){
+                                        timeValue = grandchildren.getValue(Long.class);
+                                    }
+                                    i++;
+                                }
+                                String usernamesString = usernames.toString();
+                                if(usernamesString.length() >= 26){
+                                    usernamesString = usernamesString.substring(0, 26);
+                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                    usernamesString = usernamesString + "...";
+                                }
+                                else{
+                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                }
+                                String body = usernamesString + "\ncommented on \"" + redName + " vs. " + blueName + "\"";
+                                notificationItems.add(new NotificationItem(body, TYPE_R, postID, timeValue));
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+
                     }
-                    */
 
                     break;
                 case "u": //hearts notification (comment upvote)
-                    /*
-                    Log.d("fbkeys", "Hearts Notifications:");
+
                     for(DataSnapshot child : dataSnapshot.getChildren()){
                         String[] args = child.getKey().split(":",2);
-                        String commentID = args[0];
-                        String commentContent = args[1];
-                        Log.d("fbkeys", "CommentID: " + commentID);
-                        Log.d("fbkeys", "CommentContent: " + commentContent);
-                        for(DataSnapshot grandchildren : child.getChildren()){
-                            String username = grandchildren.getKey();
-                            long gTimeValue = grandchildren.getValue(Long.class);
-                            Log.d("fbkeys", "username: " + username);
-                            Log.d("fbkeys", "TimeValue: " + gTimeValue);
-                        }
-                    }
-                    */
+                        final String commentID = args[0];
+                        final String commentContent = args[1];
+                        final int newHeartsCount = (int) child.getChildrenCount();
 
+                        mFirebaseDatabaseReference.child(userNotificationsPath+"u/"+child.getKey()).orderByValue().limitToLast(1).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                for (DataSnapshot mostRecent : dataSnapshot.getChildren()){
+                                    long timeValue = mostRecent.getValue(Long.class);
+                                    String body;
+                                    if(newHeartsCount == 1) {
+                                        body = "You got " + Integer.toString(newHeartsCount) + " Heart on a comment, \""
+                                                + commentContent.replace('^', ' ') + "\"";
+                                    }
+                                    else{
+                                        body = "You got " + Integer.toString(newHeartsCount) + " Hearts on a comment, \""
+                                                + commentContent.replace('^', ' ') + "\"";
+                                    }
+
+                                    notificationItems.add(new NotificationItem(body, TYPE_U, commentID, timeValue));
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+                    }
 
                     break;
                 case "v": //post vote notification
-                    /*
-                    Log.d("fbkeys", "Post Vote Notifications:");
+
                     for(DataSnapshot child : dataSnapshot.getChildren()){
                         String[] args = child.getKey().split(":",4);
 
-                        String postID = args[0];
-                        String redName = args[1];
-                        String blueName = args[2];
-                        String question = args[3];
+                        final String postID = args[0];
+                        final String redName = args[1].replace('^', ' ');
+                        final String blueName = args[2].replace('^', ' ');
+                        final String question = args[3].replace('^', ' ');
+                        final int newVotesCount = (int) child.getChildrenCount();
 
-                        for(DataSnapshot grandChild : child.getChildren()){
-                            String voterUsername = grandChild.getKey();
-                            long timeValue = grandChild.getValue(Long.class);
-                            Log.d("fbkeys", "PostID: " + postID);
-                            Log.d("fbkeys", "redName: " + redName);
-                            Log.d("fbkeys", "blueName: " + blueName);
-                            Log.d("fbkeys", "question: " + question);
-                            Log.d("fbkeys", "Username: " + voterUsername);
-                            Log.d("fbkeys", "TimeValue: " + timeValue);
-                        }
+                        mFirebaseDatabaseReference.child(userNotificationsPath+"v/"+child.getKey()).orderByValue().limitToLast(1).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                for(DataSnapshot mostRecent : dataSnapshot.getChildren()){
+                                    long timeValue = mostRecent.getValue(Long.class);
+                                    String body;
+                                    if(newVotesCount == 1){
+                                        body = "You got " + Integer.toString(newVotesCount) + " New Vote on your post\n"
+                                                + question + "\n\"" + redName + " vs. " + blueName + "\"";
+                                    }
+                                    else{
+                                        body = "You got " + Integer.toString(newVotesCount) + " New Votes on your post\n"
+                                                + question + "\n\"" + redName + " vs. " + blueName + "\"";
+                                    }
+
+                                    notificationItems.add(new NotificationItem(body, TYPE_V, postID, timeValue));
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
                     }
-                    */
 
                     break;
             }

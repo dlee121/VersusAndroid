@@ -52,9 +52,13 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
         switch (notificationItem.getType()){
             case TYPE_U:
                 notificationViewHolder.secondaryIcon.setImageResource(R.drawable.ic_heart_highlighted);
+                notificationViewHolder.secondaryIcon.setScaleX(1.3f);
+                notificationViewHolder.secondaryIcon.setScaleY(1.3f);
                 break;
 
             case TYPE_M:
+                notificationViewHolder.secondaryIcon.setScaleX(1f);
+                notificationViewHolder.secondaryIcon.setScaleY(1f);
                 switch (notificationItem.getMedalType()){
                     case "g": //gold
                         notificationViewHolder.secondaryIcon.setImageResource(R.drawable.ic_gold_medal);

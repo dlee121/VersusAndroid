@@ -377,7 +377,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                 //send appropriate notification
                                 if(replyTarget == null){ //if root comment
                                     if(pageLevel == 0 && post != null && !post.getAuthor().equals("[deleted]")){
-                                        String nKey = postID+":"+sanitizeContentForURL(post.getRedname())+":"+sanitizeContentForURL(post.getBlackname())+":"+sanitizeContentForURL(post.getQuestion());
+                                        String nKey = postID+":"+sanitizeContentForURL(post.getRedname())+":"+sanitizeContentForURL(post.getBlackname());
                                         String postAuthorPath = getUsernameHash(post.getAuthor()) + "/" + post.getAuthor() + "/n/r/" + nKey;
                                         mFirebaseDatabaseReference.child(postAuthorPath).child(activity.getUsername()).setValue(System.currentTimeMillis()/1000);  //set value = timestamp as seconds from epoch
                                     }
