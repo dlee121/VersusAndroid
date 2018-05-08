@@ -63,14 +63,13 @@ public class NotificationsTab extends Fragment {
     private boolean topUnread = false;
     private boolean fragmentVisible = false;
     private boolean initialLoadComplete = false;
-    private SparseIntArray hashToIndex;
     private SparseIntArray mostRecentTimeValue, itemUpdateCount;
 
     private int cCount, rCount, uCount, vCount;
     private AtomicInteger typeChildCount;
     String userNotificationsPath = "";
     private String userNotificationReadTimePath = "";
-    private int updateCap = 2;
+    private int updateCap = 3; //TODO: change to 25 for production. Current number is for testing only
 
 
     private ValueEventListener initialListner = new ValueEventListener() {
@@ -509,12 +508,105 @@ public class NotificationsTab extends Fragment {
     private ChildEventListener fChangeListener = new ChildEventListener() {
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            if(initialLoadComplete){
+                if(itemUpdateCount != null) {
+                    final int updateCount = itemUpdateCount.get(TYPE_F);
+                    if (updateCount < updateCap) {
 
+                        mFirebaseDatabaseReference.child(userNotificationsPath+"f/").orderByValue().limitToLast(8).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                StringBuilder usernames = new StringBuilder();
+                                int i = (int)dataSnapshot.getChildrenCount();
+                                long timeValue = System.currentTimeMillis()/1000;
+
+                                for(DataSnapshot grandchildren : dataSnapshot.getChildren()){
+                                    usernames.insert(0, grandchildren.getKey()+", ");
+                                    i--;
+                                    if(i == 0){
+                                        timeValue = grandchildren.getValue(Long.class);
+                                    }
+                                }
+                                String usernamesString = usernames.toString();
+                                if(usernamesString.length() >= 26){
+                                    usernamesString = usernamesString.substring(0, 26);
+                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                    usernamesString = usernamesString + "...";
+                                }
+                                else{
+                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                }
+                                String body = usernamesString + "\nstarted following you!";
+                                notificationItems.add(new NotificationItem(body, TYPE_F, timeValue));
+                                itemUpdateCount.put(TYPE_F, updateCount + 1);
+                                mostRecentTimeValue.put(TYPE_F, (int)timeValue);
+                                mNotificationsAdapter.notifyItemInserted(notificationItems.size()-1);
+                                if(!fragmentVisible){
+                                    activity.setNotificationBadge(true);
+                                }
+
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+                    }
+                }
+            }
         }
 
         @Override
         public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+            if(initialLoadComplete){
+                if(itemUpdateCount != null) {
+                    final int updateCount = itemUpdateCount.get(TYPE_F);
+                    if (updateCount < updateCap) {
 
+                        mFirebaseDatabaseReference.child(userNotificationsPath+"f/").orderByValue().limitToLast(8).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                StringBuilder usernames = new StringBuilder();
+                                int i = (int)dataSnapshot.getChildrenCount();
+                                long timeValue = System.currentTimeMillis()/1000;
+
+                                for(DataSnapshot grandchildren : dataSnapshot.getChildren()){
+                                    usernames.insert(0, grandchildren.getKey()+", ");
+                                    i--;
+                                    if(i == 0){
+                                        timeValue = grandchildren.getValue(Long.class);
+                                    }
+                                }
+                                String usernamesString = usernames.toString();
+                                if(usernamesString.length() >= 26){
+                                    usernamesString = usernamesString.substring(0, 26);
+                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                    usernamesString = usernamesString + "...";
+                                }
+                                else{
+                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                }
+                                String body = usernamesString + "\nstarted following you!";
+                                notificationItems.add(new NotificationItem(body, TYPE_F, timeValue));
+                                itemUpdateCount.put(TYPE_F, updateCount + 1);
+                                mostRecentTimeValue.put(TYPE_F, (int)timeValue);
+                                mNotificationsAdapter.notifyDataSetChanged();
+                                if(!fragmentVisible){
+                                    activity.setNotificationBadge(true);
+                                }
+
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+
+                    }
+                }
+            }
         }
 
         @Override
@@ -714,9 +806,6 @@ public class NotificationsTab extends Fragment {
         super.onResume();
         notificationItems.clear();
         mNotificationsAdapter.notifyDataSetChanged();
-        if(hashToIndex != null){
-            hashToIndex.clear();
-        }
         initialLoadComplete = false;
         mFirebaseDatabaseReference.child(userNotificationsPath).addListenerForSingleValueEvent(initialListner);
         mFirebaseDatabaseReference.child(cPath).addChildEventListener(cChangeListener);
