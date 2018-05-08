@@ -573,7 +573,7 @@ public class NotificationsTab extends Fragment {
         });
         mNotificationsAdapter.notifyDataSetChanged();
         hashToIndex = new SparseIntArray(notificationItems.size());
-        for(int i = 0; i<notificationItems.size(); i++) {
+        for(int i = 0; i<notificationItems.size(); i++) { //TODO: once we paginate this, instead of iterating the whold list, we would only iterate the newly loaded part of the list
             hashToIndex.put(notificationItems.get(i).hashCode(), i);
         }
         mFirebaseDatabaseReference.child(userNotificationReadTimePath).addListenerForSingleValueEvent(new ValueEventListener() {
