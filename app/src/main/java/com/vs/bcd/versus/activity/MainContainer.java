@@ -926,6 +926,8 @@ public class MainContainer extends AppCompatActivity {
         bottomNavigation.addItem(item2);
         bottomNavigation.addItem(item3);
         bottomNavigation.addItem(item4);
+        bottomNavigation.setNotificationBackground(ContextCompat.getDrawable(this, R.drawable.custom_bottom_notification));
+        bottomNavigation.setNotificationTextColor(ContextCompat.getColor(this, R.color.vsRed));
 
         // Set background color
         bottomNavigation.setDefaultBackgroundColor(Color.parseColor("#FEFEFE"));
@@ -2706,6 +2708,15 @@ public class MainContainer extends AppCompatActivity {
 
         }
 
+    }
+
+    public void setNotificationBadge(boolean set){
+        if(set){
+            bottomNavigation.setNotification("NEW", 2);
+        }
+        else{
+            bottomNavigation.setNotification("", 2);
+        }
     }
 
 }
