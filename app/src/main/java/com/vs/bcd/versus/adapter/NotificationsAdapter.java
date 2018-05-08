@@ -15,6 +15,7 @@ import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.model.LeaderboardEntry;
 import com.vs.bcd.versus.model.NotificationItem;
+import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.User;
 
 import java.util.HashSet;
@@ -30,62 +31,87 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
     private final int TYPE_F = 4; //new follower notification
     private final int TYPE_M = 5; //new medal notification
 
+    private final int VIEW_TYPE_HIDE = 0;
+    private final int VIEW_TYPE_SHOW = 1;
+
     private Activity activity;
     private List<NotificationItem> nItems;
+    private SparseIntArray mostRecentTimeValue = null;
 
     public NotificationsAdapter(List<NotificationItem> nItems, Activity activity) {
         this.nItems = nItems;
         this.activity = activity;
     }
 
+    public void setMostRecentTimeValue(SparseIntArray mostRecentTimeValue){
+        this.mostRecentTimeValue = mostRecentTimeValue;
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        NotificationItem item = nItems.get(position);
+        if(mostRecentTimeValue != null && mostRecentTimeValue.get(item.hashCode()) > item.getTimestamp()){
+            return VIEW_TYPE_HIDE;
+        }
+        else{
+            return VIEW_TYPE_SHOW;
+        }
+    }
+
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(activity).inflate(R.layout.notification_item, parent, false);
-        return new NotificationViewHolder(view);
+        if(viewType == VIEW_TYPE_SHOW){
+            View view = LayoutInflater.from(activity).inflate(R.layout.notification_item, parent, false);
+            return new NotificationViewHolder(view);
+        }
+        else{
+            View view = LayoutInflater.from(activity).inflate(R.layout.notification_hidden, parent, false);
+            return new HiddenNotificationViewHolder(view);
+        }
     }
 
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
-        //TODO:this is where values are put into the layout, from the post object
-        NotificationItem notificationItem = nItems.get(position);
-        NotificationViewHolder notificationViewHolder = (NotificationViewHolder) holder;
+        if(holder instanceof NotificationViewHolder){
+            NotificationItem notificationItem = nItems.get(position);
+            NotificationViewHolder notificationViewHolder = (NotificationViewHolder) holder;
 
-        switch (notificationItem.getType()){
-            case TYPE_U:
-                notificationViewHolder.secondaryIcon.setImageResource(R.drawable.ic_heart_highlighted);
-                notificationViewHolder.secondaryIcon.setScaleX(1.5f);
-                notificationViewHolder.secondaryIcon.setScaleY(1.5f);
-                break;
+            switch (notificationItem.getType()){
+                case TYPE_U:
+                    notificationViewHolder.secondaryIcon.setImageResource(R.drawable.ic_heart_highlighted);
+                    notificationViewHolder.secondaryIcon.setScaleX(1.5f);
+                    notificationViewHolder.secondaryIcon.setScaleY(1.5f);
+                    break;
 
-            case TYPE_M:
-                notificationViewHolder.secondaryIcon.setScaleX(1f);
-                notificationViewHolder.secondaryIcon.setScaleY(1f);
-                switch (notificationItem.getMedalType()){
-                    case "g": //gold
-                        notificationViewHolder.secondaryIcon.setImageResource(R.drawable.ic_gold_medal);
-                        break;
-                    case "s": //silver
-                        notificationViewHolder.secondaryIcon.setImageResource(R.drawable.ic_silver_medal);
-                        break;
-                    case "b": //bronze
-                        notificationViewHolder.secondaryIcon.setImageResource(R.drawable.ic_bronze_medal);
-                        break;
-                    default:
-                        notificationViewHolder.secondaryIcon.setImageResource(android.R.color.transparent);
-                        break;
-                }
-                break;
+                case TYPE_M:
+                    notificationViewHolder.secondaryIcon.setScaleX(1f);
+                    notificationViewHolder.secondaryIcon.setScaleY(1f);
+                    switch (notificationItem.getMedalType()){
+                        case "g": //gold
+                            notificationViewHolder.secondaryIcon.setImageResource(R.drawable.ic_gold_medal);
+                            break;
+                        case "s": //silver
+                            notificationViewHolder.secondaryIcon.setImageResource(R.drawable.ic_silver_medal);
+                            break;
+                        case "b": //bronze
+                            notificationViewHolder.secondaryIcon.setImageResource(R.drawable.ic_bronze_medal);
+                            break;
+                        default:
+                            notificationViewHolder.secondaryIcon.setImageResource(android.R.color.transparent);
+                            break;
+                    }
+                    break;
 
-            default:
-                notificationViewHolder.secondaryIcon.setImageResource(android.R.color.transparent);
-                break;
+                default:
+                    notificationViewHolder.secondaryIcon.setImageResource(android.R.color.transparent);
+                    break;
 
+            }
+
+            notificationViewHolder.body.setText(notificationItem.getBody());
+            notificationViewHolder.time.setText(notificationItem.getTimeString());
         }
-
-        notificationViewHolder.body.setText(notificationItem.getBody());
-        notificationViewHolder.time.setText(notificationItem.getTimeString());
-
     }
 
     @Override
@@ -107,21 +133,15 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
         }
     }
 
+    private class HiddenNotificationViewHolder extends RecyclerView.ViewHolder {
+
+        public HiddenNotificationViewHolder(View view) {
+            super(view);
+        }
+    }
+
     public void clearAllItems(){
         nItems.clear();
         notifyDataSetChanged();
-    }
-
-    private void removeOldItem(int position){
-        try{
-            nItems.remove(position);
-            notifyDataSetChanged();
-            //notifyItemRemoved(position);
-            //notifyItemRangeChanged(position, nItems.size());
-            Log.d("removeOldItem", "removal successful");
-        }
-        catch (Throwable t){
-            Log.d("removeOldItem", "removal error");
-        }
     }
 }
