@@ -46,7 +46,7 @@
         android:minWidth="@dimen/bottom_navigation_notification_width"
         android:paddingLeft="@dimen/bottom_navigation_notification_padding"
         android:paddingRight="@dimen/bottom_navigation_notification_padding"
-        android:textColor="#FFFFFF"
+        android:textColor="#FF2020"
         android:textSize="@dimen/bottom_navigation_notification_text_size"
         android:textStyle="bold"/>
 
