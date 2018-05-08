@@ -3,6 +3,7 @@ package com.vs.bcd.versus.adapter;
 import android.app.Activity;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.util.SparseIntArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,7 @@ import com.vs.bcd.versus.model.LeaderboardEntry;
 import com.vs.bcd.versus.model.NotificationItem;
 import com.vs.bcd.versus.model.User;
 
+import java.util.HashSet;
 import java.util.List;
 
 
@@ -30,10 +32,12 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
 
     private Activity activity;
     private List<NotificationItem> nItems;
+    private SparseIntArray markedForDeletion;
 
-    public NotificationsAdapter(List<NotificationItem> nItems, Activity activity) {
+    public NotificationsAdapter(List<NotificationItem> nItems, SparseIntArray markedForDeletion, Activity activity) {
         this.nItems = nItems;
         this.activity = activity;
+        this.markedForDeletion = markedForDeletion;
     }
 
     @Override
@@ -48,41 +52,47 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
         //TODO:this is where values are put into the layout, from the post object
         NotificationItem notificationItem = nItems.get(position);
         NotificationViewHolder notificationViewHolder = (NotificationViewHolder) holder;
+        if(markedForDeletion.indexOfKey(notificationItem.hashCode()) > -1 && markedForDeletion.get(notificationItem.hashCode()) != (int)notificationItem.getTimestamp()){
+            //notificationViewHolder.itemView.setVisibility(View.GONE);
+            //removeOldItem(position);
+        }
+        else{
+            switch (notificationItem.getType()){
+                case TYPE_U:
+                    notificationViewHolder.secondaryIcon.setImageResource(R.drawable.ic_heart_highlighted);
+                    notificationViewHolder.secondaryIcon.setScaleX(1.5f);
+                    notificationViewHolder.secondaryIcon.setScaleY(1.5f);
+                    break;
 
-        switch (notificationItem.getType()){
-            case TYPE_U:
-                notificationViewHolder.secondaryIcon.setImageResource(R.drawable.ic_heart_highlighted);
-                notificationViewHolder.secondaryIcon.setScaleX(1.5f);
-                notificationViewHolder.secondaryIcon.setScaleY(1.5f);
-                break;
+                case TYPE_M:
+                    notificationViewHolder.secondaryIcon.setScaleX(1f);
+                    notificationViewHolder.secondaryIcon.setScaleY(1f);
+                    switch (notificationItem.getMedalType()){
+                        case "g": //gold
+                            notificationViewHolder.secondaryIcon.setImageResource(R.drawable.ic_gold_medal);
+                            break;
+                        case "s": //silver
+                            notificationViewHolder.secondaryIcon.setImageResource(R.drawable.ic_silver_medal);
+                            break;
+                        case "b": //bronze
+                            notificationViewHolder.secondaryIcon.setImageResource(R.drawable.ic_bronze_medal);
+                            break;
+                        default:
+                            notificationViewHolder.secondaryIcon.setImageResource(android.R.color.transparent);
+                            break;
+                    }
+                    break;
 
-            case TYPE_M:
-                notificationViewHolder.secondaryIcon.setScaleX(1f);
-                notificationViewHolder.secondaryIcon.setScaleY(1f);
-                switch (notificationItem.getMedalType()){
-                    case "g": //gold
-                        notificationViewHolder.secondaryIcon.setImageResource(R.drawable.ic_gold_medal);
-                        break;
-                    case "s": //silver
-                        notificationViewHolder.secondaryIcon.setImageResource(R.drawable.ic_silver_medal);
-                        break;
-                    case "b": //bronze
-                        notificationViewHolder.secondaryIcon.setImageResource(R.drawable.ic_bronze_medal);
-                        break;
-                    default:
-                        notificationViewHolder.secondaryIcon.setImageResource(android.R.color.transparent);
-                        break;
-                }
-                break;
+                default:
+                    notificationViewHolder.secondaryIcon.setImageResource(android.R.color.transparent);
+                    break;
 
-            default:
-                notificationViewHolder.secondaryIcon.setImageResource(android.R.color.transparent);
-                break;
+            }
 
+            notificationViewHolder.body.setText(notificationItem.getBody());
+            notificationViewHolder.time.setText(notificationItem.getTimeString());
         }
 
-        notificationViewHolder.body.setText(notificationItem.getBody());
-        notificationViewHolder.time.setText(notificationItem.getTimeString());
     }
 
     @Override
@@ -107,5 +117,18 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
     public void clearAllItems(){
         nItems.clear();
         notifyDataSetChanged();
+    }
+
+    private void removeOldItem(int position){
+        try{
+            nItems.remove(position);
+            notifyDataSetChanged();
+            //notifyItemRemoved(position);
+            //notifyItemRangeChanged(position, nItems.size());
+            Log.d("removeOldItem", "removal successful");
+        }
+        catch (Throwable t){
+            Log.d("removeOldItem", "removal error");
+        }
     }
 }

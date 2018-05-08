@@ -6,6 +6,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.util.SparseIntArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -61,6 +63,7 @@ public class NotificationsTab extends Fragment {
     private boolean topUnread = false;
     private boolean fragmentVisible = false;
     private boolean initialLoadComplete = false;
+    private SparseIntArray markedForDeletion;
 
     private int cCount, rCount, uCount, vCount;
     private AtomicInteger typeChildCount;
@@ -424,6 +427,50 @@ public class NotificationsTab extends Fragment {
 
         @Override
         public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+            String[] args = dataSnapshot.getKey().split(":",2);
+            final String commentID = args[0];
+            final String commentContent = args[1];
+
+            mFirebaseDatabaseReference.child(userNotificationsPath+"c/"+dataSnapshot.getKey()).orderByValue().limitToLast(8).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    StringBuilder usernames = new StringBuilder();
+                    int i = (int)dataSnapshot.getChildrenCount();
+                    long timeValue = System.currentTimeMillis();
+
+                    for(DataSnapshot grandchildren : dataSnapshot.getChildren()){
+                        i--;
+                        usernames.insert(0, grandchildren.getKey()+", ");
+                        if(i == 0){
+                            timeValue = grandchildren.getValue(Long.class);
+                        }
+                    }
+                    String usernamesString = usernames.toString();
+                    if(usernamesString.length() >= 26){
+                        usernamesString = usernamesString.substring(0, 26);
+                        usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                        usernamesString = usernamesString + "...";
+                    }
+                    else{
+                        usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                    }
+                    String body = usernamesString + "\nreplied to your comment, \"" + commentContent.replace('^', ' ') + "\"";
+                    NotificationItem updatedItem = new NotificationItem(body, TYPE_C, commentID, timeValue);
+                    markedForDeletion.put(updatedItem.hashCode(), (int)timeValue);
+                    notificationItems.add(updatedItem);
+                    if(fragmentVisible){
+                        mNotificationsAdapter.notifyDataSetChanged();
+                    }
+                    else{
+                        mNotificationsAdapter.notifyItemInserted(notificationItems.size()-1);
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
 
 
         }
@@ -778,6 +825,7 @@ public class NotificationsTab extends Fragment {
 
         notificationItems = new ArrayList<>();
         notificationItemsMap = new HashMap<>();
+        markedForDeletion = new SparseIntArray();
 
         recyclerView = rootView.findViewById(R.id.notifications_rv);
         mLayoutManager = new LinearLayoutManager(activity);
@@ -785,7 +833,7 @@ public class NotificationsTab extends Fragment {
         mLayoutManager.setStackFromEnd(true);
         recyclerView.setLayoutManager(mLayoutManager);
 
-        mNotificationsAdapter = new NotificationsAdapter(notificationItems, activity);
+        mNotificationsAdapter = new NotificationsAdapter(notificationItems, markedForDeletion, activity);
         recyclerView.setAdapter(mNotificationsAdapter);
 
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -829,6 +877,8 @@ public class NotificationsTab extends Fragment {
     public void onResume(){
         super.onResume();
         notificationItems.clear();
+        mNotificationsAdapter.notifyDataSetChanged();
+        markedForDeletion.clear();
         initialLoadComplete = false;
         mFirebaseDatabaseReference.child(userNotificationsPath).addListenerForSingleValueEvent(initialListner);
         mFirebaseDatabaseReference.child(cPath).addChildEventListener(cListener);

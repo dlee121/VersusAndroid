@@ -13,6 +13,13 @@ import java.util.Locale;
 
 public class NotificationItem {
 
+    private final int TYPE_U = 0; //new comment upvote notification
+    private final int TYPE_C = 1; //new comment reply notification
+    private final int TYPE_V = 2; //new post vote notification
+    private final int TYPE_R = 3; //new post root comment notification
+    private final int TYPE_F = 4; //new follower notification
+    private final int TYPE_M = 5; //new medal notification
+
     private String body;
     private int type;
     private String payload;
@@ -175,13 +182,43 @@ public class NotificationItem {
 
     @Override
     public int hashCode() {
-        return body.hashCode();
+        switch (type){
+            case TYPE_C:
+                return (payload + Integer.toString(TYPE_C)).hashCode();
+            case TYPE_F:
+                return TYPE_F;
+            case TYPE_M:
+                return (payload + Integer.toString(TYPE_M)).hashCode();
+            case TYPE_R:
+                return (payload + Integer.toString(TYPE_R)).hashCode();
+            case TYPE_U:
+                return (payload + Integer.toString(TYPE_U)).hashCode();
+            case TYPE_V:
+                return (payload + Integer.toString(TYPE_V)).hashCode();
+            default:
+                return 0;
+        }
     }
 
     @Override
     public boolean equals(Object obj) {
         if(obj instanceof NotificationItem){
-            return body.equals(((NotificationItem)obj).getBody());
+            switch (type){
+                case TYPE_C:
+                    return (payload + Integer.toString(TYPE_C)).hashCode() == obj.hashCode();
+                case TYPE_F:
+                    return TYPE_F == obj.hashCode();
+                case TYPE_M:
+                    return (payload + Integer.toString(TYPE_M)).hashCode() == obj.hashCode();
+                case TYPE_R:
+                    return (payload + Integer.toString(TYPE_R)).hashCode() == obj.hashCode();
+                case TYPE_U:
+                    return (payload + Integer.toString(TYPE_U)).hashCode() == obj.hashCode();
+                case TYPE_V:
+                    return (payload + Integer.toString(TYPE_V)).hashCode() == obj.hashCode();
+                default:
+                    return body.equals(((NotificationItem)obj).getBody());
+            }
         }
         return super.equals(obj);
     }
