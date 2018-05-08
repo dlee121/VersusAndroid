@@ -507,7 +507,7 @@ public class NotificationsTab extends Fragment {
 
     private ChildEventListener fChangeListener = new ChildEventListener() {
         @Override
-        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+        public void onChildAdded(DataSnapshot snapshot, String s) {
             if(initialLoadComplete){
                 if(itemUpdateCount != null) {
                     final int updateCount = itemUpdateCount.get(TYPE_F);
@@ -558,7 +558,7 @@ public class NotificationsTab extends Fragment {
         }
 
         @Override
-        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+        public void onChildChanged(DataSnapshot snapshot, String s) {
             if(initialLoadComplete){
                 if(itemUpdateCount != null) {
                     final int updateCount = itemUpdateCount.get(TYPE_F);
@@ -629,10 +629,88 @@ public class NotificationsTab extends Fragment {
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
 
+            if(initialLoadComplete) {
+                String commentID = dataSnapshot.getKey();
+                if (itemUpdateCount != null) {
+                    final int hashKey = (commentID + Integer.toString(TYPE_M)).hashCode();
+                    final int updateCount = itemUpdateCount.get(hashKey);
+                    if (updateCount < updateCap) {
+
+                        String[] args = dataSnapshot.getValue(String.class).split(":",3);
+                        String medalType = args[0];
+                        long timeValue = Long.parseLong(args[1]);
+                        String commentContent = args[2].replace('^', ' ');
+                        String header;
+                        switch (medalType){
+                            case "g":
+                                header = "Congratulations! You won a Gold Medal for,";
+                                break;
+                            case "s":
+                                header = "Congratulations! You won a Silver Medal for,";
+                                break;
+                            case "b":
+                                header = "Congratulations! You won a Bronze Medal for,";
+                                break;
+                            default:
+                                header = "Congratulations! You won a medal for,";
+                                break;
+                        }
+
+                        String body = header + "\n\""+commentContent+"\"";
+                        notificationItems.add(new NotificationItem(body, TYPE_M, commentID, timeValue, medalType));
+                        itemUpdateCount.put(hashKey, updateCount + 1);
+                        mostRecentTimeValue.put(hashKey, (int)timeValue);
+                        mNotificationsAdapter.notifyItemInserted(notificationItems.size()-1);
+                        if(!fragmentVisible){
+                            activity.setNotificationBadge(true);
+                        }
+                    }
+                }
+            }
+
         }
 
         @Override
         public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            if(initialLoadComplete) {
+                String commentID = dataSnapshot.getKey();
+                if (itemUpdateCount != null) {
+                    final int hashKey = (commentID + Integer.toString(TYPE_M)).hashCode();
+                    final int updateCount = itemUpdateCount.get(hashKey);
+                    if (updateCount < updateCap) {
+
+                        String[] args = dataSnapshot.getValue(String.class).split(":",3);
+                        String medalType = args[0];
+                        long timeValue = Long.parseLong(args[1]);
+                        String commentContent = args[2].replace('^', ' ');
+                        String header;
+                        switch (medalType){
+                            case "g":
+                                header = "Congratulations! You won a Gold Medal for,";
+                                break;
+                            case "s":
+                                header = "Congratulations! You won a Silver Medal for,";
+                                break;
+                            case "b":
+                                header = "Congratulations! You won a Bronze Medal for,";
+                                break;
+                            default:
+                                header = "Congratulations! You won a medal for,";
+                                break;
+                        }
+
+                        String body = header + "\n\""+commentContent+"\"";
+                        notificationItems.add(new NotificationItem(body, TYPE_M, commentID, timeValue, medalType));
+                        itemUpdateCount.put(hashKey, updateCount + 1);
+                        mostRecentTimeValue.put(hashKey, (int)timeValue);
+                        mNotificationsAdapter.notifyDataSetChanged();
+                        if(!fragmentVisible){
+                            activity.setNotificationBadge(true);
+                        }
+                    }
+                }
+            }
 
         }
 
@@ -656,10 +734,112 @@ public class NotificationsTab extends Fragment {
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
 
+            if(initialLoadComplete) {
+                String[] args = dataSnapshot.getKey().split(":",3);
+                final String postID = args[0];
+                final String redName = args[1].replace('^', ' ');
+                final String blueName = args[2].replace('^', ' ');
+                final int hashKey = (postID + Integer.toString(TYPE_R)).hashCode();
+                if (itemUpdateCount != null) {
+                    final int updateCount = itemUpdateCount.get(hashKey);
+                    if (updateCount < updateCap) {
+                        mFirebaseDatabaseReference.child(userNotificationsPath+"r/"+dataSnapshot.getKey()).orderByValue().limitToLast(8).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                StringBuilder usernames = new StringBuilder();
+                                int i = (int)dataSnapshot.getChildrenCount();
+                                long timeValue = System.currentTimeMillis()/1000;
+
+                                for(DataSnapshot grandchildren : dataSnapshot.getChildren()){
+                                    usernames.insert(0, grandchildren.getKey()+", ");
+                                    i--;
+                                    if(i == 0){
+                                        timeValue = grandchildren.getValue(Long.class);
+                                    }
+                                }
+                                String usernamesString = usernames.toString();
+                                if(usernamesString.length() >= 26){
+                                    usernamesString = usernamesString.substring(0, 26);
+                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                    usernamesString = usernamesString + "...";
+                                }
+                                else{
+                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                }
+                                String body = usernamesString + "\ncommented on \"" + redName + " vs. " + blueName + "\"";
+                                notificationItems.add(new NotificationItem(body, TYPE_R, postID, timeValue));
+                                itemUpdateCount.put(hashKey, updateCount + 1);
+                                mostRecentTimeValue.put(hashKey, (int)timeValue);
+                                mNotificationsAdapter.notifyItemInserted(notificationItems.size()-1);
+                                if(!fragmentVisible){
+                                    activity.setNotificationBadge(true);
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+                    }
+                }
+            }
+
         }
 
         @Override
         public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            if(initialLoadComplete) {
+                String[] args = dataSnapshot.getKey().split(":",3);
+                final String postID = args[0];
+                final String redName = args[1].replace('^', ' ');
+                final String blueName = args[2].replace('^', ' ');
+                final int hashKey = (postID + Integer.toString(TYPE_R)).hashCode();
+                if (itemUpdateCount != null) {
+                    final int updateCount = itemUpdateCount.get(hashKey);
+                    if (updateCount < updateCap) {
+                        mFirebaseDatabaseReference.child(userNotificationsPath+"r/"+dataSnapshot.getKey()).orderByValue().limitToLast(8).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                StringBuilder usernames = new StringBuilder();
+                                int i = (int)dataSnapshot.getChildrenCount();
+                                long timeValue = System.currentTimeMillis()/1000;
+
+                                for(DataSnapshot grandchildren : dataSnapshot.getChildren()){
+                                    usernames.insert(0, grandchildren.getKey()+", ");
+                                    i--;
+                                    if(i == 0){
+                                        timeValue = grandchildren.getValue(Long.class);
+                                    }
+                                }
+                                String usernamesString = usernames.toString();
+                                if(usernamesString.length() >= 26){
+                                    usernamesString = usernamesString.substring(0, 26);
+                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                    usernamesString = usernamesString + "...";
+                                }
+                                else{
+                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                }
+                                String body = usernamesString + "\ncommented on \"" + redName + " vs. " + blueName + "\"";
+                                notificationItems.add(new NotificationItem(body, TYPE_R, postID, timeValue));
+                                itemUpdateCount.put(hashKey, updateCount + 1);
+                                mostRecentTimeValue.put(hashKey, (int)timeValue);
+                                mNotificationsAdapter.notifyDataSetChanged();
+                                if(!fragmentVisible){
+                                    activity.setNotificationBadge(true);
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+                    }
+                }
+            }
 
         }
 
@@ -681,13 +861,100 @@ public class NotificationsTab extends Fragment {
 
     private ChildEventListener uChangeListener = new ChildEventListener() {
         @Override
-        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+        public void onChildAdded(DataSnapshot child, String s) {
+            if(initialLoadComplete) {
+                String[] args = child.getKey().split(":",2);
+                final String commentID = args[0];
+                final String commentContent = args[1];
+                final int hashKey = (commentID + Integer.toString(TYPE_U)).hashCode();
+                if (itemUpdateCount != null) {
+                    final int updateCount = itemUpdateCount.get(hashKey);
+                    if (updateCount < updateCap) {
+
+                        final int newHeartsCount = (int) child.getChildrenCount();
+
+                        mFirebaseDatabaseReference.child(userNotificationsPath+"u/"+child.getKey()).orderByValue().limitToLast(1).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                for (DataSnapshot mostRecent : dataSnapshot.getChildren()){
+                                    long timeValue = mostRecent.getValue(Long.class);
+                                    String body;
+                                    if(newHeartsCount == 1) {
+                                        body = "You got " + Integer.toString(newHeartsCount) + " Heart on a comment, \""
+                                                + commentContent.replace('^', ' ') + "\"";
+                                    }
+                                    else{
+                                        body = "You got " + Integer.toString(newHeartsCount) + " Hearts on a comment, \""
+                                                + commentContent.replace('^', ' ') + "\"";
+                                    }
+
+                                    notificationItems.add(new NotificationItem(body, TYPE_U, commentID, timeValue));
+                                    itemUpdateCount.put(hashKey, updateCount + 1);
+                                    mostRecentTimeValue.put(hashKey, (int)timeValue);
+                                    mNotificationsAdapter.notifyItemInserted(notificationItems.size()-1);
+                                    if(!fragmentVisible){
+                                        activity.setNotificationBadge(true);
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+                    }
+                }
+            }
 
         }
 
         @Override
-        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+        public void onChildChanged(DataSnapshot child, String s) {
+            if(initialLoadComplete) {
+                String[] args = child.getKey().split(":",2);
+                final String commentID = args[0];
+                final String commentContent = args[1];
+                final int hashKey = (commentID + Integer.toString(TYPE_U)).hashCode();
+                if (itemUpdateCount != null) {
+                    final int updateCount = itemUpdateCount.get(hashKey);
+                    if (updateCount < updateCap) {
 
+                        final int newHeartsCount = (int) child.getChildrenCount();
+
+                        mFirebaseDatabaseReference.child(userNotificationsPath+"u/"+child.getKey()).orderByValue().limitToLast(1).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                for (DataSnapshot mostRecent : dataSnapshot.getChildren()){
+                                    long timeValue = mostRecent.getValue(Long.class);
+                                    String body;
+                                    if(newHeartsCount == 1) {
+                                        body = "You got " + Integer.toString(newHeartsCount) + " Heart on a comment, \""
+                                                + commentContent.replace('^', ' ') + "\"";
+                                    }
+                                    else{
+                                        body = "You got " + Integer.toString(newHeartsCount) + " Hearts on a comment, \""
+                                                + commentContent.replace('^', ' ') + "\"";
+                                    }
+
+                                    notificationItems.add(new NotificationItem(body, TYPE_U, commentID, timeValue));
+                                    itemUpdateCount.put(hashKey, updateCount + 1);
+                                    mostRecentTimeValue.put(hashKey, (int)timeValue);
+                                    mNotificationsAdapter.notifyDataSetChanged();
+                                    if(!fragmentVisible){
+                                        activity.setNotificationBadge(true);
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+                    }
+                }
+            }
         }
 
         @Override
@@ -708,13 +975,105 @@ public class NotificationsTab extends Fragment {
 
     private ChildEventListener vChangeListener = new ChildEventListener() {
         @Override
-        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+        public void onChildAdded(DataSnapshot child, String s) {
+
+            if(initialLoadComplete) {
+                String[] args = child.getKey().split(":",4);
+                final String postID = args[0];
+                final String redName = args[1].replace('^', ' ');
+                final String blueName = args[2].replace('^', ' ');
+                final String question = args[3].replace('^', ' ');
+                final int newVotesCount = (int) child.getChildrenCount();
+                final int hashKey = (postID + Integer.toString(TYPE_V)).hashCode();
+                if (itemUpdateCount != null) {
+                    final int updateCount = itemUpdateCount.get(hashKey);
+                    if (updateCount < updateCap) {
+
+                        mFirebaseDatabaseReference.child(userNotificationsPath+"v/"+child.getKey()).orderByValue().limitToLast(1).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                for(DataSnapshot mostRecent : dataSnapshot.getChildren()){
+                                    long timeValue = mostRecent.getValue(Long.class);
+                                    String body;
+                                    if(newVotesCount == 1){
+                                        body = "You got " + Integer.toString(newVotesCount) + " New Vote on your post\n"
+                                                + question + "\n\"" + redName + " vs. " + blueName + "\"";
+                                    }
+                                    else{
+                                        body = "You got " + Integer.toString(newVotesCount) + " New Votes on your post\n"
+                                                + question + "\n\"" + redName + " vs. " + blueName + "\"";
+                                    }
+
+                                    notificationItems.add(new NotificationItem(body, TYPE_V, postID, timeValue));
+                                    itemUpdateCount.put(hashKey, updateCount + 1);
+                                    mostRecentTimeValue.put(hashKey, (int)timeValue);
+                                    mNotificationsAdapter.notifyItemInserted(notificationItems.size()-1);
+                                    if(!fragmentVisible){
+                                        activity.setNotificationBadge(true);
+                                    }
+
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+                    }
+                }
+            }
+
 
         }
 
         @Override
-        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+        public void onChildChanged(DataSnapshot child, String s) {
+            if(initialLoadComplete) {
+                String[] args = child.getKey().split(":",4);
+                final String postID = args[0];
+                final String redName = args[1].replace('^', ' ');
+                final String blueName = args[2].replace('^', ' ');
+                final String question = args[3].replace('^', ' ');
+                final int newVotesCount = (int) child.getChildrenCount();
+                final int hashKey = (postID + Integer.toString(TYPE_V)).hashCode();
+                if (itemUpdateCount != null) {
+                    final int updateCount = itemUpdateCount.get(hashKey);
+                    if (updateCount < updateCap) {
 
+                        mFirebaseDatabaseReference.child(userNotificationsPath+"v/"+child.getKey()).orderByValue().limitToLast(1).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                for(DataSnapshot mostRecent : dataSnapshot.getChildren()){
+                                    long timeValue = mostRecent.getValue(Long.class);
+                                    String body;
+                                    if(newVotesCount == 1){
+                                        body = "You got " + Integer.toString(newVotesCount) + " New Vote on your post\n"
+                                                + question + "\n\"" + redName + " vs. " + blueName + "\"";
+                                    }
+                                    else{
+                                        body = "You got " + Integer.toString(newVotesCount) + " New Votes on your post\n"
+                                                + question + "\n\"" + redName + " vs. " + blueName + "\"";
+                                    }
+
+                                    notificationItems.add(new NotificationItem(body, TYPE_V, postID, timeValue));
+                                    itemUpdateCount.put(hashKey, updateCount + 1);
+                                    mostRecentTimeValue.put(hashKey, (int)timeValue);
+                                    mNotificationsAdapter.notifyDataSetChanged();
+                                    if(!fragmentVisible){
+                                        activity.setNotificationBadge(true);
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+                    }
+                }
+            }
         }
 
         @Override
@@ -809,6 +1168,11 @@ public class NotificationsTab extends Fragment {
         initialLoadComplete = false;
         mFirebaseDatabaseReference.child(userNotificationsPath).addListenerForSingleValueEvent(initialListner);
         mFirebaseDatabaseReference.child(cPath).addChildEventListener(cChangeListener);
+        mFirebaseDatabaseReference.child(fPath).addChildEventListener(fChangeListener);
+        mFirebaseDatabaseReference.child(mPath).addChildEventListener(mChangeListener);
+        mFirebaseDatabaseReference.child(rPath).addChildEventListener(rChangeListener);
+        mFirebaseDatabaseReference.child(uPath).addChildEventListener(uChangeListener);
+        mFirebaseDatabaseReference.child(vPath).addChildEventListener(vChangeListener);
     }
 
     @Override
@@ -817,6 +1181,11 @@ public class NotificationsTab extends Fragment {
         //mFirebaseDatabaseReference.child(userNotificationsPath).removeEventListener(nListener);
         //mFirebaseDatabaseReference.child(userNotificationsPath).removeEventListener(changeListener);
         mFirebaseDatabaseReference.child(cPath).removeEventListener(cChangeListener);
+        mFirebaseDatabaseReference.child(fPath).removeEventListener(fChangeListener);
+        mFirebaseDatabaseReference.child(mPath).removeEventListener(mChangeListener);
+        mFirebaseDatabaseReference.child(rPath).removeEventListener(rChangeListener);
+        mFirebaseDatabaseReference.child(uPath).removeEventListener(uChangeListener);
+        mFirebaseDatabaseReference.child(vPath).removeEventListener(vChangeListener);
     }
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
