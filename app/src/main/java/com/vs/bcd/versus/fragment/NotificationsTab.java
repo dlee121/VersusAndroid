@@ -69,7 +69,7 @@ public class NotificationsTab extends Fragment {
     private AtomicInteger typeChildCount;
     String userNotificationsPath = "";
     private String userNotificationReadTimePath = "";
-    private int updateCap = 3; //TODO: change to 25 for production. Current number is for testing only
+    private int updateCap = 25; //TODO: change to 25 for production. Current number is for testing only
 
 
     private ValueEventListener initialListner = new ValueEventListener() {
@@ -116,7 +116,7 @@ public class NotificationsTab extends Fragment {
                                         usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
                                     }
                                     String body = usernamesString + "\nreplied to your comment, \"" + commentContent.replace('^', ' ') + "\"";
-                                    notificationItems.add(new NotificationItem(body, TYPE_C, commentID, timeValue));
+                                    notificationItems.add(new NotificationItem(body, TYPE_C, commentID, timeValue, dataSnapshot.getKey()));
 
                                     cCount--;
                                     if(cCount == 0){
@@ -161,7 +161,7 @@ public class NotificationsTab extends Fragment {
                                     usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
                                 }
                                 String body = usernamesString + "\nstarted following you!";
-                                notificationItems.add(new NotificationItem(body, TYPE_F, timeValue));
+                                notificationItems.add(new NotificationItem(body, TYPE_F, timeValue, dataSnapshot.getKey()));
 
                                 if(typeChildCount.decrementAndGet() == 0){
                                     finalizeList();
@@ -200,7 +200,7 @@ public class NotificationsTab extends Fragment {
                             }
 
                             String body = header + "\n\""+commentContent+"\"";
-                            notificationItems.add(new NotificationItem(body, TYPE_M, commentID, timeValue, medalType));
+                            notificationItems.add(new NotificationItem(body, TYPE_M, commentID, timeValue, medalType, child.getKey()));
                         }
                         if(typeChildCount.decrementAndGet() == 0){
                             finalizeList();
@@ -248,7 +248,7 @@ public class NotificationsTab extends Fragment {
                                         usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
                                     }
                                     String body = usernamesString + "\ncommented on \"" + redName + " vs. " + blueName + "\"";
-                                    notificationItems.add(new NotificationItem(body, TYPE_R, postID, timeValue));
+                                    notificationItems.add(new NotificationItem(body, TYPE_R, postID, timeValue, dataSnapshot.getKey()));
 
                                     rCount--;
                                     if(rCount == 0){
@@ -297,7 +297,7 @@ public class NotificationsTab extends Fragment {
                                                     + commentContent.replace('^', ' ') + "\"";
                                         }
 
-                                        notificationItems.add(new NotificationItem(body, TYPE_U, commentID, timeValue));
+                                        notificationItems.add(new NotificationItem(body, TYPE_U, commentID, timeValue, dataSnapshot.getKey()));
 
                                         uCount--;
                                         if(uCount == 0){
@@ -348,7 +348,7 @@ public class NotificationsTab extends Fragment {
                                                     + question + "\n\"" + redName + " vs. " + blueName + "\"";
                                         }
 
-                                        notificationItems.add(new NotificationItem(body, TYPE_V, postID, timeValue));
+                                        notificationItems.add(new NotificationItem(body, TYPE_V, postID, timeValue, dataSnapshot.getKey()));
                                         vCount--;
                                         if(vCount == 0){
                                             if(typeChildCount.decrementAndGet() == 0){
@@ -371,6 +371,13 @@ public class NotificationsTab extends Fragment {
             }
 
             initialLoadComplete = true;
+            if(dataSnapshot.getChildrenCount() == 0){
+                Log.d("yoyoyo", "yeay");
+                finalizeList();
+            }
+            else{
+                Log.d("yoyoyo", "hawaii");
+            }
 
         }
 
@@ -415,7 +422,7 @@ public class NotificationsTab extends Fragment {
                                     usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
                                 }
                                 String body = usernamesString + "\nreplied to your comment, \"" + commentContent.replace('^', ' ') + "\"";
-                                notificationItems.add(new NotificationItem(body, TYPE_C, commentID, timeValue));
+                                notificationItems.add(new NotificationItem(body, TYPE_C, commentID, timeValue, dataSnapshot.getKey()));
                                 itemUpdateCount.put(hashKey, updateCount + 1);
                                 mostRecentTimeValue.put(hashKey, (int)timeValue);
                                 mNotificationsAdapter.notifyItemInserted(notificationItems.size()-1);
@@ -469,7 +476,7 @@ public class NotificationsTab extends Fragment {
                                     usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
                                 }
                                 String body = usernamesString + "\nreplied to your comment, \"" + commentContent.replace('^', ' ') + "\"";
-                                notificationItems.add(new NotificationItem(body, TYPE_C, commentID, timeValue));
+                                notificationItems.add(new NotificationItem(body, TYPE_C, commentID, timeValue, dataSnapshot.getKey()));
                                 itemUpdateCount.put(hashKey, updateCount + 1);
                                 mostRecentTimeValue.put(hashKey, (int)timeValue);
                                 mNotificationsAdapter.notifyDataSetChanged();
@@ -537,7 +544,7 @@ public class NotificationsTab extends Fragment {
                                     usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
                                 }
                                 String body = usernamesString + "\nstarted following you!";
-                                notificationItems.add(new NotificationItem(body, TYPE_F, timeValue));
+                                notificationItems.add(new NotificationItem(body, TYPE_F, timeValue, dataSnapshot.getKey()));
                                 itemUpdateCount.put(TYPE_F, updateCount + 1);
                                 mostRecentTimeValue.put(TYPE_F, (int)timeValue);
                                 mNotificationsAdapter.notifyItemInserted(notificationItems.size()-1);
@@ -588,7 +595,7 @@ public class NotificationsTab extends Fragment {
                                     usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
                                 }
                                 String body = usernamesString + "\nstarted following you!";
-                                notificationItems.add(new NotificationItem(body, TYPE_F, timeValue));
+                                notificationItems.add(new NotificationItem(body, TYPE_F, timeValue, dataSnapshot.getKey()));
                                 itemUpdateCount.put(TYPE_F, updateCount + 1);
                                 mostRecentTimeValue.put(TYPE_F, (int)timeValue);
                                 mNotificationsAdapter.notifyDataSetChanged();
@@ -657,7 +664,7 @@ public class NotificationsTab extends Fragment {
                         }
 
                         String body = header + "\n\""+commentContent+"\"";
-                        notificationItems.add(new NotificationItem(body, TYPE_M, commentID, timeValue, medalType));
+                        notificationItems.add(new NotificationItem(body, TYPE_M, commentID, timeValue, medalType, dataSnapshot.getKey()));
                         itemUpdateCount.put(hashKey, updateCount + 1);
                         mostRecentTimeValue.put(hashKey, (int)timeValue);
                         mNotificationsAdapter.notifyItemInserted(notificationItems.size()-1);
@@ -701,7 +708,7 @@ public class NotificationsTab extends Fragment {
                         }
 
                         String body = header + "\n\""+commentContent+"\"";
-                        notificationItems.add(new NotificationItem(body, TYPE_M, commentID, timeValue, medalType));
+                        notificationItems.add(new NotificationItem(body, TYPE_M, commentID, timeValue, medalType, dataSnapshot.getKey()));
                         itemUpdateCount.put(hashKey, updateCount + 1);
                         mostRecentTimeValue.put(hashKey, (int)timeValue);
                         mNotificationsAdapter.notifyDataSetChanged();
@@ -767,7 +774,7 @@ public class NotificationsTab extends Fragment {
                                     usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
                                 }
                                 String body = usernamesString + "\ncommented on \"" + redName + " vs. " + blueName + "\"";
-                                notificationItems.add(new NotificationItem(body, TYPE_R, postID, timeValue));
+                                notificationItems.add(new NotificationItem(body, TYPE_R, postID, timeValue, dataSnapshot.getKey()));
                                 itemUpdateCount.put(hashKey, updateCount + 1);
                                 mostRecentTimeValue.put(hashKey, (int)timeValue);
                                 mNotificationsAdapter.notifyItemInserted(notificationItems.size()-1);
@@ -823,7 +830,7 @@ public class NotificationsTab extends Fragment {
                                     usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
                                 }
                                 String body = usernamesString + "\ncommented on \"" + redName + " vs. " + blueName + "\"";
-                                notificationItems.add(new NotificationItem(body, TYPE_R, postID, timeValue));
+                                notificationItems.add(new NotificationItem(body, TYPE_R, postID, timeValue, dataSnapshot.getKey()));
                                 itemUpdateCount.put(hashKey, updateCount + 1);
                                 mostRecentTimeValue.put(hashKey, (int)timeValue);
                                 mNotificationsAdapter.notifyDataSetChanged();
@@ -888,7 +895,7 @@ public class NotificationsTab extends Fragment {
                                                 + commentContent.replace('^', ' ') + "\"";
                                     }
 
-                                    notificationItems.add(new NotificationItem(body, TYPE_U, commentID, timeValue));
+                                    notificationItems.add(new NotificationItem(body, TYPE_U, commentID, timeValue, dataSnapshot.getKey()));
                                     itemUpdateCount.put(hashKey, updateCount + 1);
                                     mostRecentTimeValue.put(hashKey, (int)timeValue);
                                     mNotificationsAdapter.notifyItemInserted(notificationItems.size()-1);
@@ -937,7 +944,7 @@ public class NotificationsTab extends Fragment {
                                                 + commentContent.replace('^', ' ') + "\"";
                                     }
 
-                                    notificationItems.add(new NotificationItem(body, TYPE_U, commentID, timeValue));
+                                    notificationItems.add(new NotificationItem(body, TYPE_U, commentID, timeValue, dataSnapshot.getKey()));
                                     itemUpdateCount.put(hashKey, updateCount + 1);
                                     mostRecentTimeValue.put(hashKey, (int)timeValue);
                                     mNotificationsAdapter.notifyDataSetChanged();
@@ -1004,7 +1011,7 @@ public class NotificationsTab extends Fragment {
                                                 + question + "\n\"" + redName + " vs. " + blueName + "\"";
                                     }
 
-                                    notificationItems.add(new NotificationItem(body, TYPE_V, postID, timeValue));
+                                    notificationItems.add(new NotificationItem(body, TYPE_V, postID, timeValue, dataSnapshot.getKey()));
                                     itemUpdateCount.put(hashKey, updateCount + 1);
                                     mostRecentTimeValue.put(hashKey, (int)timeValue);
                                     mNotificationsAdapter.notifyItemInserted(notificationItems.size()-1);
@@ -1056,7 +1063,7 @@ public class NotificationsTab extends Fragment {
                                                 + question + "\n\"" + redName + " vs. " + blueName + "\"";
                                     }
 
-                                    notificationItems.add(new NotificationItem(body, TYPE_V, postID, timeValue));
+                                    notificationItems.add(new NotificationItem(body, TYPE_V, postID, timeValue, dataSnapshot.getKey()));
                                     itemUpdateCount.put(hashKey, updateCount + 1);
                                     mostRecentTimeValue.put(hashKey, (int)timeValue);
                                     mNotificationsAdapter.notifyDataSetChanged();
@@ -1120,7 +1127,7 @@ public class NotificationsTab extends Fragment {
         mLayoutManager.setStackFromEnd(true);
         recyclerView.setLayoutManager(mLayoutManager);
 
-        mNotificationsAdapter = new NotificationsAdapter(notificationItems, activity);
+        mNotificationsAdapter = new NotificationsAdapter(notificationItems, this, activity);
         recyclerView.setAdapter(mNotificationsAdapter);
 
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -1308,6 +1315,37 @@ public class NotificationsTab extends Fragment {
 
             }
         });
+
+    }
+
+    public void clearItemAtIndex(int index){
+        NotificationItem removedItem = notificationItems.remove(index);
+        mNotificationsAdapter.notifyItemRemoved(index);
+        mNotificationsAdapter.notifyItemRangeChanged(index, notificationItems.size());
+        itemUpdateCount.delete(removedItem.hashCode());
+        switch (removedItem.getType()){
+            case TYPE_C:
+                mFirebaseDatabaseReference.child(cPath+"/"+removedItem.getKey()).removeValue();
+                break;
+            case TYPE_F:
+                mFirebaseDatabaseReference.child(fPath).removeValue();
+                break;
+            case TYPE_M:
+                mFirebaseDatabaseReference.child(mPath+"/"+removedItem.getKey()).removeValue();
+                break;
+            case TYPE_R:
+                mFirebaseDatabaseReference.child(rPath+"/"+removedItem.getKey()).removeValue();
+                break;
+            case TYPE_U:
+                mFirebaseDatabaseReference.child(uPath+"/"+removedItem.getKey()).removeValue();
+                break;
+            case TYPE_V:
+                mFirebaseDatabaseReference.child(vPath+"/"+removedItem.getKey()).removeValue();
+                break;
+        }
+
+
+
 
     }
 

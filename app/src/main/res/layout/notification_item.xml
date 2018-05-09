@@ -59,7 +59,7 @@
 
 
     <ImageButton
-        android:id="@+id/button4"
+        android:id="@+id/clear_button"
         android:layout_width="18dp"
         android:layout_height="18dp"
         android:layout_alignParentTop="true"

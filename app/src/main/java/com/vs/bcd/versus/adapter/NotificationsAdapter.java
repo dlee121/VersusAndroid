@@ -7,10 +7,12 @@ import android.util.SparseIntArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.vs.bcd.versus.activity.MainContainer;
+import com.vs.bcd.versus.fragment.NotificationsTab;
 import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.model.LeaderboardEntry;
@@ -37,10 +39,12 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
     private Activity activity;
     private List<NotificationItem> nItems;
     private SparseIntArray mostRecentTimeValue = null;
+    private NotificationsTab notificationsTab;
 
-    public NotificationsAdapter(List<NotificationItem> nItems, Activity activity) {
+    public NotificationsAdapter(List<NotificationItem> nItems, NotificationsTab notificationsTab, Activity activity) {
         this.nItems = nItems;
         this.activity = activity;
+        this.notificationsTab = notificationsTab;
     }
 
     public void setMostRecentTimeValue(SparseIntArray mostRecentTimeValue){
@@ -111,6 +115,18 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
 
             notificationViewHolder.body.setText(notificationItem.getBody());
             notificationViewHolder.time.setText(notificationItem.getTimeString());
+
+            notificationViewHolder.clearButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(notificationsTab != null){
+                        notificationsTab.clearItemAtIndex(position);
+                    }
+                }
+            });
+
+
+
         }
     }
 
@@ -124,12 +140,14 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
         public ImageView secondaryIcon;   //maybe switch to circular colorful icons
         public TextView body;
         public TextView time;
+        public ImageButton clearButton;
 
         public NotificationViewHolder(View view) {
             super(view);
-            secondaryIcon = (ImageView) view.findViewById(R.id.secondary_icon);
-            body = (TextView) view.findViewById(R.id.notification_body);
-            time = (TextView) view.findViewById(R.id.notification_time);
+            secondaryIcon = view.findViewById(R.id.secondary_icon);
+            body = view.findViewById(R.id.notification_body);
+            time = view.findViewById(R.id.notification_time);
+            clearButton = view.findViewById(R.id.clear_button);
         }
     }
 

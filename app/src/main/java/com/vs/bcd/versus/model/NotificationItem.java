@@ -26,26 +26,30 @@ public class NotificationItem {
     private long timestamp;
     private String medalType = "";
     private String identifier = "";
+    private String key = "";
 
-    public NotificationItem(String body, int type, String payload, long timestamp){
+    public NotificationItem(String body, int type, String payload, long timestamp, String key){
         this.body = body;
         this.type = type;
         this.payload = payload;
         this.timestamp = timestamp;
+        this.key = key;
     }
 
-    public NotificationItem(String body, int type, long timestamp){
+    public NotificationItem(String body, int type, long timestamp, String key){
         this.body = body;
         this.type = type;
         this.timestamp = timestamp;
+        this.key = key;
     }
 
-    public NotificationItem(String body, int type, String payload, long timestamp, String medalType){
+    public NotificationItem(String body, int type, String payload, long timestamp, String medalType, String key){
         this.body = body;
         this.type = type;
         this.payload = payload;
         this.timestamp = timestamp;
         this.medalType = medalType;
+        this.key = key;
     }
 
     public void setMedalType(String medalType) {
@@ -87,6 +91,14 @@ public class NotificationItem {
 
     public String getPayload(){
         return payload;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public void setTimestamp(long timestamp){
