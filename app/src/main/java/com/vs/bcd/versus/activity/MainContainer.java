@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.os.Message;
 import android.os.NetworkOnMainThreadException;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -205,6 +206,8 @@ public class MainContainer extends AppCompatActivity {
     private String voteUpdateTargetID = "";
     private int voteUpdateFragNum = 0;
     private int voteUpdateTabNum = 0;
+
+    private FloatingActionButton createPostFAB;
 
 
 
@@ -453,6 +456,17 @@ public class MainContainer extends AppCompatActivity {
 
         windowSize = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(windowSize);
+
+        createPostFAB = findViewById(R.id.fab_main_container);
+        createPostFAB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setOriginFragNum(mainActivityFragRef.getViewPager().getCurrentItem());
+                mViewPager.setCurrentItem(2);
+                titleTxtView.setText("Create a Post");
+                setLeftChevron();
+            }
+        });
 
     /*
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -920,10 +934,13 @@ public class MainContainer extends AppCompatActivity {
         AHBottomNavigationItem item3 = new AHBottomNavigationItem("Notifications", R.drawable.notifications_grey);
         AHBottomNavigationItem item4 = new AHBottomNavigationItem("Me", R.drawable.default_profile);
 
+        AHBottomNavigationItem centerPiece = new AHBottomNavigationItem("", android.R.color.transparent);
+
 
         // Add items
         bottomNavigation.addItem(item1);
         bottomNavigation.addItem(item2);
+        bottomNavigation.addItem(centerPiece);
         bottomNavigation.addItem(item3);
         bottomNavigation.addItem(item4);
         bottomNavigation.setNotificationBackground(ContextCompat.getDrawable(this, R.drawable.custom_bottom_notification));
@@ -948,11 +965,14 @@ public class MainContainer extends AppCompatActivity {
                         mViewPager.setCurrentItem(7);
                         break;
 
-                    case 2: //NotificationsTab
+                    case 2: //CenterPiece placeholder
+                        break;
+
+                    case 3: //NotificationsTab
                         mViewPager.setCurrentItem(8);
                         break;
 
-                    case 3: //Me (ProfileTab with user == me)
+                    case 4: //Me (ProfileTab with user == me)
                         meClicked = true;
                         profileTab.setUpProfile(sessionManager.getCurrentUsername(), true);
                         mViewPager.setCurrentItem(9);
@@ -1078,7 +1098,7 @@ public class MainContainer extends AppCompatActivity {
                         enableBottomTabs(); //because we might make notifications not bottom tab, putting this here just in case
                         hideToolbarButtonLeft();
                         titleTxtView.setText("Notifications");
-                        bottomNavigation.setCurrentItem(2, false);
+                        bottomNavigation.setCurrentItem(3, false);
                         hideTitleRightButton();
                         break;
 
@@ -1090,7 +1110,7 @@ public class MainContainer extends AppCompatActivity {
                             showSettingsButton();
                             hideToolbarButtonLeft();
                             enableBottomTabs(); //we need to recover bottom tabs in cases like coming back from SettingsFragment
-                            bottomNavigation.setCurrentItem(3, false);
+                            bottomNavigation.setCurrentItem(4, false);
                         }
                         else{
                             hideToolbarButtonRight();
@@ -1643,12 +1663,14 @@ public class MainContainer extends AppCompatActivity {
         bottomNavigation.restoreBottomNavigation(false);
         bottomNavigation.setLayoutParams(bottomNavLP);
         vpContainer.setLayoutParams(vpContainerLP);
+        createPostFAB.setVisibility(View.VISIBLE);
     }
 
     private void disableBottomTabs(){
         bottomNavigation.hideBottomNavigation(false);
         bottomNavigation.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
         vpContainer.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
+        createPostFAB.setVisibility(View.GONE);
     }
 
     public String getUsername(){
@@ -2712,11 +2734,13 @@ public class MainContainer extends AppCompatActivity {
 
     public void setNotificationBadge(boolean set){
         if(set){
-            bottomNavigation.setNotification("NEW", 2);
+            bottomNavigation.setNotification("NEW", 3);
         }
         else{
-            bottomNavigation.setNotification("", 2);
+            bottomNavigation.setNotification("", 3);
         }
     }
+
+
 
 }

@@ -36,6 +36,18 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"/>
 
+
     </RelativeLayout>
+
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_main_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center|bottom"
+        android:layout_marginBottom="4dp"
+        app:backgroundTint="#F74E24"
+        app:elevation="0dp"
+        android:src="@drawable/round_plus"/>
 
 </android.support.design.widget.CoordinatorLayout>

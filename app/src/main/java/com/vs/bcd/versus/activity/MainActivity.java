@@ -33,10 +33,9 @@ public class MainActivity extends Fragment {
     private boolean childrenFragmentsUIActive = false;
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
-    private RelativeLayout.LayoutParams fabLP;
     private LinearLayout tabStrip;
     private MainContainer mainContainer;
-    private FloatingActionButton fab;
+    //private FloatingActionButton fab;
     private Tab1Newsfeed tab1;
     private Tab2Trending tab2;
     private Tab3Categories tab3;
@@ -73,7 +72,7 @@ public class MainActivity extends Fragment {
                     case 0: //newsfeed
                         tab.setIcon(R.drawable.newsfeed_red);
                         mainContainer.setToolbarTitleTextForTabs("Newsfeed");
-                        enableCPFab();
+                        //enableCPFab();
                         Log.d("matab", "tab1Newsfeed selected");
                         if(!tab1.postsLoaded()){
                             tab1.newsfeedESQuery(0);
@@ -84,7 +83,7 @@ public class MainActivity extends Fragment {
                     case 1: //trending
                         tab.setIcon(R.drawable.fire_red);
                         mainContainer.setToolbarTitleTextForTabs("Trending");
-                        enableCPFab();
+                        //enableCPFab();
                         Log.d("matab", "tab1Newsfeed selected");
                         if(!tab2.postsLoaded()){
                             tab2.trendingESQuery(0);
@@ -93,7 +92,7 @@ public class MainActivity extends Fragment {
                         break;
                     case 2: //categories
                         tab.setIcon(R.drawable.categoried_red);
-                        disableCPFab();
+                        //disableCPFab();
                         if(tab3.isCategoryPostsListOpen()){
                             //mainContainer.setLeftChevron();
                             mainContainer.setToolbarTitleTextForTabs(tab3.getCurrentCategoryTitle());
@@ -129,18 +128,6 @@ public class MainActivity extends Fragment {
             }
             @Override
             public void onTabReselected(TabLayout.Tab tab) {
-            }
-        });
-
-        fab = rootView.findViewById(R.id.fab);
-        fabLP = (RelativeLayout.LayoutParams) fab.getLayoutParams();
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mainContainer.setOriginFragNum(mViewPager.getCurrentItem());
-                mainContainer.getViewPager().setCurrentItem(2);
-                mainContainer.getToolbarTitleText().setText("Create a Post");
-                mainContainer.getToolbarButtonLeft().setImageResource(R.drawable.ic_left_chevron);
             }
         });
 
@@ -223,9 +210,11 @@ public class MainActivity extends Fragment {
             if(rootView != null){
                 enableChildViews();
                 int currItem = mViewPager.getCurrentItem();
+                /*
                 if(currItem == 2 ){
                     disableCPFab();
                 }
+                */
             }
         }
         else{
@@ -256,7 +245,7 @@ public class MainActivity extends Fragment {
             childViews.get(i).setLayoutParams(new RelativeLayout.LayoutParams(0,0));
         }
     }
-
+    /*
     private void enableCPFab(){
         fab.setEnabled(true);
         fab.setClickable(true);
@@ -268,6 +257,7 @@ public class MainActivity extends Fragment {
         fab.setClickable(false);
         fab.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
     }
+    */
 
     public Tab1Newsfeed getTab1(){
         return tab1;
