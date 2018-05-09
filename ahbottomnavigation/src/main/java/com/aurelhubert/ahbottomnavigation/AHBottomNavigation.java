@@ -687,10 +687,12 @@ public class AHBottomNavigation extends FrameLayout {
 					case 1: //Leaderboard
 						AHHelper.updateDrawableColorCustom(selectedLeaderboard, icon);
 						break;
-					case 2: //Notifications
+					case 2: //CenterPiece placeholder
+						break;
+					case 3: //Notifications
 						AHHelper.updateDrawableColorCustom(selectedNotifications, icon);
 						break;
-					case 3: //ME
+					case 4: //ME
 						AHHelper.updateDrawableColorCustom(selectedME, icon);
 						break;
 					default:
