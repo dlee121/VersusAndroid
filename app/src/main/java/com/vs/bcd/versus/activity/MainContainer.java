@@ -2417,9 +2417,13 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public void commentHistoryClickHelper(String commentAuthor){
-        //toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
         myAdapterFragInt = 9; //profile page
         postParentProfileUsername = commentAuthor;
+        clickedPostIndex = -1;
+    }
+
+    public void notificationsCommentClickHelper(){
+        myAdapterFragInt = 8;
         clickedPostIndex = -1;
     }
 

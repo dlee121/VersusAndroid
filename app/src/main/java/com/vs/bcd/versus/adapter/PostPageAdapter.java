@@ -222,13 +222,13 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         commentViewHolder.medalImage.setImageResource(android.R.color.transparent);
                         break; //no medal, default currentMedal value
                     case 1: //bronze
-                        commentViewHolder.medalImage.setImageResource(R.drawable.bronzemedal);
+                        commentViewHolder.medalImage.setImageResource(R.drawable.ic_bronze_medal);
                         break;
                     case 2: //silver
-                        commentViewHolder.medalImage.setImageResource(R.drawable.silvermedal);
+                        commentViewHolder.medalImage.setImageResource(R.drawable.ic_silver_medal);
                         break;
                     case 3: //gold
-                        commentViewHolder.medalImage.setImageResource(R.drawable.goldmedal);
+                        commentViewHolder.medalImage.setImageResource(R.drawable.ic_gold_medal);
                         break;
                 }
 
@@ -759,13 +759,13 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     topCardViewHolder.medalImage.setImageResource(android.R.color.transparent);
                     break; //no medal, default currentMedal value
                 case 1: //bronze
-                    topCardViewHolder.medalImage.setImageResource(R.drawable.bronzemedal);
+                    topCardViewHolder.medalImage.setImageResource(R.drawable.ic_bronze_medal);
                     break;
                 case 2: //silver
-                    topCardViewHolder.medalImage.setImageResource(R.drawable.silvermedal);
+                    topCardViewHolder.medalImage.setImageResource(R.drawable.ic_silver_medal);
                     break;
                 case 3: //gold
-                    topCardViewHolder.medalImage.setImageResource(R.drawable.goldmedal);
+                    topCardViewHolder.medalImage.setImageResource(R.drawable.ic_gold_medal);
                     break;
             }
 

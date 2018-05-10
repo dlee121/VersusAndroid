@@ -3579,7 +3579,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
     }
 
-    public void childOrGrandchildHistoryItemClicked(final VSComment clickedComment){
+    public void childOrGrandchildHistoryItemClicked(final VSComment clickedComment, final boolean fromProfile){
         freshlyVotedComments.clear();
         pageLevel  = 2;
         clearList();
@@ -3592,12 +3592,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             public void run() {
                 final Post subjectPost = getPost(clickedComment.getPost_id(), false);
 
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        activity.commentHistoryClickHelper(clickedComment.getAuthor());
-                    }
-                });
+                if(fromProfile){
+                    activity.commentHistoryClickHelper(clickedComment.getAuthor());
+                }
+                else{ //from Notifications
+                    activity.notificationsCommentClickHelper();
+                }
 
                 sortType = POPULAR;
                 nowLoading = false;
@@ -3690,7 +3690,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     }
 
-    public void rootCommentHistoryItemClicked(final VSComment clickedRootComment){
+    public void rootCommentHistoryItemClicked(final VSComment clickedRootComment, final boolean fromProfile){
         freshlyVotedComments.clear();
         clearList();
         if(PPAdapter != null) {
@@ -3701,12 +3701,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             public void run() {
                 final Post subjectPost = getPost(clickedRootComment.getPost_id(), false);
 
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        activity.commentHistoryClickHelper(clickedRootComment.getAuthor());
-                    }
-                });
+                if(fromProfile){
+                    activity.commentHistoryClickHelper(clickedRootComment.getAuthor());
+                }
+                else{ //from Notifications
+                    activity.notificationsCommentClickHelper();
+                }
 
                 sortType = POPULAR;
                 nowLoading = false;

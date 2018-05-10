@@ -10,18 +10,35 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.loopj.android.http.HttpGet;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.fragment.NotificationsTab;
+import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.model.LeaderboardEntry;
 import com.vs.bcd.versus.model.NotificationItem;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.User;
+import com.vs.bcd.versus.model.VSComment;
 
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import cz.msebera.android.httpclient.HttpEntity;
+import cz.msebera.android.httpclient.HttpResponse;
+import cz.msebera.android.httpclient.client.ClientProtocolException;
+import cz.msebera.android.httpclient.client.ResponseHandler;
+import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
+import cz.msebera.android.httpclient.impl.client.HttpClients;
+import cz.msebera.android.httpclient.util.EntityUtils;
 
 
 public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -36,15 +53,19 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
     private final int VIEW_TYPE_HIDE = 0;
     private final int VIEW_TYPE_SHOW = 1;
 
-    private Activity activity;
+    private MainContainer activity;
     private List<NotificationItem> nItems;
     private SparseIntArray mostRecentTimeValue = null;
     private NotificationsTab notificationsTab;
+    private String host, region;
+    private Toast mToast;
 
-    public NotificationsAdapter(List<NotificationItem> nItems, NotificationsTab notificationsTab, Activity activity) {
+    public NotificationsAdapter(List<NotificationItem> nItems, NotificationsTab notificationsTab, MainContainer activity) {
         this.nItems = nItems;
         this.activity = activity;
         this.notificationsTab = notificationsTab;
+        host = activity.getESHost();
+        region = activity.getESRegion();
     }
 
     public void setMostRecentTimeValue(SparseIntArray mostRecentTimeValue){
@@ -130,20 +151,19 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
                 public void onClick(View view) {
                     switch (notificationItem.getType()){
                         case TYPE_C: //go to the comment
-                            String commentID; //TODO: do this
-
+                            openPayloadComment(notificationItem.getPayload());
                             break;
                         case TYPE_F: //open followers page
 
                             break;
                         case TYPE_M: //go to the comment
-
+                            openPayloadComment(notificationItem.getPayload());
                             break;
                         case TYPE_R: //go to the post
 
                             break;
                         case TYPE_U: //go to the comment
-
+                            openPayloadComment(notificationItem.getPayload());
                             break;
                         case TYPE_V: //go to the post
 
@@ -188,5 +208,110 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
     public void clearAllItems(){
         nItems.clear();
         notifyDataSetChanged();
+    }
+
+
+    private void openPayloadComment(final String comment_id){
+        Runnable runnable = new Runnable() {
+            public void run() {
+                final VSComment clickedComment = getComment(comment_id);
+
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(clickedComment == null){
+                            if(mToast != null){
+                                mToast.cancel();
+                            }
+                            mToast = Toast.makeText(activity, "Network error. Please try again.", Toast.LENGTH_SHORT);
+                            mToast.show();
+                        }
+                        else{
+                            if(clickedComment.getParent_id().equals(clickedComment.getPost_id())){ //this is a root comment
+                                activity.getPostPage().rootCommentHistoryItemClicked(clickedComment, false);
+                            }
+                            else{
+                                activity.getPostPage().childOrGrandchildHistoryItemClicked(clickedComment, false);
+                            }
+                        }
+                    }
+                });
+            }
+        };
+        Thread mythread = new Thread(runnable);
+        mythread.start();
+
+    }
+
+
+    //Call this in a new thread
+    private VSComment getComment(String comment_id){
+
+        String query = "/vscomment/vscomment_type/"+comment_id;
+        String url = "https://" + host + query;
+
+        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
+        awsHeaders.put("host", host);
+
+        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
+                .regionName(region)
+                .serviceName("es") // es - elastic search. use your service name
+                .httpMethodName("GET") //GET, PUT, POST, DELETE, etc...
+                .canonicalURI(query) //end point
+                .queryParametes(null) //query parameters if any
+                .awsHeaders(awsHeaders) //aws header parameters
+                .debug() // turn on the debug mode
+                .build();
+
+        HttpGet httpGet = new HttpGet(url);
+
+        /* Get header calculated for request */
+        Map<String, String> header = aWSV4Auth.getHeaders();
+        for (Map.Entry<String, String> entrySet : header.entrySet()) {
+            String key = entrySet.getKey();
+            String value = entrySet.getValue();
+
+            /* Attach header in your request */
+            /* Simple get request */
+
+            httpGet.addHeader(key, value);
+        }
+
+        /* Create object of CloseableHttpClient */
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+        /* Response handler for after request execution */
+        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
+
+            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+                /* Get status code */
+                int status = response.getStatusLine().getStatusCode();
+                if (status >= 200 && status < 300) {
+                    /* Convert response to String */
+                    HttpEntity entity = response.getEntity();
+                    return entity != null ? EntityUtils.toString(entity) : null;
+                } else {
+                    throw new ClientProtocolException("Unexpected response status: " + status);
+                }
+            }
+        };
+
+        try {
+            /* Execute URL and attach after execution response handler */
+            long startTime = System.currentTimeMillis();
+
+            String strResponse = httpClient.execute(httpGet, responseHandler);
+
+            JSONObject obj = new JSONObject(strResponse);
+            JSONObject item = obj.getJSONObject("_source");
+            return new VSComment(item);
+
+            //System.out.println("Response: " + strResponse);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //if the ES GET fails, then return old topCardContent
+        return null;
     }
 }
