@@ -2903,14 +2903,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         HttpGet httpGet = new HttpGet(url);
 
-		        /* Get header calculated for request */
+        /* Get header calculated for request */
         Map<String, String> header = aWSV4Auth.getHeaders();
         for (Map.Entry<String, String> entrySet : header.entrySet()) {
             String key = entrySet.getKey();
             String value = entrySet.getValue();
 
-			    /* Attach header in your request */
-			    /* Simple get request */
+            /* Attach header in your request */
+            /* Simple get request */
 
             httpGet.addHeader(key, value);
         }
@@ -2918,14 +2918,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         /* Create object of CloseableHttpClient */
         CloseableHttpClient httpClient = HttpClients.createDefault();
 
-		/* Response handler for after request execution */
+        /* Response handler for after request execution */
         ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
 
             public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-				/* Get status code */
+                /* Get status code */
                 int status = response.getStatusLine().getStatusCode();
                 if (status >= 200 && status < 300) {
-					/* Convert response to String */
+                    /* Convert response to String */
                     HttpEntity entity = response.getEntity();
                     return entity != null ? EntityUtils.toString(entity) : null;
                 } else {
@@ -2935,7 +2935,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         };
 
         try {
-			/* Execute URL and attach after execution response handler */
+            /* Execute URL and attach after execution response handler */
             long startTime = System.currentTimeMillis();
 
             String strResponse = httpClient.execute(httpGet, responseHandler);

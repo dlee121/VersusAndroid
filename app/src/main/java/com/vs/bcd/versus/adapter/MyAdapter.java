@@ -16,6 +16,7 @@ import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.ListPreloader;
 import com.bumptech.glide.RequestBuilder;
@@ -82,6 +83,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
     private int imageHeightPixels = 747;
 
     private HashMap<String, Integer> profileImgVersions;
+    private Toast mToast;
 
     Drawable defaultImage, defaultProfileImage;
 
@@ -485,17 +487,22 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
                         Runnable runnable = new Runnable() {
                             public void run() {
                                 final Post clickedPost = supplementCompactPost(posts.get(position).getPost_id());
-                                if(clickedPost == null){
-                                    //TODO: Toast saying "Something went wrong"
-                                }
-                                else{
-                                    activity.runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            activity.postClicked(clickedPost, fragmentInt, position);
+                                activity.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if(clickedPost == null){
+                                            if(mToast != null){
+                                                mToast.cancel();
+                                            }
+                                            mToast = Toast.makeText(activity, "Network Error. Please try again.", Toast.LENGTH_SHORT);
+                                            mToast.show();
                                         }
-                                    });
-                                }
+                                        else{
+                                            activity.postClicked(clickedPost, fragmentInt, position);
+
+                                        }
+                                    }
+                                });
                             }
                         };
                         Thread mythread = new Thread(runnable);

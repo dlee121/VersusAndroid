@@ -198,6 +198,7 @@ public class MainContainer extends AppCompatActivity {
     private GroupMembersPage groupMembersPage;
     private String titleBeforeProfile = "";
     private LinearLayout badgeContainer;
+    private NotificationsTab notificationsTab;
 
     private String esHost = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
     private String esRegion = "us-east-1";
@@ -209,6 +210,8 @@ public class MainContainer extends AppCompatActivity {
     private int voteUpdateTabNum = 0;
 
     private FloatingActionButton createPostFAB;
+    private String clickedNotificationKey = "";
+    private boolean fromRItem = true;
 
 
 
@@ -1383,7 +1386,8 @@ public class MainContainer extends AppCompatActivity {
                 case 7:
                     return new LeaderboardTab();
                 case 8:
-                    return new NotificationsTab();
+                    notificationsTab = new NotificationsTab();
+                    return notificationsTab;
                 case 9:
                     profileTab = new ProfileTab();
                     return profileTab;
@@ -1472,6 +1476,20 @@ public class MainContainer extends AppCompatActivity {
         clickedPostIndex = index;
 
         setVoteUpdateTarget(index, post.getPost_id(), fragmentInt);
+    }
+
+    public void postClickedForNotificationsTab(Post post, String key, boolean fromRItem){
+        String temp = postInDownload.get(post.getPost_id());
+        if(temp == null || !temp.equals("in progress")){
+            postInDownload.put(post.getPost_id(), "in progress");
+            postPage.clearList();
+            postPage.setContent(post);
+        }
+        myAdapterFragInt = 8;
+        mViewPager.setCurrentItem(3);
+        clickedPostIndex = -1;
+        clickedNotificationKey = key;
+        this.fromRItem = fromRItem;
     }
 
     public void addToCentralProfileImgVersionMap(HashMap<String, Integer> imageVersions){
@@ -2159,6 +2177,23 @@ public class MainContainer extends AppCompatActivity {
                                 categoryFragment.removePostFromList(clickedPostIndex, postToDelete.getPost_id()); //won't remove if sorted by Most Recent
                                 mViewPager.setCurrentItem(6);
                                 break;
+                            case 8:
+                                if(clickedNotificationKey != null){
+                                    if(fromRItem){
+                                        mFirebaseDatabaseReference.child(getUserPath()+"n/r/"+clickedNotificationKey).removeValue();
+                                        mFirebaseDatabaseReference.child(getUserPath()+"n/v/"+clickedNotificationKey+":"+postToDelete.getQuestion().replace(' ', '^')).removeValue();
+                                    }
+                                    else{
+                                        mFirebaseDatabaseReference.child(getUserPath()+"n/r/"+clickedNotificationKey.substring(0, clickedNotificationKey.lastIndexOf(':'))).removeValue();
+                                        mFirebaseDatabaseReference.child(getUserPath()+"n/v/"+clickedNotificationKey).removeValue();
+                                    }
+                                    mViewPager.setCurrentItem(8);
+                                    if(notificationsTab != null){
+                                        notificationsTab.handlePostDelete(postToDelete.getPost_id());
+                                    }
+
+                                }
+                                break;
                             case 9: //Profile page
                                 profileTab.getPostsHistoryFragment().removePostFromList(clickedPostIndex, postToDelete.getRedname());
                                 mViewPager.setCurrentItem(9);
@@ -2425,6 +2460,10 @@ public class MainContainer extends AppCompatActivity {
     public void notificationsCommentClickHelper(){
         myAdapterFragInt = 8;
         clickedPostIndex = -1;
+    }
+
+    public int getMyAdapterFragInt(){
+        return myAdapterFragInt;
     }
 
     private void handleNewMessage(){

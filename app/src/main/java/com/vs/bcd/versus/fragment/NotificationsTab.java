@@ -1346,9 +1346,15 @@ public class NotificationsTab extends Fragment {
                 break;
         }
 
+    }
 
-
-
+    public void handlePostDelete(String postID){
+        if(mostRecentTimeValue != null){
+            Log.d("eggcetu", "oyosd");
+            mostRecentTimeValue.put((postID + Integer.toString(TYPE_R)).hashCode(), Integer.MAX_VALUE);
+            mostRecentTimeValue.put((postID + Integer.toString(TYPE_V)).hashCode(), Integer.MAX_VALUE);
+            mNotificationsAdapter.notifyDataSetChanged();
+        }
     }
 
 }
