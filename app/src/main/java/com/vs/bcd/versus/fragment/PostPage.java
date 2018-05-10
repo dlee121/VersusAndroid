@@ -2597,7 +2597,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         return post.getQuestion();
     }
 
-    private String sanitizeContentForURL(String url){
+    public String sanitizeContentForURL(String url){
         String strIn = url.trim();
         if(strIn.length()>26){
             strIn.substring(0,26);
@@ -3579,7 +3579,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
     }
 
-    public void childOrGrandchildHistoryItemClicked(final VSComment clickedComment, final boolean fromProfile){
+    public void childOrGrandchildHistoryItemClicked(final VSComment clickedComment, final boolean fromProfile, final String key){
         freshlyVotedComments.clear();
         pageLevel  = 2;
         clearList();
@@ -3596,7 +3596,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     activity.commentHistoryClickHelper(clickedComment.getAuthor());
                 }
                 else{ //from Notifications
-                    activity.notificationsCommentClickHelper();
+                    activity.notificationsCommentClickHelper(key);
                 }
 
                 sortType = POPULAR;
@@ -3690,7 +3690,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     }
 
-    public void rootCommentHistoryItemClicked(final VSComment clickedRootComment, final boolean fromProfile){
+    public void rootCommentHistoryItemClicked(final VSComment clickedRootComment, final boolean fromProfile, final String key){
         freshlyVotedComments.clear();
         clearList();
         if(PPAdapter != null) {
@@ -3705,7 +3705,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     activity.commentHistoryClickHelper(clickedRootComment.getAuthor());
                 }
                 else{ //from Notifications
-                    activity.notificationsCommentClickHelper();
+                    activity.notificationsCommentClickHelper(key);
                 }
 
                 sortType = POPULAR;

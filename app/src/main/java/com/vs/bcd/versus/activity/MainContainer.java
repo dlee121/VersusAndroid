@@ -2181,7 +2181,7 @@ public class MainContainer extends AppCompatActivity {
                                 if(clickedNotificationKey != null){
                                     if(fromRItem){
                                         mFirebaseDatabaseReference.child(getUserPath()+"n/r/"+clickedNotificationKey).removeValue();
-                                        mFirebaseDatabaseReference.child(getUserPath()+"n/v/"+clickedNotificationKey+":"+postToDelete.getQuestion().replace(' ', '^')).removeValue();
+                                        mFirebaseDatabaseReference.child(getUserPath()+"n/v/"+clickedNotificationKey+":"+postPage.sanitizeContentForURL(postToDelete.getQuestion())).removeValue();
                                     }
                                     else{
                                         mFirebaseDatabaseReference.child(getUserPath()+"n/r/"+clickedNotificationKey.substring(0, clickedNotificationKey.lastIndexOf(':'))).removeValue();
@@ -2209,8 +2209,14 @@ public class MainContainer extends AppCompatActivity {
         };
         Thread mythread = new Thread(runnable);
         mythread.start();
+    }
 
+    public NotificationsTab getNotificationsTab(){
+        return notificationsTab;
+    }
 
+    public DatabaseReference getmFirebaseDatabaseReference(){
+        return mFirebaseDatabaseReference;
     }
 
     private void hideToolbarButtonRight(){
@@ -2457,9 +2463,14 @@ public class MainContainer extends AppCompatActivity {
         clickedPostIndex = -1;
     }
 
-    public void notificationsCommentClickHelper(){
+    public void notificationsCommentClickHelper(String key){
         myAdapterFragInt = 8;
         clickedPostIndex = -1;
+        clickedNotificationKey = key;
+    }
+
+    public String getClickedNotificationKey(){
+        return clickedNotificationKey;
     }
 
     public int getMyAdapterFragInt(){

@@ -1488,6 +1488,28 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         .withAttributeUpdates(updates);
                 activity.getDDBClient().updateItem(request);
 
+                if(activity.getMyAdapterFragInt() == 8){ //from Notifications
+                    String key = activity.getClickedNotificationKey();
+                    if(key.indexOf(':') > 0){ //c or u
+                        activity.getmFirebaseDatabaseReference().child(activity.getUserPath()+"n/c/"+key).removeValue();
+                        activity.getmFirebaseDatabaseReference().child(activity.getUserPath()+"n/u/"+key).removeValue();
+                        activity.getmFirebaseDatabaseReference().child(activity.getUserPath()+"n/m/"+key.substring(0, key.lastIndexOf(':'))).removeValue();
+                    }
+                    else{ //m
+                        activity.getmFirebaseDatabaseReference().child(activity.getUserPath()+"n/c/"+key+":"+postPage.sanitizeContentForURL(commentToEdit.getContent())).removeValue();
+                        activity.getmFirebaseDatabaseReference().child(activity.getUserPath()+"n/u/"+key+":"+postPage.sanitizeContentForURL(commentToEdit.getContent())).removeValue();
+                        activity.getmFirebaseDatabaseReference().child(activity.getUserPath()+"n/m/"+key).removeValue();
+                    }
+
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            activity.getNotificationsTab().handleCommentDelete(commentToEdit.getComment_id());
+                        }
+                    });
+
+                }
+
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {

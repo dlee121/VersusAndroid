@@ -1350,11 +1350,21 @@ public class NotificationsTab extends Fragment {
 
     public void handlePostDelete(String postID){
         if(mostRecentTimeValue != null){
-            Log.d("eggcetu", "oyosd");
             mostRecentTimeValue.put((postID + Integer.toString(TYPE_R)).hashCode(), Integer.MAX_VALUE);
             mostRecentTimeValue.put((postID + Integer.toString(TYPE_V)).hashCode(), Integer.MAX_VALUE);
-            mNotificationsAdapter.notifyDataSetChanged();
+            mNotificationsAdapter.notifyDataSetChanged(); //TODO: is this needed? if not, take it out
         }
+    }
+
+    public void handleCommentDelete(String commentID){
+        if(mostRecentTimeValue != null){
+            mostRecentTimeValue.put((commentID + Integer.toString(TYPE_C)).hashCode(), Integer.MAX_VALUE);
+            mostRecentTimeValue.put((commentID + Integer.toString(TYPE_U)).hashCode(), Integer.MAX_VALUE);
+            mostRecentTimeValue.put((commentID + Integer.toString(TYPE_M)).hashCode(), Integer.MAX_VALUE);
+            mNotificationsAdapter.notifyDataSetChanged(); //TODO: is this needed? if not, take it out
+        }
+
+
     }
 
 }

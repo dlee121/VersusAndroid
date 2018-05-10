@@ -151,19 +151,19 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
                 public void onClick(View view) {
                     switch (notificationItem.getType()){
                         case TYPE_C: //go to the comment
-                            openPayloadComment(notificationItem.getPayload());
+                            openPayloadComment(notificationItem.getPayload(), notificationItem.getKey());
                             break;
                         case TYPE_F: //open followers page
 
                             break;
                         case TYPE_M: //go to the comment
-                            openPayloadComment(notificationItem.getPayload());
+                            openPayloadComment(notificationItem.getPayload(), notificationItem.getKey());
                             break;
                         case TYPE_R: //go to the post
                             openPayloadPost(notificationItem.getPayload(), notificationItem.getKey(), true);
                             break;
                         case TYPE_U: //go to the comment
-                            openPayloadComment(notificationItem.getPayload());
+                            openPayloadComment(notificationItem.getPayload(), notificationItem.getKey());
                             break;
                         case TYPE_V: //go to the post
                             openPayloadPost(notificationItem.getPayload(), notificationItem.getKey(), false);
@@ -211,7 +211,7 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
     }
 
 
-    private void openPayloadComment(final String comment_id){
+    private void openPayloadComment(final String comment_id, final String key){
         Runnable runnable = new Runnable() {
             public void run() {
                 final VSComment clickedComment = getComment(comment_id);
@@ -228,10 +228,10 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
                         }
                         else{
                             if(clickedComment.getParent_id().equals(clickedComment.getPost_id())){ //this is a root comment
-                                activity.getPostPage().rootCommentHistoryItemClicked(clickedComment, false);
+                                activity.getPostPage().rootCommentHistoryItemClicked(clickedComment, false, key);
                             }
                             else{
-                                activity.getPostPage().childOrGrandchildHistoryItemClicked(clickedComment, false);
+                                activity.getPostPage().childOrGrandchildHistoryItemClicked(clickedComment, false, key);
                             }
                         }
                     }
