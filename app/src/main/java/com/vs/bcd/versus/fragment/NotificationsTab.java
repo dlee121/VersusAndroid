@@ -1113,7 +1113,7 @@ public class NotificationsTab extends Fragment {
         rPath = userNotificationsPath + "r";
         fPath = userNotificationsPath + "f";
         mPath = userNotificationsPath + "m";
-        pushNotificationPath = userNotificationsPath + "push/n/";
+        pushNotificationPath = activity.getUserPath() + "push/n/";
         userNotificationReadTimePath = activity.getUserPath() + "nrt/";
 
         notificationItems = new ArrayList<>();
