@@ -28,12 +28,14 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         // Handle data payload of FCM messages.
-        Log.d("MyFMService", "FCM Message Id: " + remoteMessage.getMessageId());
-        Log.d("MyFMService", "FCM Notification Message: " +
-                remoteMessage.getNotification());
-        Log.d("MyFMService", "FCM Data Message: " + remoteMessage.getData());
-        Intent intent = new Intent(INTENT_FILTER);
-        //intent.putExtra("roomNum", remoteMessage.getData().get("room_id"));
-        sendBroadcast(intent);
+        //Log.d("MyFMService", "FCM Message Id: " + remoteMessage.getMessageId());
+        //Log.d("MyFMService", "FCM Notification Message: " + remoteMessage.getNotification());
+        //Log.d("MyFMService", "FCM Data Message: " + remoteMessage.getData());
+        if(remoteMessage.getData().get("type").equals("m")){
+            Intent intent = new Intent(INTENT_FILTER);
+            //intent.putExtra("roomNum", remoteMessage.getData().get("room_id"));
+            sendBroadcast(intent);
+        }
+
     }
 }

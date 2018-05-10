@@ -16,9 +16,9 @@ public class SplashActivity extends AppCompatActivity {
 
 
         //for messenger notification click, get rnum from intent extra
-        String rnum = null;
-        if(getIntent() != null && getIntent().getExtras() != null && getIntent().getExtras().get("room_id") != null){
-            rnum = getIntent().getExtras().get("room_id").toString();
+        String notificationType = null;
+        if(getIntent() != null && getIntent().getExtras() != null && getIntent().getExtras().get("type") != null){
+            notificationType = getIntent().getExtras().get("type").toString();
         }
 
         SessionManager sessionManager = new SessionManager(getApplicationContext());
@@ -26,8 +26,8 @@ public class SplashActivity extends AppCompatActivity {
 
         if(sessionManager.isLoggedIn()) {
             intent = new Intent(this, MainContainer.class);
-            if(rnum != null){
-                intent.putExtra("rnum", rnum);
+            if(notificationType != null){
+                intent.putExtra("type", notificationType);
             }
         }
         else {

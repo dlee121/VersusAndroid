@@ -60,6 +60,7 @@ public class NotificationsTab extends Fragment {
 
     private DatabaseReference mFirebaseDatabaseReference;
     private String uPath, cPath, vPath, rPath, fPath, mPath;
+    private String pushNotificationPath = "";
     private boolean topUnread = false;
     private boolean fragmentVisible = false;
     private boolean initialLoadComplete = false;
@@ -372,11 +373,7 @@ public class NotificationsTab extends Fragment {
 
             initialLoadComplete = true;
             if(dataSnapshot.getChildrenCount() == 0){
-                Log.d("yoyoyo", "yeay");
                 finalizeList();
-            }
-            else{
-                Log.d("yoyoyo", "hawaii");
             }
 
         }
@@ -1116,6 +1113,7 @@ public class NotificationsTab extends Fragment {
         rPath = userNotificationsPath + "r";
         fPath = userNotificationsPath + "f";
         mPath = userNotificationsPath + "m";
+        pushNotificationPath = userNotificationsPath + "push/n/";
         userNotificationReadTimePath = activity.getUserPath() + "nrt/";
 
         notificationItems = new ArrayList<>();
@@ -1326,15 +1324,19 @@ public class NotificationsTab extends Fragment {
         switch (removedItem.getType()){
             case TYPE_C:
                 mFirebaseDatabaseReference.child(cPath+"/"+removedItem.getKey()).removeValue();
+                mFirebaseDatabaseReference.child(pushNotificationPath+removedItem.getKey()).removeValue();
                 break;
             case TYPE_F:
                 mFirebaseDatabaseReference.child(fPath).removeValue();
+                mFirebaseDatabaseReference.child(pushNotificationPath+"f").removeValue();
                 break;
             case TYPE_M:
                 mFirebaseDatabaseReference.child(mPath+"/"+removedItem.getKey()).removeValue();
+                mFirebaseDatabaseReference.child(pushNotificationPath+removedItem.getKey()).removeValue();
                 break;
             case TYPE_R:
                 mFirebaseDatabaseReference.child(rPath+"/"+removedItem.getKey()).removeValue();
+                mFirebaseDatabaseReference.child(pushNotificationPath+removedItem.getKey()).removeValue();
                 break;
             case TYPE_U:
                 mFirebaseDatabaseReference.child(uPath+"/"+removedItem.getKey()).removeValue();

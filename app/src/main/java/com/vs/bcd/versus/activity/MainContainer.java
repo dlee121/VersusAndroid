@@ -1,6 +1,7 @@
 package com.vs.bcd.versus.activity;
 
 import android.app.AlertDialog;
+import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -1199,10 +1200,15 @@ public class MainContainer extends AppCompatActivity {
         super.onResume();
         FirebaseMessaging.getInstance().subscribeToTopic(currUsername); //subscribe to user topic for messenger push notification
 
-        if(getIntent() != null && getIntent().getExtras() != null && getIntent().getExtras().get("rnum") != null){
-            String intentRNum = getIntent().getExtras().get("rnum").toString();
-            getIntent().removeExtra("rnum");
-            goToMsgRoom(intentRNum); //TODO: now, push notification click for messages all take you to messenger home not the message room
+        if(getIntent() != null && getIntent().getExtras() != null && getIntent().getExtras().get("type") != null){
+            String intentType = getIntent().getExtras().get("type").toString();
+            getIntent().removeExtra("type");
+            if(intentType.equals("m")){
+                //TODO: go to messenger fragment
+            }
+            else if(intentType.equals("n")){
+                //TODO: go to notifications tab
+            }
         }
         else if(goToMainActivityOnResume){
             mViewPager.setCurrentItem(0);
@@ -1211,6 +1217,10 @@ public class MainContainer extends AppCompatActivity {
         if(mViewPager != null && (mViewPager.getCurrentItem() != 13 && mViewPager.getCurrentItem() != 11)){
             hideTitleRightButton();
         }
+
+        //clear push notifications when app opens
+        NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        nMgr.cancelAll();
 
     }
 
