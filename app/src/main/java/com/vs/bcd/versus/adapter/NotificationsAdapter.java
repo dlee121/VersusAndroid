@@ -78,7 +78,7 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
         if(holder instanceof NotificationViewHolder){
-            NotificationItem notificationItem = nItems.get(position);
+            final NotificationItem notificationItem = nItems.get(position);
             NotificationViewHolder notificationViewHolder = (NotificationViewHolder) holder;
 
             switch (notificationItem.getType()){
@@ -121,6 +121,33 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
                 public void onClick(View view) {
                     if(notificationsTab != null){
                         notificationsTab.clearItemAtIndex(position);
+                    }
+                }
+            });
+
+            notificationViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    switch (notificationItem.getType()){
+                        case TYPE_C: //go to the comment
+                            String commentID; //TODO: do this
+
+                            break;
+                        case TYPE_F: //open followers page
+
+                            break;
+                        case TYPE_M: //go to the comment
+
+                            break;
+                        case TYPE_R: //go to the post
+
+                            break;
+                        case TYPE_U: //go to the comment
+
+                            break;
+                        case TYPE_V: //go to the post
+
+                            break;
                     }
                 }
             });
