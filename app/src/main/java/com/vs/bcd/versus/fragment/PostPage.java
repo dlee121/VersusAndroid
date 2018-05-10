@@ -51,6 +51,7 @@ import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.CustomEditText;
 import com.vs.bcd.versus.model.FormValidator;
 import com.vs.bcd.versus.model.MedalUpdateRequest;
+import com.vs.bcd.versus.model.NotificationItem;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.TopCardObject;
@@ -65,6 +66,8 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -179,9 +182,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private int viewTreeTriggerCount = 0;
 
     private InputMethodManager imm;
+    private HashMap<String, Integer> medalWinnersList = new HashMap<>();
 
     private double commentPSI = 3.0; //ps increment per comment
     private String postRefreshCode = ""; //r == increment red, b == increment blue, rb == increment red, decrement blue, br == increment blue, decrement red
+
+    private PostPage thisFragment;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -191,6 +197,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         host = activity.getESHost();
         region = activity.getESRegion();
+        thisFragment = this;
 
         imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
 
@@ -743,6 +750,215 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         pageLevel = target;
     }
 
+    private void submitMedalUpdate(int currentMedal, VSComment medalWinner){
+
+        int pointsIncrement = 0;
+
+        String mUsername = medalWinner.getAuthor();
+        int usernameHash;
+        if(mUsername.length() < 5){
+            usernameHash = mUsername.hashCode();
+        }
+        else{
+            String hashIn = "" + mUsername.charAt(0) + mUsername.charAt(mUsername.length() - 2) + mUsername.charAt(1) + mUsername.charAt(mUsername.length() - 1);
+            usernameHash = hashIn.hashCode();
+        }
+
+        String incrementKey = null;
+
+        switch(currentMedal){   //set updates for user num_g/num_s/num_b increment and comment topmedal
+            case 3: //gold medal won
+                incrementKey = "g";
+                pointsIncrement = goldPoints;
+                break;
+
+            case 2: //silver medal won
+                incrementKey = "s";
+                pointsIncrement = silverPoints;
+                break;
+
+            case 1: //bronze medal won
+                incrementKey = "b";
+                pointsIncrement = bronzePoints;
+                break;
+        }
+
+        if(incrementKey != null){
+            String decrementKey = "";
+
+            switch(medalWinner.getTopmedal()){ //set updates for user num_s/num_b decrement and points
+                case 0: //went from no medal to currentMedal
+                    break;
+
+                case 1: //went from bronze to currentMedal
+                    decrementKey = "b";
+                    pointsIncrement -= bronzePoints;
+                    break;
+
+                case 2: //went from silver to currentMedal
+                    decrementKey = "s";
+                    pointsIncrement -= silverPoints;
+                    break;
+
+                //no case 3 if it was already gold then it's not a upgrade event
+
+            }
+            String medalType = incrementKey + decrementKey;
+            int timeValueSecs = (int) (System.currentTimeMillis() / 1000);
+            int timeValue = ((timeValueSecs / 60 )/ 60 )/ 24; //now timeValue is in days since epoch
+            //submit update request to firebase updates path, the first submission will trigger Cloud Functions operation to update user medals and points
+            String updateRequest = "updates/" + Integer.toString(timeValue) + "/" + Integer.toString(usernameHash)  + "/" + mUsername + "/" + medalWinner.getComment_id() + "/" + medalType;
+            MedalUpdateRequest medalUpdateRequest = new MedalUpdateRequest(pointsIncrement, timeValueSecs, sanitizeContentForURL(medalWinner.getContent()));
+            mFirebaseDatabaseReference.child(updateRequest).setValue(medalUpdateRequest);
+
+        }
+
+    }
+
+    private void setMedals(){
+        if(medalWinnersList == null){
+            medalWinnersList = new HashMap<>();
+        }
+        else{
+            medalWinnersList.clear();
+        }
+        Runnable runnable = new Runnable() {
+            public void run() {
+                String query = "/vscomment/_search";
+                String payload = "{\"size\":15,\"sort\":[{\"u\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"pt\":\""+postID+"\"}}}";
+
+                String url = "https://" + host + query;
+
+                TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
+                awsHeaders.put("host", host);
+
+                AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
+                        .regionName(region)
+                        .serviceName("es") // es - elastic search. use your service name
+                        .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
+                        .canonicalURI(query) //end point
+                        .queryParametes(null) //query parameters if any
+                        .awsHeaders(awsHeaders) //aws header parameters
+                        .payload(payload) // payload if any
+                        .debug() // turn on the debug mode
+                        .build();
+
+                HttpPost httpPost = new HttpPost(url);
+                StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
+                httpPost.setEntity(requestEntity);
+
+                /* Get header calculated for request */
+                Map<String, String> header = aWSV4Auth.getHeaders();
+                for (Map.Entry<String, String> entrySet : header.entrySet()) {
+                    String key = entrySet.getKey();
+                    String value = entrySet.getValue();
+
+                    /* Attach header in your request */
+                    /* Simple get request */
+
+                    httpPost.addHeader(key, value);
+                }
+
+                /* Create object of CloseableHttpClient */
+                CloseableHttpClient httpClient = HttpClients.createDefault();
+
+                /* Response handler for after request execution */
+                ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
+
+                    public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+                        /* Get status code */
+                        int status = response.getStatusLine().getStatusCode();
+                        if (status >= 200 && status < 300) {
+                            /* Convert response to String */
+                            HttpEntity entity = response.getEntity();
+                            return entity != null ? EntityUtils.toString(entity) : null;
+                        } else {
+                            throw new ClientProtocolException("Unexpected response status: " + status);
+                        }
+                    }
+                };
+
+                try {
+                    /* Execute URL and attach after execution response handler */
+
+                    String strResponse = httpClient.execute(httpPost, responseHandler);
+
+                    JSONObject obj = new JSONObject(strResponse);
+                    JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
+
+                    if(hits.length() == 0){
+                        return;
+                    }
+                    ArrayList<VSComment> medalWinners = new ArrayList<>();
+                    for(int i = 0; i < hits.length(); i++){
+                        JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
+                        //VSComment medalWinner = new VSComment(item);
+                        medalWinners.add(new VSComment(item));
+                    }
+
+                    Collections.sort(medalWinners, new Comparator<VSComment>() {
+                        @Override
+                        public int compare(VSComment o1, VSComment o2) {
+                            int diff = o2.getUpvotes() - o1.getUpvotes();
+                            if(diff != 0){
+                                return diff;
+                            }
+                            else {
+                                return o2.getDownvotes() - o1.getDownvotes();
+                            }
+                        }
+                    });
+                    //TODO: eventually, modify the ES query so that we only grab comments with upvote >= 10
+
+                    int currentMedal = 3;
+                    int lastWinnerUpvotes = 0;
+                    int lastWinnerDownvotes = 0;
+
+                    for(int i = 0; i<medalWinners.size(); i++){
+                        VSComment medalWinner = medalWinners.get(i);
+                        if(lastWinnerUpvotes > medalWinner.getUpvotes()){
+                            currentMedal--;
+                        }
+                        else if(lastWinnerUpvotes == medalWinner.getUpvotes() && lastWinnerDownvotes > medalWinner.getDownvotes()){
+                            currentMedal--;
+                        }
+                        if(currentMedal < 1 || medalWinner.getUpvotes() < 10){
+                            break;
+                        }
+                        if(medalWinner.getTopmedal() < currentMedal){
+                            submitMedalUpdate(currentMedal, medalWinner);
+                        }
+                        medalWinnersList.put(medalWinner.getComment_id(), currentMedal);
+                        lastWinnerUpvotes = medalWinner.getUpvotes();
+                        lastWinnerDownvotes = medalWinner.getDownvotes();
+                    }
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(medalWinnersList.size() > 0){
+                                if(PPAdapter != null){
+                                    PPAdapter.notifyDataSetChanged();
+                                }
+                            }
+                        }
+                    });
+
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+
+
+            }
+        };
+        Thread mythread = new Thread(runnable);
+        mythread.start();
+
+    }
+
+
+
     /*
     grab n roots. n = retrievalLimit.
         then iterate through each roots
@@ -755,6 +971,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     //automatically includes Post Card in the vsComments list for recycler view if rootParentId equals postID,
     // so use it for all PostPage set up cases where we query by upvotes
     private void commentsQuery(final String rootParentID, final String uORt){
+        setMedals();
+
         if(pageLevel != 2) { //"g" denotes grandchild-only query for level 2
             final ArrayList<VSComment> rootComments = new ArrayList<>();
             final ArrayList<VSComment> childComments = new ArrayList<>();
@@ -817,7 +1035,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         //set update duty
                         //if no update duty then set update duty true if user authored one of the comments
                         //update DB is update duty true.
-                        medalsUpdateDB(medalUpgradeMap, medalWinners);
+                        //medalsUpdateDB(medalUpgradeMap, medalWinners);
                     }
 
                     if (!childComments.isEmpty()) {
@@ -937,10 +1155,10 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             //this if condition also determines the boolean parameter at the end of PostPageAdapter constructor to notify adapter if it should set up Post Card
                             if (rootParentID.equals(postID)) {
                                 atRootLevel = true;
-                                PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel);
+                                PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
                             } else {
                                 atRootLevel = false;
-                                PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel);
+                                PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
                             }
 
                             RV.setAdapter(PPAdapter);
@@ -1048,7 +1266,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             //if true then we got the root comments whose parentID is postID ("rootest roots"), so include the post card for the PostPage view
                             //this if condition also determines the boolean parameter at the end of PostPageAdapter constructor to notify adapter if it should set up Post Card
                             atRootLevel = false;
-                            PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel);
+                            PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
 
                             RV.setAdapter(PPAdapter);
                             mSwipeRefreshLayout.setRefreshing(false);
@@ -1258,7 +1476,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         if(!scrollPositionStack.isEmpty()){
             int scrollPosition = scrollPositionStack.pop();
             if(scrollPosition >= 0){
-                PPAdapter = new PostPageAdapter(masterListStack.pop(), post, activity, pageLevel);
+                PPAdapter = new PostPageAdapter(masterListStack.pop(), post, activity, pageLevel, thisFragment);
                 RV.setAdapter(PPAdapter);
                 mSwipeRefreshLayout.setRefreshing(false);
                 RV.getLayoutManager().scrollToPosition(scrollPosition);
@@ -2888,7 +3106,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 @Override
                 public void run() {
                     atRootLevel = false;
-                    PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel);
+                    PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
                     RV.setAdapter(PPAdapter);
                     activity.setPostInDownload(postID, "done");
                     setUpTopCard(parentCache.get(rootParentID));
@@ -2922,7 +3140,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             //set update duty
             //if no update duty then set update duty true if user authored one of the comments
             //update DB is update duty true.
-            medalsUpdateDB(medalUpgradeMap, medalWinners);
+            //medalsUpdateDB(medalUpgradeMap, medalWinners);
         }
 
         if(!childComments.isEmpty()){
@@ -3049,11 +3267,11 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 //this if condition also determines the boolean parameter at the end of PostPageAdapter constructor to notify adapter if it should set up Post Card
                 if(rootParentID.equals(postID)){
                     atRootLevel = true;
-                    PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel);
+                    PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
                 }
                 else{
                     atRootLevel = false;
-                    PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel);
+                    PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
                 }
 
                 RV.setAdapter(PPAdapter);
@@ -3638,6 +3856,13 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     public String getPostRefreshCode(){
         return postRefreshCode;
+    }
+
+    public int checkMedalWinnersList(String commentID){
+        if(medalWinnersList == null || !medalWinnersList.containsKey(commentID)){
+            return 0;
+        }
+        return medalWinnersList.get(commentID);
     }
 
 }

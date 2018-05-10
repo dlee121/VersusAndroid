@@ -39,6 +39,7 @@ import com.bumptech.glide.Glide;
 import com.loopj.android.http.HttpGet;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.fragment.PostPage;
 import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.GlideUrlCustom;
 import com.vs.bcd.versus.model.Post;
@@ -54,6 +55,7 @@ import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Date;
 import java.util.Locale;
@@ -127,13 +129,16 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     private CircleImageView profileImageView;
 
+    private PostPage postPage;
+
     //to set imageviews, first fill out the drawable[3] with 0=image layer, 1=tint layer, 2=check mark layer, make LayerDrawable out of the array, then use setImageMask which sets the correct mask layers AND ALSO sets imageview drawable as the LayerDrawable
 
-    public PostPageAdapter(List<Object> masterList, Post post, MainContainer activity, int pageLevel) {
+    public PostPageAdapter(List<Object> masterList, Post post, MainContainer activity, int pageLevel, PostPage postPage) {
         this.masterList = masterList;
         this.post = post;
         this.activity = activity;
         this.pageLevel = pageLevel;
+        this.postPage = postPage;
         userAction = activity.getPostPage().getUserAction();
         actionMap = userAction.getActionRecord();
 
@@ -212,6 +217,21 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
                 int margin = activity.getResources().getDimensionPixelSize(R.dimen.comment_margin); // margin in pixels
 
+                switch (postPage.checkMedalWinnersList(currentComment.getComment_id())){
+                    case 0:
+                        commentViewHolder.medalImage.setImageResource(android.R.color.transparent);
+                        break; //no medal, default currentMedal value
+                    case 1: //bronze
+                        commentViewHolder.medalImage.setImageResource(R.drawable.bronzemedal);
+                        break;
+                    case 2: //silver
+                        commentViewHolder.medalImage.setImageResource(R.drawable.silvermedal);
+                        break;
+                    case 3: //gold
+                        commentViewHolder.medalImage.setImageResource(R.drawable.goldmedal);
+                        break;
+                }
+
 
                 setLeftMargin(commentViewHolder.author, margin * currentComment.getNestedLevel());  //left margin (indentation) of 50dp per nested level
 
@@ -282,19 +302,6 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 commentViewHolder.timestamp.setText(getTimeString(currentComment.getTime()));
                 //final int imgOffset = 8;
                 //final TextView timeTV = commentViewHolder.timestamp;
-                switch (currentComment.getCurrentMedal()){
-                    case 0:
-                        break; //no medal, default currentMedal value
-                    case 1: //bronze
-                        commentViewHolder.medalImage.setImageResource(R.drawable.bronzemedal);
-                        break;
-                    case 2: //silver
-                        commentViewHolder.medalImage.setImageResource(R.drawable.silvermedal);
-                        break;
-                    case 3: //gold
-                        commentViewHolder.medalImage.setImageResource(R.drawable.goldmedal);
-                        break;
-                }
 
                 commentViewHolder.content.setText(currentComment.getContent());
                 commentViewHolder.content.post(new Runnable() {
@@ -744,6 +751,21 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 case CHRONOLOGICAL:
                     topCardViewHolder.sortButton.setText("CHRONOLOGICAL");
                     topCardViewHolder.sortButton.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gray_chrono_20small, 0, R.drawable.ic_gray_arrow_dropdown, 0);
+                    break;
+            }
+
+            switch (postPage.checkMedalWinnersList(topCardObject.getComment_id())){
+                case 0:
+                    topCardViewHolder.medalImage.setImageResource(android.R.color.transparent);
+                    break; //no medal, default currentMedal value
+                case 1: //bronze
+                    topCardViewHolder.medalImage.setImageResource(R.drawable.bronzemedal);
+                    break;
+                case 2: //silver
+                    topCardViewHolder.medalImage.setImageResource(R.drawable.silvermedal);
+                    break;
+                case 3: //gold
+                    topCardViewHolder.medalImage.setImageResource(R.drawable.goldmedal);
                     break;
             }
 
@@ -1640,5 +1662,6 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         //if the ES GET fails, then return old topCardContent
         return 0;
     }
+
 
 }
