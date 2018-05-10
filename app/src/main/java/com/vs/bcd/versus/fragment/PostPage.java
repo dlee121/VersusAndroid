@@ -809,25 +809,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                             nodeMap.put(commentID, cNode);
                             prevNode = cNode;
-
-                            //medal handling
-                            if (atRootLevel && currMedalNumber > 0 && !currComment.getAuthor().equals("[deleted]")) {
-                                if (currComment.getUpvotes() >= minUpvotes) { //need to meet upvotes minimum to be cosidered for medals
-                                    if (currComment.getUpvotes() < prevUpvotes) {
-                                        currMedalNumber--;
-                                        prevUpvotes = currComment.getUpvotes();
-                                    }
-                                    if (currMedalNumber > 0) {
-                                        if (currComment.getTopmedal() < currMedalNumber) { //upgrade event detected
-                                            medalUpgradeMap.put(new Integer(currMedalNumber), currComment);
-                                            medalWinners.add(currComment.getAuthor());
-                                        }
-                                        cNode.setCurrentMedal(currMedalNumber);
-                                    }
-                                } else { //if current comment doesn't meet minimum upvotes requirement for medals, that means subsequent comments won't either, so no more need to handle medals.
-                                    currMedalNumber = 0; //this will stop subsequent medal handling for this query
-                                }
-                            }
                         }
                         getChildComments(rootComments, childComments);
                     }
@@ -2888,26 +2869,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                 nodeMap.put(commentID, cNode);
                 prevNode = cNode;
-
-                //medal handling
-                if(atRootLevel && currMedalNumber > 0 && !currComment.getAuthor().equals("[deleted]")){
-                    if(currComment.getUpvotes() >= minUpvotes){ //need to meet upvotes minimum to be cosidered for medals
-                        if(currComment.getUpvotes() < prevUpvotes){
-                            currMedalNumber--;
-                            prevUpvotes = currComment.getUpvotes();
-                        }
-                        if(currMedalNumber > 0){
-                            if(currComment.getTopmedal() < currMedalNumber){ //upgrade event detected
-                                medalUpgradeMap.put(new Integer(currMedalNumber), currComment);
-                                medalWinners.add(currComment.getAuthor());
-                            }
-                            cNode.setCurrentMedal(currMedalNumber);
-                        }
-                    }
-                    else{ //if current comment doesn't meet minimum upvotes requirement for medals, that means subsequent comments won't either, so no more need to handle medals.
-                        currMedalNumber = 0; //this will stop subsequent medal handling for this query
-                    }
-                }
             }
             if(!rootComments.isEmpty()){ //after removing possible duplicate submittedComment in rootComments, we need to check again if rootComments is empty or not, before calling getChildComments with it
                 getChildComments(rootComments, childComments);
