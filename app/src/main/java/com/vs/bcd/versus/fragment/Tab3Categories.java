@@ -597,7 +597,7 @@ public class Tab3Categories extends Fragment implements SwipeRefreshLayout.OnRef
         }
     }
     /*
-    public CategoryFragment setCurrCategoryInt(int currCategoryInt){
+    public FollowersAndFollowings setCurrCategoryInt(int currCategoryInt){
         this.currCategoryInt = currCategoryInt;
         return this;
     }

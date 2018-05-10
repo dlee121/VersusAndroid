@@ -60,7 +60,7 @@ public class CategoriesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 categoryViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        //TODO: navigate to CategoryFragment and tell CategoryFragment which category was selected so that the appropriate query can be triggered
+                        //TODO: navigate to FollowersAndFollowings and tell FollowersAndFollowings which category was selected so that the appropriate query can be triggered
                         //Log.d("CATEGORY SELECT", "clicked " + categoryObject.getCategoryName() + ", code: " + categoryObject.getCategoryInt());
                         //((MainContainer)activity).getCategoryFragment().setCurrCategoryInt(categoryObject.getCategoryInt()).categoryTimeESQuery(0);
                         ((MainContainer)activity).getMainFrag().getTab3().setUpCategoryPostsList(categoryObject.getCategoryInt(), categoryObject.getCategoryName());

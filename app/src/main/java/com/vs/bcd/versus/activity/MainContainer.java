@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.os.Message;
 import android.os.NetworkOnMainThreadException;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -81,7 +80,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
 import com.vs.bcd.versus.adapter.MyFirebaseMessagingService;
-import com.vs.bcd.versus.fragment.CategoryFragment;
+import com.vs.bcd.versus.fragment.FollowersAndFollowings;
 import com.vs.bcd.versus.fragment.CommentEnterFragment;
 import com.vs.bcd.versus.fragment.CreateMessage;
 import com.vs.bcd.versus.fragment.GroupMembersPage;
@@ -132,7 +131,7 @@ public class MainContainer extends AppCompatActivity {
     private SearchPage searchPage;
     private CreatePost createPost;
     private PostPage postPage;
-    private CategoryFragment categoryFragment;
+    private FollowersAndFollowings followersAndFollowings;
     private SessionManager sessionManager;
     private CommentEnterFragment commentEnterFragment;
     private AmazonS3 s3;
@@ -307,8 +306,8 @@ public class MainContainer extends AppCompatActivity {
                     //TODO: reset fragment instead of leaving it in same state
                     break;
 
-                case 6: //currently in CategoryFragment
-                    categoryFragment.clearPosts();
+                case 6: //currently in FollowersAndFollowings
+                    followersAndFollowings.clearPosts();
                     //toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                     mViewPager.setCurrentItem(0);
                     categoryFragmentOut();
@@ -652,11 +651,11 @@ public class MainContainer extends AppCompatActivity {
                         //TODO: reset fragment instead of leaving it in same state
                         break;
 
-                    case 6: //CategoryFragment
+                    case 6: //FollowersAndFollowings
                         //toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                         mViewPager.setCurrentItem(0);
                         categoryFragmentOut();
-                        categoryFragment.clearPosts();
+                        followersAndFollowings.clearPosts();
                         break;
                     //In cases 7 and 8, we disable the toolbarButtonLeft (Search/Up button), so no need to program them for now.
                     /*
@@ -1069,7 +1068,7 @@ public class MainContainer extends AppCompatActivity {
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         break;
 
-                    case 6: //CategoryFragment
+                    case 6: //FollowersAndFollowings
                         //showMessengerButton();
                         if(cftitle != null && !cftitle.equals("")){
                             titleTxtView.setText(cftitle);
@@ -1381,8 +1380,8 @@ public class MainContainer extends AppCompatActivity {
                 case 5:
                     return new SelectCategory();
                 case 6:
-                    categoryFragment = new CategoryFragment();
-                    return categoryFragment;
+                    followersAndFollowings = new FollowersAndFollowings();
+                    return followersAndFollowings;
                 case 7:
                     return new LeaderboardTab();
                 case 8:
@@ -1536,10 +1535,6 @@ public class MainContainer extends AppCompatActivity {
 
     public PostPage getPostPage(){
         return postPage;
-    }
-
-    public CategoryFragment getCategoryFragment(){
-        return categoryFragment;
     }
 
     public SessionManager getSessionManager(){
@@ -2174,7 +2169,7 @@ public class MainContainer extends AppCompatActivity {
                                 mViewPager.setCurrentItem(1);
                                 break;
                             case 6: //Category Fragment
-                                categoryFragment.removePostFromList(clickedPostIndex, postToDelete.getPost_id()); //won't remove if sorted by Most Recent
+                                followersAndFollowings.removePostFromList(clickedPostIndex, postToDelete.getPost_id()); //won't remove if sorted by Most Recent
                                 mViewPager.setCurrentItem(6);
                                 break;
                             case 8:
@@ -2442,8 +2437,8 @@ public class MainContainer extends AppCompatActivity {
                 break;
 
             case 6: //Category
-                if(categoryFragment != null){
-                    categoryFragment.editedPostRefresh(clickedPostIndex, editedPost);
+                if(followersAndFollowings != null){
+                    followersAndFollowings.editedPostRefresh(clickedPostIndex, editedPost);
                 }
                 break;
         }
