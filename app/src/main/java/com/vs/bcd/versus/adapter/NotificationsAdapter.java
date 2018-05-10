@@ -154,6 +154,7 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
                             openPayloadComment(notificationItem.getPayload(), notificationItem.getKey());
                             break;
                         case TYPE_F: //open followers page
+                            //TODO: make followers page (and following page while I'm at it) and here we navigate to followers page
 
                             break;
                         case TYPE_M: //go to the comment

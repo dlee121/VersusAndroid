@@ -57,10 +57,9 @@
             android:id="@+id/medal_image_tc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_alignTop="@id/usernametvtc"
             android:layout_alignBottom="@id/usernametvtc"
             android:layout_toRightOf="@id/timetvtc"
-            android:scaleX="0.7"
-            android:scaleY="0.7"
             />
 
 

@@ -59,13 +59,13 @@ public class CommentHistoryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
                 commentHistoryViewHolder.medalView.setImageResource(android.R.color.transparent);
                 break; //no medal, default currentMedal value
             case 1: //bronze
-                commentHistoryViewHolder.medalView.setImageResource(R.drawable.bronzemedal);
+                commentHistoryViewHolder.medalView.setImageResource(R.drawable.ic_bronze_medal);
                 break;
             case 2: //silver
-                commentHistoryViewHolder.medalView.setImageResource(R.drawable.silvermedal);
+                commentHistoryViewHolder.medalView.setImageResource(R.drawable.ic_silver_medal);
                 break;
             case 3: //gold
-                commentHistoryViewHolder.medalView.setImageResource(R.drawable.goldmedal);
+                commentHistoryViewHolder.medalView.setImageResource(R.drawable.ic_gold_medal);
                 break;
         }
 
