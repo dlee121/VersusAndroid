@@ -439,6 +439,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             postCard = holder;
 
             final PostCardViewHolder postCardViewHolder = (PostCardViewHolder) holder;
+
             postCardViewHolder.author.setText(post.getAuthor());
             postCardViewHolder.votecount.setText(Integer.toString(post.getVotecount()) + " votes");
             postCardViewHolder.questionTV.setText(post.getQuestion());
@@ -617,11 +618,28 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
             final PostCardTextOnlyViewHolder postCardTextOnlyViewHolder = (PostCardTextOnlyViewHolder) holder;
 
+            postCardTextOnlyViewHolder.textOnlyContainer.setVisibility(View.INVISIBLE);
+            postCardTextOnlyViewHolder.questionTV.setText(post.getQuestion());
+            postCardTextOnlyViewHolder.questionTV.post(new Runnable() {
+                @Override
+                public void run() {
+                    int lineCount = postCardTextOnlyViewHolder.questionTV.getLineCount();
+                    if(lineCount > 1){
+                        int topMargin = (postCardTextOnlyViewHolder.questionTV.getHeight()/lineCount) * (lineCount-1);
+                        RelativeLayout.LayoutParams tocLP = ((RelativeLayout.LayoutParams)postCardTextOnlyViewHolder.textOnlyContainer.getLayoutParams());
+                        tocLP.setMargins(0, topMargin, 0, 0);
+                        postCardTextOnlyViewHolder.textOnlyContainer.setLayoutParams(tocLP);
+                    }
+                    postCardTextOnlyViewHolder.textOnlyContainer.setVisibility(View.VISIBLE);
+                }
+            });
+
             postCardTextOnlyViewHolder.author.setText(post.getAuthor());
             postCardTextOnlyViewHolder.votecount.setText(Integer.toString(post.getVotecount()) + " votes");
-            postCardTextOnlyViewHolder.questionTV.setText(post.getQuestion());
             postCardTextOnlyViewHolder.rednameTV.setText(post.getRedname());
             postCardTextOnlyViewHolder.blacknameTV.setText(post.getBlackname());
+
+
 
             postCardTextOnlyViewHolder.author.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -999,7 +1017,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         public View redgraphView;
         public RelativeLayout graphBox;
         public Button sortTypeSelector;
-        public LinearLayout sortTypeBackground;
+        public LinearLayout sortTypeBackground, textOnlyContainer;
         public CircleImageView profileImg;
         public ImageView checkCircleLeft, checkCircleRight;
         public RelativeLayout leftBox, rightBox;
@@ -1012,11 +1030,13 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             profileImg = view.findViewById(R.id.profile_image_pcto);
             questionTV = view.findViewById(R.id.question_pcto);
 
-            leftBox = view.findViewById(R.id.left_box);
+            textOnlyContainer = view.findViewById(R.id.only_texts_postcard);
+
+            leftBox = textOnlyContainer.findViewById(R.id.left_box);
             rednameTV = leftBox.findViewById(R.id.vsc_r_pcto);
             checkCircleLeft = leftBox.findViewById(R.id.check_red);
 
-            rightBox = view.findViewById(R.id.right_box);
+            rightBox = textOnlyContainer.findViewById(R.id.right_box);
             blacknameTV = rightBox.findViewById(R.id.vsc_b_pcto);
             checkCircleRight = rightBox.findViewById(R.id.check_blue);
 

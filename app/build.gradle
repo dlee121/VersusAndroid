@@ -73,7 +73,7 @@ dependencies {
     //custom bottom navigation from forked ahbottomnavigation repo
     implementation project(':ahbottomnavigation')
 
-    implementation 'uk.co.chrisjenx:calligraphy:2.3.0'
+    //implementation 'uk.co.chrisjenx:calligraphy:2.3.0'
 }
 
 apply plugin: 'com.google.gms.google-services'
