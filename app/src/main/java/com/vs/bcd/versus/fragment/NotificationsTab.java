@@ -1178,6 +1178,8 @@ public class NotificationsTab extends Fragment {
         mFirebaseDatabaseReference.child(rPath).addChildEventListener(rChangeListener);
         mFirebaseDatabaseReference.child(uPath).addChildEventListener(uChangeListener);
         mFirebaseDatabaseReference.child(vPath).addChildEventListener(vChangeListener);
+
+        mFirebaseDatabaseReference.child(pushNotificationPath).removeValue();
     }
 
     @Override
@@ -1202,8 +1204,9 @@ public class NotificationsTab extends Fragment {
                 if(activity != null){
                     activity.setNotificationBadge(false);
                 }
-                if(mFirebaseDatabaseReference != null && userNotificationReadTimePath!= null && !userNotificationReadTimePath.equals("")){
+                if(mFirebaseDatabaseReference != null && userNotificationReadTimePath!= null && !userNotificationReadTimePath.equals("") && pushNotificationPath != null){
                     mFirebaseDatabaseReference.child(userNotificationReadTimePath).setValue((int)(System.currentTimeMillis()/1000));
+                    mFirebaseDatabaseReference.child(pushNotificationPath).removeValue();
                 }
             }
         }
