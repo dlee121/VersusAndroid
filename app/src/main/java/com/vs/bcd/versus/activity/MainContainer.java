@@ -94,6 +94,7 @@ import com.vs.bcd.versus.fragment.SelectCategory;
 import com.vs.bcd.versus.fragment.SettingsFragment;
 import com.vs.bcd.versus.fragment.Tab1Newsfeed;
 import com.vs.bcd.versus.fragment.Tab2Trending;
+import com.vs.bcd.versus.fragment.Tab3Categories;
 import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.model.GlideUrlCustom;
 import com.vs.bcd.versus.model.MessageObject;
@@ -307,10 +308,8 @@ public class MainContainer extends AppCompatActivity {
                     break;
 
                 case 6: //currently in FollowersAndFollowings
-                    followersAndFollowings.clearPosts();
-                    //toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
+                    //TODO: either back to profile or Notifications
                     mViewPager.setCurrentItem(0);
-                    categoryFragmentOut();
                     break;
 
                 case 9: //Me (ProfileTab with user == me)
@@ -653,9 +652,8 @@ public class MainContainer extends AppCompatActivity {
 
                     case 6: //FollowersAndFollowings
                         //toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
-                        mViewPager.setCurrentItem(0);
-                        categoryFragmentOut();
-                        followersAndFollowings.clearPosts();
+                        //mViewPager.setCurrentItem(0);
+                        //TODO: either back to profile or Notifications
                         break;
                     //In cases 7 and 8, we disable the toolbarButtonLeft (Search/Up button), so no need to program them for now.
                     /*
@@ -1069,17 +1067,9 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 6: //FollowersAndFollowings
-                        //showMessengerButton();
-                        if(cftitle != null && !cftitle.equals("")){
-                            titleTxtView.setText(cftitle);
-                        }
                         hideToolbarButtonRight();
                         hideToolbarTextButton();
-                        enableBottomTabs();
-                        bottomNavigation.setCurrentItem(0, false);
-                        showToolbarButtonLeft();
-                        toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
-                        profileBackDestination = 6;
+                        setLeftChevron();
                         hideTitleRightButton();
                         break;
 
@@ -2159,6 +2149,9 @@ public class MainContainer extends AppCompatActivity {
                                 if(mainActivityFragRef.getViewPager().getCurrentItem() == 0){ //Home
                                     mainActivityFragRef.getTab1().removePostFromList(clickedPostIndex, postToDelete.getPost_id());
                                 }
+                                else if(mainActivityFragRef.getViewPager().getCurrentItem() == 2) { //Categories
+                                    mainActivityFragRef.getTab3().removePostFromList(clickedPostIndex, postToDelete.getPost_id());
+                                }
                                 else{ //Trending
                                     mainActivityFragRef.getTab2().removePostFromList(clickedPostIndex, postToDelete.getPost_id()); //updates author name to [deleted] in the UI
                                 }
@@ -2167,10 +2160,6 @@ public class MainContainer extends AppCompatActivity {
                             case 1: //Search
                                 searchPage.removePostFromList(clickedPostIndex, postToDelete.getRedname()); //updates author name to [deleted] in the UI
                                 mViewPager.setCurrentItem(1);
-                                break;
-                            case 6: //Category Fragment
-                                followersAndFollowings.removePostFromList(clickedPostIndex, postToDelete.getPost_id()); //won't remove if sorted by Most Recent
-                                mViewPager.setCurrentItem(6);
                                 break;
                             case 8:
                                 if(clickedNotificationKey != null){
@@ -2421,7 +2410,8 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public void updateEditedPost(Post editedPost){
-        switch (myAdapterFragInt){
+
+        switch (mainActivityFragRef.getViewPager().getCurrentItem()){
             case 0: //Home
                 Tab1Newsfeed tab1 = mainActivityFragRef.getTab1();
                 if (tab1 != null) {
@@ -2436,11 +2426,14 @@ public class MainContainer extends AppCompatActivity {
                 }
                 break;
 
-            case 6: //Category
-                if(followersAndFollowings != null){
-                    followersAndFollowings.editedPostRefresh(clickedPostIndex, editedPost);
+            case 2: //Categories
+                Tab3Categories tab3 = mainActivityFragRef.getTab3();
+                if(tab3 != null){
+                    tab3.editedPostRefresh(clickedPostIndex, editedPost);
                 }
+
                 break;
+
         }
     }
 

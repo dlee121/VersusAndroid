@@ -267,7 +267,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                 });
                 return;
             }
-
+            int j = 0;
             StringBuilder strBuilder = new StringBuilder((56*hits.length()) - 1);
             for(int i = 0; i < hits.length(); i++) {
                 JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
@@ -293,13 +293,15 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                         Log.d("adscheck", "ads not loaded");
                     }
                 }
-
-                //add username to parameter string, then at loop finish we do multiget of those users and create hashmap of username:profileImgVersion
-                if(i == 0){
-                    strBuilder.append("{\"_id\":\""+item.getString("a")+"\",\"_source\":\"pi\"}");
-                }
-                else{
-                    strBuilder.append(",{\"_id\":\""+item.getString("a")+"\",\"_source\":\"pi\"}");
+                if(!item.getString("a").equals("[deleted]")){
+                    //add username to parameter string, then at loop finish we do multiget of those users and create hashmap of username:profileImgVersion
+                    if(j == 0){
+                        strBuilder.append("{\"_id\":\""+item.getString("a")+"\",\"_source\":\"pi\"}");
+                    }
+                    else{
+                        strBuilder.append(",{\"_id\":\""+item.getString("a")+"\",\"_source\":\"pi\"}");
+                    }
+                    j++;
                 }
             }
 

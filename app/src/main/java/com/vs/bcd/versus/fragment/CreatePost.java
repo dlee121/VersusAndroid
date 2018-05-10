@@ -461,7 +461,7 @@ public class CreatePost extends Fragment {
                                     activity.getPostPage().setContent(postToEdit);
                                     activity.hideToolbarProgressbar();
                                     activity.getViewPager().setCurrentItem(3);
-                                    activity.setToolbarTitleTextForCP();
+                                    //activity.setToolbarTitleTextForCP();
                                 }
                             });
                         }
@@ -473,7 +473,7 @@ public class CreatePost extends Fragment {
                                 Log.d("postEdit", "nothing edited");
                                 activity.hideToolbarProgressbar();
                                 activity.getViewPager().setCurrentItem(3);
-                                activity.setToolbarTitleTextForCP();
+                                //activity.setToolbarTitleTextForCP();
                             }
                         });
 
@@ -531,7 +531,7 @@ public class CreatePost extends Fragment {
                                 activity.getPostPage().setContent(post);
                                 activity.hideToolbarProgressbar();
                                 activity.getViewPager().setCurrentItem(3);
-                                activity.setToolbarTitleTextForCP();
+                                //activity.setToolbarTitleTextForCP();
                             }
                         });
                     }
@@ -716,7 +716,7 @@ public class CreatePost extends Fragment {
                                     activity.getPostPage().setContent(postToEdit);
                                     activity.hideToolbarProgressbar();
                                     activity.getViewPager().setCurrentItem(3);
-                                    activity.setToolbarTitleTextForCP();
+                                    //activity.setToolbarTitleTextForCP();
                                 }
                             });
                         }
@@ -736,7 +736,7 @@ public class CreatePost extends Fragment {
                                 activity.getPostPage().setContent(postToEdit);
                                 activity.hideToolbarProgressbar();
                                 activity.getViewPager().setCurrentItem(3);
-                                activity.setToolbarTitleTextForCP();
+                                //activity.setToolbarTitleTextForCP();
                             }
                         });
                         break;
