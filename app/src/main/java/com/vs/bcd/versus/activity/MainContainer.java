@@ -232,9 +232,12 @@ public class MainContainer extends AppCompatActivity {
         if(messengerFragment != null && messengerFragment.closeListPopupWindow()){
             return;
         }
-        meClicked = false;
         int mainContainerCurrentItem = mViewPager.getCurrentItem();
         int mainActivityCurrentItem = getMainFrag().getViewPager().getCurrentItem();
+
+        if(mainContainerCurrentItem != 6){
+            meClicked = false;
+        }
 
         if(mainContainerCurrentItem == 0){  //MainContainer's current fragment is MainActivity fragment
             if(mainActivityCurrentItem == 0){   //MainActivity fragment's current fragment is Tab1Newsfeed
@@ -308,8 +311,13 @@ public class MainContainer extends AppCompatActivity {
                     break;
 
                 case 6: //currently in FollowersAndFollowings
-                    //TODO: either back to profile or Notifications
-                    mViewPager.setCurrentItem(0);
+                    //back to either profile or Notifications
+                    if(followersAndFollowings.isFromProfile()){
+                        mViewPager.setCurrentItem(9);
+                    }
+                    else{
+                        mViewPager.setCurrentItem(8);
+                    }
                     break;
 
                 case 9: //Me (ProfileTab with user == me)
@@ -532,7 +540,9 @@ public class MainContainer extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 int i = mViewPager.getCurrentItem();
-                meClicked = false;
+                if(mViewPager != null && mViewPager.getCurrentItem() != 6){
+                    meClicked = false;
+                }
                 switch (i) {
                     case 0: //MainActivity Fragment
                         if(mainActivityFragRef.getViewPager().getCurrentItem() == 2 && mainActivityFragRef.getTab3().isCategoryPostsListOpen()) { //currently in Tab3Categories
@@ -651,9 +661,13 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 6: //FollowersAndFollowings
-                        //toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
-                        //mViewPager.setCurrentItem(0);
-                        //TODO: either back to profile or Notifications
+                        //back to either profile or Notifications
+                        if(followersAndFollowings.isFromProfile()){
+                            mViewPager.setCurrentItem(9);
+                        }
+                        else{
+                            mViewPager.setCurrentItem(8);
+                        }
                         break;
                     //In cases 7 and 8, we disable the toolbarButtonLeft (Search/Up button), so no need to program them for now.
                     /*
@@ -1069,8 +1083,10 @@ public class MainContainer extends AppCompatActivity {
                     case 6: //FollowersAndFollowings
                         hideToolbarButtonRight();
                         hideToolbarTextButton();
+                        showToolbarButtonLeft();
                         setLeftChevron();
                         hideTitleRightButton();
+                        disableBottomTabs();
                         break;
 
                     case 7: //LeaderboardTab
@@ -2793,6 +2809,7 @@ public class MainContainer extends AppCompatActivity {
         }
     }
 
-
-
+    public FollowersAndFollowings getFollowersAndFollowings() {
+        return followersAndFollowings;
+    }
 }

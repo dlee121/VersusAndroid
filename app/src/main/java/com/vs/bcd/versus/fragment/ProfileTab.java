@@ -232,7 +232,20 @@ public class ProfileTab extends Fragment {
         pointsTV = rootView.findViewById(R.id.points_pt);
 
         followerCountTV = rootView.findViewById(R.id.num_followers);
+        followerCountTV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                activity.getFollowersAndFollowings().setUpFollowersPage(true);
+            }
+        });
+
         followingCountTV = rootView.findViewById(R.id.num_following);
+        followingCountTV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                activity.getFollowersAndFollowings().setUpFollowingsPage(true);
+            }
+        });
 
         followButton = rootView.findViewById(R.id.followbutton);
         followbuttonLP = (LinearLayout.LayoutParams) followButton.getLayoutParams();
