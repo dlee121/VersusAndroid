@@ -188,18 +188,6 @@ public class Tab3Categories extends Fragment implements SwipeRefreshLayout.OnRef
             mSwipeRefreshLayout.setRefreshing(true);
         }
 
-        FloatingActionButton fab = rootView.findViewById(R.id.fabcf);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mHostActivity.setOriginFragNum(2);
-                mHostActivity.getViewPager().setCurrentItem(2);
-                mHostActivity.getToolbarTitleText().setText("Create Post");
-                mHostActivity.getToolbarButtonLeft().setImageResource(R.drawable.ic_left_chevron);
-            }
-        });
-
-
         sortTypeSelector = rootView.findViewById(R.id.sort_type_selector);
         sortTypeSelector.setOnClickListener(new View.OnClickListener() {
             @Override
