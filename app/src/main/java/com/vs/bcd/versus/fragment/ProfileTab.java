@@ -73,6 +73,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 import java.util.TreeMap;
 
 import cz.msebera.android.httpclient.HttpEntity;
@@ -130,6 +131,8 @@ public class ProfileTab extends Fragment {
     private Drawable defaultProfileImage, fIcon, gIcon, hIcon;
 
     private boolean followingThisUser = false;
+
+    private Stack<String> profileBackStack = new Stack<>();
 
 
     @Override
@@ -235,7 +238,8 @@ public class ProfileTab extends Fragment {
         followerCountTV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                activity.getFollowersAndFollowings().setUpFollowersPage(true);
+                profileBackStackPush();
+                activity.getFollowersAndFollowings().setUpFollowersPage(true, profileUsername);
             }
         });
 
@@ -243,7 +247,8 @@ public class ProfileTab extends Fragment {
         followingCountTV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                activity.getFollowersAndFollowings().setUpFollowingsPage(true);
+                profileBackStackPush();
+                activity.getFollowersAndFollowings().setUpFollowingsPage(true, profileUsername);
             }
         });
 
@@ -1206,6 +1211,8 @@ public class ProfileTab extends Fragment {
 
     //get counts for following and follower
     private void getFGHCounts(){
+        followingCountTV.setVisibility(View.INVISIBLE);
+        followerCountTV.setVisibility(View.INVISIBLE);
 
         followingCount = 0;
         followerCount = 0;
@@ -1243,6 +1250,9 @@ public class ProfileTab extends Fragment {
 
                                 followerCountTV.setText(Long.toString(followerCount) + "\nFollowers");
                                 followingCountTV.setText(Long.toString(followingCount) + "\nFollowing");
+
+                                followingCountTV.setVisibility(View.VISIBLE);
+                                followerCountTV.setVisibility(View.VISIBLE);
                             }
 
                             @Override
@@ -1361,6 +1371,41 @@ public class ProfileTab extends Fragment {
         return postsTab;
     }
 
+    public void profileBackStackPush(){
+        if(profileBackStack == null){
+            profileBackStack = new Stack<>();
+        }
+
+        if(profileUsername == null){
+            profileBackStack.push("[n]");
+        }
+        else{
+            if(profileBackStack.isEmpty() || !profileBackStack.peek().equals(profileUsername)){
+                profileBackStack.push(profileUsername);
+            }
+        }
+    }
+    public String profileBackStackPop(){
+        if(profileBackStack == null || profileBackStack.isEmpty()){
+            return null;
+        }
+        return profileBackStack.pop();
+    }
+    public boolean profileBackStackIsEmpty(){
+        if(profileBackStack == null || profileBackStack.isEmpty()){
+            return true;
+        }
+        return false;
+    }
+
+    public void clearStack(){
+        if(profileBackStack == null){
+            profileBackStack = new Stack<>();
+        }
+        else{
+            profileBackStack.clear();
+        }
+    }
 
 }
 

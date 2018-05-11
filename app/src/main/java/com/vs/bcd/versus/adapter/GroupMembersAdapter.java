@@ -29,13 +29,15 @@ public class GroupMembersAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     private HashMap<String, Integer> profileImgVersions;
     private int profileImgDimension;
     private Drawable defaultProfileImage;
+    private boolean followersAndFollowingsMode = false;
 
-    public GroupMembersAdapter(List<String> membersList, MainContainer activity, HashMap<String, Integer> profileImgVersions) {
+    public GroupMembersAdapter(List<String> membersList, MainContainer activity, HashMap<String, Integer> profileImgVersions, boolean followersAndFollowingsMode) {
         this.membersList = membersList;
         this.activity = activity;
         this.profileImgVersions = profileImgVersions;
         defaultProfileImage = ContextCompat.getDrawable(activity, R.drawable.default_profile);
         profileImgDimension = activity.getResources().getDimensionPixelSize(R.dimen.comment_margin);
+        this.followersAndFollowingsMode = followersAndFollowingsMode;
     }
 
     @Override
@@ -68,9 +70,19 @@ public class GroupMembersAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         groupMemberViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                activity.closeEditRoomTitle();
-                activity.hideTitleRightButton();
-                activity.goToProfile(memberUsername, true);
+                if(followersAndFollowingsMode){
+                    if(!activity.getFollowersAndFollowings().isFromProfile()){
+                        activity.getProfileTab().profileBackStackPush();
+                    }
+                    activity.getFollowersAndFollowings().ffStackPush();
+                    activity.hideTitleRightButton();
+                    activity.goToProfile(memberUsername, true);
+                }
+                else{
+                    activity.closeEditRoomTitle();
+                    activity.hideTitleRightButton();
+                    activity.goToProfile(memberUsername, true);
+                }
             }
         });
 

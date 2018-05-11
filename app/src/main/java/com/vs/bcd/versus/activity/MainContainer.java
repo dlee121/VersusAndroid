@@ -312,27 +312,56 @@ public class MainContainer extends AppCompatActivity {
 
                 case 6: //currently in FollowersAndFollowings
                     //back to either profile or Notifications
-                    if(followersAndFollowings.isFromProfile()){
-                        mViewPager.setCurrentItem(9);
+                    if(profileTab.profileBackStackIsEmpty()){
+                        if(followersAndFollowings.isFromProfile()){
+                            mViewPager.setCurrentItem(9);
+                        }
+                        else{
+                            mViewPager.setCurrentItem(8);
+                        }
                     }
                     else{
-                        mViewPager.setCurrentItem(8);
+                        String stackEntry = profileTab.profileBackStackPop();
+                        if(stackEntry.equals("[n]")){
+                            mViewPager.setCurrentItem(8);
+                        }
+                        else{
+                            goToProfile(stackEntry, true);
+                        }
                     }
+
                     break;
 
                 case 9: //Me (ProfileTab with user == me)
                     //toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
-                    mViewPager.setCurrentItem(profileBackDestination);
-                    if(profileBackDestination == 11){
-                        messageRoom.setRoomObjListener(messageRoom.getAdapterRNum());
+                    if(profileTab.profileBackStackIsEmpty()){
+                        mViewPager.setCurrentItem(profileBackDestination);
+                        if(profileBackDestination == 11){
+                            messageRoom.setRoomObjListener(messageRoom.getAdapterRNum());
+                        }
+                        profileTab.clearProfilePage();
+                        if(profileBackDestination == 13){
+                            titleTxtView.setText(titleBeforeProfile);
+                        }
+                        if(profileBackDestination == 3){
+                            profileBackDestination = 0;
+                        }
                     }
-                    profileTab.clearProfilePage();
-                    if(profileBackDestination == 13){
-                        titleTxtView.setText(titleBeforeProfile);
+                    else{
+                        if(!followersAndFollowings.ffStackIsEmpty()){
+                            String stackEntry = followersAndFollowings.ffStackPop();
+                            String username = stackEntry.substring(0, stackEntry.indexOf(':'));
+                            boolean followersMode = stackEntry.substring(stackEntry.indexOf(':')+1).equals("f");
+                            if(followersMode){
+                                followersAndFollowings.setUpFollowersPage(true, username);
+                            }
+                            else{
+                                followersAndFollowings.setUpFollowingsPage(true, username);
+                            }
+                        }
+                        mViewPager.setCurrentItem(6);
                     }
-                    if(profileBackDestination == 3){
-                        profileBackDestination = 0;
-                    }
+
                     myAdapterFragInt = 0;
 
                     break;
@@ -662,12 +691,24 @@ public class MainContainer extends AppCompatActivity {
 
                     case 6: //FollowersAndFollowings
                         //back to either profile or Notifications
-                        if(followersAndFollowings.isFromProfile()){
-                            mViewPager.setCurrentItem(9);
+                        if(profileTab.profileBackStackIsEmpty()){
+                            if(followersAndFollowings.isFromProfile()){
+                                mViewPager.setCurrentItem(9);
+                            }
+                            else{
+                                mViewPager.setCurrentItem(8);
+                            }
                         }
                         else{
-                            mViewPager.setCurrentItem(8);
+                            String stackEntry = profileTab.profileBackStackPop();
+                            if(stackEntry.equals("[n]")){
+                                mViewPager.setCurrentItem(8);
+                            }
+                            else{
+                                goToProfile(stackEntry, true);
+                            }
                         }
+
                         break;
                     //In cases 7 and 8, we disable the toolbarButtonLeft (Search/Up button), so no need to program them for now.
                     /*
@@ -683,16 +724,34 @@ public class MainContainer extends AppCompatActivity {
 
                     case 9: //ME & Profile page
                         //toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
-                        mViewPager.setCurrentItem(profileBackDestination);
-                        if(profileBackDestination == 11){
-                            messageRoom.setRoomObjListener(messageRoom.getAdapterRNum());
+                        if(profileTab.profileBackStackIsEmpty()){
+                            mViewPager.setCurrentItem(profileBackDestination);
+                            if(profileBackDestination == 11){
+                                messageRoom.setRoomObjListener(messageRoom.getAdapterRNum());
+                            }
+                            profileTab.clearProfilePage();
+                            if(profileBackDestination == 13){
+                                titleTxtView.setText(titleBeforeProfile);
+                            }
+                            if(profileBackDestination == 3){
+                                profileBackDestination = 0;
+                            }
                         }
-                        profileTab.clearProfilePage();
-                        if(profileBackDestination == 13){
-                            titleTxtView.setText(titleBeforeProfile);
+                        else{
+                            if(!followersAndFollowings.ffStackIsEmpty()){
+                                String stackEntry = followersAndFollowings.ffStackPop();
+                                String username = stackEntry.substring(0, stackEntry.indexOf(':'));
+                                boolean followersMode = stackEntry.substring(stackEntry.indexOf(':')+1).equals("f");
+                                if(followersMode){
+                                    followersAndFollowings.setUpFollowersPage(true, username);
+                                }
+                                else{
+                                    followersAndFollowings.setUpFollowingsPage(true, username);
+                                }
+                            }
+                            mViewPager.setCurrentItem(6);
                         }
 
-                        profileBackDestination = 0;
                         myAdapterFragInt = 0;
                         break;
 
@@ -991,6 +1050,7 @@ public class MainContainer extends AppCompatActivity {
                         meClicked = true;
                         profileTab.setUpProfile(sessionManager.getCurrentUsername(), true);
                         mViewPager.setCurrentItem(9);
+                        clearProfileAndFFStack();
                         break;
 
                     default:
@@ -1009,6 +1069,7 @@ public class MainContainer extends AppCompatActivity {
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
 
             public void onPageSelected(int position) {
+
                 //handling fragment-based UI operations
                 switch(position){
                     //We probably only need to account for when the transition between yes-tab / no-tab happens (tabs 0, 2, 3, 6)
@@ -1030,6 +1091,7 @@ public class MainContainer extends AppCompatActivity {
                         hideToolbarProgressbar();
                         profileBackDestination = 0;
                         hideTitleRightButton();
+                        clearProfileAndFFStack();
                         break;
 
                     case 1: //SearchPage
@@ -1040,6 +1102,7 @@ public class MainContainer extends AppCompatActivity {
                         titleTxtView.setText("Search");
                         profileBackDestination = 1;
                         hideTitleRightButton();
+                        clearProfileAndFFStack();
                         break;
 
                     case 2: //CreatePost
@@ -1073,6 +1136,7 @@ public class MainContainer extends AppCompatActivity {
                         profileBackDestination = 4;
                         hideTitleRightButton();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
+                        clearProfileAndFFStack();
                         break;
 
                     case 5: //SelectCategory
@@ -1098,6 +1162,7 @@ public class MainContainer extends AppCompatActivity {
                         bottomNavigation.setCurrentItem(1, false);
                         profileBackDestination = 7;
                         hideTitleRightButton();
+                        clearProfileAndFFStack();
                         break;
 
                     case 8: //NotificationsTab
@@ -1109,6 +1174,7 @@ public class MainContainer extends AppCompatActivity {
                         titleTxtView.setText("Notifications");
                         bottomNavigation.setCurrentItem(3, false);
                         hideTitleRightButton();
+                        clearProfileAndFFStack();
                         break;
 
                     case 9: //Me (ProfileTab with user == me)
@@ -2225,6 +2291,7 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public void sessionLogOut(){
+        clearProfileAndFFStack();
         FirebaseMessaging.getInstance().unsubscribeFromTopic(currUsername); //unsubscribe from user topic for messenger push notification
         FirebaseAuth.getInstance().signOut();
         sessionManager.logoutUser();
@@ -2811,5 +2878,10 @@ public class MainContainer extends AppCompatActivity {
 
     public FollowersAndFollowings getFollowersAndFollowings() {
         return followersAndFollowings;
+    }
+
+    private void clearProfileAndFFStack(){
+        profileTab.clearStack();
+        followersAndFollowings.clearStack();
     }
 }

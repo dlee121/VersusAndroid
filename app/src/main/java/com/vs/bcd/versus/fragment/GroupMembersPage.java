@@ -97,7 +97,7 @@ public class GroupMembersPage extends Fragment {
         membersRV = rootView.findViewById(R.id.group_members_rv);
         mLinearLayoutManager = new LinearLayoutManager(activity);
         membersRV.setLayoutManager(mLinearLayoutManager);
-        groupMembersAdapter = new GroupMembersAdapter(membersList, activity, profileImgVersions);
+        groupMembersAdapter = new GroupMembersAdapter(membersList, activity, profileImgVersions, false);
         membersRV.setAdapter(groupMembersAdapter);
 
         disableChildViews();

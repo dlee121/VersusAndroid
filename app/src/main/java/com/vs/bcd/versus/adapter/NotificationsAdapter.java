@@ -154,7 +154,7 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
                             openPayloadComment(notificationItem.getPayload(), notificationItem.getKey());
                             break;
                         case TYPE_F: //open followers page
-                            activity.getFollowersAndFollowings().setUpFollowersPage(false);
+                            activity.getFollowersAndFollowings().setUpFollowersPage(false, activity.getUsername());
                             break;
                         case TYPE_M: //go to the comment
                             openPayloadComment(notificationItem.getPayload(), notificationItem.getKey());

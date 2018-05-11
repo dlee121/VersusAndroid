@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Stack;
 import java.util.TreeMap;
 
 import com.google.firebase.database.DataSnapshot;
@@ -65,6 +66,9 @@ public class FollowersAndFollowings extends Fragment {
     private ArrayList<String> usersList = new ArrayList<>();
     private GroupMembersAdapter usersAdapter;
     private String mUsername = "";
+    String userPath = "";
+    private boolean followersMode = true;
+    private Stack<String> ffStack = new Stack<>();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -74,7 +78,7 @@ public class FollowersAndFollowings extends Fragment {
         ffRecyclerView = rootView.findViewById(R.id.ff_rv);
         mLinearLayoutManager = new LinearLayoutManager(activity);
         ffRecyclerView.setLayoutManager(mLinearLayoutManager);
-        usersAdapter = new GroupMembersAdapter(usersList, activity, profileImgVersions);
+        usersAdapter = new GroupMembersAdapter(usersList, activity, profileImgVersions, true);
         ffRecyclerView.setAdapter(usersAdapter);
 
         usersFilter = rootView.findViewById(R.id.ff_filter);
@@ -156,15 +160,23 @@ public class FollowersAndFollowings extends Fragment {
         }
     }
 
-    public void setUpFollowersPage(boolean fromProfile){
+    public void setUpFollowersPage(boolean fromProfile, String profileUsername){
         this.fromProfile = fromProfile;
         activity.setToolbarTitleText("Followers");
+        followersMode = true;
+
+        if(profileUsername.equals(activity.getUsername())){
+            userPath = activity.getUserPath();
+        }
+        else{
+            userPath = Integer.toString(getUsernameHash(profileUsername)) + "/" + profileUsername + "/";
+        }
 
         usersList.clear();
         usersFilter.setText("");
         usersAdapter.notifyDataSetChanged();
 
-        mUsername = activity.getUsername();
+        mUsername = profileUsername;
 
         if(profileImgVersions == null){
             profileImgVersions = activity.getMessengerFragment().getProfileImgVersionsArray();
@@ -173,13 +185,13 @@ public class FollowersAndFollowings extends Fragment {
             profileImgVersions = new HashMap<>();
         }
 
-        activity.getmFirebaseDatabaseReference().child(activity.getUserPath()+"h").addListenerForSingleValueEvent(new ValueEventListener() {
+        activity.getmFirebaseDatabaseReference().child(userPath+"h").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(final DataSnapshot dataSnapshotH) {
 
                 activity.getViewPager().setCurrentItem(6);
 
-                activity.getmFirebaseDatabaseReference().child(activity.getUserPath()+"f").addListenerForSingleValueEvent(new ValueEventListener() {
+                activity.getmFirebaseDatabaseReference().child(userPath+"f").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshotF) {
 
@@ -242,15 +254,23 @@ public class FollowersAndFollowings extends Fragment {
 
     }
 
-    public void setUpFollowingsPage(boolean fromProfile){
+    public void setUpFollowingsPage(boolean fromProfile, String profileUsername){
         this.fromProfile = fromProfile;
         activity.setToolbarTitleText("Following");
+        followersMode = false;
+
+        if(profileUsername.equals(activity.getUsername())){
+            userPath = activity.getUserPath();
+        }
+        else{
+            userPath = Integer.toString(getUsernameHash(profileUsername)) + "/" + profileUsername + "/";
+        }
 
         usersList.clear();
         usersFilter.setText("");
         usersAdapter.notifyDataSetChanged();
 
-        mUsername = activity.getUsername();
+        mUsername = profileUsername;
 
         if(profileImgVersions == null){
             profileImgVersions = activity.getMessengerFragment().getProfileImgVersionsArray();
@@ -259,13 +279,13 @@ public class FollowersAndFollowings extends Fragment {
             profileImgVersions = new HashMap<>();
         }
 
-        activity.getmFirebaseDatabaseReference().child(activity.getUserPath()+"h").addListenerForSingleValueEvent(new ValueEventListener() {
+        activity.getmFirebaseDatabaseReference().child(userPath+"h").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(final DataSnapshot dataSnapshotH) {
 
                 activity.getViewPager().setCurrentItem(6);
 
-                activity.getmFirebaseDatabaseReference().child(activity.getUserPath()+"g").addListenerForSingleValueEvent(new ValueEventListener() {
+                activity.getmFirebaseDatabaseReference().child(userPath+"g").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshotG) {
 
@@ -429,6 +449,57 @@ public class FollowersAndFollowings extends Fragment {
             usersAdapter.updateList(temp);
         }
 
+    }
+
+    private int getUsernameHash(String username){
+        int usernameHash;
+        if(username.length() < 5){
+            usernameHash = username.hashCode();
+        }
+        else {
+            String hashIn = "" + username.charAt(0) + username.charAt(username.length() - 2) + username.charAt(1) + username.charAt(username.length() - 1);
+            usernameHash = hashIn.hashCode();
+        }
+
+        return usernameHash;
+    }
+
+    public boolean isFollowersMode(){
+        return followersMode;
+    }
+
+    public void ffStackPush(){
+        if(ffStack == null){
+            ffStack = new Stack<>();
+        }
+
+        if(followersMode){
+            ffStack.push(mUsername+":f");
+        }
+        else{
+            ffStack.push(mUsername+":g");
+        }
+    }
+    public String ffStackPop(){
+        if(ffStack == null || ffStack.isEmpty()){
+            return null;
+        }
+        return ffStack.pop();
+    }
+    public boolean ffStackIsEmpty(){
+        if(ffStack == null || ffStack.isEmpty()){
+            return true;
+        }
+        return false;
+    }
+
+    public void clearStack(){
+        if(ffStack == null){
+            ffStack = new Stack<>();
+        }
+        else{
+            ffStack.clear();
+        }
     }
 
 }

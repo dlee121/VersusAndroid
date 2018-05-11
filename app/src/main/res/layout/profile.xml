@@ -121,8 +121,8 @@
                     android:layout_height="wrap_content"
                     android:padding="8dp"
                     android:gravity="center"
-                    android:text="34 K Followers"
                     android:textSize="14sp"
+                    android:visibility="invisible"
                     android:background="@drawable/rounded_rectangle_light"/>
 
                 <TextView
@@ -134,7 +134,7 @@
                     android:padding="8dp"
                     android:gravity="center"
                     android:textSize="14sp"
-                    android:text="33 K Following"
+                    android:visibility="invisible"
                     android:background="@drawable/rounded_rectangle_light"/>
             </LinearLayout>
 
