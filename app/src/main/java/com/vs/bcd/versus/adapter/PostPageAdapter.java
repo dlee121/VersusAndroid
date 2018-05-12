@@ -44,7 +44,6 @@ import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.GlideUrlCustom;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.SquareImageView;
-import com.vs.bcd.versus.model.TopCardObject;
 import com.vs.bcd.versus.model.UserAction;
 import com.vs.bcd.versus.model.VSComment;
 
@@ -756,7 +755,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         } else if(holder instanceof TopCardViewHolder){
 
-            final TopCardObject topCardObject = (TopCardObject) masterList.get(position);
+            final VSComment topCardObject = (VSComment) masterList.get(position);
             final TopCardViewHolder topCardViewHolder = (TopCardViewHolder) holder;
 
             switch (activity.getPostPage().getSortType()){

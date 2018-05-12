@@ -54,7 +54,6 @@ import com.vs.bcd.versus.model.MedalUpdateRequest;
 import com.vs.bcd.versus.model.NotificationItem;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.SessionManager;
-import com.vs.bcd.versus.model.TopCardObject;
 import com.vs.bcd.versus.model.UserAction;
 import com.vs.bcd.versus.model.VSCNode;
 import com.vs.bcd.versus.model.VSComment;
@@ -1169,7 +1168,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             }
                             else{
                                 if(topCardContent != null){
-                                    masterList.add(0, new TopCardObject(topCardContent));
+                                    masterList.add(0, topCardContent);
                                 }
                             }
 
@@ -1282,7 +1281,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             applyUserActions(masterList);
 
                             if(topCardContent != null){
-                                masterList.add(0, new TopCardObject(topCardContent));
+                                masterList.add(0, topCardContent);
                             }
 
                             //find view by id and attaching adapter for the RecyclerView
@@ -3125,7 +3124,15 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             masterList.add(0, submittedComment);
             currCommentsIndex++;
 
-            masterList.add(0, new TopCardObject(parentCache.get(rootParentID)));
+            if(parentCache.get(rootParentID) == null){
+                Log.d("hyhyhy", "this one");
+                masterList.add(0, topCardContent);
+            }
+            else{
+                Log.d("hyhyhy", "or this one");
+                masterList.add(0, parentCache.get(rootParentID));
+            }
+
 
             activity.runOnUiThread(new Runnable() {
                 @Override
@@ -3134,6 +3141,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
                     RV.setAdapter(PPAdapter);
                     activity.setPostInDownload(postID, "done");
+
                     setUpTopCard(parentCache.get(rootParentID));
                     mSwipeRefreshLayout.setRefreshing(false);
 
@@ -3268,7 +3276,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 masterList.add(0, topCardContent);
             }
             else{
-                masterList.add(0, new TopCardObject(parentCache.get(rootParentID))); //hahahahi
+                masterList.add(0, parentCache.get(rootParentID));
             }
         }
 
@@ -3743,6 +3751,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
         activity.getViewPager().setCurrentItem(3);
         mSwipeRefreshLayout.setRefreshing(true);
+        parentCache.put(clickedRootComment.getComment_id(), clickedRootComment);
+
 
         vsComments.add(0, clickedRootComment);
         nodeMap.put(clickedRootComment.getComment_id(), new VSCNode(clickedRootComment));
