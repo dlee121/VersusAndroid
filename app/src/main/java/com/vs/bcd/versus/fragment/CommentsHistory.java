@@ -524,7 +524,7 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
                 if(problemPosts != null && !problemPosts.isEmpty()){
                     for(String postID : problemPosts){
                         //delete the post and its comments
-
+                        //TODO: implement this, here, and also in Trending
 
 
                     }

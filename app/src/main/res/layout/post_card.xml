@@ -37,7 +37,7 @@
             android:layout_height="35dp"
             android:layout_marginTop="8dp"
             android:text="Username"
-            android:textSize="18sp"
+            android:textSize="@dimen/vcpc_titles"
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
             android:layout_toEndOf="@id/profile_image_pc"/>
@@ -54,7 +54,7 @@
             android:gravity="center|end"
             android:maxLines="1"
             android:scrollHorizontally="true"
-            android:textSize="18sp"
+            android:textSize="@dimen/vcpc_titles"
             android:text="numVotes" />
 
         <TextView
@@ -64,7 +64,7 @@
             android:layout_below="@id/profile_image_pc"
             android:layout_marginBottom="8dp"
             android:text="Question"
-            android:textSize="18sp"
+            android:textSize="@dimen/vcpc_titles"
             android:textColor="#000000"
             android:textAlignment="center" />
 
@@ -172,7 +172,7 @@
                 android:layout_below="@id/linlaypoca"
                 android:layout_alignParentStart="true"
                 android:text="redname"
-                android:textSize="22sp"
+                android:textSize="@dimen/vcpc_titles"
                 android:textColor="#000000"
                 android:textAlignment="center"/>
 
@@ -189,7 +189,7 @@
                 android:layout_below="@id/linlaypoca"
                 android:layout_alignParentEnd="true"
                 android:text="blackname"
-                android:textSize="22sp"
+                android:textSize="@dimen/vcpc_titles"
                 android:textColor="#000000"
                 android:textAlignment="center"/>
 

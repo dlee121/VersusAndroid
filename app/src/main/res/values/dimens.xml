@@ -22,5 +22,6 @@
     <dimen name="messenger_profile_image">36dp</dimen>
     <dimen name="toolbar_height">42dp</dimen>
     <dimen name="graph_thickness">4dp</dimen>
+    <dimen name="vcpc_titles">14sp</dimen>
 
 </resources>
