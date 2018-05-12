@@ -28,6 +28,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
@@ -69,6 +70,7 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
     private String profileUsername = "";
     private HashMap<String, PostInfo> postInfoMap;
     private String host, region;
+    private HashSet<String> problemPosts = new HashSet<>();
 
 
 
@@ -87,7 +89,7 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
 
         recyclerView.setLayoutManager(new LinearLayoutManager(activity));
         //this is where the list is passed on to adapter
-        commentsAdapter = new CommentHistoryAdapter(comments, activity);
+        commentsAdapter = new CommentHistoryAdapter(comments, activity, this);
         recyclerView.setAdapter(commentsAdapter);
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -302,6 +304,9 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
 
 
     private void addPostInfo(boolean multiGet, String payload, int fromIndex) {
+        if(problemPosts == null){
+            problemPosts = new HashSet<>();
+        }
         String query;
         AWSV4Auth aWSV4Auth;
         TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
@@ -368,13 +373,40 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
                 for(int i = 0; i<hits.length(); i++){
                     JSONObject item = hits.getJSONObject(i);
                     JSONObject src = item.getJSONObject("_source");
-                    postInfoMap.get(item.getString("_id")).setRB(src.getString("rn"), src.getString("bn"));
+                    String id = null;
+                    String rn = null;
+                    String bn = null;
+                    try{
+                        id = item.getString("_id");
+                        rn = src.getString("rn");
+                        bn = src.getString("bn");
+                    }
+                    catch (Exception e) {
+                        if(id != null){
+                            Log.d("skipNullPost", "skipped in CH: " + id);
+                            problemPosts.add(id); //trigger a function that deletes this post and its comments
+                            deleteProblemPostAndComments();
+                        }
+                        e.printStackTrace();
+                    }
+
+                    if(id == null || rn == null || bn == null){
+                        continue;
+                    }
+
+                    postInfoMap.get(id).setRB(rn, bn);
+
                 }
                 //iterate comments array and add the post info in order starting from fromIndex-th element, using postInfoMap
                 PostInfo postInfo;
                 for (int j = fromIndex; j<comments.size(); j++){
                     postInfo = postInfoMap.get(comments.get(j).getPost_id());
-                    comments.get(j).setR(postInfo.getR()).setB(postInfo.getB());
+                    if(postInfo.getR() == null || postInfo.getB() == null){
+                        comments.get(j).setR("").setB("");
+                    }
+                    else{
+                        comments.get(j).setR(postInfo.getR()).setB(postInfo.getB());
+                    }
                 }
 
 
@@ -443,10 +475,27 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
                 JSONObject obj = new JSONObject(strResponse);
                 //JSONObject item = obj.getJSONObject("_source");
                 PostInfo postInfo = new PostInfo();
-                postInfo.setRB(obj.getString("rn"), obj.getString("bn"));
-                comments.get(fromIndex).setR(postInfo.getR()).setB(postInfo.getB());
-                postInfoMap.put(payload, postInfo);
 
+                String id = null;
+                String rn = null;
+                String bn = null;
+                try{
+                    id = payload;
+                    rn = obj.getString("rn");
+                    bn = obj.getString("bn");
+                }catch (Exception e){
+                    if(id != null){
+                        Log.d("skipNullPost", "skipped in CH: " + id);
+                        problemPosts.add(id); //trigger a function that deletes this post and its comments
+                        deleteProblemPostAndComments();
+                    }
+                    e.printStackTrace();
+                }
+                if(id != null && rn != null && bn != null){
+                    postInfo.setRB(rn, bn);
+                    comments.get(fromIndex).setR(postInfo.getR()).setB(postInfo.getB());
+                    postInfoMap.put(payload, postInfo);
+                }
 
                 //System.out.println("Response: " + strResponse);
             } catch (Exception e) {
@@ -460,6 +509,30 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
             this.profileUsername = profileUsername;
             getUserComments(0, "t");
         }
+    }
+
+    public boolean skipThisComment(String commentPostID){
+        if(problemPosts != null){
+            return problemPosts.contains(commentPostID);
+        }
+        return true;
+    }
+
+    private void deleteProblemPostAndComments(){
+        Runnable runnable = new Runnable() {
+            public void run() {
+                if(problemPosts != null && !problemPosts.isEmpty()){
+                    for(String postID : problemPosts){
+                        //delete the post and its comments
+
+
+
+                    }
+                }
+            }
+        };
+        Thread mythread = new Thread(runnable);
+        mythread.start();
     }
 
 

@@ -8,10 +8,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.vs.bcd.versus.activity.MainContainer;
+import com.vs.bcd.versus.fragment.CommentsHistory;
 import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.model.NotificationItem;
 import com.vs.bcd.versus.model.User;
 import com.vs.bcd.versus.model.VSComment;
 
@@ -27,10 +30,13 @@ import java.util.Locale;
 public class CommentHistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private MainContainer activity;
     private List<VSComment> comments;
+    private CommentsHistory commentsHistory;
+    private Toast mToast;
 
-    public CommentHistoryAdapter(List<VSComment> comments, MainContainer activity) {
+    public CommentHistoryAdapter(List<VSComment> comments, MainContainer activity, CommentsHistory commentsHistory) {
         this.comments = comments;
         this.activity = activity;
+        this.commentsHistory = commentsHistory;
     }
 
     @Override
@@ -42,13 +48,43 @@ public class CommentHistoryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
+
         //TODO:this is where values are put into the layout, from the post object
         final VSComment itemComment = comments.get(position);
+
+
         CommentHistoryViewHolder commentHistoryViewHolder = (CommentHistoryViewHolder) holder;
 
-        //TODO: add onclick listener to profile pic and username that navigates user to clicked user's profile page
-        commentHistoryViewHolder.redTv.setText(itemComment.getR());
-        commentHistoryViewHolder.blueTv.setText(itemComment.getB());
+        if(!commentsHistory.skipThisComment(itemComment.getPost_id())){
+            commentHistoryViewHolder.redTv.setText(itemComment.getR());
+            commentHistoryViewHolder.blueTv.setText(itemComment.getB());
+            commentHistoryViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(itemComment.getParent_id().equals(itemComment.getPost_id())){ //clicked item is root comment
+                        activity.getPostPage().rootCommentHistoryItemClicked(itemComment, true, "");
+                    }
+                    else{
+                        activity.getPostPage().childOrGrandchildHistoryItemClicked(itemComment, true, "");
+                    }
+                }
+            });
+        }
+        else{
+            commentHistoryViewHolder.redTv.setText("");
+            commentHistoryViewHolder.blueTv.setText("");
+            commentHistoryViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(mToast != null){
+                        mToast.cancel();
+                    }
+                    mToast = Toast.makeText(activity, "This comment is unavailable", Toast.LENGTH_SHORT);
+                    mToast.show();
+                }
+            });
+        }
+
         commentHistoryViewHolder.timeTV.setText(getTimeString(itemComment.getTime()));
         commentHistoryViewHolder.upvotes.setText(Integer.toString(itemComment.getUpvotes()));
         commentHistoryViewHolder.downvotes.setText(Integer.toString(itemComment.getDownvotes()));
@@ -69,17 +105,7 @@ public class CommentHistoryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
                 break;
         }
 
-        commentHistoryViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(itemComment.getParent_id().equals(itemComment.getPost_id())){ //clicked item is root comment
-                    activity.getPostPage().rootCommentHistoryItemClicked(itemComment, true, "");
-                }
-                else{
-                    activity.getPostPage().childOrGrandchildHistoryItemClicked(itemComment, true, "");
-                }
-            }
-        });
+
 
 
     }

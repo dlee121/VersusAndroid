@@ -1,8 +1,6 @@
 package com.vs.bcd.versus.adapter;
 
-import android.app.Activity;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,18 +14,14 @@ import com.loopj.android.http.HttpGet;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.fragment.NotificationsTab;
 import com.vs.bcd.versus.model.AWSV4Auth;
-import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.R;
-import com.vs.bcd.versus.model.LeaderboardEntry;
 import com.vs.bcd.versus.model.NotificationItem;
 import com.vs.bcd.versus.model.Post;
-import com.vs.bcd.versus.model.User;
 import com.vs.bcd.versus.model.VSComment;
 
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -90,7 +84,7 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
             return new NotificationViewHolder(view);
         }
         else{
-            View view = LayoutInflater.from(activity).inflate(R.layout.notification_hidden, parent, false);
+            View view = LayoutInflater.from(activity).inflate(R.layout.hidden_view, parent, false);
             return new HiddenNotificationViewHolder(view);
         }
     }
