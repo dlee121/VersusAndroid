@@ -135,6 +135,10 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
+
+        if(isVisibleToUser && commentsAdapter != null){
+            commentsAdapter.unlockItemViewClickLock();
+        }
     }
 
     private void getUserComments(final int fromIndex, final String uORt) {

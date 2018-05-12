@@ -3588,6 +3588,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
         parentCache.put(clickedComment.getComment_id(), clickedComment);
 
+        activity.getViewPager().setCurrentItem(3);
+        mSwipeRefreshLayout.setRefreshing(true);
+
         Runnable runnable = new Runnable() {
             public void run() {
                 final Post subjectPost = getPost(clickedComment.getPost_id(), false);
@@ -3668,7 +3671,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         @Override
                         public void run() {
                             setCommentsPage(parentComment);
-                            activity.getViewPager().setCurrentItem(3);
                         }
                     });
 
@@ -3678,7 +3680,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         @Override
                         public void run() {
                             setCommentsPage(clickedComment);
-                            activity.getViewPager().setCurrentItem(3);
                         }
                     });
                 }
@@ -3696,6 +3697,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         if(PPAdapter != null) {
             PPAdapter.clearList();
         }
+        activity.getViewPager().setCurrentItem(3);
+        mSwipeRefreshLayout.setRefreshing(true);
 
         Runnable runnable = new Runnable() {
             public void run() {
@@ -3744,7 +3747,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     @Override
                     public void run() {
                         setCommentsPage(clickedRootComment);
-                        activity.getViewPager().setCurrentItem(3);
                     }
                 });
             }

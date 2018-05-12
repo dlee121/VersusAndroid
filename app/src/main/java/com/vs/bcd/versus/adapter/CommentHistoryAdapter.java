@@ -1,6 +1,7 @@
 package com.vs.bcd.versus.adapter;
 
 import android.app.Activity;
+import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -32,11 +33,13 @@ public class CommentHistoryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
     private List<VSComment> comments;
     private CommentsHistory commentsHistory;
     private Toast mToast;
+    private boolean itemViewClickLock;
 
     public CommentHistoryAdapter(List<VSComment> comments, MainContainer activity, CommentsHistory commentsHistory) {
         this.comments = comments;
         this.activity = activity;
         this.commentsHistory = commentsHistory;
+        itemViewClickLock = false;
     }
 
     @Override
@@ -61,12 +64,34 @@ public class CommentHistoryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
             commentHistoryViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if(itemComment.getParent_id().equals(itemComment.getPost_id())){ //clicked item is root comment
-                        activity.getPostPage().rootCommentHistoryItemClicked(itemComment, true, "");
+                    if(itemViewClickLock){
+                        final Handler handler = new Handler();
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                itemViewClickLock = false;
+                            }
+                        }, 2000);
                     }
                     else{
-                        activity.getPostPage().childOrGrandchildHistoryItemClicked(itemComment, true, "");
+                        if(itemComment.getParent_id().equals(itemComment.getPost_id())){ //clicked item is root comment
+                            activity.getPostPage().rootCommentHistoryItemClicked(itemComment, true, "");
+                        }
+                        else{
+                            activity.getPostPage().childOrGrandchildHistoryItemClicked(itemComment, true, "");
+                        }
+
+                        itemViewClickLock = true;
+
+                        final Handler handler = new Handler();
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                itemViewClickLock = false;
+                            }
+                        }, 2000);
                     }
+
                 }
             });
         }
@@ -221,5 +246,9 @@ public class CommentHistoryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
             default:
                 return "";
         }
+    }
+
+    public void unlockItemViewClickLock(){
+        itemViewClickLock = false;
     }
 }
