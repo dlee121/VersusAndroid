@@ -23,6 +23,7 @@ public class User {
     private String phone = "n/a";
     private String mkey; //pw for messenger auth
     private int profileImage; //profile image storage url
+    private int influence;
 
 
     @DynamoDBAttribute(attributeName = "fn")
@@ -95,6 +96,14 @@ public class User {
     }
     public void setProfileImage(int profileImage){
         this.profileImage = profileImage;
+    }
+
+    @DynamoDBAttribute(attributeName = "in")
+    public int getInfluence(){
+        return influence;
+    }
+    public void setInfluence(int influence) {
+        this.influence = influence;
     }
 
     public User(){

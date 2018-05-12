@@ -189,6 +189,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     private PostPage thisFragment;
 
+    private boolean topCardReplyClicked = false;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -334,7 +336,18 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                                     if(pageLevel < 2 && targetChildCount < 2){
                                         //insert comment into the existing tree in the page
-                                        insertReplyInCurrentPage = true;
+                                        if(!topCardReplyClicked){
+                                            insertReplyInCurrentPage = true;
+                                        }
+                                        else{
+                                            activity.runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    PPAdapter.clearList();
+                                                    mSwipeRefreshLayout.setRefreshing(true);
+                                                }
+                                            });
+                                        }
                                     }
                                     else{
 
@@ -448,7 +461,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                 });
 
                                 if(insertReplyInCurrentPage){
-
                                     vsc.setNestedLevel(targetNestedLevel + 1);
                                     VSCNode parentNode = nodeMap.get(targetID);
                                     VSCNode thisNode = new VSCNode(vsc);
@@ -469,6 +481,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                         parentNode.setFirstChild(thisNode);
                                         offset++;
                                     }
+                                    Log.d("insertionLocation", "targetIndex: "+targetIndex+", offset: "+offset);
 
                                     final int insertionIndex = targetIndex + offset;
                                     activity.runOnUiThread(new Runnable() {
@@ -487,6 +500,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     nodeMap.get(targetID).getNodeContent().incrementChild_Count();
                                 }
                             }
+                            topCardReplyClicked = false;
                         }
                     }
                 };
@@ -540,6 +554,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     public void hideCommentInputCursor(){
         pageCommentInputContainer.requestFocusFromTouch();
+        topCardReplyClicked = false;
     }
 
     /**
@@ -597,10 +612,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         origBlackCount = post.getBlackcount();
                         redIncrementedLast = false;
                         blackIncrementedLast = false;
-                        Log.d("isitroot", "it is root");
                     }
                     else{
-                        Log.d("isitroot", "it is not root");
                         final VSComment updatedTopCardContent = getComment(topCardContent.getComment_id());
 
                         if(nodeMap.get(topCardContent.getComment_id()) == null){
@@ -715,6 +728,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 RVLayoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
                 RV.setLayoutParams(RVLayoutParams);
                 activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+                topCardReplyClicked = false;
             }
 
         }
@@ -3250,7 +3264,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         currCommentsIndex++;
 
         if(pageLevel > 0){
-            masterList.add(0, new TopCardObject(parentCache.get(rootParentID))); //hahahahi
+            if(parentCache.get(rootParentID) == null){ //this happens for comment history item click, in which case that clicked comment is top card
+                masterList.add(0, topCardContent);
+            }
+            else{
+                masterList.add(0, new TopCardObject(parentCache.get(rootParentID))); //hahahahi
+            }
         }
 
         //run UI updates on UI Thread
@@ -3315,7 +3334,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         return pageCommentInput.isInUse();
     }
 
+    public void setTopCardReplyClickedFalse(){
+        topCardReplyClicked = false;
+    }
+
     public void clearReplyingTo(){
+        topCardReplyClicked = false;
         replyingTo.getLayoutParams().height = 0;
         if(trueReplyTarget != null){
             trueReplyTarget.setIsHighlighted(false);
@@ -3386,7 +3410,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     }
 
-    public void itemReplyClickHelper(final VSComment clickedComment, final int index){
+    public void itemReplyClickHelper(final VSComment clickedComment, final int index, final boolean topCardReplyClicked){
         if(replyTarget != null && replyTarget.getComment_id().equals(clickedComment)){
             return;
         }
@@ -3411,7 +3435,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                 PPAdapter.notifyItemChanged(editIndex);
                             }
 
-                            itemReplyClickHelper(clickedComment, index);
+                            itemReplyClickHelper(clickedComment, index, topCardReplyClicked);
                             break;
 
                         case DialogInterface.BUTTON_NEGATIVE:
@@ -3439,6 +3463,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         editTarget = null;
         editIndex = 0;
+
+        this.topCardReplyClicked = topCardReplyClicked;
 
         clickedComment.setIsHighlighted(true);
         PPAdapter.notifyItemChanged(index);
@@ -3481,12 +3507,15 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 break;
         }
 
-        if((pageLevel == 0 && nestedLevel == 2) || (pageLevel == 1 && nestedLevel == 1) || (pageLevel == 2 && nestedLevel == 0)){
+        if(!topCardReplyClicked && ((pageLevel == 0 && nestedLevel == 2) || (pageLevel == 1 && nestedLevel == 1) || (pageLevel == 2 && nestedLevel == 0))){
             String prefix = "@"+replyTarget.getAuthor() +" ";
             pageCommentInput.setText(prefix);
             pageCommentInput.setPrefix(prefix);
 
             //this is a reply to a grandchild comment, so we set the replyTarget to its parent
+
+            Log.d("0thOne", ""+((VSComment)vsComments.get(0)).getContent());
+
             replyTarget = nodeMap.get(clickedComment.getParent_id()).getNodeContent();
             if(nodeMap.get(clickedComment.getComment_id()).getHeadSibling() == null){ //first displayed grandchild
                 replyTargetIndex--;
@@ -3602,6 +3631,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         activity.getViewPager().setCurrentItem(3);
         mSwipeRefreshLayout.setRefreshing(true);
 
+        vsComments.add(0, clickedComment);
+        nodeMap.put(clickedComment.getComment_id(), new VSCNode(clickedComment));
+
         Runnable runnable = new Runnable() {
             public void run() {
                 final Post subjectPost = getPost(clickedComment.getPost_id(), false);
@@ -3660,6 +3692,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     return;
                 }
                 parentCache.put(parentComment.getComment_id(), parentComment);
+                nodeMap.put(parentComment.getComment_id(), new VSCNode(parentComment));
 
                 if(!parentComment.getParent_id().equals(parentComment.getPost_id())) {
                     //turns out the parent is also child, so get the grandparent and add it to cache
@@ -3678,6 +3711,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         return;
                     }
                     parentCache.put(grandParentComment.getComment_id(), grandParentComment);
+                    nodeMap.put(grandParentComment.getComment_id(), new VSCNode(grandParentComment));
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -3694,7 +3728,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         }
                     });
                 }
-
             }
         };
         final Thread mythread = new Thread(runnable);
@@ -3710,6 +3743,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
         activity.getViewPager().setCurrentItem(3);
         mSwipeRefreshLayout.setRefreshing(true);
+
+        vsComments.add(0, clickedRootComment);
+        nodeMap.put(clickedRootComment.getComment_id(), new VSCNode(clickedRootComment));
 
         Runnable runnable = new Runnable() {
             public void run() {

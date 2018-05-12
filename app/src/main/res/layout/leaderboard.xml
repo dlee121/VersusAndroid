@@ -5,18 +5,10 @@
     tools:context="com.vs.bcd.versus.activity.MainContainer">
 
 
-    <android.support.v4.widget.SwipeRefreshLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/swipe_container_leaderboard"
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/leaderboard_rv"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/leaderboard_rv"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"/>
-
-    </android.support.v4.widget.SwipeRefreshLayout>
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"/>
 
 </RelativeLayout>

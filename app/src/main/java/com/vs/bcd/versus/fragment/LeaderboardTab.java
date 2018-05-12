@@ -49,9 +49,9 @@ public class LeaderboardTab extends Fragment {
 
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
-        leaders = new ArrayList<LeaderboardEntry>();
+        leaders = new ArrayList<>();
 
-        recyclerView = (RecyclerView) rootView.findViewById(R.id.leaderboard_rv);
+        recyclerView = rootView.findViewById(R.id.leaderboard_rv);
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
         mLayoutManager.setReverseLayout(true);
         mLayoutManager.setStackFromEnd(true);
@@ -160,9 +160,11 @@ public class LeaderboardTab extends Fragment {
 
 
     private void setUpLeaderboard(){
+        /*
         if(System.currentTimeMillis() < lastRefreshTime + 30 * 1000){   //if it's been less than 30 seconds since last leaderboard refresh, return instead of querying
             return;
         }
+        */
 
         Query query = mFirebaseDatabaseReference.child("leaderboard").orderByValue().limitToLast(100);
         query.addListenerForSingleValueEvent(new ValueEventListener() {

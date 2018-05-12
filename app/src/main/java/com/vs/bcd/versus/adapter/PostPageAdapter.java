@@ -110,7 +110,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private LayerDrawable blackLayerDrawable;
     private RelativeLayout.LayoutParams graphBoxParams = null;
     private RelativeLayout.LayoutParams graphBoxParamsTextOnly = null;
-    private RelativeLayout.LayoutParams sortSelectorLowerLP, sortBackgroundLowerLP, seeMoreContainerLP;
+    private RelativeLayout.LayoutParams sortSelectorLowerLP, sortBackgroundLowerLP, seeMoreContainerLP, seeMoreContainerTCLP;
 
     private Toast mToast;
     private ListPopupWindow listPopupWindow;
@@ -150,6 +150,10 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         seeMoreContainerLP = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         seeMoreContainerLP.addRule(RelativeLayout.ALIGN_END, R.id.usercomment);
         seeMoreContainerLP.addRule(RelativeLayout.BELOW, R.id.usercomment);
+
+        seeMoreContainerTCLP = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        seeMoreContainerTCLP.addRule(RelativeLayout.ALIGN_END, R.id.usercommenttc);
+        seeMoreContainerTCLP.addRule(RelativeLayout.BELOW, R.id.usercommenttc);
         //Log.d("DEBUG", "Action Map Size: " + Integer.toString(actionMap.size()));
     }
 
@@ -371,7 +375,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 commentViewHolder.replyButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        activity.getPostPage().itemReplyClickHelper(currentComment, position);
+                        activity.getPostPage().itemReplyClickHelper(currentComment, position, false);
                     }
                 });
 
@@ -842,6 +846,46 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             }
 
             topCardViewHolder.content.setText(topCardObject.getContent());
+            topCardViewHolder.content.post(new Runnable() {
+                @Override
+                public void run() {
+                    if(topCardViewHolder.content.getLineCount() > 2){
+                        topCardViewHolder.seeMoreContainer.setLayoutParams(seeMoreContainerTCLP);
+
+                        RelativeLayout.LayoutParams replyButtonLP = (RelativeLayout.LayoutParams) topCardViewHolder.replyButton.getLayoutParams();
+                        replyButtonLP.removeRule(RelativeLayout.ALIGN_END);
+                        replyButtonLP.addRule(RelativeLayout.START_OF, R.id.see_more_container_tc);
+                        replyButtonLP.setMarginEnd(activity.getResources().getDimensionPixelSize(R.dimen.reply_button_margin_end));
+                        topCardViewHolder.replyButton.setLayoutParams(replyButtonLP);
+
+                        topCardViewHolder.seeMoreButton.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                if(topCardViewHolder.seeMoreButton.getText().equals("See More")){
+                                    topCardViewHolder.content.setMaxLines(262);
+                                    topCardViewHolder.seeMoreButton.setText("See Less");
+                                    //commentViewHolder.ellipsis.setText("");
+                                }
+                                else{
+                                    topCardViewHolder.content.setMaxLines(2);
+                                    topCardViewHolder.seeMoreButton.setText("See More");
+                                    //commentViewHolder.ellipsis.setText("...");
+                                }
+                            }
+                        });
+                    }
+                    else{
+                        topCardViewHolder.seeMoreContainer.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, 0));
+
+                        RelativeLayout.LayoutParams replyButtonLP = (RelativeLayout.LayoutParams) topCardViewHolder.replyButton.getLayoutParams();
+                        replyButtonLP.removeRule(RelativeLayout.START_OF);
+                        replyButtonLP.addRule(RelativeLayout.ALIGN_END, R.id.usercommenttc);
+                        replyButtonLP.setMarginEnd(0);
+                        topCardViewHolder.replyButton.setLayoutParams(replyButtonLP);
+
+                    }
+                }
+            });
 
             topCardViewHolder.upvotesCount.setText(Integer.toString(topCardObject.getUpvotes()));
             topCardViewHolder.downvotesCount.setText(Integer.toString(topCardObject.getDownvotes()));
@@ -914,6 +958,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     //hoyhoy
                     //activity.getCommentEnterFragment().setContentReplyToComment(topCardObject, 0);
                     //activity.getViewPager().setCurrentItem(4);
+                    activity.getPostPage().itemReplyClickHelper(topCardObject, position, true);
                 }
             });
 
@@ -1063,7 +1108,8 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         public TextView timestamp, author, content, upvotesCount, downvotesCount;
         public ImageButton upvoteButton, downvoteButton, overflowMenu;
         public ImageView medalImage;
-        public Button sortButton, replyButton;
+        public Button sortButton, seeMoreButton, replyButton;
+        public LinearLayout seeMoreContainer;
 
         public TopCardViewHolder(View view) {
             super(view);
@@ -1078,6 +1124,8 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             medalImage = view.findViewById(R.id.medal_image_tc);
             replyButton = view.findViewById(R.id.replybuttontc);
             sortButton = view.findViewById(R.id.sort_type_selector_topcard);
+            seeMoreContainer = view.findViewById(R.id.see_more_container_tc);
+            seeMoreButton = view.findViewById(R.id.see_more_button_tc);
         }
 
 
@@ -1563,8 +1611,13 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public void insertItem(VSComment newComment, int index){
         newComment.setIsNew(true);
         masterList.add(index, newComment);
-
         notifyItemInserted(index);
+    }
+
+    public void insertItemAndNotifyDataSetChanged(VSComment newComment, int index){
+        newComment.setIsNew(true);
+        masterList.add(index, newComment);
+        notifyDataSetChanged();
     }
 
     private void loadProfileImage(final String username) {
