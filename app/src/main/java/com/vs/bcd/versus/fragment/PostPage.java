@@ -597,8 +597,10 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         origBlackCount = post.getBlackcount();
                         redIncrementedLast = false;
                         blackIncrementedLast = false;
+                        Log.d("isitroot", "it is root");
                     }
                     else{
+                        Log.d("isitroot", "it is not root");
                         final VSComment updatedTopCardContent = getComment(topCardContent.getComment_id());
 
                         if(nodeMap.get(topCardContent.getComment_id()) == null){

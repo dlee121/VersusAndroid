@@ -2195,7 +2195,7 @@ public class MainContainer extends AppCompatActivity {
                     getS3Client().deleteObject("versus.pictures", objectKey);
                 }
 
-                if(postPage.getCurrentCommentCount() == 0){
+                if(postPage.isRootLevel() && postPage.getCurrentCommentCount() == 0){
                     mapper.delete(postToDelete);
                 }
                 else{
