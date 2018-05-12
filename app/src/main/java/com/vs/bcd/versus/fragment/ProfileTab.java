@@ -810,6 +810,9 @@ public class ProfileTab extends Fragment {
         commentsTab.setProfileUsername(username);
         postsTab.setProfileUsername(username);
 
+        followingCountTV.setVisibility(View.INVISIBLE);
+        followerCountTV.setVisibility(View.INVISIBLE);
+
         if(myProfile){
             fghIconView.setImageResource(android.R.color.transparent);
             //this is setting up the profile page for the logged-in user, as in "Me" page
@@ -834,6 +837,9 @@ public class ProfileTab extends Fragment {
                             followingCountTV.setText(followingText);
                             String followersText = Integer.toString(activity.getFollowerNum()) + "\nFollowers";
                             followerCountTV.setText(followersText);
+
+                            followingCountTV.setVisibility(View.VISIBLE);
+                            followerCountTV.setVisibility(View.VISIBLE);
                         }
                     });
                 }
@@ -953,25 +959,6 @@ public class ProfileTab extends Fragment {
         else{
             setProfileFGHIcon('g');
         }
-        /*
-        followingTextTV.setEnabled(true);
-        followingTextTV.setVisibility(View.VISIBLE);
-        followingTextTV.setLayoutParams(followingtextLP);
-
-        checkmark.setEnabled(true);
-        checkmark.setVisibility(View.VISIBLE);
-        checkmark.setLayoutParams(checkmarkLP);
-
-        messageButton.setEnabled(true);
-        messageButton.setClickable(true);
-        messageButton.setVisibility(View.VISIBLE);
-        messageButton.setLayoutParams(messageButtonLP);
-
-        followButton.setEnabled(false);
-        followButton.setClickable(false);
-        followButton.setVisibility(View.INVISIBLE);
-        followButton.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
-        */
 
         followingThisUser = true;
 
@@ -990,25 +977,6 @@ public class ProfileTab extends Fragment {
         else{
             setProfileFGHIcon('n');
         }
-        /*
-        followingTextTV.setEnabled(false);
-        followingTextTV.setVisibility(View.INVISIBLE);
-        followingTextTV.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
-
-        checkmark.setEnabled(false);
-        checkmark.setVisibility(View.INVISIBLE);
-        checkmark.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
-
-        followButton.setEnabled(true);
-        followButton.setClickable(true);
-        followButton.setVisibility(View.VISIBLE);
-        followButton.setLayoutParams(followbuttonLP);
-
-        messageButton.setEnabled(true);
-        messageButton.setClickable(true);
-        messageButton.setVisibility(View.VISIBLE);
-        messageButton.setLayoutParams(messageButtonLP);
-        */
 
         followingThisUser = false;
 
@@ -1211,9 +1179,6 @@ public class ProfileTab extends Fragment {
 
     //get counts for following and follower
     private void getFGHCounts(){
-        followingCountTV.setVisibility(View.INVISIBLE);
-        followerCountTV.setVisibility(View.INVISIBLE);
-
         followingCount = 0;
         followerCount = 0;
 
