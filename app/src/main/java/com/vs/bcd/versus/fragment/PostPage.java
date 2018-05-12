@@ -547,6 +547,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
      */
     @Override
     public void onRefresh() {
+
         PPAdapter.setLockButtons(true);
         nowLoading = false;
 
@@ -599,7 +600,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     }
                     else{
                         final VSComment updatedTopCardContent = getComment(topCardContent.getComment_id());
-                        nodeMap.get(topCardContent.getComment_id()).setNodeContent(updatedTopCardContent);
+
+                        if(nodeMap.get(topCardContent.getComment_id()) == null){
+                            nodeMap.put(updatedTopCardContent.getComment_id(), new VSCNode(updatedTopCardContent));
+                        }
+                        else{
+                            nodeMap.get(topCardContent.getComment_id()).setNodeContent(updatedTopCardContent);
+                        }
+
                         activity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -637,7 +645,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     }
 
 
-                }catch (Throwable t){
+                }catch (Exception e){
+                    e.printStackTrace();
 
                 }
 
@@ -3239,7 +3248,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         currCommentsIndex++;
 
         if(pageLevel > 0){
-            masterList.add(0, new TopCardObject(parentCache.get(rootParentID)));
+            masterList.add(0, new TopCardObject(parentCache.get(rootParentID))); //hahahahi
         }
 
         //run UI updates on UI Thread
