@@ -322,4 +322,14 @@ public class Post {
         return redcount + blackcount;
     }
 
+    public void copyPostInfo(Post src){
+        redcount = src.getRedcount();
+        blackcount = src.getBlackcount();
+        category = src.getCategory();
+        redimg = src.getRedimg();
+        blackimg = src.getBlackimg();
+        pt = src.getPt();
+        ps = src.getPs();
+    }
+
 }

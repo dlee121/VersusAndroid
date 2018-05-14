@@ -122,8 +122,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private final int POPULAR = 1;
     private final int CHRONOLOGICAL = 2;
 
-    private boolean lockButtons = false; //TODO: currently once we lockButtons = true we don't set it back to false because we set it to true for refreshes and after a refresh we get a new adapter and destroy the old one and the new one has lockButtons = false initially.
-                                            //TODO: But eventually we should change to not making a new adapter each time, and also properly setting lockButtons back to false (by tracing back why we set it to true and setting it to false once condition flips).
+    private boolean lockButtons = false; //set to true in setNewAdapterContent()
 
 
     private CircleImageView profileImageView;
@@ -1614,6 +1613,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         userAction = activity.getPostPage().getUserAction();
         actionMap = userAction.getActionRecord();
         notifyDataSetChanged();
+        lockButtons = false;
     }
 
     public void insertItem(VSComment newComment, int index){

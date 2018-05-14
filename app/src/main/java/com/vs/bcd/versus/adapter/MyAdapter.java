@@ -942,6 +942,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
 
     public void postRefreshUpdate(int index, String targetID, Post refreshedPost, boolean writingPostVoteToDB){
         if(posts.get(index).getPost_id().equals(targetID)){
+            /*
 
             if(writingPostVoteToDB){
                 Post finalPost = refreshedPost;
@@ -969,13 +970,15 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
                     }
                 }
                 posts.set(index, finalPost);
-                notifyItemChanged(index);
+                //notifyItemChanged(index);
             }
             else{
                 posts.set(index, refreshedPost);
-                notifyItemChanged(index);
+                //notifyItemChanged(index);
             }
-            activity.getPostPage().getPPAdapter().notifyItemChanged(0);
+            notifyDataSetChanged();
+            */
+            //activity.getPostPage().getPPAdapter().notifyItemChanged(0);
         }
     }
 

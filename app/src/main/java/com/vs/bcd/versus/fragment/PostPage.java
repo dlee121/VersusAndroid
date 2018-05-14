@@ -190,6 +190,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     private boolean topCardReplyClicked = false;
 
+    private boolean postUpdated = false;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -582,13 +584,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             }
         }
 
-        writeActionsToDB();
-
         mSwipeRefreshLayout.setRefreshing(true);
 
         Runnable runnable = new Runnable() {
             public void run() {
                 try{
+                    /*
                     long end = System.currentTimeMillis() + 8*1000; // 8 seconds * 1000 ms/sec
 
                     while(!dbWriteComplete && System.currentTimeMillis() < end){
@@ -601,10 +602,16 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     else{
                         Log.d("PostPageRefresh", "user actions dbWrite successful");
                     }
+                    */
 
                     //update post card if atRootLevel, else update top card
                     if(atRootLevel){
-                        post = getPost(postID, writingPostVoteToDB);
+                        if(post == null){
+                            post = getPost(postID, writingPostVoteToDB);
+                        }
+                        else{
+                            post.copyPostInfo(getPost(postID, writingPostVoteToDB));
+                        }
                         postTopic = post.getQuestion();
                         postX = post.getRedname();
                         postY = post.getBlackname();
@@ -644,6 +651,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             }
                         });
                     }
+
+                    writeActionsToDB();
 
                     switch (sortType){
                         case POPULAR:
@@ -1905,7 +1914,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                             sendPostVoteNotification();
 
-                            activity.updateTargetVotecount();
+                            //activity.updateTargetVotecount();
                         }
 
 
@@ -1918,6 +1927,13 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                         //update lastSubmittedVote
                         lastSubmittedVote = userAction.getVotedSide();
+
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                activity.updateTargetVotecount();
+                            }
+                        });
 
                     }
 
@@ -1952,6 +1968,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         userAction.setVotedSide("RED");
         redIncrementedLast = true;
         blackIncrementedLast = false;
+        PPAdapter.notifyItemChanged(0);
     }
 
     public void blackVotePressed(){
@@ -1962,6 +1979,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         userAction.setVotedSide("BLK");
         blackIncrementedLast = true;
         redIncrementedLast = false;
+        PPAdapter.notifyItemChanged(0);
     }
 
     public UserAction getUserAction(){
@@ -2980,6 +2998,27 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             String id = obj.getString("_id");
             final Post refreshedPost = new Post(item, id, false);
 
+            if(writingPostVoteToDB){
+                //Log.d("refreshCode", postRefreshCode);
+                switch (postRefreshCode){
+                    case "r":
+                        refreshedPost.incrementRedCount();
+                        break;
+                    case "b":
+                        refreshedPost.incrementBlackCount();
+                        break;
+                    case "rb":
+                        refreshedPost.incrementRedCount();
+                        refreshedPost.decrementBlackCount();
+                        break;
+                    case "br":
+                        refreshedPost.incrementBlackCount();
+                        refreshedPost.decrementRedCount();
+                        break;
+                }
+            }
+
+            /*
             if(post != null){
                 activity.runOnUiThread(new Runnable() {
                     @Override
@@ -2987,6 +3026,11 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         activity.applyPostRefreshToMyAdapter(refreshedPost, writingPostVoteToDB);
                     }
                 });
+            }
+            */
+
+            if(refreshedPost.getRedcount() != post.getRedcount() || refreshedPost.getBlackcount() != post.getBlackcount()){
+                postUpdated = true;
             }
 
             return refreshedPost;
@@ -2996,7 +3040,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             e.printStackTrace();
         }
 
-        //if the ES GET fails, then return old topCardContent
+        //if the ES GET fails, then return old post
+
         return post;
     }
 
@@ -3020,8 +3065,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             }
         }
 
-        writeActionsToDB();
         try{
+            /*
             long end = System.currentTimeMillis() + 8*1000; // 8 seconds * 1000 ms/sec
 
             while(!dbWriteComplete && System.currentTimeMillis() < end){
@@ -3034,10 +3079,16 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             else{
                 Log.d("PostPageRefresh", "user actions dbWrite successful");
             }
+            */
 
             //update post card if atRootLevel, else update top card
             if(atRootLevel){
-                post = getPost(postID, writingPostVoteToDB);
+                if(post == null){
+                    post = getPost(postID, writingPostVoteToDB);
+                }
+                else{
+                    post.copyPostInfo(getPost(postID, writingPostVoteToDB));
+                }
                 postTopic = post.getQuestion();
                 postX = post.getRedname();
                 postY = post.getBlackname();
@@ -3071,15 +3122,13 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 });
             }
 
+            writeActionsToDB();
 
         }catch (Throwable t){
 
         }
         //finished handle writing user actions to db and refreshing post card or top card
 
-
-
-        //bombombom
 
         final String rootParentID = submittedComment.getParent_id();
         if(pageLevel > 0){
@@ -3413,7 +3462,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 sortType = POPULAR;
                 nowLoading = false;
 
-                post = subjectPost;
+                if(post == null){
+                    post = subjectPost;
+                }
+                else{
+                    post.copyPostInfo(subjectPost);
+                }
 
                 postID = post.getPost_id();
 
@@ -3529,7 +3583,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 nowLoading = false;
                 pageLevel = 1;
 
-                post = subjectPost;
+                if(post == null){
+                    post = subjectPost;
+                }
+                else{
+                    post.copyPostInfo(subjectPost);
+                }
 
                 postID = post.getPost_id();
 
@@ -4040,6 +4099,13 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
 
 
+    }
+
+    public void setPostUpdated(boolean set){
+        postUpdated = set;
+    }
+    public boolean isPostUpdated(){
+        return postUpdated;
     }
 
 }

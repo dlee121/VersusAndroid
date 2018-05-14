@@ -285,6 +285,11 @@ public class MainContainer extends AppCompatActivity {
                         postPage.backToParentPage();
                     }
                     else{
+
+                        if(postPage.isPostUpdated()){
+                            updateTargetVotecount();
+                        }
+
                         //Log.d("debug", "is root");
                         postPage.writeActionsToDB();
                         //postPage.clearList();
@@ -623,6 +628,11 @@ public class MainContainer extends AppCompatActivity {
                                                 postPage.backToParentPage();
                                             }
                                             else{
+
+                                                if(postPage.isPostUpdated()){
+                                                    updateTargetVotecount();
+                                                }
+
                                                 postPage.writeActionsToDB();
                                                 //postPage.clearList();
                                                 if(myAdapterFragInt == 9 && postParentProfileUsername != null){
@@ -663,6 +673,11 @@ public class MainContainer extends AppCompatActivity {
                             postPage.backToParentPage();
                         }
                         else{
+
+                            if(postPage.isPostUpdated()){
+                                updateTargetVotecount();
+                            }
+
                             postPage.writeActionsToDB();
                             //postPage.clearList();
                             if(myAdapterFragInt == 9 && postParentProfileUsername != null){
@@ -1075,6 +1090,7 @@ public class MainContainer extends AppCompatActivity {
                     //We probably only need to account for when the transition between yes-tab / no-tab happens (tabs 0, 2, 3, 6)
                     //But if it makes no significant performance difference to include all the other tabs, we might as well, to be on safe side especially in case future developments necessitate doing so.
                     case 0: //MainActivity
+                        Log.d("BackOut", "hohoho");
                         showMessengerButton();
                         hideToolbarTextButton();
                         enableBottomTabs();
@@ -1546,6 +1562,8 @@ public class MainContainer extends AppCompatActivity {
         mViewPager.setCurrentItem(3);
         clickedPostIndex = index;
 
+        postPage.setPostUpdated(false);
+
         setVoteUpdateTarget(index, post.getPost_id(), fragmentInt);
     }
 
@@ -1561,6 +1579,9 @@ public class MainContainer extends AppCompatActivity {
         clickedPostIndex = -1;
         clickedNotificationKey = key;
         this.fromRItem = fromRItem;
+
+        postPage.setPostUpdated(false);
+
     }
 
     public void addToCentralProfileImgVersionMap(HashMap<String, Integer> imageVersions){
@@ -2884,4 +2905,5 @@ public class MainContainer extends AppCompatActivity {
         profileTab.clearStack();
         followersAndFollowings.clearStack();
     }
+
 }
