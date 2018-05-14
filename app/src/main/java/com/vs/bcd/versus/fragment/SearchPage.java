@@ -271,7 +271,8 @@ public class SearchPage extends Fragment {
             StringBuilder strBuilder = new StringBuilder((56*hits.length()) - 1);
             for(int i = 0; i < hits.length(); i++){
                 JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
-                postSearchResults.add(new Post(item, true));
+                String id = hits.getJSONObject(i).getString("_id");
+                postSearchResults.add(new Post(item, id, true));
 
                 //add username to parameter string, then at loop finish we do multiget of those users and create hashmap of username:profileImgVersion
                 if(i == 0){

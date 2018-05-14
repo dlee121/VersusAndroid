@@ -237,7 +237,8 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
                     if(hitsLength == 1){
                         //do a single GET for the post info for the VSComment item
                         JSONObject item = hits.getJSONObject(0).getJSONObject("_source");
-                        VSComment vsc = new VSComment(item);
+                        String id0 = hits.getJSONObject(0).getString("_id");
+                        VSComment vsc = new VSComment(item, id0);
                         comments.add(vsc);
                         PostInfo postInfo = postInfoMap.get(vsc.getPost_id());
                         if(postInfo != null){
@@ -252,7 +253,8 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
 
                         StringBuilder strBuilder = new StringBuilder((67*hitsLength) - 1);
                         JSONObject item = hits.getJSONObject(0).getJSONObject("_source");
-                        VSComment vsc = new VSComment(item);
+                        String id0 = hits.getJSONObject(0).getString("_id");
+                        VSComment vsc = new VSComment(item, id0);
                         comments.add(vsc);
                         if(postInfoMap.get(vsc.getPost_id()) == null){
                             postInfoMap.put(vsc.getPost_id(), new PostInfo());
@@ -261,7 +263,8 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
 
                         for(int i = 1; i < hits.length(); i++){
                             item = hits.getJSONObject(i).getJSONObject("_source");
-                            vsc = new VSComment(item);
+                            String id = hits.getJSONObject(i).getString("_id");
+                            vsc = new VSComment(item, id);
                             comments.add(vsc);
                             if(postInfoMap.get(vsc.getPost_id()) == null){
                                 postInfoMap.put(vsc.getPost_id(), new PostInfo());

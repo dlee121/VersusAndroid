@@ -325,8 +325,9 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
 
             JSONObject obj = new JSONObject(strResponse);
             JSONObject item = obj.getJSONObject("_source");
+            String id = obj.getString("_id");
 
-            final Post clickedPost = new Post(item, false);
+            final Post clickedPost = new Post(item, id, false);
 
             return clickedPost;
 
@@ -400,7 +401,8 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
 
             JSONObject obj = new JSONObject(strResponse);
             JSONObject item = obj.getJSONObject("_source");
-            return new VSComment(item);
+            String id = obj.getString("_id");
+            return new VSComment(item, id);
 
             //System.out.println("Response: " + strResponse);
         } catch (Exception e) {

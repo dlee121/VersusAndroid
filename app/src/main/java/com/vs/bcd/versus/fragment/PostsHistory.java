@@ -225,7 +225,8 @@ public class PostsHistory extends Fragment implements SwipeRefreshLayout.OnRefre
                     }
                     for(int i = 0; i < hits.length(); i++){
                         JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
-                        posts.add(new Post(item, true));
+                        String id = hits.getJSONObject(i).getString("_id");
+                        posts.add(new Post(item, id, true));
                         currPostsIndex++;
                     }
                     activity.runOnUiThread(new Runnable() {

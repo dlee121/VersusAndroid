@@ -250,7 +250,7 @@ public class Post {
     }
 
 
-    public Post(JSONObject postObj, boolean compact) throws JSONException{
+    public Post(JSONObject postObj, String id, boolean compact) throws JSONException{
         if(!compact){
             question = postObj.getString("q");
             author = postObj.getString("a");
@@ -260,7 +260,7 @@ public class Post {
             blackname  = postObj.getString("bn");
             blackcount = postObj.getInt("bc");
             category = postObj.getInt("c");
-            post_id = postObj.getString("i");
+            post_id = id;
             redimg = postObj.getInt("ri");
             blackimg = postObj.getInt("bi");
             pt = postObj.getInt("pt");
@@ -274,7 +274,7 @@ public class Post {
             blackname  = postObj.getString("bn");
             blackcount = postObj.getInt("bc");
             author = postObj.getString("a");
-            post_id = postObj.getString("i");
+            post_id = id;
         }
     }
 

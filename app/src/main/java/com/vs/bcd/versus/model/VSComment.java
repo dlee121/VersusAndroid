@@ -56,11 +56,11 @@ public class VSComment {
         comment_influence = 0;
     }
 
-    public VSComment(JSONObject vscObj) throws JSONException {
+    public VSComment(JSONObject vscObj, String id) throws JSONException {
         parent_id = vscObj.getString("pr");
         post_id = vscObj.getString("pt");
         time = vscObj.getString("t");
-        comment_id = vscObj.getString("i");
+        comment_id = id;
         author = vscObj.getString("a");
         content = vscObj.getString("ct");
         topmedal = vscObj.getInt("m");

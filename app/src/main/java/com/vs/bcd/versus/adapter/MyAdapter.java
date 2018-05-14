@@ -572,7 +572,8 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
 
             JSONObject obj = new JSONObject(strResponse);
             JSONObject item = obj.getJSONObject("_source");
-            return new Post(item, false);
+            String id = obj.getString("_id");
+            return new Post(item, id, false);
 
             //System.out.println("Response: " + strResponse);
         } catch (Exception e) {

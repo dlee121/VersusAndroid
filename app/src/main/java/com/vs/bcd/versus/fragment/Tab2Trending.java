@@ -271,9 +271,10 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
             StringBuilder strBuilder = new StringBuilder((56*hits.length()) - 1);
             for(int i = 0; i < hits.length(); i++) {
                 JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
+                String id = hits.getJSONObject(i).getString("_id");
                 Post postItem = null;
                 try{
-                    postItem = new Post(item, false);
+                    postItem = new Post(item, id, false);
                 }
                 catch (Exception e){
                     if(hits.getJSONObject(i).getString("_id") != null){
@@ -286,7 +287,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                 if(postItem == null){
                     continue;
                 }
-                posts.add(new Post(item, false));
+                posts.add(postItem);
 
                 currPostsIndex++;
                 if (currPostsIndex % adFrequency == 0) {

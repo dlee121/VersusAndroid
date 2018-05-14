@@ -903,8 +903,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     ArrayList<VSComment> medalWinners = new ArrayList<>();
                     for(int i = 0; i < hits.length(); i++){
                         JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
+                        String id = hits.getJSONObject(i).getString("_id");
                         //VSComment medalWinner = new VSComment(item);
-                        medalWinners.add(new VSComment(item));
+                        medalWinners.add(new VSComment(item, id));
                     }
 
                     Collections.sort(medalWinners, new Comparator<VSComment>() {
@@ -2718,7 +2719,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             }
             for(int i = 0; i < hits.length(); i++){
                 JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
-                results.add(new VSComment(item));
+                String id = hits.getJSONObject(i).getString("_id");
+                results.add(new VSComment(item, id));
                 currCommentsIndex++;
             }
             //System.out.println("Response: " + strResponse);
@@ -2812,7 +2814,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                 JSONArray hArray = hitsObject.getJSONArray("hits");
                 for(int h = 0; h<hArray.length(); h++){
-                    results.add(new VSComment(hArray.getJSONObject(h).getJSONObject("_source")));
+                    String id = hArray.getJSONObject(h).getString("_id");
+                    results.add(new VSComment(hArray.getJSONObject(h).getJSONObject("_source"), id));
                     childrenCount++;
                 }
 
@@ -2883,7 +2886,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
             JSONObject obj = new JSONObject(strResponse);
             JSONObject item = obj.getJSONObject("_source");
-            return new VSComment(item);
+            String id = obj.getString("_id");
+            return new VSComment(item, id);
 
             //System.out.println("Response: " + strResponse);
         } catch (Exception e) {
@@ -2953,8 +2957,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
             JSONObject obj = new JSONObject(strResponse);
             JSONObject item = obj.getJSONObject("_source");
-
-            final Post refreshedPost = new Post(item, false);
+            String id = obj.getString("_id");
+            final Post refreshedPost = new Post(item, id, false);
 
             if(post != null){
                 activity.runOnUiThread(new Runnable() {
@@ -3052,6 +3056,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         }
         //finished handle writing user actions to db and refreshing post card or top card
+
+        //bombombom
 
         Log.d("pageLevel", "CSR: level: " + Integer.toString(pageLevel));
         final ArrayList<VSComment> rootComments = new ArrayList<>();
