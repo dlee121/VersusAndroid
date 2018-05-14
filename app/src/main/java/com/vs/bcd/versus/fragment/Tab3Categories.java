@@ -348,7 +348,8 @@ public class Tab3Categories extends Fragment implements SwipeRefreshLayout.OnRef
         if(posts != null && myAdapter != null){
             if(post.getCategory() == currCategoryInt){
                 posts.add(0, post);
-                myAdapter.notifyItemInserted(0);
+                //myAdapter.notifyItemInserted(0);
+                myAdapter.notifyDataSetChanged();
             }
         }
     }

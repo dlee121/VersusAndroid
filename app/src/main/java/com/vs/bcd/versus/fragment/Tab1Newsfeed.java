@@ -173,7 +173,8 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
     public void addPostToTop(Post post){
         if(posts != null && myAdapter != null){
             posts.add(0, post);
-            myAdapter.notifyItemInserted(0);
+            //myAdapter.notifyItemInserted(0);
+            myAdapter.notifyDataSetChanged();
         }
     }
 
