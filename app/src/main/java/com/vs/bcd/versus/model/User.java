@@ -120,6 +120,7 @@ public class User {
         password = userData[4];
         mkey = UUID.randomUUID().toString().substring(0, 5);
         profileImage = 0; //default value meaning use a default in-app profile image
+        influence = 0;
     }
 
 }

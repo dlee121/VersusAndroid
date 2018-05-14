@@ -335,18 +335,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                                     if(pageLevel < 2 && targetChildCount < 2){
                                         //insert comment into the existing tree in the page
-                                        if(!topCardReplyClicked){
-                                            insertReplyInCurrentPage = true;
-                                        }
-                                        else{
-                                            activity.runOnUiThread(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    PPAdapter.clearList();
-                                                    mSwipeRefreshLayout.setRefreshing(true);
-                                                }
-                                            });
-                                        }
+                                        insertReplyInCurrentPage = true;
                                     }
                                     else{
 
@@ -459,28 +448,27 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     }
                                 });
 
-                                if(insertReplyInCurrentPage){
+                                if(insertReplyInCurrentPage) {
+
                                     vsc.setNestedLevel(targetNestedLevel + 1);
                                     VSCNode parentNode = nodeMap.get(targetID);
                                     VSCNode thisNode = new VSCNode(vsc);
                                     int offset = 0;
 
-                                    if(targetChildCount > 0){
+                                    if (targetChildCount > 0) {
                                         VSCNode firstChild = parentNode.getFirstChild();
                                         thisNode.setHeadSibling(parentNode.getFirstChild());
                                         firstChild.setTailSibling(thisNode);
                                         offset += 2;
 
-                                        if(pageLevel == 0 && targetNestedLevel == 0){
+                                        if (pageLevel == 0 && targetNestedLevel == 0) {
                                             offset += firstChild.getNodeContent().getChild_count();
                                         }
-                                    }
-                                    else{
+                                    } else {
                                         thisNode.setParent(parentNode);
                                         parentNode.setFirstChild(thisNode);
                                         offset++;
                                     }
-                                    Log.d("insertionLocation", "targetIndex: "+targetIndex+", offset: "+offset);
 
                                     final int insertionIndex = targetIndex + offset;
                                     activity.runOnUiThread(new Runnable() {
@@ -499,7 +487,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     nodeMap.get(targetID).getNodeContent().incrementChild_Count();
                                 }
                             }
-                            topCardReplyClicked = false;
                         }
                     }
                 };
@@ -1016,7 +1003,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                     getRootComments(0, rootComments, rootParentID, uORt);
 
-                    chunkSorter(rootComments);
+                    //chunkSorter(rootComments);
 
                     VSCNode prevNode = null;
 
@@ -1682,7 +1669,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     activity.getDDBClient().updateItem(request);
 
                                     boolean incrementInfluence = (tempNode.getUpvotes() == 0 && tempNode.getDownvotes() + 1 <= 10) || (tempNode.getUpvotes() * 10 >= tempNode.getDownvotes() + 1);
-                                    
+
                                     if(incrementInfluence && !(author.equals("[deleted]"))){ //as long as downvotes are less than 10*upvotes, we increase user's influence
 
                                         //increment influence points on Firebase
@@ -2180,7 +2167,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                     getRootComments(currCommentsIndex, rootComments, queryParentID, uORt);
 
-                    chunkSorter(rootComments);
+                    //chunkSorter(rootComments);
 
                     VSCNode prevNode = null;
                     exitLoop = false;
@@ -2991,6 +2978,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
 
     public void commentSubmissionRefresh(VSComment submittedComment){
+
         //first handle writing user actions to db and refreshing post card or top card
         nowLoading = false;
         dbWriteComplete = false;
@@ -3077,7 +3065,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         getRootComments(0, rootComments, rootParentID, "t");
 
-        chunkSorter(rootComments);
+        //chunkSorter(rootComments);
 
         VSCNode prevNode = null;
 
@@ -3086,8 +3074,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         exitLoop = false;
 
         if(!rootComments.isEmpty()){
-            int currMedalNumber = 3; //starting with 3, which is gold medal
-            int prevUpvotes = rootComments.get(0).getUpvotes();
             VSComment currComment;
 
             //set up nodeMap with root comments
@@ -3162,18 +3148,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             }
                         }
                     });
-                    //activity.hideToolbarProgressbar();
-                    //activity.getViewPager().setCurrentItem(3);
                 }
             });
             return;
-        }
-
-        if(!medalUpgradeMap.isEmpty()) {
-            //set update duty
-            //if no update duty then set update duty true if user authored one of the comments
-            //update DB is update duty true.
-            //medalsUpdateDB(medalUpgradeMap, medalWinners);
         }
 
         if(!childComments.isEmpty()){
@@ -3184,6 +3161,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 final String commentID = cNode.getCommentID();
 
                 cNode.setNestedLevel(1);
+                Log.d("setaschild", cNode.getNodeContent().getContent());
                 VSCNode parentNode = nodeMap.get(cNode.getParentID());
                 if(parentNode != null) {
                     if(!parentNode.hasChild()){
@@ -3263,8 +3241,10 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         sNode.setNestedLevel(0);
         if(!rootComments.isEmpty()){
             VSCNode rNode = nodeMap.get(rootComments.get(0).getComment_id());
-            sNode.setTailSibling(rNode);
-            rNode.setHeadSibling(sNode);
+            if(rNode != null){
+                sNode.setTailSibling(rNode);
+                rNode.setHeadSibling(sNode);
+            }
         }
         nodeMap.put(submittedComment.getComment_id(), sNode);
 
@@ -3418,7 +3398,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     }
 
-    public void itemReplyClickHelper(final VSComment clickedComment, final int index, final boolean topCardReplyClicked){
+    public void itemReplyClickHelper(final VSComment clickedComment, final int index){
         if(replyTarget != null && replyTarget.getComment_id().equals(clickedComment)){
             return;
         }
@@ -3443,7 +3423,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                 PPAdapter.notifyItemChanged(editIndex);
                             }
 
-                            itemReplyClickHelper(clickedComment, index, topCardReplyClicked);
+                            itemReplyClickHelper(clickedComment, index);
                             break;
 
                         case DialogInterface.BUTTON_NEGATIVE:
@@ -3471,8 +3451,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         editTarget = null;
         editIndex = 0;
-
-        this.topCardReplyClicked = topCardReplyClicked;
 
         clickedComment.setIsHighlighted(true);
         PPAdapter.notifyItemChanged(index);
@@ -3515,15 +3493,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 break;
         }
 
-        if(!topCardReplyClicked && ((pageLevel == 0 && nestedLevel == 2) || (pageLevel == 1 && nestedLevel == 1) || (pageLevel == 2 && nestedLevel == 0))){
+        if((pageLevel == 0 && nestedLevel == 2) || (pageLevel == 1 && nestedLevel == 1) || (pageLevel == 2 && nestedLevel == 0)){
             String prefix = "@"+replyTarget.getAuthor() +" ";
             pageCommentInput.setText(prefix);
             pageCommentInput.setPrefix(prefix);
 
             //this is a reply to a grandchild comment, so we set the replyTarget to its parent
-
-            Log.d("0thOne", ""+((VSComment)vsComments.get(0)).getContent());
-
             replyTarget = nodeMap.get(clickedComment.getParent_id()).getNodeContent();
             if(nodeMap.get(clickedComment.getComment_id()).getHeadSibling() == null){ //first displayed grandchild
                 replyTargetIndex--;
@@ -3533,6 +3508,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             }
         }
     }
+
 
     public void editComment(final VSComment commentToEdit, final int index){
         //TODO: dialog if pageCommentInput is in use, same as in reply helper

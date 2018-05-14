@@ -28,6 +28,7 @@ public class VSComment {
     private int topmedal;   //0=none, 1=bronze, 2=silver, 3=gold
     private int upvotes; //number of upvotes for this comment
     private int downvotes; //number of downvotes for this comment
+    private int comment_influence;
 
     private int nestedLevel = 0;    //not used by DB.
     private int uservote = 0; //0 if NOVOTE, 1 if UPVOTE, 2 if DOWNVOTE
@@ -52,6 +53,7 @@ public class VSComment {
         downvotes = 0;
         uservote = 0;
         topmedal = 0;
+        comment_influence = 0;
     }
 
     public VSComment(JSONObject vscObj) throws JSONException {
@@ -64,6 +66,7 @@ public class VSComment {
         topmedal = vscObj.getInt("m");
         upvotes = vscObj.getInt("u");
         downvotes = vscObj.getInt("d");
+        comment_influence = 0;
     }
 
     @DynamoDBHashKey(attributeName = "i")
@@ -136,6 +139,15 @@ public class VSComment {
     }
     public void setTopmedal(int topmedal){
         this.topmedal = topmedal;
+    }
+
+    @DynamoDBAttribute(attributeName = "ci")
+    public int getComment_influence(){
+        return comment_influence;
+    }
+
+    public void setComment_influence(int comment_influence) {
+        this.comment_influence = comment_influence;
     }
 
     @DynamoDBIgnore

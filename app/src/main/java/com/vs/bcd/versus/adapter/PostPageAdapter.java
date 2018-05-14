@@ -235,7 +235,6 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         break;
                 }
 
-
                 setLeftMargin(commentViewHolder.author, margin * currentComment.getNestedLevel());  //left margin (indentation) of 50dp per nested level
 
                 switch (currentComment.getUservote()){
@@ -374,7 +373,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 commentViewHolder.replyButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        activity.getPostPage().itemReplyClickHelper(currentComment, position, false);
+                        activity.getPostPage().itemReplyClickHelper(currentComment, position);
                     }
                 });
 
@@ -957,7 +956,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     //hoyhoy
                     //activity.getCommentEnterFragment().setContentReplyToComment(topCardObject, 0);
                     //activity.getViewPager().setCurrentItem(4);
-                    activity.getPostPage().itemReplyClickHelper(topCardObject, position, true);
+                    activity.getPostPage().itemReplyClickHelper(topCardObject, position);
                 }
             });
 
@@ -1608,9 +1607,11 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     }
 
     public void insertItem(VSComment newComment, int index){
+        Log.d("insertion", "insertion");
         newComment.setIsNew(true);
         masterList.add(index, newComment);
         notifyItemInserted(index);
+        notifyItemRangeChanged(index, getItemCount()-index);
     }
 
     public void insertItemAndNotifyDataSetChanged(VSComment newComment, int index){
