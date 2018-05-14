@@ -138,8 +138,9 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         this.activity = activity;
         this.pageLevel = pageLevel;
         this.postPage = postPage;
-        userAction = activity.getPostPage().getUserAction();
-        actionMap = userAction.getActionRecord();
+
+        userAction = new UserAction("", post.getPost_id()); //placeholder, it will be set in setNewAdapterContent()
+        actionMap = new HashMap<>(); //placeholder, it will be set in setNewAdapterContent()
 
         graphBoxParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, activity.getResources().getDimensionPixelSize(R.dimen.graph_thickness));
         graphBoxParams.addRule(RelativeLayout.BELOW, R.id.left_percentage);
@@ -1604,6 +1605,15 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         if(listPopupWindow != null && listPopupWindow.isShowing()){
             listPopupWindow.dismiss();
         }
+    }
+
+    public void setNewAdapterContent(List<Object> masterList, Post post, int pageLevel){
+        this.masterList = masterList;
+        this.post = post;
+        this.pageLevel = pageLevel;
+        userAction = activity.getPostPage().getUserAction();
+        actionMap = userAction.getActionRecord();
+        notifyDataSetChanged();
     }
 
     public void insertItem(VSComment newComment, int index){

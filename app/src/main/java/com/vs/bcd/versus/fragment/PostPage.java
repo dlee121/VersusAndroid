@@ -500,6 +500,20 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         RV.setLayoutManager(new LinearLayoutManager(activity));
         RVLayoutParams = RV.getLayoutParams();
 
+        Post placeholderPost = new Post();
+        placeholderPost.setCategory(0);
+        placeholderPost.setAuthor("");
+        placeholderPost.setRedname("");
+        placeholderPost.setBlackname("");
+        placeholderPost.setQuestion("");
+        placeholderPost.setRedimg(0);
+        placeholderPost.setBlackimg(0);
+        List<Object> placeholderList = new ArrayList<>();
+        placeholderList.add(placeholderPost);
+
+        PPAdapter = new PostPageAdapter(placeholderList, placeholderPost, activity, 0, this);
+        RV.setAdapter(PPAdapter);
+
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
         hideTopCard();
@@ -705,10 +719,13 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
+
+        Log.d("thisiswhathappened", "HINTI");
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
             if(rootView != null) {
                 enableChildViews();
+                Log.d("thisiswhathappened", "visible");
                 rootView.findViewById(R.id.recycler_view_cs).setLayoutParams(RVLayoutParams);
                 RVLayoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
                 RVLayoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
@@ -721,6 +738,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         else {
             if (rootView != null) {
                 disableChildViews();
+                Log.d("thisiswhathappened", "invisible");
                 pageCommentInput.setText("");
                 RVLayoutParams.height = 0;
                 RVLayoutParams.width = 0;
@@ -1167,13 +1185,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             //this if condition also determines the boolean parameter at the end of PostPageAdapter constructor to notify adapter if it should set up Post Card
                             if (rootParentID.equals(postID)) {
                                 atRootLevel = true;
-                                PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
+                                //PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
                             } else {
                                 atRootLevel = false;
-                                PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
+                                //PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
                             }
+                            PPAdapter.setNewAdapterContent(masterList, post, pageLevel);
 
-                            RV.setAdapter(PPAdapter);
+                            //RV.setAdapter(PPAdapter);
                             activity.setPostInDownload(postID, "done");
                             mSwipeRefreshLayout.setRefreshing(false);
 
@@ -1278,9 +1297,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             //if true then we got the root comments whose parentID is postID ("rootest roots"), so include the post card for the PostPage view
                             //this if condition also determines the boolean parameter at the end of PostPageAdapter constructor to notify adapter if it should set up Post Card
                             atRootLevel = false;
-                            PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
-
-                            RV.setAdapter(PPAdapter);
+                            //PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
+                            //RV.setAdapter(PPAdapter);
+                            PPAdapter.setNewAdapterContent(masterList, post, pageLevel);
                             mSwipeRefreshLayout.setRefreshing(false);
 
                             RV.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -1488,8 +1507,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         if(!scrollPositionStack.isEmpty()){
             int scrollPosition = scrollPositionStack.pop();
             if(scrollPosition >= 0){
-                PPAdapter = new PostPageAdapter(masterListStack.pop(), post, activity, pageLevel, thisFragment);
-                RV.setAdapter(PPAdapter);
+                //PPAdapter = new PostPageAdapter(masterListStack.pop(), post, activity, pageLevel, thisFragment);
+                //RV.setAdapter(PPAdapter);
+                PPAdapter.setNewAdapterContent(masterListStack.pop(), post, pageLevel);
                 mSwipeRefreshLayout.setRefreshing(false);
                 RV.getLayoutManager().scrollToPosition(scrollPosition);
                 return;
@@ -3863,13 +3883,13 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             //this if condition also determines the boolean parameter at the end of PostPageAdapter constructor to notify adapter if it should set up Post Card
                             if (rootParentID.equals(postID)) {
                                 atRootLevel = true;
-                                PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
+                                //PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
                             } else {
                                 atRootLevel = false;
-                                PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
+                                //PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
                             }
-
-                            RV.setAdapter(PPAdapter);
+                            //RV.setAdapter(PPAdapter);
+                            PPAdapter.setNewAdapterContent(masterList, post, pageLevel);
                             activity.setPostInDownload(postID, "done");
                             mSwipeRefreshLayout.setRefreshing(false);
 
@@ -3987,9 +4007,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             //if true then we got the root comments whose parentID is postID ("rootest roots"), so include the post card for the PostPage view
                             //this if condition also determines the boolean parameter at the end of PostPageAdapter constructor to notify adapter if it should set up Post Card
                             atRootLevel = false;
-                            PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
-
-                            RV.setAdapter(PPAdapter);
+                            //PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
+                            //RV.setAdapter(PPAdapter);
+                            PPAdapter.setNewAdapterContent(masterList, post, pageLevel);
                             mSwipeRefreshLayout.setRefreshing(false);
 
                             RV.addOnScrollListener(new RecyclerView.OnScrollListener() {
