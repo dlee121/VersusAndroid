@@ -244,8 +244,10 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         break;
                     case UPVOTE:
                         commentViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
+                        commentViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
                         break;
                     case DOWNVOTE:
+                        commentViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
                         commentViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
                         break;
                     default:
@@ -384,6 +386,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                             int userVote = currentComment.getUservote();
                             if(userVote == UPVOTE){
                                 commentViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
+                                commentViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
                                 currentComment.setUservote(NOVOTE);
                                 actionMap.put(currentComment.getComment_id(), "N");
                                 //actionMap.remove(currentComment.getComment_id());   //instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote if there were a past vote
@@ -395,6 +398,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                                 actionMap.put(currentComment.getComment_id(), "U");
                             }
                             else if(userVote == NOVOTE){
+                                commentViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
                                 commentViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
                                 currentComment.setUservote(UPVOTE);
                                 actionMap.put(currentComment.getComment_id(), "U");
@@ -413,6 +417,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                             int userVote = currentComment.getUservote();
                             if(userVote == DOWNVOTE){
                                 commentViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
+                                commentViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
                                 currentComment.setUservote(NOVOTE);
                                 actionMap.put(currentComment.getComment_id(), "N");
                                 //actionMap.remove(currentComment.getComment_id());   //instead of removing, set record to "N" so that we'll find it in wrteActionsToDB and decrement the past vote if there were a past vote
@@ -424,6 +429,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                                 actionMap.put(currentComment.getComment_id(), "D");
                             }
                             else if(userVote == NOVOTE){
+                                commentViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
                                 commentViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
                                 currentComment.setUservote(DOWNVOTE);
                                 actionMap.put(currentComment.getComment_id(), "D");
@@ -796,8 +802,10 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     break;
                 case UPVOTE:
                     topCardViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
+                    topCardViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
                     break;
                 case DOWNVOTE:
+                    topCardViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
                     topCardViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
                     break;
                 default:
@@ -897,6 +905,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     if(!lockButtons){
                         int userVote = topCardObject.getUservote();
                         if(userVote == UPVOTE){
+                            topCardViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
                             topCardViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
                             topCardObject.setUservote(NOVOTE);
                             actionMap.put(topCardObject.getComment_id(), "N");
@@ -909,6 +918,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                             actionMap.put(topCardObject.getComment_id(), "U");
                         }
                         else if(userVote == NOVOTE){
+                            topCardViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
                             topCardViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart_highlighted);
                             topCardObject.setUservote(UPVOTE);
                             actionMap.put(topCardObject.getComment_id(), "U");
@@ -926,6 +936,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     if(!lockButtons){
                         int userVote = topCardObject.getUservote();
                         if(userVote == DOWNVOTE){
+                            topCardViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
                             topCardViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken);
                             topCardObject.setUservote(NOVOTE);
                             actionMap.put(topCardObject.getComment_id(), "N");
@@ -938,6 +949,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                             actionMap.put(topCardObject.getComment_id(), "D");
                         }
                         else if(userVote == NOVOTE){
+                            topCardViewHolder.upvoteButton.setImageResource(R.drawable.ic_heart);
                             topCardViewHolder.downvoteButton.setImageResource(R.drawable.ic_heart_broken_highlighted);
                             topCardObject.setUservote(DOWNVOTE);
                             actionMap.put(topCardObject.getComment_id(), "D");

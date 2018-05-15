@@ -192,6 +192,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     private boolean postUpdated = false;
 
+    private boolean sendInProgress = false;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -224,6 +226,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         pageCommentInput.addTextChangedListener(new FormValidator(pageCommentInput) {
             @Override
             public void validate(TextView textView, String text) {
+                sendInProgress = false;
                 if (text.length() > 0) {
                     sendButton.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.ic_send_blue));
                     String prefix = pageCommentInput.getPrefix();
@@ -246,20 +249,54 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if(!sendInProgress){
+                    sendInProgress = true;
 
-                final String input = pageCommentInput.getText().toString().trim();
+                    final String input = pageCommentInput.getText().toString().trim();
 
 
-                Runnable runnable = new Runnable() {
-                    public void run() {
+                    Runnable runnable = new Runnable() {
+                        public void run() {
 
-                        if(input.length() > 0){
-                            if(editTarget != null){
+                            if(input.length() > 0){
+                                if(editTarget != null){
 
-                                if(editTarget.getContent().equals(input)){
+                                    if(editTarget.getContent().equals(input)){
+                                        activity.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                editTarget.setIsHighlighted(false);
+                                                PPAdapter.notifyItemChanged(editIndex);
+                                                pageCommentInput.setText("");
+                                                hideCommentInputCursor();
+                                                imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
+                                            }
+                                        });
+                                        return;
+                                    }
+
+                                    //update comment content through ddb update request
+                                    HashMap<String, AttributeValue> keyMap = new HashMap<>();
+                                    keyMap.put("i", new AttributeValue().withS(editTarget.getComment_id()));
+
+                                    HashMap<String, AttributeValueUpdate> updates = new HashMap<>();
+
+                                    AttributeValueUpdate ct = new AttributeValueUpdate()
+                                            .withValue(new AttributeValue().withS(input))
+                                            .withAction(AttributeAction.PUT);
+                                    updates.put("ct", ct);
+
+                                    UpdateItemRequest request = new UpdateItemRequest()
+                                            .withTableName("vscomment")
+                                            .withKey(keyMap)
+                                            .withAttributeUpdates(updates);
+                                    activity.getDDBClient().updateItem(request);
+
                                     activity.runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
+                                            //update content in local copy of the comment, first in nodemap, then in masterlist
+                                            editCommentLocal(editIndex, input, editTarget.getComment_id());
                                             editTarget.setIsHighlighted(false);
                                             PPAdapter.notifyItemChanged(editIndex);
                                             pageCommentInput.setText("");
@@ -267,103 +304,24 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                             imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
                                         }
                                     });
-                                    return;
-                                }
 
-                                //update comment content through ddb update request
-                                HashMap<String, AttributeValue> keyMap = new HashMap<>();
-                                keyMap.put("i", new AttributeValue().withS(editTarget.getComment_id()));
-
-                                HashMap<String, AttributeValueUpdate> updates = new HashMap<>();
-
-                                AttributeValueUpdate ct = new AttributeValueUpdate()
-                                        .withValue(new AttributeValue().withS(input))
-                                        .withAction(AttributeAction.PUT);
-                                updates.put("ct", ct);
-
-                                UpdateItemRequest request = new UpdateItemRequest()
-                                        .withTableName("vscomment")
-                                        .withKey(keyMap)
-                                        .withAttributeUpdates(updates);
-                                activity.getDDBClient().updateItem(request);
-
-                                activity.runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        //update content in local copy of the comment, first in nodemap, then in masterlist
-                                        editCommentLocal(editIndex, input, editTarget.getComment_id());
-                                        editTarget.setIsHighlighted(false);
-                                        PPAdapter.notifyItemChanged(editIndex);
-                                        pageCommentInput.setText("");
-                                        hideCommentInputCursor();
-                                        imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
-                                    }
-                                });
-
-                            }
-                            else{
-
-                                String targetID = "";
-                                int targetChildCount = 0;
-                                int targetNestedLevel = 0;
-                                int targetIndex = 0;
-
-                                boolean insertReplyInCurrentPage = false;
-                                final VSComment vsc = new VSComment();
-
-                                if(replyTarget == null){
-                                    if(pageLevel == 0){
-                                        vsc.setParent_id(postID);
-                                    }
-                                    else{
-                                        vsc.setParent_id(topCardContent.getComment_id());
-                                    }
-
-                                    activity.runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            PPAdapter.clearList();
-                                            mSwipeRefreshLayout.setRefreshing(true);
-                                        }
-                                    });
                                 }
                                 else{
-                                    targetID = replyTarget.getComment_id();
-                                    targetChildCount = replyTarget.getChild_count();
-                                    targetNestedLevel = replyTarget.getNestedLevel();
-                                    targetIndex = replyTargetIndex;
 
-                                    vsc.setParent_id(targetID);
+                                    String targetID = "";
+                                    int targetChildCount = 0;
+                                    int targetNestedLevel = 0;
+                                    int targetIndex = 0;
 
-                                    if(pageLevel < 2 && targetChildCount < 2){
-                                        //insert comment into the existing tree in the page
-                                        insertReplyInCurrentPage = true;
-                                    }
-                                    else{
+                                    boolean insertReplyInCurrentPage = false;
+                                    final VSComment vsc = new VSComment();
 
-                                        if(PPAdapter != null) {
-                                            List<Object> masterList = PPAdapter.getMasterList();
-
-                                            if(!masterList.isEmpty()){
-                                                List<Object> stackEntry = new ArrayList<>();
-                                                stackEntry.addAll(masterList);
-
-                                                masterListStack.push(stackEntry);
-
-                                                scrollPositionStack.push(((LinearLayoutManager) RV.getLayoutManager()).findFirstVisibleItemPosition());
-
-                                                if(stackEntry.get(0) instanceof Post && replyTarget.getNestedLevel() > 0){ //pageLevel is already incremented at this point so we check for pageLevel == 1
-                                                    scrollPositionStack.push(-1);
-                                                }
-                                            }
-                                        }
-
-                                        //add comment in a new page with replyTarget as top card
-                                        if(targetNestedLevel == 2){
-                                            pageLevel = 2;
+                                    if(replyTarget == null){
+                                        if(pageLevel == 0){
+                                            vsc.setParent_id(postID);
                                         }
                                         else{
-                                            pageLevel += targetNestedLevel + 1;
+                                            vsc.setParent_id(topCardContent.getComment_id());
                                         }
 
                                         activity.runOnUiThread(new Runnable() {
@@ -373,127 +331,177 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                                 mSwipeRefreshLayout.setRefreshing(true);
                                             }
                                         });
-
                                     }
-                                }
+                                    else{
+                                        targetID = replyTarget.getComment_id();
+                                        targetChildCount = replyTarget.getChild_count();
+                                        targetNestedLevel = replyTarget.getNestedLevel();
+                                        targetIndex = replyTargetIndex;
 
-                                vsc.setPost_id(postID);
-                                vsc.setAuthor(activity.getUsername());
-                                vsc.setContent(input);
-                                vsc.setIsNew(true); //sets it to be highlighted
+                                        vsc.setParent_id(targetID);
 
-                                activity.getMapper().save(vsc);
+                                        if(pageLevel < 2 && targetChildCount < 2){
+                                            //insert comment into the existing tree in the page
+                                            insertReplyInCurrentPage = true;
+                                        }
+                                        else{
 
-                                //send appropriate notification
-                                if(replyTarget == null){ //if root comment
-                                    if(pageLevel == 0 && post != null && !post.getAuthor().equals("[deleted]") && !post.getAuthor().equals(activity.getUsername())){
-                                        String nKey = postID+":"+sanitizeContentForURL(post.getRedname())+":"+sanitizeContentForURL(post.getBlackname());
-                                        String postAuthorPath = getUsernameHash(post.getAuthor()) + "/" + post.getAuthor() + "/n/r/" + nKey;
-                                        mFirebaseDatabaseReference.child(postAuthorPath).child(activity.getUsername()).setValue(System.currentTimeMillis()/1000);  //set value = timestamp as seconds from epoch
+                                            if(PPAdapter != null) {
+                                                List<Object> masterList = PPAdapter.getMasterList();
+
+                                                if(!masterList.isEmpty()){
+                                                    List<Object> stackEntry = new ArrayList<>();
+                                                    stackEntry.addAll(masterList);
+
+                                                    masterListStack.push(stackEntry);
+
+                                                    scrollPositionStack.push(((LinearLayoutManager) RV.getLayoutManager()).findFirstVisibleItemPosition());
+
+                                                    if(stackEntry.get(0) instanceof Post && replyTarget.getNestedLevel() > 0){ //pageLevel is already incremented at this point so we check for pageLevel == 1
+                                                        scrollPositionStack.push(-1);
+                                                    }
+                                                }
+                                            }
+
+                                            //add comment in a new page with replyTarget as top card
+                                            if(targetNestedLevel == 2){
+                                                pageLevel = 2;
+                                            }
+                                            else{
+                                                pageLevel += targetNestedLevel + 1;
+                                            }
+
+                                            activity.runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    PPAdapter.clearList();
+                                                    mSwipeRefreshLayout.setRefreshing(true);
+                                                }
+                                            });
+
+                                        }
                                     }
-                                    else if(topCardContent != null && !topCardContent.getAuthor().equals("[deleted]") && !topCardContent.getAuthor().equals(activity.getUsername())){
-                                        String payloadContent = sanitizeContentForURL(topCardContent.getContent());
-                                        String subjectAuthorPath = getUsernameHash(topCardContent.getAuthor()) + "/" + topCardContent.getAuthor() + "/n/c/"
-                                                + topCardContent.getComment_id() + ":" + payloadContent;
+
+                                    vsc.setPost_id(postID);
+                                    vsc.setAuthor(activity.getUsername());
+                                    vsc.setContent(input);
+                                    vsc.setIsNew(true); //sets it to be highlighted
+
+                                    activity.getMapper().save(vsc);
+
+                                    //send appropriate notification
+                                    if(replyTarget == null){ //if root comment
+                                        if(pageLevel == 0 && post != null && !post.getAuthor().equals("[deleted]") && !post.getAuthor().equals(activity.getUsername())){
+                                            String nKey = postID+":"+sanitizeContentForURL(post.getRedname())+":"+sanitizeContentForURL(post.getBlackname());
+                                            String postAuthorPath = getUsernameHash(post.getAuthor()) + "/" + post.getAuthor() + "/n/r/" + nKey;
+                                            mFirebaseDatabaseReference.child(postAuthorPath).child(activity.getUsername()).setValue(System.currentTimeMillis()/1000);  //set value = timestamp as seconds from epoch
+                                        }
+                                        else if(topCardContent != null && !topCardContent.getAuthor().equals("[deleted]") && !topCardContent.getAuthor().equals(activity.getUsername())){
+                                            String payloadContent = sanitizeContentForURL(topCardContent.getContent());
+                                            String subjectAuthorPath = getUsernameHash(topCardContent.getAuthor()) + "/" + topCardContent.getAuthor() + "/n/c/"
+                                                    + topCardContent.getComment_id() + ":" + payloadContent;
+                                            mFirebaseDatabaseReference.child(subjectAuthorPath).child(activity.getUsername()).setValue(System.currentTimeMillis()/1000);
+                                        }
+                                    }
+                                    else if(trueReplyTarget != null && !trueReplyTarget.getAuthor().equals("[deleted]") && !trueReplyTarget.getAuthor().equals(activity.getUsername())){ //reply to a comment
+                                        String payloadContent = sanitizeContentForURL(trueReplyTarget.getContent());
+                                        String subjectAuthorPath = getUsernameHash(trueReplyTarget.getAuthor()) + "/" + trueReplyTarget.getAuthor() + "/n/c/"
+                                                + trueReplyTarget.getComment_id() + ":" + payloadContent;
                                         mFirebaseDatabaseReference.child(subjectAuthorPath).child(activity.getUsername()).setValue(System.currentTimeMillis()/1000);
                                     }
-                                }
-                                else if(trueReplyTarget != null && !trueReplyTarget.getAuthor().equals("[deleted]") && !trueReplyTarget.getAuthor().equals(activity.getUsername())){ //reply to a comment
-                                    String payloadContent = sanitizeContentForURL(trueReplyTarget.getContent());
-                                    String subjectAuthorPath = getUsernameHash(trueReplyTarget.getAuthor()) + "/" + trueReplyTarget.getAuthor() + "/n/c/"
-                                            + trueReplyTarget.getComment_id() + ":" + payloadContent;
-                                    mFirebaseDatabaseReference.child(subjectAuthorPath).child(activity.getUsername()).setValue(System.currentTimeMillis()/1000);
-                                }
 
 
-                                HashMap<String, AttributeValue> keyMap = new HashMap<>();
-                                keyMap.put("i", new AttributeValue().withS(postID));   //sort key
+                                    HashMap<String, AttributeValue> keyMap = new HashMap<>();
+                                    keyMap.put("i", new AttributeValue().withS(postID));   //sort key
 
-                                HashMap<String, AttributeValueUpdate> updates = new HashMap<>();
+                                    HashMap<String, AttributeValueUpdate> updates = new HashMap<>();
 
-                                //update pt and increment ps
-                                int currPt = (int)((System.currentTimeMillis()/1000)/60);
-                                AttributeValueUpdate ptu = new AttributeValueUpdate()
-                                        .withValue(new AttributeValue().withN(Integer.toString(currPt)))
-                                        .withAction(AttributeAction.PUT);
-                                updates.put("pt", ptu);
+                                    //update pt and increment ps
+                                    int currPt = (int)((System.currentTimeMillis()/1000)/60);
+                                    AttributeValueUpdate ptu = new AttributeValueUpdate()
+                                            .withValue(new AttributeValue().withN(Integer.toString(currPt)))
+                                            .withAction(AttributeAction.PUT);
+                                    updates.put("pt", ptu);
 
-                                int timeDiff;
-                                if(post == null){
-                                    timeDiff = currPt - activity.getCurrentPost().getPt();
-                                }
-                                else{
-                                    timeDiff = currPt - post.getPt();
-                                }
-                                if(timeDiff <= 0){ //if timeDiff is negative due to some bug or if timeDiff is zero, we just make it equal 1.
-                                    timeDiff = 1;
-                                }
-
-                                double psIncrement = commentPSI/timeDiff;
-                                AttributeValueUpdate psu = new AttributeValueUpdate()
-                                        .withValue(new AttributeValue().withN(Double.toString(psIncrement)))
-                                        .withAction(AttributeAction.ADD);
-                                updates.put("ps", psu);
-
-                                UpdateItemRequest request = new UpdateItemRequest()
-                                        .withTableName("post")
-                                        .withKey(keyMap)
-                                        .withAttributeUpdates(updates);
-                                activity.getDDBClient().updateItem(request);
-
-                                activity.runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        pageCommentInput.setText("");
-                                        hideCommentInputCursor();
-                                        imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
+                                    int timeDiff;
+                                    if(post == null){
+                                        timeDiff = currPt - activity.getCurrentPost().getPt();
                                     }
-                                });
-
-                                if(insertReplyInCurrentPage) {
-
-                                    vsc.setNestedLevel(targetNestedLevel + 1);
-                                    VSCNode parentNode = nodeMap.get(targetID);
-                                    VSCNode thisNode = new VSCNode(vsc);
-                                    int offset = 0;
-
-                                    if (targetChildCount > 0) {
-                                        VSCNode firstChild = parentNode.getFirstChild();
-                                        thisNode.setHeadSibling(parentNode.getFirstChild());
-                                        firstChild.setTailSibling(thisNode);
-                                        offset += 2;
-
-                                        if (pageLevel == 0 && targetNestedLevel == 0) {
-                                            offset += firstChild.getNodeContent().getChild_count();
-                                        }
-                                    } else {
-                                        thisNode.setParent(parentNode);
-                                        parentNode.setFirstChild(thisNode);
-                                        offset++;
+                                    else{
+                                        timeDiff = currPt - post.getPt();
+                                    }
+                                    if(timeDiff <= 0){ //if timeDiff is negative due to some bug or if timeDiff is zero, we just make it equal 1.
+                                        timeDiff = 1;
                                     }
 
-                                    final int insertionIndex = targetIndex + offset;
+                                    double psIncrement = commentPSI/timeDiff;
+                                    AttributeValueUpdate psu = new AttributeValueUpdate()
+                                            .withValue(new AttributeValue().withN(Double.toString(psIncrement)))
+                                            .withAction(AttributeAction.ADD);
+                                    updates.put("ps", psu);
+
+                                    UpdateItemRequest request = new UpdateItemRequest()
+                                            .withTableName("post")
+                                            .withKey(keyMap)
+                                            .withAttributeUpdates(updates);
+                                    activity.getDDBClient().updateItem(request);
+
                                     activity.runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            PPAdapter.insertItem(vsc, insertionIndex);
+                                            pageCommentInput.setText("");
+                                            hideCommentInputCursor();
+                                            imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
                                         }
                                     });
 
-                                    nodeMap.put(vsc.getComment_id(), thisNode);
-                                }
-                                else{
-                                    commentSubmissionRefresh(vsc);
-                                }
-                                if(!(targetID.equals(""))){
-                                    nodeMap.get(targetID).getNodeContent().incrementChild_Count();
+                                    if(insertReplyInCurrentPage) {
+
+                                        vsc.setNestedLevel(targetNestedLevel + 1);
+                                        VSCNode parentNode = nodeMap.get(targetID);
+                                        VSCNode thisNode = new VSCNode(vsc);
+                                        int offset = 0;
+
+                                        if (targetChildCount > 0) {
+                                            VSCNode firstChild = parentNode.getFirstChild();
+                                            thisNode.setHeadSibling(parentNode.getFirstChild());
+                                            firstChild.setTailSibling(thisNode);
+                                            offset += 2;
+
+                                            if (pageLevel == 0 && targetNestedLevel == 0) {
+                                                offset += firstChild.getNodeContent().getChild_count();
+                                            }
+                                        } else {
+                                            thisNode.setParent(parentNode);
+                                            parentNode.setFirstChild(thisNode);
+                                            offset++;
+                                        }
+
+                                        final int insertionIndex = targetIndex + offset;
+                                        activity.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                PPAdapter.insertItem(vsc, insertionIndex);
+                                            }
+                                        });
+
+                                        nodeMap.put(vsc.getComment_id(), thisNode);
+                                    }
+                                    else{
+                                        commentSubmissionRefresh(vsc);
+                                    }
+                                    if(!(targetID.equals(""))){
+                                        nodeMap.get(targetID).getNodeContent().incrementChild_Count();
+                                    }
                                 }
                             }
                         }
-                    }
-                };
-                Thread mythread = new Thread(runnable);
-                mythread.start();
+                    };
+                    Thread mythread = new Thread(runnable);
+                    mythread.start();
+
+
+                }
             }
         });
 
@@ -617,8 +625,10 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         postY = post.getBlackname();
                         origRedCount = post.getRedcount();
                         origBlackCount = post.getBlackcount();
+                        /*
                         redIncrementedLast = false;
                         blackIncrementedLast = false;
+                        */
                     }
                     else{
                         final VSComment updatedTopCardContent = getComment(topCardContent.getComment_id());
@@ -1511,6 +1521,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
         else{
             setUpTopCard(parentCache.get(tempParentID));
+            if(parentCache.get(tempParentID) == null){
+                Log.d("thefuckyoumean", "fuckyoumeanit'snull");
+            }
         }
 
         if(!scrollPositionStack.isEmpty()){
@@ -1615,7 +1628,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             Runnable runnable = new Runnable() {
                 public void run() {
                     List<String> markedForRemoval = new ArrayList<>();
-
+                    //Log.d("actionMapDB", "actionMap write started");
 
                     String actionHistoryEntryValue;
                     VSCNode tempNode;
@@ -1855,6 +1868,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     }
 
                     if (!lastSubmittedVote.equals(userAction.getVotedSide())) {
+
+                        //Log.d("actionMapDB", "post update started");
                         String redOrBlack;
                         boolean decrement = false;
                         if (redIncrementedLast) {
@@ -1945,10 +1960,11 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                     if (!actionMap.isEmpty() || redIncrementedLast != blackIncrementedLast || updateForNRemoval) { //user made comment action(s) OR voted for a side in the post
                         activity.getMapper().save(userAction, new DynamoDBMapperConfig(DynamoDBMapperConfig.SaveBehavior.CLOBBER));
+
+                        //Log.d("actionMapDB", "actionMap submitted");
                         //TODO: the below line to deep copy action history is currently commented out because this code currently only executes on PostPage exit. However, once we need to write UserAction to DB while user is still inside PostPage, then we should uncomment the line below to keep actionHistoryMap up to date with current version of actionMap in the DB that has just been updated by the line above.
                         //if(exiting post page)
                         // deepCopyToActionHistoryMap(actionMap);
-
                     }
 
                     dbWriteComplete = true;
@@ -2938,6 +2954,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     private Post getPost(String post_id, final boolean writingPostVoteToDB){
 
+
+        Log.d("thefuckyoumean", "getPost started");
+
         String query = "/post/post_type/"+post_id;
         String url = "https://" + host + query;
 
@@ -2988,6 +3007,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         };
 
         try {
+
+            Log.d("thefuckyoumean", "trying");
             /* Execute URL and attach after execution response handler */
             long startTime = System.currentTimeMillis();
 
@@ -2996,7 +3017,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             JSONObject obj = new JSONObject(strResponse);
             JSONObject item = obj.getJSONObject("_source");
             String id = obj.getString("_id");
-            final Post refreshedPost = new Post(item, id, false);
+            Post refreshedPost = new Post(item, id, false);
 
             if(writingPostVoteToDB){
                 //Log.d("refreshCode", postRefreshCode);
@@ -3018,6 +3039,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 }
             }
 
+            Log.d("thefuckyoumean", "here now");
+
             /*
             if(post != null){
                 activity.runOnUiThread(new Runnable() {
@@ -3029,9 +3052,11 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             }
             */
 
-            if(refreshedPost.getRedcount() != post.getRedcount() || refreshedPost.getBlackcount() != post.getBlackcount()){
+            if(post != null && (refreshedPost.getRedcount() != post.getRedcount() || refreshedPost.getBlackcount() != post.getBlackcount())){
                 postUpdated = true;
             }
+
+            Log.d("thefuckyoumean", "serving up fresh entree");
 
             return refreshedPost;
 
@@ -3094,8 +3119,10 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 postY = post.getBlackname();
                 origRedCount = post.getRedcount();
                 origBlackCount = post.getBlackcount();
+                /*
                 redIncrementedLast = false;
                 blackIncrementedLast = false;
+                */
             }
             else{
                 final VSComment updatedTopCardContent = getComment(topCardContent.getComment_id());
@@ -3144,8 +3171,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         VSCNode cNode = new VSCNode(submittedComment);
         cNode.setNestedLevel(0);
         nodeMap.put(submittedComment.getComment_id(), cNode);
-
-        submissionCommentsQuery(rootParentID, "t", submittedComment);
+        if(pageLevel < 2){
+            sortType = MOST_RECENT;
+            submissionCommentsQuery(rootParentID, "t", submittedComment);
+        }
+        else{
+            sortType = CHRONOLOGICAL;
+            submissionCommentsQuery(rootParentID, "c", submittedComment);
+        }
     }
 
     public boolean pageCommentInputInUse(){
@@ -3179,6 +3212,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         editTarget = null;
         editIndex = 0;
         replyTargetIndex = 0;
+        sendInProgress = false;
     }
 
     public void itemViewClickHelper(VSComment clickedComment){
@@ -3479,7 +3513,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 redIncrementedLast = false;
                 blackIncrementedLast = false;
 
-                parentCache.clear();
+                //parentCache.clear();
 
                 initialLoadInProgress = true;
 
@@ -3600,7 +3634,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 redIncrementedLast = false;
                 blackIncrementedLast = false;
 
-                parentCache.clear();
+                //parentCache.clear();
 
                 initialLoadInProgress = true;
 
@@ -3766,13 +3800,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                     VSCNode prevNode = null;
 
-                    final HashMap<Integer, VSComment> medalUpgradeMap = new HashMap<>();
-                    final HashSet<String> medalWinners = new HashSet<>();
                     exitLoop = false;
 
                     if (!rootComments.isEmpty()) {
-                        int currMedalNumber = 3; //starting with 3, which is gold medal
-                        int prevUpvotes = rootComments.get(0).getUpvotes();
                         VSComment currComment;
 
                         //set up nodeMap with root comments
@@ -3785,9 +3815,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             VSCNode cNode = new VSCNode(currComment);
                             final String commentID = currComment.getComment_id();
 
-                            Log.d("wow", "child query, parentID to query: " + commentID);
-
-
                             cNode.setNestedLevel(0);
 
                             if (prevNode != null) {
@@ -3799,13 +3826,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             prevNode = cNode;
                         }
                         getChildComments(rootComments, childComments);
-                    }
-
-                    if (!medalUpgradeMap.isEmpty()) {
-                        //set update duty
-                        //if no update duty then set update duty true if user authored one of the comments
-                        //update DB is update duty true.
-                        //medalsUpdateDB(medalUpgradeMap, medalWinners);
                     }
 
                     if (!childComments.isEmpty()) {
