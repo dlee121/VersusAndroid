@@ -81,7 +81,6 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
 import com.vs.bcd.versus.adapter.MyFirebaseMessagingService;
 import com.vs.bcd.versus.fragment.FollowersAndFollowings;
-import com.vs.bcd.versus.fragment.CommentEnterFragment;
 import com.vs.bcd.versus.fragment.CreateMessage;
 import com.vs.bcd.versus.fragment.GroupMembersPage;
 import com.vs.bcd.versus.fragment.LeaderboardTab;
@@ -134,7 +133,6 @@ public class MainContainer extends AppCompatActivity {
     private PostPage postPage;
     private FollowersAndFollowings followersAndFollowings;
     private SessionManager sessionManager;
-    private CommentEnterFragment commentEnterFragment;
     private AmazonS3 s3;
     private Bitmap xBmp = null;
     private Bitmap yBmp = null;
@@ -1620,10 +1618,6 @@ public class MainContainer extends AppCompatActivity {
                 view.setAlpha(1.0F - Math.abs(position));
             }
         }
-    }
-
-    public CommentEnterFragment getCommentEnterFragment(){
-        return commentEnterFragment;
     }
 
     public PostPage getPostPage(){

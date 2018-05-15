@@ -1636,6 +1636,16 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         notifyItemRangeChanged(index, getItemCount()-index);
     }
 
+    public VSComment getFirstRoot(){
+        if(masterList.size() >= 2){
+            return (VSComment) masterList.get(1);
+        }
+        else{
+            return null;
+        }
+
+    }
+
     public void insertItemAndNotifyDataSetChanged(VSComment newComment, int index){
         newComment.setIsNew(true);
         masterList.add(index, newComment);

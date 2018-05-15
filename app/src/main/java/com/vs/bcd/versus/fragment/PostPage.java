@@ -308,12 +308,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                 }
                                 else{
 
-                                    String targetID = "";
-                                    int targetChildCount = 0;
-                                    int targetNestedLevel = 0;
-                                    int targetIndex = 0;
-
-                                    boolean insertReplyInCurrentPage = false;
                                     final VSComment vsc = new VSComment();
 
                                     if(replyTarget == null){
@@ -323,63 +317,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                         else{
                                             vsc.setParent_id(topCardContent.getComment_id());
                                         }
-
-                                        activity.runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                PPAdapter.clearList();
-                                                mSwipeRefreshLayout.setRefreshing(true);
-                                            }
-                                        });
                                     }
                                     else{
-                                        targetID = replyTarget.getComment_id();
-                                        targetChildCount = replyTarget.getChild_count();
-                                        targetNestedLevel = replyTarget.getNestedLevel();
-                                        targetIndex = replyTargetIndex;
-
-                                        vsc.setParent_id(targetID);
-
-                                        if(pageLevel < 2 && targetChildCount < 2){
-                                            //insert comment into the existing tree in the page
-                                            insertReplyInCurrentPage = true;
-                                        }
-                                        else{
-
-                                            if(PPAdapter != null) {
-                                                List<Object> masterList = PPAdapter.getMasterList();
-
-                                                if(!masterList.isEmpty()){
-                                                    List<Object> stackEntry = new ArrayList<>();
-                                                    stackEntry.addAll(masterList);
-
-                                                    masterListStack.push(stackEntry);
-
-                                                    scrollPositionStack.push(((LinearLayoutManager) RV.getLayoutManager()).findFirstVisibleItemPosition());
-
-                                                    if(stackEntry.get(0) instanceof Post && replyTarget.getNestedLevel() > 0){ //pageLevel is already incremented at this point so we check for pageLevel == 1
-                                                        scrollPositionStack.push(-1);
-                                                    }
-                                                }
-                                            }
-
-                                            //add comment in a new page with replyTarget as top card
-                                            if(targetNestedLevel == 2){
-                                                pageLevel = 2;
-                                            }
-                                            else{
-                                                pageLevel += targetNestedLevel + 1;
-                                            }
-
-                                            activity.runOnUiThread(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    PPAdapter.clearList();
-                                                    mSwipeRefreshLayout.setRefreshing(true);
-                                                }
-                                            });
-
-                                        }
+                                        vsc.setParent_id(replyTarget.getComment_id());
                                     }
 
                                     vsc.setPost_id(postID);
@@ -455,44 +395,80 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                         }
                                     });
 
-                                    if(insertReplyInCurrentPage) {
+                                    VSCNode thisNode;
 
-                                        vsc.setNestedLevel(targetNestedLevel + 1);
-                                        VSCNode parentNode = nodeMap.get(targetID);
-                                        VSCNode thisNode = new VSCNode(vsc);
-                                        int offset = 0;
+                                    if(replyTarget != null){
+                                        if((pageLevel == 0 && trueReplyTarget.getNestedLevel() == 2) || (pageLevel == 1 && trueReplyTarget.getNestedLevel() == 1) || pageLevel == 2){
+                                            vsc.setNestedLevel(trueReplyTarget.getNestedLevel());
+                                            thisNode = new VSCNode(vsc);
 
-                                        if (targetChildCount > 0) {
-                                            VSCNode firstChild = parentNode.getFirstChild();
-                                            thisNode.setHeadSibling(parentNode.getFirstChild());
-                                            firstChild.setTailSibling(thisNode);
-                                            offset += 2;
+                                            VSCNode headSiblingNode = nodeMap.get(trueReplyTarget.getComment_id());
+                                            if(headSiblingNode.hasTailSibling()){ //insert between two grandchildren
+                                                VSCNode origTailNode = headSiblingNode.getTailSibling();
 
-                                            if (pageLevel == 0 && targetNestedLevel == 0) {
-                                                offset += firstChild.getNodeContent().getChild_count();
+                                                headSiblingNode.setTailSibling(thisNode);
+                                                thisNode.setHeadSibling(headSiblingNode);
+                                                thisNode.setTailSibling(origTailNode);
+                                                origTailNode.setHeadSibling(thisNode);
                                             }
-                                        } else {
-                                            thisNode.setParent(parentNode);
-                                            parentNode.setFirstChild(thisNode);
-                                            offset++;
+                                            else{ //insert under a grandchild
+                                                headSiblingNode.setTailSibling(thisNode);
+                                                thisNode.setHeadSibling(headSiblingNode);
+                                            }
                                         }
+                                        else{
+                                            vsc.setNestedLevel(trueReplyTarget.getNestedLevel() + 1);
 
-                                        final int insertionIndex = targetIndex + offset;
+                                            VSCNode parentNode = nodeMap.get(replyTarget.getComment_id());
+                                            thisNode = new VSCNode(vsc);
+
+                                            if(parentNode.hasChild()) {
+                                                VSCNode origFirstChild = parentNode.getFirstChild();
+                                                parentNode.setFirstChild(thisNode);
+                                                thisNode.setParent(parentNode);
+                                                thisNode.setTailSibling(origFirstChild);
+                                                origFirstChild.setHeadSibling(thisNode);
+                                            }
+                                            else{
+                                                parentNode.setFirstChild(thisNode);
+                                                thisNode.setParent(parentNode);
+                                            }
+                                        }
+                                    }
+                                    else{ //bottom text input
+                                        thisNode = new VSCNode(vsc);
+                                        if(PPAdapter.getFirstRoot() != null){
+                                            VSCNode firstRootNode = nodeMap.get(PPAdapter.getFirstRoot().getComment_id());
+                                            firstRootNode.setHeadSibling(thisNode);
+                                            thisNode.setTailSibling(firstRootNode);
+                                        }
+                                    }
+                                    final int insertionIndex;
+                                    if(replyTarget == null){
+                                        insertionIndex = 1;
+
+                                        activity.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                PPAdapter.insertItem(vsc, insertionIndex);
+                                                RV.smoothScrollToPosition(1);
+                                            }
+                                        });
+                                    }
+                                    else{
+                                        insertionIndex = trueReplyTargetIndex + 1;
+
                                         activity.runOnUiThread(new Runnable() {
                                             @Override
                                             public void run() {
                                                 PPAdapter.insertItem(vsc, insertionIndex);
                                             }
                                         });
+                                    }
 
-                                        nodeMap.put(vsc.getComment_id(), thisNode);
-                                    }
-                                    else{
-                                        commentSubmissionRefresh(vsc);
-                                    }
-                                    if(!(targetID.equals(""))){
-                                        nodeMap.get(targetID).getNodeContent().incrementChild_Count();
-                                    }
+
+
+                                    nodeMap.put(vsc.getComment_id(), thisNode);
                                 }
                             }
                         }
@@ -773,7 +749,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     public void enableChildViews(){
-        if(topCardContent != null){//for re-entry from CommentEnterFragment. Without this setUpTopCard, enableChildViews hides top card from view
+        if(topCardContent != null){
             setUpTopCard(topCardContent);
         }
         for(int i = 0; i<childViews.size(); i++){
