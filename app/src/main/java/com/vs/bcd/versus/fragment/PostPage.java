@@ -193,6 +193,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     private boolean sendInProgress = false;
 
+    private LinearLayout sendButtonContainer;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -244,6 +246,13 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             }
         });
 
+        sendButtonContainer = rootView.findViewById(R.id.send_buttton_container);
+        sendButtonContainer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //keep this, this removes send button deadzone
+            }
+        });
 
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
