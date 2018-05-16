@@ -170,7 +170,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private RelativeLayout pageCommentInputContainer;
     private VSComment replyTarget;
     private TextView replyingTo, replyTV;
-    private int replyTargetIndex;
     private int trueReplyTargetIndex;
     private VSComment trueReplyTarget;
     private int editIndex;
@@ -310,7 +309,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                                     final VSComment vsc = new VSComment();
 
-                                    if(replyTarget == null){
+                                    if(replyingTo.getLayoutParams().height == 0){
                                         if(pageLevel == 0){
                                             vsc.setParent_id(postID);
                                         }
@@ -330,7 +329,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     activity.getMapper().save(vsc);
 
                                     //send appropriate notification
-                                    if(replyTarget == null){ //if root comment
+                                    if(replyingTo.getLayoutParams().height == 0){ //if root comment
                                         if(pageLevel == 0 && post != null && !post.getAuthor().equals("[deleted]") && !post.getAuthor().equals(activity.getUsername())){
                                             String nKey = postID+":"+sanitizeContentForURL(post.getRedname())+":"+sanitizeContentForURL(post.getBlackname());
                                             String postAuthorPath = getUsernameHash(post.getAuthor()) + "/" + post.getAuthor() + "/n/r/" + nKey;
@@ -397,7 +396,15 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                                     VSCNode thisNode;
 
-                                    if(replyTarget != null){
+                                    if(vsc.getParent_id().equals(vsc.getPost_id()) || (topCardContent != null && vsc.getParent_id().equals(topCardContent.getComment_id()))){ //bottom text input || top card reply
+                                        thisNode = new VSCNode(vsc);
+                                        if(PPAdapter.getFirstRoot() != null){
+                                            VSCNode firstRootNode = nodeMap.get(PPAdapter.getFirstRoot().getComment_id());
+                                            firstRootNode.setHeadSibling(thisNode);
+                                            thisNode.setTailSibling(firstRootNode);
+                                        }
+                                    }
+                                    else{
                                         if((pageLevel == 0 && trueReplyTarget.getNestedLevel() == 2) || (pageLevel == 1 && trueReplyTarget.getNestedLevel() == 1) || pageLevel == 2){
                                             vsc.setNestedLevel(trueReplyTarget.getNestedLevel());
                                             thisNode = new VSCNode(vsc);
@@ -435,25 +442,31 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                             }
                                         }
                                     }
-                                    else{ //bottom text input
-                                        thisNode = new VSCNode(vsc);
-                                        if(PPAdapter.getFirstRoot() != null){
-                                            VSCNode firstRootNode = nodeMap.get(PPAdapter.getFirstRoot().getComment_id());
-                                            firstRootNode.setHeadSibling(thisNode);
-                                            thisNode.setTailSibling(firstRootNode);
-                                        }
-                                    }
                                     final int insertionIndex;
-                                    if(replyTarget == null){
-                                        insertionIndex = 1;
+                                    if(vsc.getParent_id().equals(vsc.getPost_id()) || (topCardContent != null && vsc.getParent_id().equals(topCardContent.getComment_id()))){
 
-                                        activity.runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                PPAdapter.insertItem(vsc, insertionIndex);
-                                                RV.smoothScrollToPosition(1);
-                                            }
-                                        });
+                                        if(pageLevel == 2 && !topCardReplyClicked){
+                                            insertionIndex = trueReplyTargetIndex + 1;
+
+                                            activity.runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    PPAdapter.insertItem(vsc, insertionIndex);
+                                                }
+                                            });
+                                        }
+                                        else{
+                                            insertionIndex = 1;
+
+                                            activity.runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    PPAdapter.insertItem(vsc, insertionIndex);
+                                                    RV.smoothScrollToPosition(1);
+                                                }
+                                            });
+                                        }
+
                                     }
                                     else{
                                         insertionIndex = trueReplyTargetIndex + 1;
@@ -541,6 +554,10 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     public void hideCommentInputCursor(){
         pageCommentInputContainer.requestFocusFromTouch();
         topCardReplyClicked = false;
+    }
+
+    public void setTopCardReplyClickedTrue(){
+        topCardReplyClicked = true;
     }
 
     /**
@@ -1042,7 +1059,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                             Log.d("wow", "child query, parentID to query: " + commentID);
 
-
                             cNode.setNestedLevel(0);
 
                             if (prevNode != null) {
@@ -1454,7 +1470,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 }
             }
         }
-
 
         mSwipeRefreshLayout.setRefreshing(true);
         if(pageLevel != 2){
@@ -2751,6 +2766,13 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
                 String id = hits.getJSONObject(i).getString("_id");
                 results.add(new VSComment(item, id));
+
+
+                Log.d("highostsfromanotherpost", "pr:\t" + prIn);
+                Log.d("highostsfromanotherpost", "actual pr:\t" + hits.getJSONObject(i).getJSONObject("_source").getString("pr"));
+                Log.d("highostsfromanotherpost", "id:\t" + id);
+
+
                 currCommentsIndex++;
             }
             //System.out.println("Response: " + strResponse);
@@ -3047,116 +3069,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
 
-    public void commentSubmissionRefresh(VSComment submittedComment){
-
-        //first handle writing user actions to db and refreshing post card or top card
-        nowLoading = false;
-        dbWriteComplete = false;
-        final boolean writingPostVoteToDB = (!lastSubmittedVote.equals(userAction.getVotedSide()));
-
-        if (redIncrementedLast) {
-            postRefreshCode = "r";
-            if (lastSubmittedVote.equals("BLK")) {
-                postRefreshCode = "rb";
-            }
-        } else {
-            postRefreshCode = "b";
-            if (lastSubmittedVote.equals("RED")) {
-                postRefreshCode = "br";
-            }
-        }
-
-        try{
-            /*
-            long end = System.currentTimeMillis() + 8*1000; // 8 seconds * 1000 ms/sec
-
-            while(!dbWriteComplete && System.currentTimeMillis() < end){
-
-            }
-            if(!dbWriteComplete){
-                Log.d("PostPageRefresh", "user actions dbWrite timeout");
-                dbWriteComplete = true;
-            }
-            else{
-                Log.d("PostPageRefresh", "user actions dbWrite successful");
-            }
-            */
-
-            //update post card if atRootLevel, else update top card
-            if(atRootLevel){
-                if(post == null){
-                    post = getPost(postID, writingPostVoteToDB);
-                }
-                else{
-                    post.copyPostInfo(getPost(postID, writingPostVoteToDB));
-                }
-                postTopic = post.getQuestion();
-                postX = post.getRedname();
-                postY = post.getBlackname();
-                origRedCount = post.getRedcount();
-                origBlackCount = post.getBlackcount();
-                /*
-                redIncrementedLast = false;
-                blackIncrementedLast = false;
-                */
-            }
-            else{
-                final VSComment updatedTopCardContent = getComment(topCardContent.getComment_id());
-                nodeMap.get(topCardContent.getComment_id()).setNodeContent(updatedTopCardContent);
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        String actionEntry = actionMap.get(updatedTopCardContent.getComment_id());
-                        if(actionEntry != null){
-                            switch (actionEntry){
-                                case "U":
-                                    updatedTopCardContent.initialSetUservote(UPVOTE);
-                                    break;
-
-                                case "D":
-                                    updatedTopCardContent.initialSetUservote(DOWNVOTE);
-                                    break;
-                                //we ignore case "N" because uservote is 0 by default so we don't need to set it here
-                            }
-                        }
-                        parentCache.put(updatedTopCardContent.getComment_id(), updatedTopCardContent);
-                        setUpTopCard(parentCache.get(updatedTopCardContent.getComment_id()));
-                    }
-                });
-            }
-
-            writeActionsToDB();
-
-        }catch (Throwable t){
-
-        }
-        //finished handle writing user actions to db and refreshing post card or top card
-
-
-        final String rootParentID = submittedComment.getParent_id();
-        if(pageLevel > 0){
-            VSCNode topNode = nodeMap.get(rootParentID);
-            if(topNode != null){
-                topCardContent = topNode.getNodeContent();
-            }
-            else{
-                Log.d("TopCardContent", "why the fuck is this null?");
-            }
-        }
-
-        VSCNode cNode = new VSCNode(submittedComment);
-        cNode.setNestedLevel(0);
-        nodeMap.put(submittedComment.getComment_id(), cNode);
-        if(pageLevel < 2){
-            sortType = MOST_RECENT;
-            submissionCommentsQuery(rootParentID, "t", submittedComment);
-        }
-        else{
-            sortType = CHRONOLOGICAL;
-            submissionCommentsQuery(rootParentID, "c", submittedComment);
-        }
-    }
-
     public boolean pageCommentInputInUse(){
         return pageCommentInput.isInUse();
     }
@@ -3181,13 +3093,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             }
         }
         replyTarget = null;
-        trueReplyTarget = null;
+        //trueReplytarget = null;
         pageCommentInput.setText("");
         pageCommentInput.setPrefix(null);
         replyTV.getLayoutParams().width = 0;
         editTarget = null;
         editIndex = 0;
-        replyTargetIndex = 0;
         sendInProgress = false;
     }
 
@@ -3296,7 +3207,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         PPAdapter.notifyItemChanged(index);
         replyTarget = clickedComment;
         trueReplyTarget = clickedComment;
-        replyTargetIndex = index;
         trueReplyTargetIndex = index;
         replyingTo.setText("Replying to: " + clickedComment.getAuthor());
         replyingTo.getLayoutParams().height = RelativeLayout.LayoutParams.WRAP_CONTENT;
@@ -3333,18 +3243,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 break;
         }
 
-        if((pageLevel == 0 && nestedLevel == 2) || (pageLevel == 1 && nestedLevel == 1) || (pageLevel == 2 && nestedLevel == 0)){
-            String prefix = "@"+replyTarget.getAuthor() +" ";
-            pageCommentInput.setText(prefix);
-            pageCommentInput.setPrefix(prefix);
+        if(topCardContent == null || !topCardContent.getComment_id().equals(clickedComment.getComment_id())){
+            if((pageLevel == 0 && nestedLevel == 2) || (pageLevel == 1 && nestedLevel == 1) || (pageLevel == 2 && nestedLevel == 0)){
+                String prefix = "@"+replyTarget.getAuthor() +" ";
+                pageCommentInput.setText(prefix);
+                pageCommentInput.setPrefix(prefix);
 
-            //this is a reply to a grandchild comment, so we set the replyTarget to its parent
-            replyTarget = nodeMap.get(clickedComment.getParent_id()).getNodeContent();
-            if(nodeMap.get(clickedComment.getComment_id()).getHeadSibling() == null){ //first displayed grandchild
-                replyTargetIndex--;
-            }
-            else{ //second displayed grandchild
-                replyTargetIndex -= 2;
+                //this is a reply to a grandchild comment, so we set the replyTarget to its parent
+                replyTarget = nodeMap.get(clickedComment.getParent_id()).getNodeContent();
             }
         }
     }

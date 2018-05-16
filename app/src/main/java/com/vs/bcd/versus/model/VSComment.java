@@ -48,7 +48,7 @@ public class VSComment {
     public VSComment(){
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
         time = df.format(new Date());
-        comment_id = UUID.randomUUID().toString();
+        comment_id = UUID.randomUUID().toString().replace("-","");
         upvotes = 0;
         downvotes = 0;
         uservote = 0;

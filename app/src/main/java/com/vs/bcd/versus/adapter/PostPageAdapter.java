@@ -969,6 +969,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     //activity.getCommentEnterFragment().setContentReplyToComment(topCardObject, 0);
                     //activity.getViewPager().setCurrentItem(4);
                     activity.getPostPage().itemReplyClickHelper(topCardObject, position);
+                    postPage.setTopCardReplyClickedTrue();
                 }
             });
 
