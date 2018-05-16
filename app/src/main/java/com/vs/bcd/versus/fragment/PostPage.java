@@ -1599,7 +1599,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                 if(historyValue.equals("U")){
                                     temp.getNodeContent().decrementAndSetN(UPVOTE);
                                 }
-                                else {  //since DB doesn't store "N", we can safely assume this is "D"
+                                else if(historyValue.equals("D")){
                                     temp.getNodeContent().decrementAndSetN(DOWNVOTE);
                                 }
                             }
@@ -1627,18 +1627,15 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         if(userAction != null) {
             Runnable runnable = new Runnable() {
                 public void run() {
-                    List<String> markedForRemoval = new ArrayList<>();
-                    //Log.d("actionMapDB", "actionMap write started");
+                    boolean updateDB = false;
 
                     String actionHistoryEntryValue;
                     VSCNode tempNode;
-                    boolean updateForNRemoval = false;
 
                     for (Map.Entry<String, String> entry : actionMap.entrySet()) {
                         actionHistoryEntryValue = actionHistoryMap.get(entry.getKey());
 
                         if (actionHistoryEntryValue == null) { //first record of user action on this comment, or if vote record's been cleared (like cancel a downvote)
-
                             tempNode = nodeMap.get(entry.getKey());
                             String author = tempNode.getNodeContent().getAuthor();
 
@@ -1650,14 +1647,20 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             HashMap<String, AttributeValueUpdate> updates =
                                     new HashMap<>();
 
-                            AttributeValueUpdate avu;
+                            AttributeValueUpdate avu, avi;
                             switch (entry.getValue()) {
                                 case "U":
+                                    updateDB = true;
                                     Log.d("DB update", "upvote increment");
                                     avu = new AttributeValueUpdate()
                                             .withValue(new AttributeValue().withN("1"))
                                             .withAction(AttributeAction.ADD);
                                     updates.put("u", avu);
+
+                                    avi = new AttributeValueUpdate()
+                                            .withValue(new AttributeValue().withN("1"))
+                                            .withAction(AttributeAction.ADD);
+                                    updates.put("ci", avi);
 
                                     UpdateItemRequest request = new UpdateItemRequest()
                                             .withTableName("vscomment")
@@ -1666,38 +1669,38 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                                     activity.getDDBClient().updateItem(request);
 
-                                    //update activityHistoryMap
-                                    actionHistoryMap.put(entry.getKey(), entry.getValue());
-
                                     if(!(author.equals("[deleted]"))){
-                                        //increment influence points on Firebase
-                                        mFirebaseDatabaseReference.child(getUsernameHash(author)+"/"+author+"/p").runTransaction(new Transaction.Handler() {
-                                            @Override
-                                            public Transaction.Result doTransaction(MutableData mutableData) {
-                                                Integer value = mutableData.getValue(Integer.class);
-                                                if (value == null) {
-                                                    mutableData.setValue(1);
-                                                }
-                                                else {
-                                                    mutableData.setValue(value + 1);
-                                                }
+                                        //increment author's influence
+                                        HashMap<String, AttributeValue> userKeyMap =
+                                                new HashMap<>();
+                                        userKeyMap.put("i", new AttributeValue().withS(author));
 
-                                                return Transaction.success(mutableData);
-                                            }
+                                        HashMap<String, AttributeValueUpdate> userUpdate =
+                                                new HashMap<>();
 
-                                            @Override
-                                            public void onComplete(DatabaseError databaseError, boolean b,
-                                                                   DataSnapshot dataSnapshot) {
-                                                Log.d("Firebase", "transaction:onComplete:" + databaseError);
-                                            }
-                                        });
+                                        AttributeValueUpdate avui = new AttributeValueUpdate()
+                                                .withValue(new AttributeValue().withN("1"))
+                                                .withAction(AttributeAction.ADD);
+                                        userUpdate.put("in", avui);
 
+                                        UpdateItemRequest userInfluenceRequest = new UpdateItemRequest()
+                                                .withTableName("user")
+                                                .withKey(userKeyMap)
+                                                .withAttributeUpdates(userUpdate);
+
+                                        activity.getDDBClient().updateItem(userInfluenceRequest);
+
+                                        //send TYPE_U notification
                                         sendCommentUpvoteNotification(tempNode.getNodeContent());
                                     }
+
+                                    //update activityHistoryMap
+                                    actionHistoryMap.put(entry.getKey(), entry.getValue());
 
                                     break;
 
                                 case "D":
+                                    updateDB = true;
                                     Log.d("DB update", "downvote increment");
                                     avu = new AttributeValueUpdate()
                                             .withValue(new AttributeValue().withN("1"))
@@ -1709,42 +1712,44 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                             .withKey(keyMap)
                                             .withAttributeUpdates(updates);
 
+                                    boolean incrementInfluence = (tempNode.getUpvotes() == 0 && tempNode.getDownvotes() + 1 <= 10) || (tempNode.getUpvotes() * 10 >= tempNode.getDownvotes() + 1);
+
+                                    if(incrementInfluence){
+                                        avi = new AttributeValueUpdate()
+                                                .withValue(new AttributeValue().withN("1"))
+                                                .withAction(AttributeAction.ADD);
+                                        updates.put("ci", avi);
+                                    }
+
                                     activity.getDDBClient().updateItem(request);
 
-                                    boolean incrementInfluence = (tempNode.getUpvotes() == 0 && tempNode.getDownvotes() + 1 <= 10) || (tempNode.getUpvotes() * 10 >= tempNode.getDownvotes() + 1);
 
                                     if(incrementInfluence && !(author.equals("[deleted]"))){ //as long as downvotes are less than 10*upvotes, we increase user's influence
 
-                                        //increment influence points on Firebase
-                                        mFirebaseDatabaseReference.child(getUsernameHash(author)+"/"+author+"/p").runTransaction(new Transaction.Handler() {
-                                            @Override
-                                            public Transaction.Result doTransaction(MutableData mutableData) {
-                                                Integer value = mutableData.getValue(Integer.class);
-                                                if (value == null) {
-                                                    mutableData.setValue(1);
-                                                }
-                                                else {
-                                                    mutableData.setValue(value + 1);
-                                                }
+                                        //increment author's influence
+                                        HashMap<String, AttributeValue> userKeyMap =
+                                                new HashMap<>();
+                                        userKeyMap.put("i", new AttributeValue().withS(author));
 
-                                                return Transaction.success(mutableData);
-                                            }
+                                        HashMap<String, AttributeValueUpdate> userUpdate =
+                                                new HashMap<>();
 
-                                            @Override
-                                            public void onComplete(DatabaseError databaseError, boolean b,
-                                                                   DataSnapshot dataSnapshot) {
-                                                Log.d("Firebase", "transaction:onComplete:" + databaseError);
-                                            }
-                                        });
+                                        AttributeValueUpdate avui = new AttributeValueUpdate()
+                                                .withValue(new AttributeValue().withN("1"))
+                                                .withAction(AttributeAction.ADD);
+                                        userUpdate.put("in", avui);
+
+                                        UpdateItemRequest userInfluenceRequest = new UpdateItemRequest()
+                                                .withTableName("user")
+                                                .withKey(userKeyMap)
+                                                .withAttributeUpdates(userUpdate);
+
+                                        activity.getDDBClient().updateItem(userInfluenceRequest);
 
                                     }
 
                                     //update activityHistoryMap
                                     actionHistoryMap.put(entry.getKey(), entry.getValue());
-                                    break;
-
-                                default:    //this happens when we have a new UesrAction (none found in DB) locally and we cancel a vote and record "N". We don't need to do DB operation in this case.
-                                    markedForRemoval.add(entry.getKey());
                                     break;
                             }
 
@@ -1766,14 +1771,20 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             switch (entry.getValue()) {
 
                                 case "U":
+                                    updateDB = true;
                                     avu = new AttributeValueUpdate()
                                             .withValue(new AttributeValue().withN("1"))
                                             .withAction(AttributeAction.ADD);
                                     updates.put("u", avu);
-                                    avd = new AttributeValueUpdate()
-                                            .withValue(new AttributeValue().withN("-1"))
-                                            .withAction(AttributeAction.ADD);
-                                    updates.put("d", avd);
+
+                                    if(actionHistoryEntryValue.equals("D")){
+                                        avd = new AttributeValueUpdate()
+                                                .withValue(new AttributeValue().withN("-1"))
+                                                .withAction(AttributeAction.ADD);
+                                        updates.put("d", avd);
+                                    }
+
+
                                     request = new UpdateItemRequest()
                                             .withTableName("vscomment")
                                             .withKey(keyMap)
@@ -1787,14 +1798,20 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     break;
 
                                 case "D":
+                                    updateDB = true;
                                     avu = new AttributeValueUpdate()
                                             .withValue(new AttributeValue().withN("1"))
                                             .withAction(AttributeAction.ADD);
                                     updates.put("d", avu);
-                                    avd = new AttributeValueUpdate()
-                                            .withValue(new AttributeValue().withN("-1"))
-                                            .withAction(AttributeAction.ADD);
-                                    updates.put("u", avd);
+
+                                    if(actionHistoryEntryValue.equals("U")){
+                                        avd = new AttributeValueUpdate()
+                                                .withValue(new AttributeValue().withN("-1"))
+                                                .withAction(AttributeAction.ADD);
+                                        updates.put("u", avd);
+                                    }
+
+
                                     request = new UpdateItemRequest()
                                             .withTableName("vscomment")
                                             .withKey(keyMap)
@@ -1807,7 +1824,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     break;
 
                                 case "N":
-
+                                    updateDB = true;
                                     if (actionHistoryMap.get(entry.getKey()).equals("U")) {
                                         Log.d("DB update", "upvote decrement");
                                         avd = new AttributeValueUpdate()
@@ -1828,36 +1845,13 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                             .withAttributeUpdates(updates);
 
                                     activity.getDDBClient().updateItem(request);
+                                    //update activityHistoryMap
+                                    actionHistoryMap.put(entry.getKey(), entry.getValue());
 
-                                    actionHistoryMap.remove(entry.getKey());
-                                    updateForNRemoval = true;
-                                    markedForRemoval.add(entry.getKey()); //mark this comment's entry in actionMap for removal. we mark it and do it after this for-loop to avoid ConcurrentModificationException
+                                    //actionHistoryMap.remove(entry.getKey());
+                                    //updateForNRemoval = true;
+                                    //markedForRemoval.add(entry.getKey()); //mark this comment's entry in actionMap for removal. we mark it and do it after this for-loop to avoid ConcurrentModificationException
                                     //we remove the "N" record because it only serves as marker for decrement, now decrement is executed so we're removing the marker, resetting record on that comment
-
-                                    //decrement influence points on Firebase to prevent duplicate point increment to same comment from same user
-                                    String author = tempNode.getNodeContent().getAuthor();
-                                    if(!author.equals("[deleted]")){
-                                        mFirebaseDatabaseReference.child(getUsernameHash(author)+"/"+author+"/p").runTransaction(new Transaction.Handler() {
-                                            @Override
-                                            public Transaction.Result doTransaction(MutableData mutableData) {
-                                                Integer value = mutableData.getValue(Integer.class);
-                                                if (value == null || value <= 0) {
-                                                    mutableData.setValue(0);
-                                                }
-                                                else {
-                                                    mutableData.setValue(value - 1);
-                                                }
-
-                                                return Transaction.success(mutableData);
-                                            }
-
-                                            @Override
-                                            public void onComplete(DatabaseError databaseError, boolean b,
-                                                                   DataSnapshot dataSnapshot) {
-                                                Log.d("Firebase", "transaction:onComplete:" + databaseError);
-                                            }
-                                        });
-                                    }
 
                                     break;
 
@@ -1868,6 +1862,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     }
 
                     if (!lastSubmittedVote.equals(userAction.getVotedSide())) {
+                        updateDB = true;
 
                         //Log.d("actionMapDB", "post update started");
                         String redOrBlack;
@@ -1952,13 +1947,16 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                     }
 
+                    /*
                     //clean up stray "N" marks
                     for (String key : markedForRemoval) {
                         Log.d("DB Update", key + "removed from actionMap");
                         actionMap.remove(key);
                     }
+                    */
 
-                    if (!actionMap.isEmpty() || redIncrementedLast != blackIncrementedLast || updateForNRemoval) { //user made comment action(s) OR voted for a side in the post
+                    if (updateDB) { //user made comment action(s) OR voted for a side in the post
+                        Log.d("updateDB", "db updated");
                         activity.getMapper().save(userAction, new DynamoDBMapperConfig(DynamoDBMapperConfig.SaveBehavior.CLOBBER));
 
                         //Log.d("actionMapDB", "actionMap submitted");
