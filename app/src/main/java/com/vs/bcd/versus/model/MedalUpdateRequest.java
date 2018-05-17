@@ -14,14 +14,16 @@ public class MedalUpdateRequest {
     private int p; //points increment
     private long t; //timestamp in seconds from epoch
     private String c; //sanitized comment content
+    private int mt;
 
     public MedalUpdateRequest() {
     }
 
-    public MedalUpdateRequest(int p, long t, String c) {
+    public MedalUpdateRequest(int p, long t, String c, int mt) {
         this.p = p;
         this.t = t;
         this.c = c;
+        this.mt = mt;
     }
 
 
@@ -46,5 +48,13 @@ public class MedalUpdateRequest {
 
     public void setC(String c) {
         this.c = c;
+    }
+
+    public int getMt() {
+        return mt;
+    }
+
+    public void setMt(int mt) {
+        this.mt = mt;
     }
 }

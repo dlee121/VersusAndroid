@@ -29,6 +29,7 @@ public class VSComment {
     private int upvotes; //number of upvotes for this comment
     private int downvotes; //number of downvotes for this comment
     private int comment_influence;
+    private int gold_time, silver_time, bronze_time; //most recent timestamp (seconds since post creation) for when g/s/b medal was won by this comment or its child or its grandchild
 
     private int nestedLevel = 0;    //not used by DB.
     private int uservote = 0; //0 if NOVOTE, 1 if UPVOTE, 2 if DOWNVOTE
@@ -54,6 +55,10 @@ public class VSComment {
         uservote = 0;
         topmedal = 0;
         comment_influence = 0;
+        gold_time = 0;
+        silver_time = 0;
+        bronze_time = 0;
+
     }
 
     public VSComment(JSONObject vscObj, String id) throws JSONException {
@@ -67,6 +72,9 @@ public class VSComment {
         upvotes = vscObj.getInt("u");
         downvotes = vscObj.getInt("d");
         comment_influence = 0;
+        gold_time = 0;
+        silver_time = 0;
+        bronze_time = 0;
     }
 
     @DynamoDBHashKey(attributeName = "i")
@@ -148,6 +156,30 @@ public class VSComment {
 
     public void setComment_influence(int comment_influence) {
         this.comment_influence = comment_influence;
+    }
+
+    @DynamoDBAttribute(attributeName = "gt")
+    public int getGold_time(){
+        return gold_time;
+    }
+    public void setGold_time(int gold_time) {
+        this.gold_time = gold_time;
+    }
+
+    @DynamoDBAttribute(attributeName = "st")
+    public int getSilver_time(){
+        return silver_time;
+    }
+    public void setSilver_time(int silver_time) {
+        this.silver_time = silver_time;
+    }
+
+    @DynamoDBAttribute(attributeName = "bt")
+    public int getBronze_time() {
+        return bronze_time;
+    }
+    public void setBronze_time(int bronze_time) {
+        this.bronze_time = bronze_time;
     }
 
     @DynamoDBIgnore

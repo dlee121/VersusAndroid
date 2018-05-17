@@ -856,10 +856,37 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             String medalType = incrementKey + decrementKey;
             int timeValueSecs = (int) (System.currentTimeMillis() / 1000);
             int timeValue = ((timeValueSecs / 60 )/ 60 )/ 24; //now timeValue is in days since epoch
-            //submit update request to firebase updates path, the first submission will trigger Cloud Functions operation to update user medals and points
-            String updateRequest = "updates/" + Integer.toString(timeValue) + "/" + Integer.toString(usernameHash)  + "/" + mUsername + "/" + medalWinner.getComment_id() + "/" + medalType;
-            MedalUpdateRequest medalUpdateRequest = new MedalUpdateRequest(pointsIncrement, timeValueSecs, sanitizeContentForURL(medalWinner.getContent()));
-            mFirebaseDatabaseReference.child(updateRequest).setValue(medalUpdateRequest);
+
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
+            Date date = null;
+            try{
+                date = df.parse(post.getTime());
+            }catch(Throwable t){
+
+            }
+            if(date != null){
+                long epoch = date.getTime();
+
+                int medalTime = (int)(System.currentTimeMillis() - epoch);
+                String updateKey = medalWinner.getComment_id();
+                if(!medalWinner.getParent_id().equals(medalWinner.getPost_id())){ //this is not a root comment, so update medal time for parent
+                    VSCNode parent = nodeMap.get(medalWinner.getParent_id());
+                    if(parent != null){
+                        updateKey += ":"+parent.getCommentID();
+                        if(!parent.getNodeContent().getParent_id().equals(parent.getNodeContent().getPost_id())){ //this is not a root comment, so update medal time for parent (medal winner's grandparent)
+                            VSCNode grandparent = nodeMap.get(parent.getNodeContent().getParent_id());
+                            if(grandparent != null){
+                                updateKey += ":"+grandparent.getCommentID();
+                            }
+                        }
+                    }
+                }
+                //submit update request to firebase updates path, the first submission will trigger Cloud Functions operation to update user medals and points
+                String updateRequest = "updates/" + Integer.toString(timeValue) + "/" + Integer.toString(usernameHash)  + "/" + mUsername + "/" + updateKey + "/" + medalType;
+                MedalUpdateRequest medalUpdateRequest = new MedalUpdateRequest(pointsIncrement, timeValueSecs, sanitizeContentForURL(medalWinner.getContent()), medalTime);
+                mFirebaseDatabaseReference.child(updateRequest).setValue(medalUpdateRequest);
+                medalWinner.setTopmedal(currentMedal);
+            }
 
         }
 
@@ -2501,125 +2528,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         };
         Thread mythread = new Thread(runnable);
         queryThreadID = mythread.getId();
-        mythread.start();
-    }
-
-    private void medalsUpdateDB(final HashMap<Integer, VSComment> upgradeMap, HashSet<String> newMedalists){
-
-        /*
-        //****** not using "timecode" anymore ******
-        //user gets updateDuty if user.timecode matches the one given at query time, or if user authored the post, or if user won a medal in this upgrade event
-        //so if none of those conditions are met then exit the function with a return.
-        if( ! (activity.getUserTimecode() == (int)(System.currentTimeMillis()%10) || activity.getUsername().equals(post.getAuthor()) || newMedalists.contains(activity.getUsername())) ){
-            return;
-        }
-        */
-
-        Runnable runnable = new Runnable() {
-            public void run() {
-
-                try {
-
-                    int pointsIncrement = 0;
-
-                    for(HashMap.Entry<Integer, VSComment> entry : upgradeMap.entrySet()){
-                        //update user medal count, decrementing previous medal's count
-                        //update vscomment topmedal
-                        //update user points, incrementing by appropriate increment amount, not overlapping with points from previous medals, determined by difference between comment.topMedal and the medal that was won
-                        int currentMedal = entry.getKey();
-
-                        HashMap<String, AttributeValueUpdate> vscUpdates = new HashMap<>();
-
-                        //avc = comment topmedal update
-                        AttributeValueUpdate avc;
-
-                        String mUsername = entry.getValue().getAuthor();
-                        int usernameHash;
-                        if(mUsername.length() < 5){
-                            usernameHash = mUsername.hashCode();
-                        }
-                        else{
-                            String hashIn = "" + mUsername.charAt(0) + mUsername.charAt(mUsername.length() - 2) + mUsername.charAt(1) + mUsername.charAt(mUsername.length() - 1);
-                            usernameHash = hashIn.hashCode();
-                        }
-
-                        String incrementKey = null;
-
-                        switch(currentMedal){   //set updates for user num_g/num_s/num_b increment and comment topmedal
-                            case 3: //gold medal won
-                                incrementKey = "g";
-                                pointsIncrement = goldPoints;
-                                break;
-
-                            case 2: //silver medal won
-                                incrementKey = "s";
-                                pointsIncrement = silverPoints;
-                                break;
-
-                            case 1: //bronze medal won
-                                incrementKey = "b";
-                                pointsIncrement = bronzePoints;
-                                break;
-                        }
-
-                        if(incrementKey != null){
-                            String decrementKey = "";
-
-                            switch(entry.getValue().getTopmedal()){ //set updates for user num_s/num_b decrement and points
-                                case 0: //went from no medal to currentMedal
-                                    break;
-
-                                case 1: //went from bronze to currentMedal
-                                    decrementKey = "b";
-                                    pointsIncrement -= bronzePoints;
-                                    break;
-
-                                case 2: //went from silver to currentMedal
-                                    decrementKey = "s";
-                                    pointsIncrement -= silverPoints;
-                                    break;
-
-                                //no case 3 if it was already gold then it's not a upgrade event
-
-                            }
-                            String medalType = incrementKey + decrementKey;
-                            int timeValueSecs = (int) (System.currentTimeMillis() / 1000);
-                            int timeValue = ((timeValueSecs / 60 )/ 60 )/ 24; //now timeValue is in days since epoch
-                            //submit update request to firebase updates path, the first submission will trigger Cloud Functions operation to update user medals and points
-                            String updateRequest = "updates/" + Integer.toString(timeValue) + "/" + Integer.toString(usernameHash)  + "/" + mUsername + "/" + entry.getValue().getComment_id() + "/" + medalType;
-                            MedalUpdateRequest medalUpdateRequest = new MedalUpdateRequest(pointsIncrement, timeValueSecs, sanitizeContentForURL(entry.getValue().getContent()));
-                            mFirebaseDatabaseReference.child(updateRequest).setValue(medalUpdateRequest);
-
-                            //update topmedal on local comment object in nodeMap
-                            //nodeMap.get(entry.getValue()).setTopMedal(currentMedal); I think the below version would work fine, I believe it maps to same object that is also linked to VSCNode objects in nodeMap
-                            entry.getValue().setTopmedal(currentMedal);
-                            //the below debug statement is to confirm the statement above, delete it eventually
-                            // Log.d("topmedal", "currentMedal = " + Integer.toString(currentMedal) + "\nnodeMap updated topmedal: " + Integer.toString(nodeMap.get(entry.getValue().getComment_id()).getNodeContent().getTopmedal()));
-                        /*
-                            //update vscomment topmedal
-                            avc = new AttributeValueUpdate()
-                                    .withValue(new AttributeValue().withN(Integer.toString(currentMedal)))
-                                    .withAction(AttributeAction.PUT);
-
-                            vscUpdates.put("topmedal", avc);
-
-                            UpdateItemRequest vscUpdateRequest = new UpdateItemRequest()
-                                    .withTableName("vscomment")
-                                    .withKey(vscommentKeyMap)
-                                    .withAttributeUpdates(vscUpdates);
-
-                            activity.getDDBClient().updateItem(vscUpdateRequest);
-                        */
-                        }
-                    }
-                }
-                catch (Throwable t){
-
-                }
-
-            }
-        };
-        Thread mythread = new Thread(runnable);
         mythread.start();
     }
 
