@@ -977,7 +977,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             break;
                         }
                         if(medalWinner.getTopmedal() < currentMedal){
-                            submitMedalUpdate(currentMedal, medalWinner);
+                            if(!medalWinner.getAuthor().equals("[deleted]")){
+                                submitMedalUpdate(currentMedal, medalWinner);
+                            }
                         }
                         medalWinnersList.put(medalWinner.getComment_id(), currentMedal);
                         lastWinnerUpvotes = medalWinner.getUpvotes();
@@ -1831,31 +1833,32 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                                 .withValue(new AttributeValue().withN("-1"))
                                                 .withAction(AttributeAction.ADD);
                                         updates.put("u", avd);
-                                    } else {   //it's either "U" or "D", because if it was "N" (the only other option) then it wouldn't arrive to this switch case since history and current are equal
+
+                                        request = new UpdateItemRequest()
+                                                .withTableName("vscomment")
+                                                .withKey(keyMap)
+                                                .withAttributeUpdates(updates);
+
+                                        activity.getDDBClient().updateItem(request);
+
+                                    } else if(actionHistoryMap.get(entry.getKey()).equals("D")){
                                         Log.d("DB update", "downvote decrement");
                                         avd = new AttributeValueUpdate()
                                                 .withValue(new AttributeValue().withN("-1"))
                                                 .withAction(AttributeAction.ADD);
                                         updates.put("d", avd);
+
+                                        request = new UpdateItemRequest()
+                                                .withTableName("vscomment")
+                                                .withKey(keyMap)
+                                                .withAttributeUpdates(updates);
+
+                                        activity.getDDBClient().updateItem(request);
                                     }
 
-                                    request = new UpdateItemRequest()
-                                            .withTableName("vscomment")
-                                            .withKey(keyMap)
-                                            .withAttributeUpdates(updates);
-
-                                    activity.getDDBClient().updateItem(request);
                                     //update activityHistoryMap
                                     actionHistoryMap.put(entry.getKey(), entry.getValue());
 
-                                    //actionHistoryMap.remove(entry.getKey());
-                                    //updateForNRemoval = true;
-                                    //markedForRemoval.add(entry.getKey()); //mark this comment's entry in actionMap for removal. we mark it and do it after this for-loop to avoid ConcurrentModificationException
-                                    //we remove the "N" record because it only serves as marker for decrement, now decrement is executed so we're removing the marker, resetting record on that comment
-
-                                    break;
-
-                                default:
                                     break;
                             }
                         }
@@ -2683,18 +2686,35 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         Log.d("commentloading", "from: " + Integer.toString(fromIndex));
 
+        String query = "/vscomment/_search";
+        String payload;
+
         String sortBy, ascORdesc;
-        if(uORt.equals("c")){
-            sortBy = "t"; //c stands for chronological, but still uses the t parameter for time, just in ascending order instead of descending order as when uORt is t.
-            ascORdesc = "asc";
-        }
-        else{
-            sortBy = uORt;
-            ascORdesc = "desc";
+        switch (uORt){
+            case "u": //sort by comment influence, and then by upvotes
+
+                payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\"ci\":{\"order\":\"desc\"}},{\"u\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"pr\":\""+prIn+"\"}}}";
+
+                break;
+            case "t":
+                sortBy = uORt;
+                ascORdesc = "desc";
+                payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\""+sortBy+"\":{\"order\":\""+ascORdesc+"\"}}],\"query\":{\"match\":{\"pr\":\""+prIn+"\"}}}";
+                break;
+            case "c":
+                sortBy = "t"; //c stands for chronological, but still uses the t parameter for time, just in ascending order instead of descending order as when uORt is t.
+                ascORdesc = "asc";
+                payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\""+sortBy+"\":{\"order\":\""+ascORdesc+"\"}}],\"query\":{\"match\":{\"pr\":\""+prIn+"\"}}}";
+                break;
+
+            default:
+                sortBy = uORt;
+                ascORdesc = "desc";
+                payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\""+sortBy+"\":{\"order\":\""+ascORdesc+"\"}}],\"query\":{\"match\":{\"pr\":\""+prIn+"\"}}}";
+                break;
+
         }
 
-        String query = "/vscomment/_search";
-        String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\""+sortBy+"\":{\"order\":\""+ascORdesc+"\"}}],\"query\":{\"match\":{\"pr\":\""+prIn+"\"}}}";
 
         String url = "https://" + host + query;
 
