@@ -10,9 +10,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.Editable;
 import android.text.Selection;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
@@ -36,12 +34,8 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
 import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.MutableData;
-import com.google.firebase.database.Transaction;
 import com.loopj.android.http.HttpGet;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
@@ -51,7 +45,6 @@ import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.CustomEditText;
 import com.vs.bcd.versus.model.FormValidator;
 import com.vs.bcd.versus.model.MedalUpdateRequest;
-import com.vs.bcd.versus.model.NotificationItem;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.UserAction;
@@ -194,6 +187,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private boolean sendInProgress = false;
 
     private LinearLayout sendButtonContainer;
+
+    private HashSet<String> gtstbtIDs = new HashSet<>();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -899,141 +894,133 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         else{
             medalWinnersList.clear();
         }
-        Runnable runnable = new Runnable() {
-            public void run() {
-                String query = "/vscomment/_search";
-                String payload = "{\"size\":15,\"sort\":[{\"u\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"pt\":\""+postID+"\"}}}";
 
-                String url = "https://" + host + query;
+        String query = "/vscomment/_search";
+        String payload = "{\"size\":15,\"sort\":[{\"u\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"pt\":\""+postID+"\"}}}";
 
-                TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
-                awsHeaders.put("host", host);
+        String url = "https://" + host + query;
 
-                AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
-                        .regionName(region)
-                        .serviceName("es") // es - elastic search. use your service name
-                        .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
-                        .canonicalURI(query) //end point
-                        .queryParametes(null) //query parameters if any
-                        .awsHeaders(awsHeaders) //aws header parameters
-                        .payload(payload) // payload if any
-                        .debug() // turn on the debug mode
-                        .build();
+        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
+        awsHeaders.put("host", host);
 
-                HttpPost httpPost = new HttpPost(url);
-                StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
-                httpPost.setEntity(requestEntity);
+        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
+                .regionName(region)
+                .serviceName("es") // es - elastic search. use your service name
+                .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
+                .canonicalURI(query) //end point
+                .queryParametes(null) //query parameters if any
+                .awsHeaders(awsHeaders) //aws header parameters
+                .payload(payload) // payload if any
+                .debug() // turn on the debug mode
+                .build();
 
-                /* Get header calculated for request */
-                Map<String, String> header = aWSV4Auth.getHeaders();
-                for (Map.Entry<String, String> entrySet : header.entrySet()) {
-                    String key = entrySet.getKey();
-                    String value = entrySet.getValue();
+        HttpPost httpPost = new HttpPost(url);
+        StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
+        httpPost.setEntity(requestEntity);
 
-                    /* Attach header in your request */
-                    /* Simple get request */
+        /* Get header calculated for request */
+        Map<String, String> header = aWSV4Auth.getHeaders();
+        for (Map.Entry<String, String> entrySet : header.entrySet()) {
+            String key = entrySet.getKey();
+            String value = entrySet.getValue();
 
-                    httpPost.addHeader(key, value);
+            /* Attach header in your request */
+            /* Simple get request */
+
+            httpPost.addHeader(key, value);
+        }
+
+        /* Create object of CloseableHttpClient */
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+        /* Response handler for after request execution */
+        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
+
+            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+                /* Get status code */
+                int status = response.getStatusLine().getStatusCode();
+                if (status >= 200 && status < 300) {
+                    /* Convert response to String */
+                    HttpEntity entity = response.getEntity();
+                    return entity != null ? EntityUtils.toString(entity) : null;
+                } else {
+                    throw new ClientProtocolException("Unexpected response status: " + status);
                 }
-
-                /* Create object of CloseableHttpClient */
-                CloseableHttpClient httpClient = HttpClients.createDefault();
-
-                /* Response handler for after request execution */
-                ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
-
-                    public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-                        /* Get status code */
-                        int status = response.getStatusLine().getStatusCode();
-                        if (status >= 200 && status < 300) {
-                            /* Convert response to String */
-                            HttpEntity entity = response.getEntity();
-                            return entity != null ? EntityUtils.toString(entity) : null;
-                        } else {
-                            throw new ClientProtocolException("Unexpected response status: " + status);
-                        }
-                    }
-                };
-
-                try {
-                    /* Execute URL and attach after execution response handler */
-
-                    String strResponse = httpClient.execute(httpPost, responseHandler);
-
-                    JSONObject obj = new JSONObject(strResponse);
-                    JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
-
-                    if(hits.length() == 0){
-                        return;
-                    }
-                    ArrayList<VSComment> medalWinners = new ArrayList<>();
-                    for(int i = 0; i < hits.length(); i++){
-                        JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
-                        String id = hits.getJSONObject(i).getString("_id");
-                        //VSComment medalWinner = new VSComment(item);
-                        medalWinners.add(new VSComment(item, id));
-                    }
-
-                    Collections.sort(medalWinners, new Comparator<VSComment>() {
-                        @Override
-                        public int compare(VSComment o1, VSComment o2) {
-                            int diff = o2.getUpvotes() - o1.getUpvotes();
-                            if(diff != 0){
-                                return diff;
-                            }
-                            else {
-                                return o2.getDownvotes() - o1.getDownvotes();
-                            }
-                        }
-                    });
-                    //TODO: eventually, modify the ES query so that we only grab comments with upvote >= 10
-
-                    int currentMedal = 3;
-                    int lastWinnerUpvotes = 0;
-                    int lastWinnerDownvotes = 0;
-
-                    for(int i = 0; i<medalWinners.size(); i++){
-                        VSComment medalWinner = medalWinners.get(i);
-                        if(lastWinnerUpvotes > medalWinner.getUpvotes()){
-                            currentMedal--;
-                        }
-                        else if(lastWinnerUpvotes == medalWinner.getUpvotes() && lastWinnerDownvotes > medalWinner.getDownvotes()){
-                            currentMedal--;
-                        }
-                        if(currentMedal < 1 || medalWinner.getUpvotes() < 10){
-                            break;
-                        }
-                        if(medalWinner.getTopmedal() < currentMedal){
-                            if(!medalWinner.getAuthor().equals("[deleted]")){
-                                submitMedalUpdate(currentMedal, medalWinner);
-                            }
-                        }
-                        medalWinnersList.put(medalWinner.getComment_id(), currentMedal);
-                        lastWinnerUpvotes = medalWinner.getUpvotes();
-                        lastWinnerDownvotes = medalWinner.getDownvotes();
-                    }
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if(medalWinnersList.size() > 0){
-                                if(PPAdapter != null){
-                                    PPAdapter.notifyDataSetChanged();
-                                }
-                            }
-                        }
-                    });
-
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-
-
             }
         };
-        Thread mythread = new Thread(runnable);
-        mythread.start();
+
+        try {
+            /* Execute URL and attach after execution response handler */
+
+            String strResponse = httpClient.execute(httpPost, responseHandler);
+
+            JSONObject obj = new JSONObject(strResponse);
+            JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
+
+            if(hits.length() == 0){
+                return;
+            }
+            ArrayList<VSComment> medalWinners = new ArrayList<>();
+            for(int i = 0; i < hits.length(); i++){
+                JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
+                String id = hits.getJSONObject(i).getString("_id");
+                //VSComment medalWinner = new VSComment(item);
+                medalWinners.add(new VSComment(item, id));
+            }
+
+            Collections.sort(medalWinners, new Comparator<VSComment>() {
+                @Override
+                public int compare(VSComment o1, VSComment o2) {
+                    int diff = o2.getUpvotes() - o1.getUpvotes();
+                    if(diff != 0){
+                        return diff;
+                    }
+                    else {
+                        return o2.getDownvotes() - o1.getDownvotes();
+                    }
+                }
+            });
+            //TODO: eventually, modify the ES query so that we only grab comments with upvote >= 10
+
+            int currentMedal = 3;
+            int lastWinnerUpvotes = 0;
+            int lastWinnerDownvotes = 0;
+
+            for(int i = 0; i<medalWinners.size(); i++){
+                VSComment medalWinner = medalWinners.get(i);
+                if(lastWinnerUpvotes > medalWinner.getUpvotes()){
+                    currentMedal--;
+                }
+                else if(lastWinnerUpvotes == medalWinner.getUpvotes() && lastWinnerDownvotes > medalWinner.getDownvotes()){
+                    currentMedal--;
+                }
+                if(currentMedal < 1 || medalWinner.getUpvotes() < 10){
+                    break;
+                }
+                if(medalWinner.getTopmedal() < currentMedal){
+                    if(!medalWinner.getAuthor().equals("[deleted]")){
+                        submitMedalUpdate(currentMedal, medalWinner);
+                    }
+                }
+                medalWinnersList.put(medalWinner.getComment_id(), currentMedal);
+                lastWinnerUpvotes = medalWinner.getUpvotes();
+                lastWinnerDownvotes = medalWinner.getDownvotes();
+            }
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if(medalWinnersList.size() > 0){
+                        if(PPAdapter != null){
+                            PPAdapter.notifyDataSetChanged();
+                        }
+                    }
+                }
+            });
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -1051,7 +1038,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     //automatically includes Post Card in the vsComments list for recycler view if rootParentId equals postID,
     // so use it for all PostPage set up cases where we query by upvotes
     private void commentsQuery(final String rootParentID, final String uORt){
-        setMedals();
+        Log.d("gtstbt", "cq called twice?");
 
         if(pageLevel != 2) { //"g" denotes grandchild-only query for level 2
             final ArrayList<VSComment> rootComments = new ArrayList<>();
@@ -1069,6 +1056,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 public void run() {
                     long thisThreadID = Thread.currentThread().getId();
                     final List<Object> masterList = new ArrayList<>();
+
+                    setMedals();
 
                     getRootComments(0, rootComments, rootParentID, uORt);
 
@@ -1284,6 +1273,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 public void run() {
                     long thisThreadID = Thread.currentThread().getId();
                     final List<Object> masterList = new ArrayList<>();
+
+                    //setMedals();
 
                     getRootComments(0, grootComments, rootParentID, uORt);
 
@@ -2584,12 +2575,278 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         return post;
     }
 
+    private void getGT(ArrayList<VSComment> results, String prIn){
+        String query = "/vscomment/_search";
+        String payload =
+                "{\"size\":"+1+",\"sort\":[{\"gt\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"pt\":\""+prIn+"\"}}}";
+
+        String url = "https://" + host + query;
+
+        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
+        awsHeaders.put("host", host);
+
+        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
+                .regionName(region)
+                .serviceName("es") // es - elastic search. use your service name
+                .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
+                .canonicalURI(query) //end point
+                .queryParametes(null) //query parameters if any
+                .awsHeaders(awsHeaders) //aws header parameters
+                .payload(payload) // payload if any
+                .debug() // turn on the debug mode
+                .build();
+
+        HttpPost httpPost = new HttpPost(url);
+        StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
+        httpPost.setEntity(requestEntity);
+
+        /* Get header calculated for request */
+        Map<String, String> header = aWSV4Auth.getHeaders();
+        for (Map.Entry<String, String> entrySet : header.entrySet()) {
+            String key = entrySet.getKey();
+            String value = entrySet.getValue();
+
+            /* Attach header in your request */
+            /* Simple get request */
+
+            httpPost.addHeader(key, value);
+        }
+
+        /* Create object of CloseableHttpClient */
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+        /* Response handler for after request execution */
+        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
+
+            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+                /* Get status code */
+                int status = response.getStatusLine().getStatusCode();
+                if (status >= 200 && status < 300) {
+                    /* Convert response to String */
+                    HttpEntity entity = response.getEntity();
+                    return entity != null ? EntityUtils.toString(entity) : null;
+                } else {
+                    throw new ClientProtocolException("Unexpected response status: " + status);
+                }
+            }
+        };
+
+        try {
+            /* Execute URL and attach after execution response handler */
+
+            String strResponse = httpClient.execute(httpPost, responseHandler);
+
+            JSONObject obj = new JSONObject(strResponse);
+            JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
+            //Log.d("idformat", hits.getJSONObject(0).getString("_id"));
+            if(hits.length() != 0){
+                for(int i = 0; i < hits.length(); i++){
+                    JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
+                    String id = hits.getJSONObject(i).getString("_id");
+                    results.add(new VSComment(item, id));
+                    gtstbtIDs.add(id);
+                    Log.d("gtstbt", "gt added: "+id);
+
+                    currCommentsIndex++;
+                }
+                if(medalWinnersList.size() > 1){
+                    getST(results, prIn);
+                }
+
+
+            }
+
+            //System.out.println("Response: " + strResponse);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void getST(ArrayList<VSComment> results, String prIn){
+        String query = "/vscomment/_search";
+        String payload =
+                "{\"size\":"+1+",\"sort\":[{\"st\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"pt\":\""+prIn+"\"}}}";
+
+        String url = "https://" + host + query;
+
+        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
+        awsHeaders.put("host", host);
+
+        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
+                .regionName(region)
+                .serviceName("es") // es - elastic search. use your service name
+                .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
+                .canonicalURI(query) //end point
+                .queryParametes(null) //query parameters if any
+                .awsHeaders(awsHeaders) //aws header parameters
+                .payload(payload) // payload if any
+                .debug() // turn on the debug mode
+                .build();
+
+        HttpPost httpPost = new HttpPost(url);
+        StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
+        httpPost.setEntity(requestEntity);
+
+        /* Get header calculated for request */
+        Map<String, String> header = aWSV4Auth.getHeaders();
+        for (Map.Entry<String, String> entrySet : header.entrySet()) {
+            String key = entrySet.getKey();
+            String value = entrySet.getValue();
+
+            /* Attach header in your request */
+            /* Simple get request */
+
+            httpPost.addHeader(key, value);
+        }
+
+        /* Create object of CloseableHttpClient */
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+        /* Response handler for after request execution */
+        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
+
+            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+                /* Get status code */
+                int status = response.getStatusLine().getStatusCode();
+                if (status >= 200 && status < 300) {
+                    /* Convert response to String */
+                    HttpEntity entity = response.getEntity();
+                    return entity != null ? EntityUtils.toString(entity) : null;
+                } else {
+                    throw new ClientProtocolException("Unexpected response status: " + status);
+                }
+            }
+        };
+
+        try {
+            /* Execute URL and attach after execution response handler */
+
+            String strResponse = httpClient.execute(httpPost, responseHandler);
+
+            JSONObject obj = new JSONObject(strResponse);
+            JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
+            //Log.d("idformat", hits.getJSONObject(0).getString("_id"));
+            if(hits.length() != 0){
+                for(int i = 0; i < hits.length(); i++){
+                    JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
+                    String id = hits.getJSONObject(i).getString("_id");
+                    results.add(new VSComment(item, id));
+                    gtstbtIDs.add(id);
+                    Log.d("gtstbt", "st added: "+id);
+
+                    currCommentsIndex++;
+                }
+
+                if(medalWinnersList.size() > 2){
+                    getBT(results, prIn);
+                }
+
+            }
+
+            //System.out.println("Response: " + strResponse);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void getBT(ArrayList<VSComment> results, String prIn){
+        String query = "/vscomment/_search";
+        String payload =
+                "{\"size\":"+1+",\"sort\":[{\"bt\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"pt\":\""+prIn+"\"}}}";
+
+        String url = "https://" + host + query;
+
+        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
+        awsHeaders.put("host", host);
+
+        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
+                .regionName(region)
+                .serviceName("es") // es - elastic search. use your service name
+                .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
+                .canonicalURI(query) //end point
+                .queryParametes(null) //query parameters if any
+                .awsHeaders(awsHeaders) //aws header parameters
+                .payload(payload) // payload if any
+                .debug() // turn on the debug mode
+                .build();
+
+        HttpPost httpPost = new HttpPost(url);
+        StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
+        httpPost.setEntity(requestEntity);
+
+        /* Get header calculated for request */
+        Map<String, String> header = aWSV4Auth.getHeaders();
+        for (Map.Entry<String, String> entrySet : header.entrySet()) {
+            String key = entrySet.getKey();
+            String value = entrySet.getValue();
+
+            /* Attach header in your request */
+            /* Simple get request */
+
+            httpPost.addHeader(key, value);
+        }
+
+        /* Create object of CloseableHttpClient */
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+        /* Response handler for after request execution */
+        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
+
+            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+                /* Get status code */
+                int status = response.getStatusLine().getStatusCode();
+                if (status >= 200 && status < 300) {
+                    /* Convert response to String */
+                    HttpEntity entity = response.getEntity();
+                    return entity != null ? EntityUtils.toString(entity) : null;
+                } else {
+                    throw new ClientProtocolException("Unexpected response status: " + status);
+                }
+            }
+        };
+
+        try {
+            /* Execute URL and attach after execution response handler */
+
+            String strResponse = httpClient.execute(httpPost, responseHandler);
+
+            JSONObject obj = new JSONObject(strResponse);
+            JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
+            //Log.d("idformat", hits.getJSONObject(0).getString("_id"));
+            if(hits.length() != 0){
+                for(int i = 0; i < hits.length(); i++){
+                    JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
+                    String id = hits.getJSONObject(i).getString("_id");
+                    results.add(new VSComment(item, id));
+                    gtstbtIDs.add(id);
+
+                    Log.d("gtstbt", "bt added: "+id);
+                    currCommentsIndex++;
+                }
+
+            }
+
+            //System.out.println("Response: " + strResponse);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
     private void getRootComments(final int fromIndex, ArrayList<VSComment> results, String prIn, String uORt) {
+        Log.d("gtstbt", "fromIndex: " + fromIndex);
 
         if(fromIndex == 0){
             currCommentsIndex = 0;
             childrenCount = 0;
             nowLoading = false;
+            if(gtstbtIDs == null){
+                gtstbtIDs = new HashSet<>();
+            }
+            else{
+                gtstbtIDs.clear();
+            }
         }
 
         Log.d("commentloading", "from: " + Integer.toString(fromIndex));
@@ -2600,7 +2857,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         String sortBy, ascORdesc;
         switch (uORt){
             case "u": //sort by comment influence, and then by upvotes
+                if(fromIndex == 0 && medalWinnersList != null && !medalWinnersList.isEmpty()){
+                    getGT(results, prIn);
+                    Log.d("gtstbt", "get it");
+                }
+                else{
 
+                    Log.d("gtstbt", "fill it");
+                }
                 payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\"ci\":{\"order\":\"desc\"}},{\"u\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"pr\":\""+prIn+"\"}}}";
 
                 break;
@@ -2688,7 +2952,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
             //Log.d("idformat", hits.getJSONObject(0).getString("_id"));
             if(hits.length() == 0){
-                Log.d("loadmore", "end reached, disabling loadMore");
+                nowLoading = true;
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -2700,15 +2964,15 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             for(int i = 0; i < hits.length(); i++){
                 JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
                 String id = hits.getJSONObject(i).getString("_id");
-                results.add(new VSComment(item, id));
-
-
-                Log.d("highostsfromanotherpost", "pr:\t" + prIn);
-                Log.d("highostsfromanotherpost", "actual pr:\t" + hits.getJSONObject(i).getJSONObject("_source").getString("pr"));
-                Log.d("highostsfromanotherpost", "id:\t" + id);
-
+                if(!gtstbtIDs.contains(id)){
+                    results.add(new VSComment(item, id));
+                }
 
                 currCommentsIndex++;
+            }
+
+            if(hits.length() < retrievalSize){
+                nowLoading = true; //TODO: do this? or let it load one more round?
             }
             //System.out.println("Response: " + strResponse);
         } catch (Exception e) {
@@ -3589,353 +3853,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             return 0;
         }
         return medalWinnersList.get(commentID);
-    }
-
-    private void submissionCommentsQuery(final String rootParentID, final String uORt, final VSComment submittedComment){
-        setMedals();
-
-        if(pageLevel != 2) { //"g" denotes grandchild-only query for level 2
-            final ArrayList<VSComment> rootComments = new ArrayList<>();
-            final ArrayList<VSComment> childComments = new ArrayList<>();
-            final ArrayList<VSComment> grandchildComments = new ArrayList<>();
-
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mSwipeRefreshLayout.setRefreshing(true);
-                }
-            });
-
-            Runnable runnable = new Runnable() {
-                public void run() {
-                    long thisThreadID = Thread.currentThread().getId();
-                    final List<Object> masterList = new ArrayList<>();
-
-                    getRootComments(0, rootComments, rootParentID, uORt);
-
-                    //chunkSorter(rootComments);
-
-                    VSCNode prevNode = null;
-
-                    exitLoop = false;
-
-                    if (!rootComments.isEmpty()) {
-                        VSComment currComment;
-
-                        //set up nodeMap with root comments
-                        for (int i = 0; i < rootComments.size(); i++) {
-                            if (thisThreadID != queryThreadID) {
-                                Log.d("wow", "broke out of old query thread");
-                                return;
-                            }
-                            currComment = rootComments.get(i);
-                            VSCNode cNode = new VSCNode(currComment);
-                            final String commentID = currComment.getComment_id();
-
-                            cNode.setNestedLevel(0);
-
-                            if (prevNode != null) {
-                                prevNode.setTailSibling(cNode);
-                                cNode.setHeadSibling(prevNode);
-                            }
-
-                            nodeMap.put(commentID, cNode);
-                            prevNode = cNode;
-                        }
-                        getChildComments(rootComments, childComments);
-                    }
-
-                    if (!childComments.isEmpty()) {
-                        //set up nodeMap with child comments
-                        for (int i = 0; i < childComments.size(); i++) {
-                            if (thisThreadID != queryThreadID) {
-                                Log.d("wow", "broke out of old query thread");
-                                return;
-                            }
-
-                            VSCNode cNode = new VSCNode(childComments.get(i));
-                            final String commentID = cNode.getCommentID();
-
-                            cNode.setNestedLevel(1);
-                            VSCNode parentNode = nodeMap.get(cNode.getParentID());
-                            if (parentNode != null) {
-                                if (!parentNode.hasChild()) {
-                                    parentNode.setFirstChild(cNode);
-                                    cNode.setParent(parentNode);
-                                } else {
-                                    VSCNode sibling = parentNode.getFirstChild();
-                                    if (sibling.getUpvotes() == cNode.getUpvotes() && sibling.getVotecount() < cNode.getVotecount()) {
-                                        sibling.setParent(null);
-                                        cNode.setParent(parentNode);
-                                        parentNode.setFirstChild(cNode);
-                                        cNode.setTailSibling(sibling);
-                                        sibling.setHeadSibling(cNode);
-                                    } else {
-                                        sibling.setTailSibling(cNode);
-                                        cNode.setHeadSibling(sibling);
-                                    }
-                                }
-                            }
-
-                            nodeMap.put(commentID, cNode);
-                        }
-
-                        getChildComments(childComments, grandchildComments);
-                    }
-
-                    //set up nodeMap with grandchild comments
-                    if (!grandchildComments.isEmpty()) {
-                        //TODO: run chunkSorter on grandchildComments here
-
-                        for (int i = 0; i < grandchildComments.size(); i++) {
-
-                            if (thisThreadID != queryThreadID) {
-                                Log.d("wow", "broke out of old query thread");
-                                return;
-                            }
-
-                            VSCNode cNode = new VSCNode(grandchildComments.get(i));
-                            cNode.setNestedLevel(2);
-
-                            VSCNode parentNode = nodeMap.get(cNode.getParentID());
-                            if (parentNode != null) {
-                                if (!parentNode.hasChild()) {
-                                    parentNode.setFirstChild(cNode);
-                                    cNode.setParent(parentNode);
-                                } else {
-                                    VSCNode sibling = parentNode.getFirstChild();
-                                    if (sibling.getUpvotes() == cNode.getUpvotes() && sibling.getVotecount() < cNode.getVotecount()) {
-                                        sibling.setParent(null);
-                                        cNode.setParent(parentNode);
-                                        parentNode.setFirstChild(cNode);
-                                        cNode.setTailSibling(sibling);
-                                        sibling.setHeadSibling(cNode);
-                                    } else {
-                                        sibling.setTailSibling(cNode);
-                                        cNode.setHeadSibling(sibling);
-                                    }
-                                }
-                            }
-
-                            nodeMap.put(cNode.getCommentID(), cNode);
-                        }
-
-                    }
-
-
-                    //set up comments list
-                    VSCNode temp;
-                    for (int i = 0; i < rootComments.size(); i++) {
-                        if (thisThreadID != queryThreadID) {
-                            Log.d("wow", "broke out of old query thread");
-                            return;
-                        }
-
-                        temp = nodeMap.get(rootComments.get(i).getComment_id());
-                        if (temp != null) {
-                            setCommentList(temp, masterList);
-                        }
-                    }
-
-                    //run UI updates on UI Thread
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            applyUserActions(masterList);
-
-                            //add submitted comment to the top if it's not already added
-                            if(masterList.size() > 0){
-                                if(!(((VSComment) masterList.get(0)).getComment_id().equals(submittedComment))){
-                                    submittedComment.setIsNew(true);
-                                    masterList.add(0, submittedComment);
-                                    currCommentsIndex++;
-                                }
-                                else{
-                                    ((VSComment) masterList.get(0)).setIsNew(true);
-                                }
-                            }
-                            else{
-                                submittedComment.setIsNew(true);
-                                masterList.add(0, submittedComment);
-                                currCommentsIndex++;
-                            }
-
-
-                            //Make sure to do this after applyUserActions because applyUserActions doesn't expect post object in the list
-                            if (rootParentID.equals(postID)) {
-                                //vsComments.add(0, post);
-                                masterList.add(0, post);
-                            }
-                            else{
-                                if(topCardContent != null){
-                                    masterList.add(0, topCardContent);
-                                }
-                            }
-
-                            //find view by id and attaching adapter for the RecyclerView
-                            //RV.setLayoutManager(new LinearLayoutManager(activity));
-
-                            //if true then we got the root comments whose parentID is postID ("rootest roots"), so include the post card for the PostPage view
-                            //this if condition also determines the boolean parameter at the end of PostPageAdapter constructor to notify adapter if it should set up Post Card
-                            if (rootParentID.equals(postID)) {
-                                atRootLevel = true;
-                                //PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
-                            } else {
-                                atRootLevel = false;
-                                //PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
-                            }
-                            //RV.setAdapter(PPAdapter);
-                            PPAdapter.setNewAdapterContent(masterList, post, pageLevel);
-                            activity.setPostInDownload(postID, "done");
-                            mSwipeRefreshLayout.setRefreshing(false);
-
-                            RV.addOnScrollListener(new RecyclerView.OnScrollListener() {
-                                @Override
-                                public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                                    LinearLayoutManager layoutManager = LinearLayoutManager.class.cast(recyclerView.getLayoutManager());
-                                    int lastVisible = layoutManager.findLastVisibleItemPosition() - childrenCount;
-
-                                    boolean endHasBeenReached = lastVisible + loadThreshold >= currCommentsIndex;  //TODO: increase the loadThreshold as we get more posts, but capping it at 5 is probably sufficient
-                                    if (currCommentsIndex > 0 && endHasBeenReached) {
-                                        //you have reached to the bottom of your recycler view
-                                        if (!nowLoading) {
-                                            nowLoading = true;
-                                            Log.d("Load", "Now Loadin More");
-                                            loadMoreComments(uORt);
-                                        }
-                                    }
-                                }
-                            });
-                        }
-                    });
-                }
-            };
-            Thread mythread = new Thread(runnable);
-            queryThreadID = mythread.getId();
-            mythread.start();
-        }
-        else{
-            final ArrayList<VSComment> grootComments = new ArrayList<>(); //grandchildren page's root comments, so grandchildren comments
-
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mSwipeRefreshLayout.setRefreshing(true);
-                }
-            });
-
-            Runnable runnable = new Runnable() {
-                public void run() {
-                    long thisThreadID = Thread.currentThread().getId();
-                    final List<Object> masterList = new ArrayList<>();
-
-                    getRootComments(0, grootComments, rootParentID, uORt);
-
-                    if(!grootComments.isEmpty()){
-                        VSCNode prevNode = null;
-                        VSComment currComment;
-
-                        //set up nodeMap with root comments
-                        for(int i = 0; i < grootComments.size(); i++){
-                            if(thisThreadID != queryThreadID){
-                                Log.d("wow", "broke out of old query thread");
-                                return;
-                            }
-                            currComment = grootComments.get(i);
-                            VSCNode cNode = new VSCNode(currComment);
-                            final String commentID = currComment.getComment_id();
-
-                            Log.d("wow", "child query, parentID to query: " + commentID);
-
-                            cNode.setNestedLevel(0);
-
-                            if(prevNode != null){
-                                prevNode.setTailSibling(cNode);
-                                cNode.setHeadSibling(prevNode);
-                            }
-
-                            nodeMap.put(commentID, cNode);
-                            prevNode = cNode;
-                        }
-                    }
-
-                    //set up comments list
-                    VSCNode temp;
-                    for(int i = 0; i<grootComments.size(); i++){
-                        if(thisThreadID != queryThreadID){
-                            Log.d("wow", "broke out of old query thread");
-                            return;
-                        }
-
-                        temp = nodeMap.get(grootComments.get(i).getComment_id());
-                        if(temp != null){
-                            setCommentList(temp, masterList);
-                        }
-                    }
-
-                    //run UI updates on UI Thread
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-
-                            applyUserActions(masterList);
-
-                            //add submitted comment to the top if it's not already added
-                            if(masterList.size() > 0){
-                                if(!(((VSComment) masterList.get(0)).getComment_id().equals(submittedComment))){
-                                    submittedComment.setIsNew(true);
-                                    masterList.add(0, submittedComment);
-                                    currCommentsIndex++;
-                                }
-                                else{
-                                    ((VSComment) masterList.get(0)).setIsNew(true);
-                                }
-                            }
-                            else{
-                                submittedComment.setIsNew(true);
-                                masterList.add(0, submittedComment);
-                                currCommentsIndex++;
-                            }
-
-                            //find view by id and attaching adapter for the RecyclerView
-                            //RV.setLayoutManager(new LinearLayoutManager(activity));
-
-                            //if true then we got the root comments whose parentID is postID ("rootest roots"), so include the post card for the PostPage view
-                            //this if condition also determines the boolean parameter at the end of PostPageAdapter constructor to notify adapter if it should set up Post Card
-                            atRootLevel = false;
-                            //PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
-                            //RV.setAdapter(PPAdapter);
-                            PPAdapter.setNewAdapterContent(masterList, post, pageLevel);
-                            mSwipeRefreshLayout.setRefreshing(false);
-
-                            RV.addOnScrollListener(new RecyclerView.OnScrollListener() {
-                                @Override
-                                public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                                    LinearLayoutManager layoutManager=LinearLayoutManager.class.cast(recyclerView.getLayoutManager());
-                                    int lastVisible = layoutManager.findLastVisibleItemPosition() - childrenCount;
-
-                                    boolean endHasBeenReached = lastVisible + loadThreshold >= currCommentsIndex;  //TODO: increase the loadThreshold as we get more posts, but capping it at 5 is probably sufficient
-                                    if (currCommentsIndex > 0 && endHasBeenReached) {
-                                        //you have reached to the bottom of your recycler view
-                                        if(!nowLoading){
-                                            nowLoading = true;
-                                            Log.d("Load", "Now Loadin More");
-                                            loadMoreComments(uORt);
-                                        }
-                                    }
-                                }
-                            });
-                        }
-                    });
-                }
-            };
-            Thread mythread = new Thread(runnable);
-            queryThreadID = mythread.getId();
-            mythread.start();
-
-        }
-
-
     }
 
     public void setPostUpdated(boolean set){
