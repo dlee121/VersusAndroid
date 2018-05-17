@@ -2815,7 +2815,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         //strBuilder.append("{}\n{\"query\":{\"match\":{\"pr\":\""+commentParents.get(0).getComment_id()+"\"}},\"size\":2}");
         for(int n = 0; n<commentParents.size(); n++){
-            strBuilder.append("{}\n{\"from\":0,\"size\":2,\"sort\":[{\"u\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"pr\":\"" + commentParents.get(n).getComment_id() + "\"}}}\n");
+            strBuilder.append("{}\n{\"from\":0,\"size\":2,\"sort\":[{\"ci\":{\"order\":\"desc\"}},{\"u\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"pr\":\"" + commentParents.get(n).getComment_id() + "\"}}}\n");
         }
         String payload = strBuilder.toString();
 
