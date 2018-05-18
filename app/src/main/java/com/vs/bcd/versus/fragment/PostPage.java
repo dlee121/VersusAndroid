@@ -955,7 +955,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 medalWinners.add(new VSComment(item, id));
             }
 
-            int extraHearts = 1;
+            //int extraHearts = 1;
             VSComment goldWinner, silverWinner, bronzeWinner, fourthWinner;
             switch (medalWinners.size()){
                 case 1: //one gold winner
@@ -998,10 +998,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                     goldWinner = medalWinners.get(0);
                     silverWinner = medalWinners.get(1);
-
-                    if(commentsTied(goldWinner, silverWinner)){
-                        goldWinner.setUpvotes(goldWinner.getUpvotes() + extraHearts);
-                    }
 
                     if(goldWinner.getTopmedal() < 3){
                         if(!goldWinner.getAuthor().equals("[deleted]")){
@@ -1072,14 +1068,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     goldWinner = medalWinners.get(0);
                     silverWinner = medalWinners.get(1);
                     bronzeWinner = medalWinners.get(2);
-
-                    if(commentsTied(goldWinner, silverWinner)){
-                        goldWinner.setUpvotes(goldWinner.getUpvotes() + extraHearts);
-                    }
-                    if(commentsTied(silverWinner, bronzeWinner)){
-                        goldWinner.setUpvotes(goldWinner.getUpvotes() + extraHearts);
-                        silverWinner.setUpvotes(silverWinner.getUpvotes() + extraHearts);
-                    }
 
                     if(goldWinner.getTopmedal() < 3){
                         if(!goldWinner.getAuthor().equals("[deleted]")){
@@ -1182,19 +1170,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     silverWinner = medalWinners.get(1);
                     bronzeWinner = medalWinners.get(2);
                     fourthWinner = medalWinners.get(3);
-
-                    if(commentsTied(goldWinner, silverWinner)){
-                        goldWinner.setUpvotes(goldWinner.getUpvotes() + extraHearts);
-                    }
-                    if(commentsTied(silverWinner, bronzeWinner)){
-                        goldWinner.setUpvotes(goldWinner.getUpvotes() + extraHearts);
-                        silverWinner.setUpvotes(silverWinner.getUpvotes() + extraHearts);
-                    }
-                    if(commentsTied(bronzeWinner, fourthWinner)){
-                        goldWinner.setUpvotes(goldWinner.getUpvotes() + extraHearts);
-                        silverWinner.setUpvotes(silverWinner.getUpvotes() + extraHearts);
-                        bronzeWinner.setUpvotes(bronzeWinner.getUpvotes() + extraHearts);
-                    }
 
                     if(goldWinner.getTopmedal() < 3){
                         if(!goldWinner.getAuthor().equals("[deleted]")){
