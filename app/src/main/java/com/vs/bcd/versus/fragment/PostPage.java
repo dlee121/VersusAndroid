@@ -188,7 +188,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     private LinearLayout sendButtonContainer;
 
-    private HashSet<String> gtstbtIDs = new HashSet<>();
+    private HashSet<String> winnerTreeRoots = new HashSet<>();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -329,6 +329,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     vsc.setAuthor(activity.getUsername());
                                     vsc.setContent(input);
                                     vsc.setIsNew(true); //sets it to be highlighted
+
+                                    if(!vsc.getParent_id().equals(postID)){ //child or grandchild
+                                        if(!nodeMap.get(vsc.getParent_id()).getParentID().equals(postID)){ //this is a grandchild
+                                            vsc.setRoot(nodeMap.get(vsc.getParent_id()).getParentID());
+                                        }
+                                    }
 
                                     activity.getMapper().save(vsc);
 
@@ -851,52 +857,33 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             String medalType = incrementKey + decrementKey;
             int timeValueSecs = (int) (System.currentTimeMillis() / 1000);
             int timeValue = ((timeValueSecs / 60 )/ 60 )/ 24; //now timeValue is in days since epoch
+            //submit update request to firebase updates path, the first submission will trigger Cloud Functions operation to update user medals and points
+            String updateRequest = "updates/" + Integer.toString(timeValue) + "/" + Integer.toString(usernameHash)  + "/" + mUsername + "/" + medalWinner.getComment_id() + "/" + medalType;
+            MedalUpdateRequest medalUpdateRequest = new MedalUpdateRequest(pointsIncrement, timeValueSecs, sanitizeContentForURL(medalWinner.getContent()));
+            mFirebaseDatabaseReference.child(updateRequest).setValue(medalUpdateRequest);
 
-            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
-            Date date = null;
-            try{
-                date = df.parse(post.getTime());
-            }catch(Throwable t){
-
-            }
-            if(date != null){
-                long epoch = date.getTime();
-
-                int medalTime = (int)(System.currentTimeMillis() - epoch);
-                String updateKey = medalWinner.getComment_id();
-                if(!medalWinner.getParent_id().equals(medalWinner.getPost_id())){ //this is not a root comment, so update medal time for parent
-                    VSCNode parent = nodeMap.get(medalWinner.getParent_id());
-                    if(parent != null){
-                        updateKey += ":"+parent.getCommentID();
-                        if(!parent.getNodeContent().getParent_id().equals(parent.getNodeContent().getPost_id())){ //this is not a root comment, so update medal time for parent (medal winner's grandparent)
-                            VSCNode grandparent = nodeMap.get(parent.getNodeContent().getParent_id());
-                            if(grandparent != null){
-                                updateKey += ":"+grandparent.getCommentID();
-                            }
-                        }
-                    }
-                }
-                //submit update request to firebase updates path, the first submission will trigger Cloud Functions operation to update user medals and points
-                String updateRequest = "updates/" + Integer.toString(timeValue) + "/" + Integer.toString(usernameHash)  + "/" + mUsername + "/" + updateKey + "/" + medalType;
-                MedalUpdateRequest medalUpdateRequest = new MedalUpdateRequest(pointsIncrement, timeValueSecs, sanitizeContentForURL(medalWinner.getContent()), medalTime);
-                mFirebaseDatabaseReference.child(updateRequest).setValue(medalUpdateRequest);
-                medalWinner.setTopmedal(currentMedal);
-            }
+            medalWinner.setTopmedal(currentMedal);
 
         }
 
     }
 
-    private void setMedals(){
+    private void setMedals(ArrayList<VSComment> rootComments){
         if(medalWinnersList == null){
             medalWinnersList = new HashMap<>();
         }
         else{
             medalWinnersList.clear();
         }
+        if(winnerTreeRoots == null){
+            winnerTreeRoots = new HashSet<>();
+        }
+        else{
+            winnerTreeRoots.clear();
+        }
 
         String query = "/vscomment/_search";
-        String payload = "{\"size\":15,\"sort\":[{\"u\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"pt\":\""+postID+"\"}}}";
+        String payload = "{\"size\":4,\"sort\":[{\"u\":{\"order\":\"desc\"}},{\"ci\":{\"order\":\"desc\"}},{\"d\":{\"order\":\"desc\"}},{\"t\":{\"order\":\"asc\"}}],\"query\":{\"bool\":{\"filter\":[{\"term\":{\"pt\":\""+postID+"\"}},{\"range\":{\"u\":{\"gte\":10}}}]}}}";
 
         String url = "https://" + host + query;
 
@@ -968,60 +955,367 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 medalWinners.add(new VSComment(item, id));
             }
 
-            Collections.sort(medalWinners, new Comparator<VSComment>() {
-                @Override
-                public int compare(VSComment o1, VSComment o2) {
-                    int diff = o2.getUpvotes() - o1.getUpvotes();
-                    if(diff != 0){
-                        return diff;
-                    }
-                    else {
-                        return o2.getDownvotes() - o1.getDownvotes();
-                    }
-                }
-            });
-            //TODO: eventually, modify the ES query so that we only grab comments with upvote >= 10
+            int extraHearts = 1;
+            VSComment goldWinner, silverWinner, bronzeWinner, fourthWinner;
+            switch (medalWinners.size()){
+                case 1: //one gold winner
+                    goldWinner = medalWinners.get(0);
 
-            int currentMedal = 3;
-            int lastWinnerUpvotes = 0;
-            int lastWinnerDownvotes = 0;
-
-            for(int i = 0; i<medalWinners.size(); i++){
-                VSComment medalWinner = medalWinners.get(i);
-                if(lastWinnerUpvotes > medalWinner.getUpvotes()){
-                    currentMedal--;
-                }
-                else if(lastWinnerUpvotes == medalWinner.getUpvotes() && lastWinnerDownvotes > medalWinner.getDownvotes()){
-                    currentMedal--;
-                }
-                if(currentMedal < 1 || medalWinner.getUpvotes() < 10){
-                    break;
-                }
-                if(medalWinner.getTopmedal() < currentMedal){
-                    if(!medalWinner.getAuthor().equals("[deleted]")){
-                        submitMedalUpdate(currentMedal, medalWinner);
-                    }
-                }
-                medalWinnersList.put(medalWinner.getComment_id(), currentMedal);
-                lastWinnerUpvotes = medalWinner.getUpvotes();
-                lastWinnerDownvotes = medalWinner.getDownvotes();
-            }
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    if(medalWinnersList.size() > 0){
-                        if(PPAdapter != null){
-                            PPAdapter.notifyDataSetChanged();
+                    if(goldWinner.getTopmedal() < 3){
+                        if(!goldWinner.getAuthor().equals("[deleted]")){
+                            submitMedalUpdate(3, goldWinner);
                         }
                     }
-                }
-            });
+                    goldWinner.setCurrentMedal(3);
 
+                    medalWinnersList.put(goldWinner.getComment_id(), 3);
+
+                    switch (getCommentLevel(goldWinner)){
+                        case 0:
+                            if(!winnerTreeRoots.contains(goldWinner.getComment_id())){
+                                rootComments.add(goldWinner);
+                                winnerTreeRoots.add(goldWinner.getComment_id());
+                            }
+                            break;
+                        case 1:
+                            VSComment winnerParent = getComment(goldWinner.getParent_id());
+                            if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
+                                rootComments.add(winnerParent);
+                                winnerTreeRoots.add(winnerParent.getComment_id());
+                            }
+                            break;
+                        case 2:
+                            VSComment winnerGrandParent = getComment(goldWinner.getRoot());
+                            if(!winnerTreeRoots.contains(winnerGrandParent.getComment_id())){
+                                rootComments.add(winnerGrandParent);
+                                winnerTreeRoots.add(winnerGrandParent.getComment_id());
+                            }
+                            break;
+                    }
+
+                    break;
+                case 2: //we got a gold winner and a silver winner
+
+                    goldWinner = medalWinners.get(0);
+                    silverWinner = medalWinners.get(1);
+
+                    if(commentsTied(goldWinner, silverWinner)){
+                        goldWinner.setUpvotes(goldWinner.getUpvotes() + extraHearts);
+                    }
+
+                    if(goldWinner.getTopmedal() < 3){
+                        if(!goldWinner.getAuthor().equals("[deleted]")){
+                            submitMedalUpdate(3, goldWinner);
+                        }
+                    }
+                    goldWinner.setCurrentMedal(3);
+
+                    if(silverWinner.getTopmedal() < 2) {
+                        if (!silverWinner.getAuthor().equals("[deleted]")) {
+                            submitMedalUpdate(2, silverWinner);
+                        }
+                    }
+                    silverWinner.setCurrentMedal(2);
+
+                    medalWinnersList.put(goldWinner.getComment_id(), 3);
+                    medalWinnersList.put(silverWinner.getComment_id(), 2);
+
+                    switch (getCommentLevel(goldWinner)){
+                        case 0:
+                            if(!winnerTreeRoots.contains(goldWinner.getComment_id())){
+                                rootComments.add(goldWinner);
+                                winnerTreeRoots.add(goldWinner.getComment_id());
+                            }
+                            break;
+                        case 1:
+                            VSComment winnerParent = getComment(goldWinner.getParent_id());
+                            if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
+                                rootComments.add(winnerParent);
+                                winnerTreeRoots.add(winnerParent.getComment_id());
+                            }
+                            break;
+                        case 2:
+                            VSComment winnerGrandParent = getComment(goldWinner.getRoot());
+                            if(!winnerTreeRoots.contains(winnerGrandParent.getComment_id())){
+                                rootComments.add(winnerGrandParent);
+                                winnerTreeRoots.add(winnerGrandParent.getComment_id());
+                            }
+                            break;
+                    }
+
+                    switch (getCommentLevel(silverWinner)){
+                        case 0:
+                            if(!winnerTreeRoots.contains(silverWinner.getComment_id())){
+                                rootComments.add(silverWinner);
+                                winnerTreeRoots.add(silverWinner.getComment_id());
+                            }
+                            break;
+                        case 1:
+                            VSComment winnerParent = getComment(silverWinner.getParent_id());
+                            if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
+                                rootComments.add(winnerParent);
+                                winnerTreeRoots.add(winnerParent.getComment_id());
+                            }
+                            break;
+                        case 2:
+                            VSComment winnerGrandParent = getComment(silverWinner.getRoot());
+                            if(!winnerTreeRoots.contains(winnerGrandParent.getComment_id())){
+                                rootComments.add(winnerGrandParent);
+                                winnerTreeRoots.add(winnerGrandParent.getComment_id());
+                            }
+                            break;
+                    }
+
+                    break;
+                case 3:
+
+                    goldWinner = medalWinners.get(0);
+                    silverWinner = medalWinners.get(1);
+                    bronzeWinner = medalWinners.get(2);
+
+                    if(commentsTied(goldWinner, silverWinner)){
+                        goldWinner.setUpvotes(goldWinner.getUpvotes() + extraHearts);
+                    }
+                    if(commentsTied(silverWinner, bronzeWinner)){
+                        goldWinner.setUpvotes(goldWinner.getUpvotes() + extraHearts);
+                        silverWinner.setUpvotes(silverWinner.getUpvotes() + extraHearts);
+                    }
+
+                    if(goldWinner.getTopmedal() < 3){
+                        if(!goldWinner.getAuthor().equals("[deleted]")){
+                            submitMedalUpdate(3, goldWinner);
+                        }
+                    }
+                    goldWinner.setCurrentMedal(3);
+
+                    if(silverWinner.getTopmedal() < 2) {
+                        if (!silverWinner.getAuthor().equals("[deleted]")) {
+                            submitMedalUpdate(2, silverWinner);
+                        }
+                    }
+                    silverWinner.setCurrentMedal(2);
+
+                    if(bronzeWinner.getTopmedal() < 1) {
+                        if (!bronzeWinner.getAuthor().equals("[deleted]")) {
+                            submitMedalUpdate(1, bronzeWinner);
+                        }
+                    }
+                    bronzeWinner.setCurrentMedal(1);
+
+                    medalWinnersList.put(goldWinner.getComment_id(), 3);
+                    medalWinnersList.put(silverWinner.getComment_id(), 2);
+                    medalWinnersList.put(bronzeWinner.getComment_id(), 1);
+
+                    switch (getCommentLevel(goldWinner)){
+                        case 0:
+                            if(!winnerTreeRoots.contains(goldWinner.getComment_id())){
+                                rootComments.add(goldWinner);
+                                winnerTreeRoots.add(goldWinner.getComment_id());
+                            }
+                            break;
+                        case 1:
+                            VSComment winnerParent = getComment(goldWinner.getParent_id());
+                            if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
+                                rootComments.add(winnerParent);
+                                winnerTreeRoots.add(winnerParent.getComment_id());
+                            }
+                            break;
+                        case 2:
+                            VSComment winnerGrandParent = getComment(goldWinner.getRoot());
+                            if(!winnerTreeRoots.contains(winnerGrandParent.getComment_id())){
+                                rootComments.add(winnerGrandParent);
+                                winnerTreeRoots.add(winnerGrandParent.getComment_id());
+                            }
+                            break;
+                    }
+
+                    switch (getCommentLevel(silverWinner)){
+                        case 0:
+                            if(!winnerTreeRoots.contains(silverWinner.getComment_id())){
+                                rootComments.add(silverWinner);
+                                winnerTreeRoots.add(silverWinner.getComment_id());
+                            }
+                            break;
+                        case 1:
+                            VSComment winnerParent = getComment(silverWinner.getParent_id());
+                            if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
+                                rootComments.add(winnerParent);
+                                winnerTreeRoots.add(winnerParent.getComment_id());
+                            }
+                            break;
+                        case 2:
+                            VSComment winnerGrandParent = getComment(silverWinner.getRoot());
+                            if(!winnerTreeRoots.contains(winnerGrandParent.getComment_id())){
+                                rootComments.add(winnerGrandParent);
+                                winnerTreeRoots.add(winnerGrandParent.getComment_id());
+                            }
+                            break;
+                    }
+
+                    switch (getCommentLevel(bronzeWinner)){
+                        case 0:
+                            if(!winnerTreeRoots.contains(bronzeWinner.getComment_id())){
+                                rootComments.add(bronzeWinner);
+                                winnerTreeRoots.add(bronzeWinner.getComment_id());
+                            }
+                            break;
+                        case 1:
+                            VSComment winnerParent = getComment(bronzeWinner.getParent_id());
+                            if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
+                                rootComments.add(winnerParent);
+                                winnerTreeRoots.add(winnerParent.getComment_id());
+                            }
+                            break;
+                        case 2:
+                            VSComment winnerGrandParent = getComment(bronzeWinner.getRoot());
+                            if(!winnerTreeRoots.contains(winnerGrandParent.getComment_id())){
+                                rootComments.add(winnerGrandParent);
+                                winnerTreeRoots.add(winnerGrandParent.getComment_id());
+                            }
+                            break;
+                    }
+
+                    break;
+                case 4:
+
+                    goldWinner = medalWinners.get(0);
+                    silverWinner = medalWinners.get(1);
+                    bronzeWinner = medalWinners.get(2);
+                    fourthWinner = medalWinners.get(3);
+
+                    if(commentsTied(goldWinner, silverWinner)){
+                        goldWinner.setUpvotes(goldWinner.getUpvotes() + extraHearts);
+                    }
+                    if(commentsTied(silverWinner, bronzeWinner)){
+                        goldWinner.setUpvotes(goldWinner.getUpvotes() + extraHearts);
+                        silverWinner.setUpvotes(silverWinner.getUpvotes() + extraHearts);
+                    }
+                    if(commentsTied(bronzeWinner, fourthWinner)){
+                        goldWinner.setUpvotes(goldWinner.getUpvotes() + extraHearts);
+                        silverWinner.setUpvotes(silverWinner.getUpvotes() + extraHearts);
+                        bronzeWinner.setUpvotes(bronzeWinner.getUpvotes() + extraHearts);
+                    }
+
+                    if(goldWinner.getTopmedal() < 3){
+                        if(!goldWinner.getAuthor().equals("[deleted]")){
+                            submitMedalUpdate(3, goldWinner);
+                        }
+                    }
+                    goldWinner.setCurrentMedal(3);
+
+                    if(silverWinner.getTopmedal() < 2) {
+                        if (!silverWinner.getAuthor().equals("[deleted]")) {
+                            submitMedalUpdate(2, silverWinner);
+                        }
+                    }
+                    silverWinner.setCurrentMedal(2);
+
+                    if(bronzeWinner.getTopmedal() < 1) {
+                        if (!bronzeWinner.getAuthor().equals("[deleted]")) {
+                            submitMedalUpdate(1, bronzeWinner);
+                        }
+                    }
+                    bronzeWinner.setCurrentMedal(1);
+
+                    medalWinnersList.put(goldWinner.getComment_id(), 3);
+                    medalWinnersList.put(silverWinner.getComment_id(), 2);
+                    medalWinnersList.put(bronzeWinner.getComment_id(), 1);
+
+                    switch (getCommentLevel(goldWinner)){
+                        case 0:
+                            if(!winnerTreeRoots.contains(goldWinner.getComment_id())){
+                                rootComments.add(goldWinner);
+                                winnerTreeRoots.add(goldWinner.getComment_id());
+                            }
+                            break;
+                        case 1:
+                            VSComment winnerParent = getComment(goldWinner.getParent_id());
+                            if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
+                                rootComments.add(winnerParent);
+                                winnerTreeRoots.add(winnerParent.getComment_id());
+                            }
+                            break;
+                        case 2:
+                            VSComment winnerGrandParent = getComment(goldWinner.getRoot());
+                            if(!winnerTreeRoots.contains(winnerGrandParent.getComment_id())){
+                                rootComments.add(winnerGrandParent);
+                                winnerTreeRoots.add(winnerGrandParent.getComment_id());
+                            }
+                            break;
+                    }
+
+                    switch (getCommentLevel(silverWinner)){
+                        case 0:
+                            if(!winnerTreeRoots.contains(silverWinner.getComment_id())){
+                                rootComments.add(silverWinner);
+                                winnerTreeRoots.add(silverWinner.getComment_id());
+                            }
+                            break;
+                        case 1:
+                            VSComment winnerParent = getComment(silverWinner.getParent_id());
+                            if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
+                                rootComments.add(winnerParent);
+                                winnerTreeRoots.add(winnerParent.getComment_id());
+                            }
+                            break;
+                        case 2:
+                            VSComment winnerGrandParent = getComment(silverWinner.getRoot());
+                            if(!winnerTreeRoots.contains(winnerGrandParent.getComment_id())){
+                                rootComments.add(winnerGrandParent);
+                                winnerTreeRoots.add(winnerGrandParent.getComment_id());
+                            }
+                            break;
+                    }
+
+                    switch (getCommentLevel(bronzeWinner)){
+                        case 0:
+                            if(!winnerTreeRoots.contains(bronzeWinner.getComment_id())){
+                                rootComments.add(bronzeWinner);
+                                winnerTreeRoots.add(bronzeWinner.getComment_id());
+                            }
+                            break;
+                        case 1:
+                            VSComment winnerParent = getComment(bronzeWinner.getParent_id());
+                            if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
+                                rootComments.add(winnerParent);
+                                winnerTreeRoots.add(winnerParent.getComment_id());
+                            }
+                            break;
+                        case 2:
+                            VSComment winnerGrandParent = getComment(bronzeWinner.getRoot());
+                            if(!winnerTreeRoots.contains(winnerGrandParent.getComment_id())){
+                                rootComments.add(winnerGrandParent);
+                                winnerTreeRoots.add(winnerGrandParent.getComment_id());
+                            }
+                            break;
+                    }
+
+                    break;
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+    }
+
+    private boolean commentsTied(VSComment c1, VSComment c2){
+        return c1.getUpvotes() == c2.getUpvotes() && c1.getComment_influence() == c2.getComment_influence()
+                && c1.getDownvotes() == c2.getDownvotes();
+    }
+
+    private int getCommentLevel(VSComment c1){
+        if(c1.getRoot().equals("0")){
+            if(c1.getParent_id().equals(c1.getPost_id())){
+                return 0;
+            }
+            else{
+                return 1;
+            }
+        }
+        else{
+            return 2;
+        }
     }
 
 
@@ -1057,7 +1351,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     long thisThreadID = Thread.currentThread().getId();
                     final List<Object> masterList = new ArrayList<>();
 
-                    setMedals();
+                    setMedals(rootComments);
 
                     getRootComments(0, rootComments, rootParentID, uORt);
 
@@ -2575,265 +2869,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         return post;
     }
 
-    private void getGT(ArrayList<VSComment> results, String prIn){
-        String query = "/vscomment/_search";
-        String payload =
-                "{\"size\":"+1+",\"sort\":[{\"gt\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"pt\":\""+prIn+"\"}}}";
-
-        String url = "https://" + host + query;
-
-        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
-        awsHeaders.put("host", host);
-
-        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
-                .regionName(region)
-                .serviceName("es") // es - elastic search. use your service name
-                .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
-                .canonicalURI(query) //end point
-                .queryParametes(null) //query parameters if any
-                .awsHeaders(awsHeaders) //aws header parameters
-                .payload(payload) // payload if any
-                .debug() // turn on the debug mode
-                .build();
-
-        HttpPost httpPost = new HttpPost(url);
-        StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
-        httpPost.setEntity(requestEntity);
-
-        /* Get header calculated for request */
-        Map<String, String> header = aWSV4Auth.getHeaders();
-        for (Map.Entry<String, String> entrySet : header.entrySet()) {
-            String key = entrySet.getKey();
-            String value = entrySet.getValue();
-
-            /* Attach header in your request */
-            /* Simple get request */
-
-            httpPost.addHeader(key, value);
-        }
-
-        /* Create object of CloseableHttpClient */
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-
-        /* Response handler for after request execution */
-        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
-
-            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-                /* Get status code */
-                int status = response.getStatusLine().getStatusCode();
-                if (status >= 200 && status < 300) {
-                    /* Convert response to String */
-                    HttpEntity entity = response.getEntity();
-                    return entity != null ? EntityUtils.toString(entity) : null;
-                } else {
-                    throw new ClientProtocolException("Unexpected response status: " + status);
-                }
-            }
-        };
-
-        try {
-            /* Execute URL and attach after execution response handler */
-
-            String strResponse = httpClient.execute(httpPost, responseHandler);
-
-            JSONObject obj = new JSONObject(strResponse);
-            JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
-            //Log.d("idformat", hits.getJSONObject(0).getString("_id"));
-            if(hits.length() != 0){
-                for(int i = 0; i < hits.length(); i++){
-                    JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
-                    String id = hits.getJSONObject(i).getString("_id");
-                    results.add(new VSComment(item, id));
-                    gtstbtIDs.add(id);
-                    Log.d("gtstbt", "gt added: "+id);
-
-                    currCommentsIndex++;
-                }
-                if(medalWinnersList.size() > 1){
-                    getST(results, prIn);
-                }
-
-
-            }
-
-            //System.out.println("Response: " + strResponse);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    private void getST(ArrayList<VSComment> results, String prIn){
-        String query = "/vscomment/_search";
-        String payload =
-                "{\"size\":"+1+",\"sort\":[{\"st\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"pt\":\""+prIn+"\"}}}";
-
-        String url = "https://" + host + query;
-
-        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
-        awsHeaders.put("host", host);
-
-        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
-                .regionName(region)
-                .serviceName("es") // es - elastic search. use your service name
-                .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
-                .canonicalURI(query) //end point
-                .queryParametes(null) //query parameters if any
-                .awsHeaders(awsHeaders) //aws header parameters
-                .payload(payload) // payload if any
-                .debug() // turn on the debug mode
-                .build();
-
-        HttpPost httpPost = new HttpPost(url);
-        StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
-        httpPost.setEntity(requestEntity);
-
-        /* Get header calculated for request */
-        Map<String, String> header = aWSV4Auth.getHeaders();
-        for (Map.Entry<String, String> entrySet : header.entrySet()) {
-            String key = entrySet.getKey();
-            String value = entrySet.getValue();
-
-            /* Attach header in your request */
-            /* Simple get request */
-
-            httpPost.addHeader(key, value);
-        }
-
-        /* Create object of CloseableHttpClient */
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-
-        /* Response handler for after request execution */
-        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
-
-            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-                /* Get status code */
-                int status = response.getStatusLine().getStatusCode();
-                if (status >= 200 && status < 300) {
-                    /* Convert response to String */
-                    HttpEntity entity = response.getEntity();
-                    return entity != null ? EntityUtils.toString(entity) : null;
-                } else {
-                    throw new ClientProtocolException("Unexpected response status: " + status);
-                }
-            }
-        };
-
-        try {
-            /* Execute URL and attach after execution response handler */
-
-            String strResponse = httpClient.execute(httpPost, responseHandler);
-
-            JSONObject obj = new JSONObject(strResponse);
-            JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
-            //Log.d("idformat", hits.getJSONObject(0).getString("_id"));
-            if(hits.length() != 0){
-                for(int i = 0; i < hits.length(); i++){
-                    JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
-                    String id = hits.getJSONObject(i).getString("_id");
-                    results.add(new VSComment(item, id));
-                    gtstbtIDs.add(id);
-                    Log.d("gtstbt", "st added: "+id);
-
-                    currCommentsIndex++;
-                }
-
-                if(medalWinnersList.size() > 2){
-                    getBT(results, prIn);
-                }
-
-            }
-
-            //System.out.println("Response: " + strResponse);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void getBT(ArrayList<VSComment> results, String prIn){
-        String query = "/vscomment/_search";
-        String payload =
-                "{\"size\":"+1+",\"sort\":[{\"bt\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"pt\":\""+prIn+"\"}}}";
-
-        String url = "https://" + host + query;
-
-        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
-        awsHeaders.put("host", host);
-
-        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
-                .regionName(region)
-                .serviceName("es") // es - elastic search. use your service name
-                .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
-                .canonicalURI(query) //end point
-                .queryParametes(null) //query parameters if any
-                .awsHeaders(awsHeaders) //aws header parameters
-                .payload(payload) // payload if any
-                .debug() // turn on the debug mode
-                .build();
-
-        HttpPost httpPost = new HttpPost(url);
-        StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
-        httpPost.setEntity(requestEntity);
-
-        /* Get header calculated for request */
-        Map<String, String> header = aWSV4Auth.getHeaders();
-        for (Map.Entry<String, String> entrySet : header.entrySet()) {
-            String key = entrySet.getKey();
-            String value = entrySet.getValue();
-
-            /* Attach header in your request */
-            /* Simple get request */
-
-            httpPost.addHeader(key, value);
-        }
-
-        /* Create object of CloseableHttpClient */
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-
-        /* Response handler for after request execution */
-        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
-
-            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-                /* Get status code */
-                int status = response.getStatusLine().getStatusCode();
-                if (status >= 200 && status < 300) {
-                    /* Convert response to String */
-                    HttpEntity entity = response.getEntity();
-                    return entity != null ? EntityUtils.toString(entity) : null;
-                } else {
-                    throw new ClientProtocolException("Unexpected response status: " + status);
-                }
-            }
-        };
-
-        try {
-            /* Execute URL and attach after execution response handler */
-
-            String strResponse = httpClient.execute(httpPost, responseHandler);
-
-            JSONObject obj = new JSONObject(strResponse);
-            JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
-            //Log.d("idformat", hits.getJSONObject(0).getString("_id"));
-            if(hits.length() != 0){
-                for(int i = 0; i < hits.length(); i++){
-                    JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
-                    String id = hits.getJSONObject(i).getString("_id");
-                    results.add(new VSComment(item, id));
-                    gtstbtIDs.add(id);
-
-                    Log.d("gtstbt", "bt added: "+id);
-                    currCommentsIndex++;
-                }
-
-            }
-
-            //System.out.println("Response: " + strResponse);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
     private void getRootComments(final int fromIndex, ArrayList<VSComment> results, String prIn, String uORt) {
         Log.d("gtstbt", "fromIndex: " + fromIndex);
 
@@ -2841,12 +2876,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             currCommentsIndex = 0;
             childrenCount = 0;
             nowLoading = false;
-            if(gtstbtIDs == null){
-                gtstbtIDs = new HashSet<>();
-            }
-            else{
-                gtstbtIDs.clear();
-            }
         }
 
         Log.d("commentloading", "from: " + Integer.toString(fromIndex));
@@ -2858,7 +2887,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         switch (uORt){
             case "u": //sort by comment influence, and then by upvotes
                 if(fromIndex == 0 && medalWinnersList != null && !medalWinnersList.isEmpty()){
-                    getGT(results, prIn);
+                    //getGT(results, prIn);
                     Log.d("gtstbt", "get it");
                 }
                 else{
@@ -2908,14 +2937,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
         httpPost.setEntity(requestEntity);
 
-		        /* Get header calculated for request */
+        /* Get header calculated for request */
         Map<String, String> header = aWSV4Auth.getHeaders();
         for (Map.Entry<String, String> entrySet : header.entrySet()) {
             String key = entrySet.getKey();
             String value = entrySet.getValue();
 
-			    /* Attach header in your request */
-			    /* Simple get request */
+            /* Attach header in your request */
+            /* Simple get request */
 
             httpPost.addHeader(key, value);
         }
@@ -2923,14 +2952,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         /* Create object of CloseableHttpClient */
         CloseableHttpClient httpClient = HttpClients.createDefault();
 
-		/* Response handler for after request execution */
+        /* Response handler for after request execution */
         ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
 
             public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-				/* Get status code */
+                /* Get status code */
                 int status = response.getStatusLine().getStatusCode();
                 if (status >= 200 && status < 300) {
-					/* Convert response to String */
+                    /* Convert response to String */
                     HttpEntity entity = response.getEntity();
                     return entity != null ? EntityUtils.toString(entity) : null;
                 } else {
@@ -2940,7 +2969,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         };
 
         try {
-			/* Execute URL and attach after execution response handler */
+            /* Execute URL and attach after execution response handler */
             long startTime = System.currentTimeMillis();
 
             String strResponse = httpClient.execute(httpPost, responseHandler);
@@ -2964,8 +2993,13 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             for(int i = 0; i < hits.length(); i++){
                 JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
                 String id = hits.getJSONObject(i).getString("_id");
-                if(!gtstbtIDs.contains(id)){
+                Log.d("winnertree", "winnerTreeRoots size: " + winnerTreeRoots.size());
+                if(!winnerTreeRoots.contains(id)){
                     results.add(new VSComment(item, id));
+                    Log.d("winnertree", "didn't skip for " + id);
+                }
+                else{
+                    Log.d("winnertree", "skipped for " + id);
                 }
 
                 currCommentsIndex++;
@@ -3013,14 +3047,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
         httpPost.setEntity(requestEntity);
 
-		        /* Get header calculated for request */
+        /* Get header calculated for request */
         Map<String, String> header = aWSV4Auth.getHeaders();
         for (Map.Entry<String, String> entrySet : header.entrySet()) {
             String key = entrySet.getKey();
             String value = entrySet.getValue();
 
-			    /* Attach header in your request */
-			    /* Simple get request */
+            /* Attach header in your request */
+            /* Simple get request */
 
             httpPost.addHeader(key, value);
         }
@@ -3028,14 +3062,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         /* Create object of CloseableHttpClient */
         CloseableHttpClient httpClient = HttpClients.createDefault();
 
-		/* Response handler for after request execution */
+        /* Response handler for after request execution */
         ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
 
             public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-				/* Get status code */
+                /* Get status code */
                 int status = response.getStatusLine().getStatusCode();
                 if (status >= 200 && status < 300) {
-					/* Convert response to String */
+                    /* Convert response to String */
                     HttpEntity entity = response.getEntity();
                     return entity != null ? EntityUtils.toString(entity) : null;
                 } else {
@@ -3045,7 +3079,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         };
 
         try {
-			/* Execute URL and attach after execution response handler */
+            /* Execute URL and attach after execution response handler */
 
             String strResponse = httpClient.execute(httpPost, responseHandler);
 
@@ -3098,14 +3132,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         HttpGet httpGet = new HttpGet(url);
 
-		        /* Get header calculated for request */
+        /* Get header calculated for request */
         Map<String, String> header = aWSV4Auth.getHeaders();
         for (Map.Entry<String, String> entrySet : header.entrySet()) {
             String key = entrySet.getKey();
             String value = entrySet.getValue();
 
-			    /* Attach header in your request */
-			    /* Simple get request */
+            /* Attach header in your request */
+            /* Simple get request */
 
             httpGet.addHeader(key, value);
         }
@@ -3113,14 +3147,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         /* Create object of CloseableHttpClient */
         CloseableHttpClient httpClient = HttpClients.createDefault();
 
-		/* Response handler for after request execution */
+        /* Response handler for after request execution */
         ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
 
             public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-				/* Get status code */
+                /* Get status code */
                 int status = response.getStatusLine().getStatusCode();
                 if (status >= 200 && status < 300) {
-					/* Convert response to String */
+                    /* Convert response to String */
                     HttpEntity entity = response.getEntity();
                     return entity != null ? EntityUtils.toString(entity) : null;
                 } else {
@@ -3130,7 +3164,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         };
 
         try {
-			/* Execute URL and attach after execution response handler */
+            /* Execute URL and attach after execution response handler */
             long startTime = System.currentTimeMillis();
 
             String strResponse = httpClient.execute(httpGet, responseHandler);
