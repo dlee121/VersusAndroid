@@ -128,6 +128,7 @@ public class ProfileTab extends Fragment {
     private String host, region;
 
     private int profileImgVersion = 0;
+    private String influence = "";
     private Drawable defaultProfileImage, fIcon, gIcon, hIcon;
 
     private boolean followingThisUser = false;
@@ -643,6 +644,77 @@ public class ProfileTab extends Fragment {
         profileImgConfirm.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
     }
 
+    private String getUserInfluence(){ //used in loadProfileImage to grab logged-in user's influence from ES
+
+        String query = "/user/user_type/"+profileUsername;
+        String url = "https://" + host + query;
+
+        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
+        awsHeaders.put("host", host);
+
+        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
+                .regionName(region)
+                .serviceName("es") // es - elastic search. use your service name
+                .httpMethodName("GET") //GET, PUT, POST, DELETE, etc...
+                .canonicalURI(query) //end point
+                .queryParametes(null) //query parameters if any
+                .awsHeaders(awsHeaders) //aws header parameters
+                .debug() // turn on the debug mode
+                .build();
+
+        HttpGet httpGet = new HttpGet(url);
+
+        /* Get header calculated for request */
+        Map<String, String> header = aWSV4Auth.getHeaders();
+        for (Map.Entry<String, String> entrySet : header.entrySet()) {
+            String key = entrySet.getKey();
+            String value = entrySet.getValue();
+
+            /* Attach header in your request */
+            /* Simple get request */
+
+            httpGet.addHeader(key, value);
+        }
+
+        /* Create object of CloseableHttpClient */
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+        /* Response handler for after request execution */
+        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
+
+            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+                /* Get status code */
+                int status = response.getStatusLine().getStatusCode();
+                if (status >= 200 && status < 300) {
+                    /* Convert response to String */
+                    HttpEntity entity = response.getEntity();
+                    return entity != null ? EntityUtils.toString(entity) : null;
+                } else {
+                    throw new ClientProtocolException("Unexpected response status: " + status);
+                }
+            }
+        };
+
+        try {
+            /* Execute URL and attach after execution response handler */
+
+            String strResponse = httpClient.execute(httpGet, responseHandler);
+
+            JSONObject obj = new JSONObject(strResponse);
+            JSONObject item = obj.getJSONObject("_source");
+            return Integer.toString(item.getInt("in")) + " influence";
+
+            //System.out.println("Response: " + strResponse);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+        return "";
+    }
+
+
+
     private void loadProfileImage(final String username) {
 
         //Log.d("IMGUPLOAD", postIDin + "-" + side + ".jpeg");
@@ -665,9 +737,12 @@ public class ProfileTab extends Fragment {
 
                     if(profileUsername.equals(activity.getUsername())){
                         profileImgVersion = activity.getUserProfileImageVersion();
+                        //grab the influence from ES
+                        influence = getUserInfluence();
                     }
                     else{
-                        profileImgVersion = getProfileImgVersion(username);
+                        //grab both influence and profileImgVersion from ES
+                        profileImgVersion = getProfileImgVersionAndInfluece(username);
                     }
 
                     activity.addToCentralProfileImgVersionMap(username, profileImgVersion);
@@ -700,14 +775,15 @@ public class ProfileTab extends Fragment {
                 else{
                     Glide.with(activity.getProfileTab()).load(defaultProfileImage).into(profileImageView);
                 }
+
+                pointsTV.setText(influence);
             }
         };
         _Task.execute((String[]) null);
     }
 
 
-
-    private int getProfileImgVersion(String username){
+    private int getProfileImgVersionAndInfluece(String username){
 
         String query = "/user/user_type/"+username;
         String url = "https://" + host + query;
@@ -765,6 +841,7 @@ public class ProfileTab extends Fragment {
 
             JSONObject obj = new JSONObject(strResponse);
             JSONObject item = obj.getJSONObject("_source");
+            influence = Integer.toString(item.getInt("in")) + " influence";
             return item.getInt("pi");
 
             //System.out.println("Response: " + strResponse);
@@ -772,7 +849,8 @@ public class ProfileTab extends Fragment {
             e.printStackTrace();
         }
 
-        //if the ES GET fails, then return old topCardContent
+
+        influence = "";
         return 0;
     }
 
@@ -800,10 +878,10 @@ public class ProfileTab extends Fragment {
         }
     }
 
-    //for accessing another user's profile page
     public void setUpProfile(final String username, boolean myProfile){
 
         profileUsername = username;
+        pointsTV.setText("");
 
         loadProfileImage(profileUsername);
 
@@ -831,7 +909,7 @@ public class ProfileTab extends Fragment {
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            getGSBP(activity.getUserPath());
+                            getMedalCount(activity.getUserPath());
                             usernameTV.setText(username);
                             String followingText = Integer.toString(activity.getFollowingNum()) + "\nFollowing";
                             followingCountTV.setText(followingText);
@@ -881,7 +959,7 @@ public class ProfileTab extends Fragment {
                                 usernameHash = hashIn.hashCode();
                             }
                             String userPath = Integer.toString(usernameHash) + "/" + username + "/";
-                            getGSBP(userPath);
+                            getMedalCount(userPath);
                             usernameTV.setText(username);
                             getFGHCounts();
                         }
@@ -1245,10 +1323,9 @@ public class ProfileTab extends Fragment {
     }
 
     //get medal counts and points
-    private void getGSBP(String userPath){
+    private void getMedalCount(String userPath){
 
         final String medalsPath = userPath + "w";
-        final String pointsPath = userPath + "p";
 
         mFirebaseDatabaseReference.child(medalsPath).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -1273,26 +1350,6 @@ public class ProfileTab extends Fragment {
                 else{
                     bronzeTV.setText(Integer.toString(0));
                 }
-
-                mFirebaseDatabaseReference.child(pointsPath).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        String strIn;
-                        if(dataSnapshot.getValue() != null){
-                            strIn = dataSnapshot.getValue(Integer.class).toString() + " influence";
-                            pointsTV.setText(strIn);
-                        }
-                        else{
-                            strIn = Integer.toString(0) + " influence";
-                            pointsTV.setText(strIn);
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
 
             }
 
