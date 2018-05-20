@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 
 import com.google.firebase.database.DataSnapshot;
@@ -20,9 +21,28 @@ import com.google.firebase.database.ValueEventListener;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.LeaderboardAdapter;
+import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.LeaderboardEntry;
+import com.vs.bcd.versus.model.VSComment;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.TreeMap;
+
+import cz.msebera.android.httpclient.HttpEntity;
+import cz.msebera.android.httpclient.HttpResponse;
+import cz.msebera.android.httpclient.client.ClientProtocolException;
+import cz.msebera.android.httpclient.client.ResponseHandler;
+import cz.msebera.android.httpclient.client.methods.HttpPost;
+import cz.msebera.android.httpclient.entity.ContentType;
+import cz.msebera.android.httpclient.entity.StringEntity;
+import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
+import cz.msebera.android.httpclient.impl.client.HttpClients;
+import cz.msebera.android.httpclient.util.EntityUtils;
 
 /**
  * Created by dlee on 8/6/17.
@@ -39,6 +59,7 @@ public class LeaderboardTab extends Fragment {
     private long lastRefreshTime = 0;
     RecyclerView recyclerView;
     LeaderboardAdapter mLeaderboardAdapter;
+    private ProgressBar lbProgressBar;
 
     private DatabaseReference mFirebaseDatabaseReference;
 
@@ -53,12 +74,12 @@ public class LeaderboardTab extends Fragment {
 
         recyclerView = rootView.findViewById(R.id.leaderboard_rv);
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
-        mLayoutManager.setReverseLayout(true);
-        mLayoutManager.setStackFromEnd(true);
         recyclerView.setLayoutManager(mLayoutManager);
 
         mLeaderboardAdapter = new LeaderboardAdapter(leaders, activity);
         recyclerView.setAdapter(mLeaderboardAdapter);
+
+        lbProgressBar = rootView.findViewById(R.id.lb_progressbar);
 
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();
@@ -115,103 +136,104 @@ public class LeaderboardTab extends Fragment {
         }
     }
 
-    private void getMedalCount(String username, final int index){
-        //so in the adapter, if medal counts are -1, then we put a progress bar instead of a medal display case.
-        //then when this function finishes and gets the medal count,
-        // then we first update the gold/silver/bronze leader's medal count and notifyItemChanged(index),
-        // which will call onBindViewHolder on that item and it'll see medal count is not -1 anymore and will display the proper counts in medal display case
-        //   ^^but does it though? maybe we gotta call a function to disable the progressbar and bring out the display case
-
-
-        String userPath = getUsernameHash(username) + "/" + username + "/";
-        String medalPath = userPath+"w";
-        mFirebaseDatabaseReference.child(medalPath).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                LeaderboardEntry entry = leaders.get(index);
-                int g = 0;
-                int s = 0;
-                int b = 0;
-
-                if(dataSnapshot.hasChild("g")){
-                    g = dataSnapshot.child("g").getValue(Integer.class);
-                }
-
-                if(dataSnapshot.hasChild("s")){
-                    s = dataSnapshot.child("s").getValue(Integer.class);
-                }
-
-                if(dataSnapshot.hasChild("b")){
-                    b = dataSnapshot.child("b").getValue(Integer.class);
-                }
-
-                entry.setMedalCount(g, s, b);
-
-                leaders.set(index, entry);
-                mLeaderboardAdapter.notifyItemChanged(index);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                // ...
-            }
-        });
-    }
-
-
     private void setUpLeaderboard(){
-        /*
-        if(System.currentTimeMillis() < lastRefreshTime + 30 * 1000){   //if it's been less than 30 seconds since last leaderboard refresh, return instead of querying
-            return;
-        }
-        */
+        leaders.clear();
+        mLeaderboardAdapter.notifyDataSetChanged();
+        lbProgressBar.setVisibility(View.VISIBLE);
 
-        Query query = mFirebaseDatabaseReference.child("leaderboard").orderByValue().limitToLast(100);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.hasChildren()) {
-                    int index = 0;
-                    leaders.clear();
-                    for(DataSnapshot item : dataSnapshot.getChildren()){
-                        Log.d("dataSnapShotCCCheck", "Count: " + Integer.toString(((int)dataSnapshot.getChildrenCount())));
+        Runnable runnable = new Runnable() {
+            public void run() {
+                String query = "/user/_search";
+                String payload;
 
-                        //since we only get 100 children, we can safely cast dataSnapshot.getChildrenCount(), which returns a long, into int
-                        switch (((int)dataSnapshot.getChildrenCount()) - 1 - index){ //since the list is actually in ascending order, we count from the tail-end
-                            case 0:
-                                getMedalCount(item.getKey(), index);
-                                leaders.add(new LeaderboardEntry(item.getKey(), item.getValue(Integer.class), -1, -1, -1));
-                                break;
+                payload = "{\"size\":100,\"sort\":[{\"in\":{\"order\":\"desc\"}}, {\"g\":{\"order\":\"desc\"}}, {\"s\":{\"order\":\"desc\"}}, {\"b\":{\"order\":\"desc\"}}, {\"@t\":{\"order\":\"desc\"}}],\"_source\":[\"b\",\"g\",\"in\",\"pi\",\"s\"],\"query\":{\"match_all\":{}}}";
 
-                            case 1:
-                                getMedalCount(item.getKey(), index);
-                                leaders.add(new LeaderboardEntry(item.getKey(), item.getValue(Integer.class), -1, -1, -1));
-                                break;
 
-                            case 2:
-                                getMedalCount(item.getKey(), index);
-                                leaders.add(new LeaderboardEntry(item.getKey(), item.getValue(Integer.class), -1, -1, -1));
-                                break;
+                String host = activity.getESHost();
+                String region = activity.getESRegion();
+                String url = "https://" + host + query;
 
-                            default:
-                                leaders.add(new LeaderboardEntry(item.getKey(), item.getValue(Integer.class)));
-                                break;
-                        }
+                TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
+                awsHeaders.put("host", host);
 
-                        index++;
+                AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
+                        .regionName(region)
+                        .serviceName("es") // es - elastic search. use your service name
+                        .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
+                        .canonicalURI(query) //end point
+                        .queryParametes(null) //query parameters if any
+                        .awsHeaders(awsHeaders) //aws header parameters
+                        .payload(payload) // payload if any
+                        .debug() // turn on the debug mode
+                        .build();
 
-                        //Log.d("leaderboard", Integer.toString(i) + "\t"+item.getKey()+"\t"+Integer.toString(item.getValue(Integer.class)));
-                    }
-                    mLeaderboardAdapter.notifyDataSetChanged();
+                HttpPost httpPost = new HttpPost(url);
+                StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
+                httpPost.setEntity(requestEntity);
+
+                /* Get header calculated for request */
+                Map<String, String> header = aWSV4Auth.getHeaders();
+                for (Map.Entry<String, String> entrySet : header.entrySet()) {
+                    String key = entrySet.getKey();
+                    String value = entrySet.getValue();
+
+                    /* Attach header in your request */
+                    /* Simple get request */
+
+                    httpPost.addHeader(key, value);
                 }
-                lastRefreshTime = System.currentTimeMillis();
-            }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+                /* Create object of CloseableHttpClient */
+                CloseableHttpClient httpClient = HttpClients.createDefault();
 
+                /* Response handler for after request execution */
+                ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
+
+                    public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+                        /* Get status code */
+                        int status = response.getStatusLine().getStatusCode();
+                        if (status >= 200 && status < 300) {
+                            /* Convert response to String */
+                            HttpEntity entity = response.getEntity();
+                            return entity != null ? EntityUtils.toString(entity) : null;
+                        } else {
+                            throw new ClientProtocolException("Unexpected response status: " + status);
+                        }
+                    }
+                };
+
+                try {
+                    /* Execute URL and attach after execution response handler */
+
+                    String strResponse = httpClient.execute(httpPost, responseHandler);
+
+                    JSONObject obj = new JSONObject(strResponse);
+                    JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
+
+                    for(int i = 0; i < hits.length(); i++){
+                        JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
+                        String id = hits.getJSONObject(i).getString("_id");
+                        leaders.add(new LeaderboardEntry(item, id));
+                    }
+
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            lbProgressBar.setVisibility(View.GONE);
+                            mLeaderboardAdapter.notifyDataSetChanged();
+                        }
+                    });
+
+                    //System.out.println("Response: " + strResponse);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
-        });
+        };
+        Thread mythread = new Thread(runnable);
+        mythread.start();
+
+
     }
 
     private String getUsernameHash(String usernameIn){

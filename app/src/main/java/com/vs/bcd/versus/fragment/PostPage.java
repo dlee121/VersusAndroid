@@ -2845,7 +2845,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     private void getRootComments(final int fromIndex, ArrayList<VSComment> results, String prIn, String uORt) {
-        Log.d("gtstbt", "fromIndex: " + fromIndex);
 
         if(fromIndex == 0){
             currCommentsIndex = 0;

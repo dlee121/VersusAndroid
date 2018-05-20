@@ -50,7 +50,7 @@
             android:text="WW" />
 
         <TextView
-            android:id="@+id/gm_points"
+            android:id="@+id/gm_influence"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="12sp"
@@ -62,7 +62,7 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/gm_points"
+            android:layout_below="@id/gm_influence"
             android:layout_marginTop="4dp"
             android:layout_centerHorizontal="true"
             android:orientation="horizontal">

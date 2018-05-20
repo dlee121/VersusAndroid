@@ -14,16 +14,12 @@ import java.util.UUID;
 @DynamoDBTable(tableName = "user")
 public class User {
 
-    private String firstName;
-    private String lastName;
-    private String bday;
-    private String username; //partition key
-    private String password;
-    private String email = "n/a"; //default value, since dynamodb doesn't want empty strings either email or phone may be unspecified by user
-    private String phone = "n/a";
+    private String firstName, lastName, bday, username, password;
+    private String email = "0"; //default value, since dynamodb doesn't want empty strings either email or phone may be unspecified by user
+    private String phone = "0";
     private String mkey; //pw for messenger auth
     private int profileImage; //profile image storage url
-    private int influence;
+    private int influence, g, s, b; //influece and medal count
 
 
     @DynamoDBAttribute(attributeName = "fn")
@@ -104,6 +100,33 @@ public class User {
     }
     public void setInfluence(int influence) {
         this.influence = influence;
+    }
+
+    @DynamoDBAttribute(attributeName = "g")
+    public int getG(){
+        return g;
+    }
+
+    public void setG(int g) {
+        this.g = g;
+    }
+
+    @DynamoDBAttribute(attributeName = "s")
+    public int getS() {
+        return s;
+    }
+
+    public void setS(int s) {
+        this.s = s;
+    }
+
+    @DynamoDBAttribute(attributeName = "b")
+    public int getB() {
+        return b;
+    }
+
+    public void setB(int b) {
+        this.b = b;
     }
 
     public User(){

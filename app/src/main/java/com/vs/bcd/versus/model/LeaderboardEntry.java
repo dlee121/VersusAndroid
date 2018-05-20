@@ -1,31 +1,35 @@
 package com.vs.bcd.versus.model;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /**
  * Created by dlee on 11/29/17.
  */
 
 public class LeaderboardEntry {
     private String username;
-    private int points;
+    private int influence;
     private int g,s,b; //medal counts for top 3
+    private int pi;
 
-    public LeaderboardEntry(String username, int points){
+    public LeaderboardEntry(String username, int influence){
         this.username = username;
-        this.points = points;
+        this.influence = influence;
+        g = 0;
+        s = 0;
+        b = 0;
+        pi = 0;
     }
 
-    public LeaderboardEntry(String username, int points, int g, int s, int b){
-        this.username = username;
-        this.points = points;
-        this.g = g;
-        this.s = s;
-        this.b = b;
-    }
+    public LeaderboardEntry(JSONObject item, String id) throws JSONException{
+        username = id;
+        b = item.getInt("b");
+        g = item.getInt("g");
+        influence = item.getInt("in");
+        pi = item.getInt(("pi"));
+        s = item.getInt("s");
 
-    public void setMedalCount(int g, int s, int b){
-        this.g = g;
-        this.s = s;
-        this.b = b;
     }
 
     public String getUsername(){
@@ -36,12 +40,12 @@ public class LeaderboardEntry {
         this.username = username;
     }
 
-    public int getPoints(){
-        return points;
+    public int getInfluence(){
+        return influence;
     }
 
-    public void setPoints(int points){
-        this.points = points;
+    public void setInfluence(int influence){
+        this.influence = influence;
     }
 
     public int getG(){
