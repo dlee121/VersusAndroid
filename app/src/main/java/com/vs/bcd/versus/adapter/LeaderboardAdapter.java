@@ -1,20 +1,33 @@
 package com.vs.bcd.versus.adapter;
 
 import android.app.Activity;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.ListPreloader;
+import com.bumptech.glide.RequestBuilder;
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.activity.MainContainer;
+import com.vs.bcd.versus.model.GlideApp;
+import com.vs.bcd.versus.model.GlideUrlCustom;
 import com.vs.bcd.versus.model.LeaderboardEntry;
+import com.vs.bcd.versus.model.Post;
 
+import java.util.Collections;
 import java.util.List;
 
+import de.hdodenhof.circleimageview.CircleImageView;
 
-public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    private Activity activity;
+
+public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements ListPreloader.PreloadModelProvider<LeaderboardEntry>{
+    private MainContainer activity;
     private List<LeaderboardEntry> leaders;
 
     private final int TYPE_G = 0; //first place
@@ -22,7 +35,7 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     private final int TYPE_B = 2; //third place
     private final int TYPE_R = 3; //all other ranked users
 
-    public LeaderboardAdapter(List<LeaderboardEntry> leaders, Activity activity) {
+    public LeaderboardAdapter(List<LeaderboardEntry> leaders, MainContainer activity) {
         this.leaders = leaders;
         this.activity = activity;
     }
@@ -100,6 +113,17 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             else{
                 leaderViewHolder.bcount.setText("0");
             }
+
+            if (leaderboardEntry.getPi() != 0) {
+                try {
+                    Glide.with(activity).load(activity.getProfileImgUrl(leaderboardEntry.getUsername(), leaderboardEntry.getPi())).into(leaderViewHolder.profileImage);
+                } catch (Exception e) {
+                    leaderViewHolder.profileImage.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_profile));
+                }
+            } else {
+                leaderViewHolder.profileImage.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_profile));
+            }
+
         }
         else if(holder instanceof GoldViewHolder){
             LeaderboardEntry leaderboardEntry = leaders.get(position);
@@ -127,6 +151,16 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             }
             else{
                 goldViewHolder.bcount.setText("0");
+            }
+
+            if (leaderboardEntry.getPi() != 0) {
+                try {
+                    Glide.with(activity).load(activity.getProfileImgUrl(leaderboardEntry.getUsername(), leaderboardEntry.getPi())).into(goldViewHolder.profileImage);
+                } catch (Exception e) {
+                    goldViewHolder.profileImage.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_profile));
+                }
+            } else {
+                goldViewHolder.profileImage.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_profile));
             }
 
         }
@@ -158,6 +192,16 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 silverViewHolder.bcount.setText("0");
             }
 
+            if (leaderboardEntry.getPi() != 0) {
+                try {
+                    Glide.with(activity).load(activity.getProfileImgUrl(leaderboardEntry.getUsername(), leaderboardEntry.getPi())).into(silverViewHolder.profileImage);
+                } catch (Exception e) {
+                    silverViewHolder.profileImage.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_profile));
+                }
+            } else {
+                silverViewHolder.profileImage.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_profile));
+            }
+
         }
         else if(holder instanceof BronzeViewHolder){
             LeaderboardEntry leaderboardEntry = leaders.get(position);
@@ -187,6 +231,16 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 bronzeViewHolder.bcount.setText("0");
             }
 
+            if (leaderboardEntry.getPi() != 0) {
+                try {
+                    Glide.with(activity).load(activity.getProfileImgUrl(leaderboardEntry.getUsername(), leaderboardEntry.getPi())).into(bronzeViewHolder.profileImage);
+                } catch (Exception e) {
+                    bronzeViewHolder.profileImage.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_profile));
+                }
+            } else {
+                bronzeViewHolder.profileImage.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.default_profile));
+            }
+
         }
 
     }
@@ -199,9 +253,11 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     private class LeaderViewHolder extends RecyclerView.ViewHolder {
 
         public TextView username, influence, rank, gcount, scount, bcount;
+        public CircleImageView profileImage;
 
         public LeaderViewHolder(View view) {
             super(view);
+            profileImage = view.findViewById(R.id.profile_image_lb);
             username = view.findViewById(R.id.lb_username);
             influence = view.findViewById(R.id.lb_influence);
             rank = view.findViewById(R.id.rank);
@@ -214,9 +270,11 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     private class GoldViewHolder extends RecyclerView.ViewHolder {
 
         public TextView username, influence, gcount, scount, bcount;
+        public CircleImageView profileImage;
 
         public GoldViewHolder(View view){
             super(view);
+            profileImage = view.findViewById(R.id.profile_image_gm);
             username = view.findViewById(R.id.gm_username);
             influence = view.findViewById(R.id.gm_influence);
             gcount = view.findViewById(R.id.gmc_goldmedal_count);
@@ -228,9 +286,11 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     private class SilverViewHolder extends RecyclerView.ViewHolder {
 
         public TextView username, influence, gcount, scount, bcount;
+        public CircleImageView profileImage;
 
         public SilverViewHolder(View view){
             super(view);
+            profileImage = view.findViewById(R.id.profile_image_sm);
             username = view.findViewById(R.id.sm_username);
             influence = view.findViewById(R.id.sm_influence);
             gcount = view.findViewById(R.id.smc_goldmedal_count);
@@ -242,14 +302,46 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     private class BronzeViewHolder extends RecyclerView.ViewHolder {
 
         public TextView username, influence, gcount, scount, bcount;
+        public CircleImageView profileImage;
 
         public BronzeViewHolder(View view){
             super(view);
+            profileImage = view.findViewById(R.id.profile_image_bm);
             username = view.findViewById(R.id.bm_username);
             influence = view.findViewById(R.id.bm_influence);
             gcount = view.findViewById(R.id.bmc_goldmedal_count);
             scount = view.findViewById(R.id.bmc_silvermedal_count);
             bcount = view.findViewById(R.id.bmc_bronzemedal_count);
         }
+    }
+
+    @Override
+    @NonNull
+    public List<LeaderboardEntry> getPreloadItems(int position) {
+        try{//TODO: eventually we wanna fix the bug that's causing the exception
+            return Collections.singletonList(leaders.get(position));
+        }
+        catch (Throwable t){
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    @Nullable
+    public RequestBuilder getPreloadRequestBuilder(LeaderboardEntry entry) {
+        try{
+            int profileImg;
+            profileImg = entry.getPi();
+            if(profileImg == 0){
+                return null;
+            }
+            return GlideApp.with(activity).load( activity.getProfileImgUrl(entry.getUsername(), entry.getPi()) );
+
+        }
+        catch (Throwable t){
+
+        }
+
+        return null;
     }
 }

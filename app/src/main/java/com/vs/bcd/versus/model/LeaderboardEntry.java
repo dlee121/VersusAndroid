@@ -36,16 +36,8 @@ public class LeaderboardEntry {
         return username;
     }
 
-    public void setUsername(String username){
-        this.username = username;
-    }
-
     public int getInfluence(){
         return influence;
-    }
-
-    public void setInfluence(int influence){
-        this.influence = influence;
     }
 
     public int getG(){
@@ -58,5 +50,9 @@ public class LeaderboardEntry {
 
     public int getB(){
         return b;
+    }
+
+    public int getPi(){
+        return pi;
     }
 }

@@ -129,6 +129,9 @@ public class ProfileTab extends Fragment {
 
     private int profileImgVersion = 0;
     private String influence = "";
+    private String gCount = "";
+    private String sCount = "";
+    private String bCount = "";
     private Drawable defaultProfileImage, fIcon, gIcon, hIcon;
 
     private boolean followingThisUser = false;
@@ -644,7 +647,7 @@ public class ProfileTab extends Fragment {
         profileImgConfirm.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
     }
 
-    private String getUserInfluence(){ //used in loadProfileImage to grab logged-in user's influence from ES
+    private void getUserInfluence(){ //used in loadProfileImage to grab logged-in user's influence from ES
 
         String query = "/user/user_type/"+profileUsername;
         String url = "https://" + host + query;
@@ -702,15 +705,18 @@ public class ProfileTab extends Fragment {
 
             JSONObject obj = new JSONObject(strResponse);
             JSONObject item = obj.getJSONObject("_source");
-            return Integer.toString(item.getInt("in")) + " influence";
-
+            influence = Integer.toString(item.getInt("in")) + " influence";
+            gCount = Integer.toString(item.getInt("g"));
+            sCount = Integer.toString(item.getInt("s"));
+            bCount = Integer.toString(item.getInt("b"));
             //System.out.println("Response: " + strResponse);
         } catch (Exception e) {
+            influence = "";
+            gCount = "";
+            sCount = "";
+            bCount = "";
             e.printStackTrace();
         }
-
-
-        return "";
     }
 
 
@@ -738,11 +744,11 @@ public class ProfileTab extends Fragment {
                     if(profileUsername.equals(activity.getUsername())){
                         profileImgVersion = activity.getUserProfileImageVersion();
                         //grab the influence from ES
-                        influence = getUserInfluence();
+                        getUserInfluence();
                     }
                     else{
                         //grab both influence and profileImgVersion from ES
-                        profileImgVersion = getProfileImgVersionAndInfluece(username);
+                        getProfileImgVersionAndInfluece(username);
                     }
 
                     activity.addToCentralProfileImgVersionMap(username, profileImgVersion);
@@ -777,13 +783,16 @@ public class ProfileTab extends Fragment {
                 }
 
                 pointsTV.setText(influence);
+                goldTV.setText(gCount);
+                silverTV.setText(sCount);
+                bronzeTV.setText(bCount);
             }
         };
         _Task.execute((String[]) null);
     }
 
 
-    private int getProfileImgVersionAndInfluece(String username){
+    private void getProfileImgVersionAndInfluece(String username){
 
         String query = "/user/user_type/"+username;
         String url = "https://" + host + query;
@@ -842,16 +851,20 @@ public class ProfileTab extends Fragment {
             JSONObject obj = new JSONObject(strResponse);
             JSONObject item = obj.getJSONObject("_source");
             influence = Integer.toString(item.getInt("in")) + " influence";
-            return item.getInt("pi");
+            profileImgVersion = item.getInt("pi");
+            gCount = Integer.toString(item.getInt("g"));
+            sCount = Integer.toString(item.getInt("s"));
+            bCount = Integer.toString(item.getInt("b"));
 
             //System.out.println("Response: " + strResponse);
         } catch (Exception e) {
+            influence = "";
+            profileImgVersion = 0;
+            gCount = "";
+            sCount = "";
+            bCount = "";
             e.printStackTrace();
         }
-
-
-        influence = "";
-        return 0;
     }
 
     public void setProfileFGHIcon(char fghn){
@@ -909,7 +922,6 @@ public class ProfileTab extends Fragment {
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            getMedalCount(activity.getUserPath());
                             usernameTV.setText(username);
                             String followingText = Integer.toString(activity.getFollowingNum()) + "\nFollowing";
                             followingCountTV.setText(followingText);
@@ -959,7 +971,6 @@ public class ProfileTab extends Fragment {
                                 usernameHash = hashIn.hashCode();
                             }
                             String userPath = Integer.toString(usernameHash) + "/" + username + "/";
-                            getMedalCount(userPath);
                             usernameTV.setText(username);
                             getFGHCounts();
                         }
@@ -1311,45 +1322,6 @@ public class ProfileTab extends Fragment {
 
                     }
                 });
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-    }
-
-    //get medal counts and points
-    private void getMedalCount(String userPath){
-
-        final String medalsPath = userPath + "w";
-
-        mFirebaseDatabaseReference.child(medalsPath).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if(dataSnapshot.hasChild("g")){
-                    goldTV.setText(dataSnapshot.child("g").getValue(Integer.class).toString());
-                }
-                else{
-                    goldTV.setText(Integer.toString(0));
-                }
-
-                if(dataSnapshot.hasChild("s")){
-                    silverTV.setText(dataSnapshot.child("s").getValue(Integer.class).toString());
-                }
-                else{
-                    silverTV.setText(Integer.toString(0));
-                }
-
-                if(dataSnapshot.hasChild("b")){
-                    bronzeTV.setText(dataSnapshot.child("b").getValue(Integer.class).toString());
-                }
-                else{
-                    bronzeTV.setText(Integer.toString(0));
-                }
 
             }
 

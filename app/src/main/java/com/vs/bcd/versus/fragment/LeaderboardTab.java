@@ -12,6 +12,10 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.ListPreloader;
+import com.bumptech.glide.integration.recyclerview.RecyclerViewPreloader;
+import com.bumptech.glide.util.FixedPreloadSizeProvider;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -23,6 +27,7 @@ import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.LeaderboardAdapter;
 import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.LeaderboardEntry;
+import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.VSComment;
 
 import org.json.JSONArray;
@@ -78,6 +83,14 @@ public class LeaderboardTab extends Fragment {
 
         mLeaderboardAdapter = new LeaderboardAdapter(leaders, activity);
         recyclerView.setAdapter(mLeaderboardAdapter);
+
+        //recyclerview preloader setup
+        ListPreloader.PreloadSizeProvider sizeProvider =
+                new FixedPreloadSizeProvider(activity.getResources().getDimensionPixelSize(R.dimen.profile_img_general), activity.getResources().getDimensionPixelSize(R.dimen.profile_img_general));
+        RecyclerViewPreloader<LeaderboardEntry> preloader =
+                new RecyclerViewPreloader<>(Glide.with(activity), mLeaderboardAdapter, sizeProvider, 20);
+        recyclerView.addOnScrollListener(preloader);
+
 
         lbProgressBar = rootView.findViewById(R.id.lb_progressbar);
 
