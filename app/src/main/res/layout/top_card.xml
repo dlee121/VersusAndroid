@@ -197,13 +197,24 @@
             android:background="#EEEEEE"
             android:layout_below="@id/heartbuttontc"
             android:layout_marginTop="24dp"
-            android:layout_marginBottom="8dp"></LinearLayout>
+            android:layout_marginBottom="8dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginStart="8dp"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textSize="@dimen/sort_header"
+                android:textColor="#000"
+                android:text="Replies"/>
+        </LinearLayout>
 
         <Button
             android:id="@+id/sort_type_selector_topcard"
             android:layout_width="wrap_content"
             android:layout_height="32dp"
             android:layout_below="@id/heartbuttontc"
+            android:layout_alignParentEnd="true"
             android:layout_marginTop="24dp"
             style="?android:attr/borderlessButtonStyle"
             android:background="#EEEEEE"

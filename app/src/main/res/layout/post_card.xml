@@ -203,7 +203,18 @@
             android:background="#EEEEEE"
             android:layout_below="@id/names"
             android:orientation="horizontal"
-            android:layout_alignParentBottom="true"></LinearLayout>
+            android:layout_alignParentBottom="true">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginStart="8dp"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textSize="@dimen/sort_header"
+                android:textColor="#000"
+                android:text="Comments"/>
+
+        </LinearLayout>
 
         <Button
             android:id="@+id/sort_type_selector_pc"
@@ -211,6 +222,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/names"
             android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
             style="?android:attr/borderlessButtonStyle"
             android:background="#EEEEEE"
             android:paddingStart="8dp"
