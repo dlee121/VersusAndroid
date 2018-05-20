@@ -84,9 +84,9 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
-        if(holder instanceof LeaderViewHolder){
+        final LeaderboardEntry leaderboardEntry = leaders.get(position);
 
-            LeaderboardEntry leaderboardEntry = leaders.get(position);
+        if(holder instanceof LeaderViewHolder){
             LeaderViewHolder leaderViewHolder = (LeaderViewHolder) holder;
 
             leaderViewHolder.username.setText(leaderboardEntry.getUsername());
@@ -126,7 +126,6 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
         }
         else if(holder instanceof GoldViewHolder){
-            LeaderboardEntry leaderboardEntry = leaders.get(position);
             GoldViewHolder goldViewHolder = (GoldViewHolder) holder;
 
             goldViewHolder.username.setText(leaderboardEntry.getUsername());
@@ -165,7 +164,6 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
         }
         else if(holder instanceof SilverViewHolder){
-            LeaderboardEntry leaderboardEntry = leaders.get(position);
             SilverViewHolder silverViewHolder = (SilverViewHolder) holder;
 
             silverViewHolder.username.setText(leaderboardEntry.getUsername());
@@ -204,7 +202,6 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
         }
         else if(holder instanceof BronzeViewHolder){
-            LeaderboardEntry leaderboardEntry = leaders.get(position);
             BronzeViewHolder bronzeViewHolder = (BronzeViewHolder) holder;
 
             bronzeViewHolder.username.setText(leaderboardEntry.getUsername());
@@ -242,6 +239,13 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             }
 
         }
+
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                activity.goToProfile(leaderboardEntry.getUsername(), true);
+            }
+        });
 
     }
 

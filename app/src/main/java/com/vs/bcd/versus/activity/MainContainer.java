@@ -339,6 +339,7 @@ public class MainContainer extends AppCompatActivity {
                     //toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                     if(profileTab.profileBackStackIsEmpty()){
                         mViewPager.setCurrentItem(profileBackDestination);
+                        Log.d("backtarget", ""+profileBackDestination);
                         if(profileBackDestination == 11){
                             messageRoom.setRoomObjListener(messageRoom.getAdapterRNum());
                         }
