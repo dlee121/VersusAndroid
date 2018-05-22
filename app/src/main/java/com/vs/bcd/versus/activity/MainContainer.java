@@ -59,6 +59,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
+import com.auth0.android.jwt.JWT;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdLoader;
 import com.google.android.gms.ads.AdRequest;
@@ -70,8 +71,12 @@ import com.google.android.gms.ads.formats.NativeAppInstallAd.OnAppInstallAdLoade
 import com.google.android.gms.ads.formats.NativeContentAd;
 import com.google.android.gms.ads.formats.NativeContentAd.OnContentAdLoadedListener;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GetTokenResult;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -111,6 +116,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 
 public class MainContainer extends AppCompatActivity {
@@ -423,31 +429,76 @@ public class MainContainer extends AppCompatActivity {
         thisActivity = this;
         sessionManager = new SessionManager(this);
         // Initialize the Amazon Cognito credentials provider
+
         credentialsProvider = new CognitoCachingCredentialsProvider(
                 getApplicationContext(),
                 "us-east-1:88614505-c8df-4dce-abd8-79a0543852ff", // Identity Pool ID
                 Regions.US_EAST_1 // Region
         );
 
-        credentialsProvider.clear();
+        Bundle extras = getIntent().getExtras();
+        boolean getFreshCredentials = true;
+        if(extras != null){
+            String oitk = extras.getString("oitk");
+            if(oitk != null && !oitk.isEmpty()){
+                Map<String, String> logins = new HashMap<>();
+                logins.put("securetoken.google.com/bcd-versus", oitk);
+                credentialsProvider.setLogins(logins);
 
-        Runnable runnable = new Runnable() {
-            public void run() {
-                credentialsProvider.getCredentials();
+                getFreshCredentials = false;
+
+                Runnable runnable = new Runnable() {
+                    public void run() {
+                        credentialsProvider.refresh();
+                        credentialsProvider.getCredentials();
+                    }
+                };
+                Thread mythread = new Thread(runnable);
+                mythread.start();
             }
-        };
-        Thread mythread = new Thread(runnable);
-        mythread.start();
+        }
+
+        //TODO: we should actually handle this in SplashActivity, before even showing MainContainer
+        if(getFreshCredentials){
+            FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+            if(firebaseUser != null){
+                firebaseUser.getIdToken(false).addOnSuccessListener(new OnSuccessListener<GetTokenResult>() {
+                    @Override
+                    public void onSuccess(GetTokenResult getTokenResult) {
+                        String token = getTokenResult.getToken();
+                        JWT jwt = new JWT(token);
+                        if(jwt.getExpiresAt().getTime() - 30000 < System.currentTimeMillis()){ //token close to expiration, so refresh it
+                            Log.d("exptime", "token expires in less than 5 minutes");
+                            //get fresh token
+
+
+                        }
+                        else{ //token is still fresh so use it
+                            Map<String, String> logins = new HashMap<>();
+                            logins.put("securetoken.google.com/bcd-versus", token);
+                            credentialsProvider.setLogins(logins);
+
+                            Runnable runnable = new Runnable() {
+                                public void run() {
+                                    credentialsProvider.refresh();
+                                    credentialsProvider.getCredentials();
+                                }
+                            };
+                            Thread mythread = new Thread(runnable);
+                            mythread.start();
+
+                        }
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        //TODO: retry auth? tell user there was a network issue, please check your connection?
+                    }
+                });
+            }
+        }
 
         registerReceiver(myReceiver, new IntentFilter(MyFirebaseMessagingService.INTENT_FILTER));
-
-
-        /*
-        //these two for signing REST requests to Amazon Elasticsearch
-        credentialsProvider.getCredentials().getAWSAccessKeyId()
-        credentialsProvider.getCredentials().getAWSSecretKey()
-        */
-
 
         ddbClient = new AmazonDynamoDBClient(credentialsProvider);
         mapper = new DynamoDBMapper(ddbClient);

@@ -25,13 +25,19 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GetTokenResult;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.User;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class LogIn extends AppCompatActivity {
 
@@ -49,6 +55,7 @@ public class LogIn extends AppCompatActivity {
     // Firebase instance variables
     private FirebaseAuth mFirebaseAuth;
     private FirebaseUser mFirebaseUser;
+    private CognitoCachingCredentialsProvider credentialsProvider;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +67,7 @@ public class LogIn extends AppCompatActivity {
         actionBar.setDisplayHomeAsUpEnabled(true);
         actionBar.setTitle("");
         thisActivity = this;
+        mFirebaseAuth = FirebaseAuth.getInstance();
         loginButton = (Button)findViewById(R.id.loginbutton);
         loginPB = (ProgressBar)findViewById(R.id.indeterminate_login_pb);
         usernameET = (EditText)findViewById(R.id.editText6);
@@ -79,7 +87,7 @@ public class LogIn extends AppCompatActivity {
             displayProgressBar(true);
 
             // Initialize the Amazon Cognito credentials provider
-            CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
+            credentialsProvider = new CognitoCachingCredentialsProvider(
                     getApplicationContext(),
                     "us-east-1:88614505-c8df-4dce-abd8-79a0543852ff", // Identity Pool ID
                     Regions.US_EAST_1 // Region
@@ -92,83 +100,70 @@ public class LogIn extends AppCompatActivity {
 
             //TODO: form validation here
 
+            mFirebaseAuth.signInWithEmailAndPassword(usernameIn + "@versusbcd.com", passwordIn)
+                    .addOnCompleteListener(LogIn.this, new OnCompleteListener<AuthResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task) {
+                            if (task.isSuccessful()) {
+                                Log.d("authsuccess", "aye success");
+                                FirebaseUser firebaseUser= mFirebaseAuth.getCurrentUser();
 
-            Runnable runnable = new Runnable() {
-                public void run() {
-                    try{
-                        user = mapper.load(User.class, usernameIn);
+                                if(firebaseUser != null){
 
-                        if(user == null){
-                            //this username does not exist in database.
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Toast.makeText(thisActivity, "Invalid username", Toast.LENGTH_SHORT).show();
-                                    displayProgressBar(false);
-                                }
-                            });
-                        }
-                        else{
-                            //username exists. now check password.
-                            if(user.getPassword().equals(passwordIn)){
-                                //password matches what we have on file for the user with the username. log the user in.
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        // Initialize Firebase Auth
-                                        mFirebaseAuth = FirebaseAuth.getInstance();
-                                        String userMKey = user.getMkey();
-                                        mFirebaseAuth.signInWithEmailAndPassword(userMKey + usernameIn.replaceAll("[^A-Za-z0-9]", "v") + "@versusbcd.com", userMKey + "vsbcd121")
-                                            .addOnCompleteListener(LogIn.this, new OnCompleteListener<AuthResult>() {
-                                                @Override
-                                                public void onComplete(@NonNull Task<AuthResult> task) {
-                                                    if (!task.isSuccessful()) {
-                                                        Log.w("firebasechat", "sign in failed");
-                                                        displayProgressBar(false);
-                                                        loginThreadRunning = false;
-                                                        Toast.makeText(LogIn.this, "Authentication failed.", Toast.LENGTH_SHORT).show();
-                                                    }
-                                                    else {
-                                                        sessionManager = new SessionManager(thisActivity);
-                                                        sessionManager.createLoginSession(user);    //store login session data in Shared Preferences
-                                                        Intent intent = new Intent(thisActivity, MainContainer.class);
-                                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                                        loginThreadRunning = false;
-                                                        startActivity(intent);  //go on to the next activity, MainContainer
-                                                        overridePendingTransition(0, 0);
-                                                    }
+                                    firebaseUser.getIdToken(true).addOnSuccessListener(new OnSuccessListener<GetTokenResult>() {
+                                        @Override
+                                        public void onSuccess(GetTokenResult getTokenResult) {
+                                            Map<String, String> logins = new HashMap<>();
+                                            final String token = getTokenResult.getToken();
+                                            logins.put("securetoken.google.com/bcd-versus", token);
+                                            credentialsProvider.setLogins(logins);
+
+                                            Runnable runnable = new Runnable() {
+                                                public void run() {
+                                                    credentialsProvider.refresh();
+                                                    user = mapper.load(User.class, usernameIn); //TODO: replace with ES user GET
+
+                                                    thisActivity.runOnUiThread(new Runnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            sessionManager = new SessionManager(thisActivity);
+                                                            sessionManager.createLoginSession(user);    //store login session data in Shared Preferences
+
+                                                            Intent intent = new Intent(thisActivity, MainContainer.class);
+                                                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                                            intent.putExtra("oitk", token);
+                                                            loginThreadRunning = false;
+                                                            startActivity(intent);  //go on to the next activity, MainContainer
+                                                            overridePendingTransition(0, 0);
+                                                        }
+                                                    });
                                                 }
-                                            });
-                                    }
-                                });
+                                            };
+                                            Thread mythread = new Thread(runnable);
+                                            mythread.start();
+                                        }
+                                    }).addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Toast.makeText(thisActivity, "There was a problem logging in. Please check your network connection and try again.", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                                }
+                                else{
+                                    Toast.makeText(thisActivity, "There was a problem logging in. Please check your network connection and try again.", Toast.LENGTH_SHORT).show();
+                                }
                             }
-                            else{
-                                //incorrect password
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        Toast.makeText(thisActivity, "Incorrect password", Toast.LENGTH_SHORT).show();
-                                        displayProgressBar(false);
-                                    }
-                                });
-
-                            }
-
-                        }
-
-                    } catch (Throwable t) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(thisActivity, "There was a problem logging in. Please check your network connection and try again.", Toast.LENGTH_SHORT).show();
+                            else {
                                 displayProgressBar(false);
+                                loginThreadRunning = false;
+                                Toast.makeText(LogIn.this, "Check your username or password", Toast.LENGTH_SHORT).show();
                             }
-                        });
-                    }
-                }
-            };
-            Thread mythread = new Thread(runnable);
-            mythread.start();
+                        }
+                    });
+
+
+
+
 
 
         }

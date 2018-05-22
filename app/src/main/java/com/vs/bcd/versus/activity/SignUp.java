@@ -11,6 +11,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -21,9 +22,13 @@ import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GetTokenResult;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.fragment.WhatsYourBirthday;
 import com.vs.bcd.versus.fragment.WhatsYourName;
@@ -32,6 +37,9 @@ import com.vs.bcd.versus.fragment.WhatsYourUsername;
 import com.vs.bcd.versus.model.ViewPagerCustomDuration;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.User;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class SignUp extends AppCompatActivity {
@@ -59,6 +67,7 @@ public class SignUp extends AppCompatActivity {
     private WhatsYourBirthday wyb;
     private WhatsYourUsername wyun;
     private FirebaseAuth mFirebaseAuth;
+    private CognitoCachingCredentialsProvider credentialsProvider;
 
     @Override
     public void onBackPressed(){
@@ -77,13 +86,17 @@ public class SignUp extends AppCompatActivity {
         setContentView(R.layout.activity_sign_up);
 
         // Initialize the Amazon Cognito credentials provider
-        CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
+        credentialsProvider = new CognitoCachingCredentialsProvider(
                 getApplicationContext(),
                 "us-east-1:88614505-c8df-4dce-abd8-79a0543852ff", // Identity Pool ID
                 Regions.US_EAST_1 // Region
         );
+
+        mFirebaseAuth = FirebaseAuth.getInstance();
+
         AmazonDynamoDBClient ddbClient = new AmazonDynamoDBClient(credentialsProvider);
         mapper = new DynamoDBMapper(ddbClient);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar1);
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
@@ -233,50 +246,58 @@ public class SignUp extends AppCompatActivity {
 
 
 
-        final User newUser = new User(getUserString());
+        final User newUser = new User(getUserString()); //TODO: don't hold password in user object anymore. In fact, don't hold it anywhere.
 
-        Runnable runnable = new Runnable() {
-            public void run() {
-
-                try {
-                    mapper.save(newUser);
-                    mFirebaseAuth.getInstance().createUserWithEmailAndPassword(newUser.getMkey() + newUser.getUsername().replaceAll("[^A-Za-z0-9]", "v") + "@versusbcd.com", newUser.getMkey() + "vsbcd121")
-                        .addOnCompleteListener(SignUp.this, new OnCompleteListener<AuthResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                //TODO: Ensure that lines below are called only if mapper.save(newUser) is successful (in other words, make sure thread waits until mapper.save(newUser) finishes its job successfully, otherwise throwing exception to exit thread before calling below lines to login the new user).
-                                //TODO: So far this seems to be the case, as any exception thrown is caught and lines below don't get executed because we exit the thread when exception is thrown.
-                                //TODO: Cuz if there is a case where lines below are executed despite mapper.save failure, that would probably cause some bugs.
-                                //TODO: maybe do some synchronization/thread magic just to be on the safe side. We're good for now though.
-                                runOnUiThread(new Runnable() {
+        mFirebaseAuth.createUserWithEmailAndPassword(newUser.getUsername() + "@versusbcd.com", biebs)
+                .addOnCompleteListener(thisActivity, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            FirebaseUser firebaseUser = mFirebaseAuth.getCurrentUser();
+                            //TODO: create Cognito Auth credentials using OIDC, use that to send the user info through API Gateway to Lambda function that will insert the new user data into ES
+                            if(firebaseUser != null){
+                                mFirebaseAuth.getCurrentUser().getIdToken(true).addOnSuccessListener(new OnSuccessListener<GetTokenResult>() {
                                     @Override
-                                    public void run() {
+                                    public void onSuccess(GetTokenResult getTokenResult) {
+                                        Map<String, String> logins = new HashMap<>();
+                                        logins.put("securetoken.google.com/bcd-versus", getTokenResult.getToken());
+                                        credentialsProvider.setLogins(logins);
+
+                                        Runnable runnable = new Runnable() {
+                                            public void run() {
+                                                credentialsProvider.refresh();
+                                                mapper.save(newUser);
+                                            }
+                                        };
+                                        Thread mythread = new Thread(runnable);
+                                        mythread.start();
+
                                         sessionManager.createLoginSession(newUser);
                                         Intent intent = new Intent(thisActivity, MainContainer.class);
                                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);   //clears back stack for navigation
+                                        intent.putExtra("oitk", getTokenResult.getToken());
                                         startActivity(intent);
                                         overridePendingTransition(0, 0);
                                     }
+                                }).addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        ypfrag.displayProgressBar(false);
+                                        Toast.makeText(thisActivity, "There was a problem signing up. Please check your network connection and try again.", Toast.LENGTH_SHORT).show();
+                                    }
                                 });
                             }
-                        });
+                            else {
+                                ypfrag.displayProgressBar(false);
+                                Toast.makeText(thisActivity, "There was a problem signing up. Please check your network connection and try again.", Toast.LENGTH_SHORT).show();
+                            }
 
-
-                }
-                catch (Throwable t){
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
+                        } else {
                             ypfrag.displayProgressBar(false);
                             Toast.makeText(thisActivity, "There was a problem signing up. Please check your network connection and try again.", Toast.LENGTH_SHORT).show();
                         }
-                    });
-                }
-
-            }
-        };
-        Thread mythread = new Thread(runnable);
-        mythread.start();
+                    }
+                });
     }
 
     public class FadePageTransformer implements ViewPager.PageTransformer {

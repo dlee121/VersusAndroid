@@ -43,22 +43,22 @@ dependencies {
     //implementation 'com.theartofdev.edmodo:android-image-cropper:2.6.+'
 
     //dynamodb dependencies
-    implementation 'com.amazonaws:aws-android-sdk-core:2.2.22'
-    implementation 'com.amazonaws:aws-android-sdk-s3:2.2.22'
-    implementation 'com.amazonaws:aws-android-sdk-ddb:2.2.22'
-    implementation 'com.amazonaws:aws-android-sdk-ddb-mapper:2.2.22'
+    implementation 'com.amazonaws:aws-android-sdk-core:2.6.19'
+    implementation 'com.amazonaws:aws-android-sdk-s3:2.6.19'
+    implementation 'com.amazonaws:aws-android-sdk-ddb:2.6.19'
+    implementation 'com.amazonaws:aws-android-sdk-ddb-mapper:2.6.19'
     testImplementation 'junit:junit:4.12'
     // Google
-    implementation 'com.google.android.gms:play-services-auth:15.0.0'
+    implementation 'com.google.android.gms:play-services-auth:15.0.1'
     // Firebase
     implementation 'com.google.firebase:firebase-analytics:15.0.2'
-    implementation 'com.google.firebase:firebase-database:15.0.0'
+    implementation 'com.google.firebase:firebase-database:15.0.1'
     implementation 'com.google.firebase:firebase-storage:15.0.2'
     implementation 'com.google.firebase:firebase-auth:15.1.0'
     implementation 'com.google.firebase:firebase-config:15.0.2'
     implementation 'com.google.firebase:firebase-messaging:15.0.2'
     implementation 'com.google.firebase:firebase-crash:15.0.2'
-    implementation 'com.google.firebase:firebase-ads:15.0.0'
+    implementation 'com.google.firebase:firebase-ads:15.0.1'
     //compile 'com.google.android.gms:play-services-ads:11.8.0'
     implementation 'com.github.bumptech.glide:glide:4.6.1'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.6.1'
@@ -72,6 +72,8 @@ dependencies {
 
     //custom bottom navigation from forked ahbottomnavigation repo
     implementation project(':ahbottomnavigation')
+
+    implementation 'com.auth0.android:jwtdecode:1.1.1'
 
     //implementation 'uk.co.chrisjenx:calligraphy:2.3.0'
 }
