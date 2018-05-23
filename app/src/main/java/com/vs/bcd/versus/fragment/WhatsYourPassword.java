@@ -63,15 +63,40 @@ public class WhatsYourPassword extends Fragment {
         perkyText.addTextChangedListener(new FormValidator(perkyText) {
             @Override
             public void validate(TextView textView, String text) {
-                if (text.length() > 0) { //no need to consider leading/trailing whitespace, since we trim the string before taking it
-                    passwordStrengthCheck(text);
-                    signupButton.setBackgroundColor(ContextCompat.getColor(activity,R.color.vsRed));
-                    signupButton.setEnabled(true);
-                    validated = true;
+                if (text.length() > 0) {
+                    if(text.length() >= 6){
+                        if(text.charAt(0) == ' '){
+                            petWarning.setTextColor(ContextCompat.getColor(activity,R.color.noticeRed));
+                            petWarning.setText("Password cannot start with blank space");
+                            signupButton.setBackgroundColor(Color.rgb(238, 238, 238));
+                            signupButton.setEnabled(false);
+                            validated = false;
+                        }
+                        else if(text.charAt(text.length()-1) == ' '){
+                            petWarning.setTextColor(ContextCompat.getColor(activity,R.color.noticeRed));
+                            petWarning.setText("Password cannot end with blank space");
+                            signupButton.setBackgroundColor(Color.rgb(238, 238, 238));
+                            signupButton.setEnabled(false);
+                            validated = false;
+                        }
+                        else{
+                            passwordStrengthCheck(text);
+                            signupButton.setBackgroundColor(ContextCompat.getColor(activity,R.color.vsRed));
+                            signupButton.setEnabled(true);
+                            validated = true;
+                        }
+                    }
+                    else{
+                        petWarning.setTextColor(ContextCompat.getColor(activity,R.color.noticeRed));
+                        petWarning.setText("Must be at least 6 characters");
+                        signupButton.setBackgroundColor(Color.rgb(238, 238, 238));
+                        signupButton.setEnabled(false);
+                        validated = false;
+                    }
 
                 } else {
-                    petWarning.setTextColor(ContextCompat.getColor(activity,R.color.noticeRed));
-                    petWarning.setText("Please enter a password.");
+                    //petWarning.setTextColor(ContextCompat.getColor(activity,R.color.noticeRed));
+                    petWarning.setText("");
                     signupButton.setBackgroundColor(Color.rgb(238, 238, 238));
                     signupButton.setEnabled(false);
                     validated = false;
@@ -86,7 +111,7 @@ public class WhatsYourPassword extends Fragment {
             public void onClick(View v) {
                 InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
-                activity.setBiebs(perkyText.getText().toString().trim());
+                activity.setBiebs(perkyText.getText().toString());
                 imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0);
                 activity.signUpUser();
             }

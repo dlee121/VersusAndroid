@@ -13,7 +13,7 @@ public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        Log.d("pushnoti", "splash");
 
         //for messenger notification click, get rnum from intent extra
         String notificationType = null;

@@ -460,18 +460,39 @@ public class MainContainer extends AppCompatActivity {
 
         //TODO: we should actually handle this in SplashActivity, before even showing MainContainer
         if(getFreshCredentials){
-            FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+            final FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
             if(firebaseUser != null){
                 firebaseUser.getIdToken(false).addOnSuccessListener(new OnSuccessListener<GetTokenResult>() {
                     @Override
                     public void onSuccess(GetTokenResult getTokenResult) {
                         String token = getTokenResult.getToken();
                         JWT jwt = new JWT(token);
-                        if(jwt.getExpiresAt().getTime() - 30000 < System.currentTimeMillis()){ //token close to expiration, so refresh it
+                        Log.d("exptime", ""+jwt.getExpiresAt().getTime());
+                        if(jwt.getExpiresAt().getTime() - 300000 < System.currentTimeMillis()){ //token close to expiration, so refresh it
                             Log.d("exptime", "token expires in less than 5 minutes");
                             //get fresh token
+                            firebaseUser.getIdToken(true).addOnSuccessListener(new OnSuccessListener<GetTokenResult>() {
+                                @Override
+                                public void onSuccess(GetTokenResult getTokenResult) {
+                                    Map<String, String> logins = new HashMap<>();
+                                    logins.put("securetoken.google.com/bcd-versus", getTokenResult.getToken());
+                                    credentialsProvider.setLogins(logins);
 
-
+                                    Runnable runnable = new Runnable() {
+                                        public void run() {
+                                            credentialsProvider.refresh();
+                                            credentialsProvider.getCredentials();
+                                        }
+                                    };
+                                    Thread mythread = new Thread(runnable);
+                                    mythread.start();
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    //TODO: retry auth? tell user there was a network issue, please check your connection?
+                                }
+                            });
                         }
                         else{ //token is still fresh so use it
                             Map<String, String> logins = new HashMap<>();
@@ -1344,13 +1365,21 @@ public class MainContainer extends AppCompatActivity {
             String intentType = getIntent().getExtras().get("type").toString();
             getIntent().removeExtra("type");
             if(intentType.equals("m")){
-                //TODO: go to messenger fragment
+                //go to messenger fragment
+                if(mViewPager != null){
+                    mViewPager.setCurrentItem(4);
+                }
+
             }
             else if(intentType.equals("n")){
-                //TODO: go to notifications tab
+                //go to notifications tab
+                if(mViewPager != null){
+                    mViewPager.setCurrentItem(8);
+                }
             }
         }
         else if(goToMainActivityOnResume){
+            //TODO: what was this for again?
             mViewPager.setCurrentItem(0);
             goToMainActivityOnResume = false;
         }
@@ -2361,6 +2390,7 @@ public class MainContainer extends AppCompatActivity {
         clearProfileAndFFStack();
         FirebaseMessaging.getInstance().unsubscribeFromTopic(currUsername); //unsubscribe from user topic for messenger push notification
         FirebaseAuth.getInstance().signOut();
+        credentialsProvider.clear();
         sessionManager.logoutUser();
     }
 
@@ -2948,8 +2978,12 @@ public class MainContainer extends AppCompatActivity {
     }
 
     private void clearProfileAndFFStack(){
-        profileTab.clearStack();
-        followersAndFollowings.clearStack();
+        if(profileTab != null){
+            profileTab.clearStack();
+        }
+        if(followersAndFollowings != null){
+            followersAndFollowings.clearStack();
+        }
     }
 
 }

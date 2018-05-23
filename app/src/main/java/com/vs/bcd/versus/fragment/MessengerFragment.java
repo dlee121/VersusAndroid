@@ -160,6 +160,7 @@ public class MessengerFragment extends Fragment {
     private HashSet<String> ignoreThisRemoval = new HashSet<>();
     private boolean initialUnreadListLoaded = false;
     private boolean initialMuteListLoaded = false;
+    private boolean fragIsVisible = false;
 
     private ChildEventListener unreadMessagesListener = new ChildEventListener() {
         @Override
@@ -1133,6 +1134,9 @@ public class MessengerFragment extends Fragment {
                                     public void run() {
                                         mRoomRecyclerView.setAdapter(mFirebaseAdapter);
                                         setFirebaseObserver();
+                                        if(fragIsVisible){
+                                            enableChildViews(); //necessary for when coming from push notification click
+                                        }
                                     }
                                 });
 
@@ -1815,6 +1819,7 @@ public class MessengerFragment extends Fragment {
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
+            fragIsVisible = true;
             if(rootView != null){
                 enableChildViews();
                 activity.setBackToMessageRoom(false);
@@ -1823,6 +1828,7 @@ public class MessengerFragment extends Fragment {
 
         }
         else {
+            fragIsVisible = false;
             if (rootView != null){
                 disableChildViews();
             }

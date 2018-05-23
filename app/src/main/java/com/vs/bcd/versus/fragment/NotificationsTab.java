@@ -1198,8 +1198,8 @@ public class NotificationsTab extends Fragment {
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
+            fragmentVisible = true;
             if(rootView != null){
-                fragmentVisible = true;
                 enableChildViews();
                 if(activity != null){
                     activity.setNotificationBadge(false);
@@ -1211,8 +1211,8 @@ public class NotificationsTab extends Fragment {
             }
         }
         else {
+            fragmentVisible = false;
             if (rootView != null){
-                fragmentVisible = false;
                 disableChildViews();
             }
         }
@@ -1289,6 +1289,10 @@ public class NotificationsTab extends Fragment {
             }
         });
         mNotificationsAdapter.notifyDataSetChanged();
+
+        if(fragmentVisible){
+            enableChildViews();
+        }
 
         for(int i = 0; i<notificationItems.size(); i++){
             NotificationItem item = notificationItems.get(i);
