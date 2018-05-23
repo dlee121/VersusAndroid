@@ -117,6 +117,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class MainContainer extends AppCompatActivity {
@@ -216,6 +217,7 @@ public class MainContainer extends AppCompatActivity {
     private FloatingActionButton createPostFAB;
     private String clickedNotificationKey = "";
     private boolean fromRItem = true;
+    private AtomicBoolean runInitialNewsfeedQuery = new AtomicBoolean(false);
 
 
 
@@ -422,6 +424,10 @@ public class MainContainer extends AppCompatActivity {
         }
     }
 
+    public boolean getAndSetRINQ(){
+        return runInitialNewsfeedQuery.getAndSet(true);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -444,6 +450,7 @@ public class MainContainer extends AppCompatActivity {
                 Map<String, String> logins = new HashMap<>();
                 logins.put("securetoken.google.com/bcd-versus", oitk);
                 credentialsProvider.setLogins(logins);
+                Log.d("ontheway", "otw");
 
                 getFreshCredentials = false;
 
@@ -451,6 +458,17 @@ public class MainContainer extends AppCompatActivity {
                     public void run() {
                         credentialsProvider.refresh();
                         credentialsProvider.getCredentials();
+                        Log.d("mainattach", "credentials refreshed");
+                        if(runInitialNewsfeedQuery.getAndSet(true)){
+                            if(mainActivityFragRef != null && mainActivityFragRef.getTab1() != null){
+                                thisActivity.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        mainActivityFragRef.getTab1().initialQuery();
+                                    }
+                                });
+                            }
+                        }
                     }
                 };
                 Thread mythread = new Thread(runnable);
@@ -482,6 +500,18 @@ public class MainContainer extends AppCompatActivity {
                                         public void run() {
                                             credentialsProvider.refresh();
                                             credentialsProvider.getCredentials();
+                                            Log.d("mainattach", "credentials refreshed");
+                                            if(runInitialNewsfeedQuery.getAndSet(true)){
+                                                if(mainActivityFragRef != null && mainActivityFragRef.getTab1() != null){
+                                                    thisActivity.runOnUiThread(new Runnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            mainActivityFragRef.getTab1().initialQuery();
+                                                        }
+                                                    });
+                                                }
+                                            }
+
                                         }
                                     };
                                     Thread mythread = new Thread(runnable);
@@ -503,6 +533,17 @@ public class MainContainer extends AppCompatActivity {
                                 public void run() {
                                     credentialsProvider.refresh();
                                     credentialsProvider.getCredentials();
+                                    Log.d("mainattach", "credentials refreshed");
+                                    if(runInitialNewsfeedQuery.getAndSet(true)){
+                                        if(mainActivityFragRef != null && mainActivityFragRef.getTab1() != null){
+                                            thisActivity.runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    mainActivityFragRef.getTab1().initialQuery();
+                                                }
+                                            });
+                                        }
+                                    }
                                 }
                             };
                             Thread mythread = new Thread(runnable);
@@ -554,8 +595,10 @@ public class MainContainer extends AppCompatActivity {
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
+        Log.d("mainattach", "1");
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
+        Log.d("mainattach", "2");
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPagerCustomDuration) findViewById(R.id.container2);
         mViewPager.setScrollDurationFactor(1);
@@ -563,6 +606,8 @@ public class MainContainer extends AppCompatActivity {
         mViewPager.setOffscreenPageLimit(13);
         mViewPager.setPageTransformer(false, new FadePageTransformer());
         //mViewPager.setPageTransformer(false, new NoPageTransformer());
+
+        Log.d("mainattach", "3");
 
         vpContainer = (RelativeLayout) findViewById(R.id.vpcontainer);
         vpContainerLP = (RelativeLayout.LayoutParams) vpContainer.getLayoutParams();

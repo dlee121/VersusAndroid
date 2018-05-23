@@ -135,15 +135,24 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
         mSwipeRefreshLayout = rootView.findViewById(R.id.swipe_container_tab1);
         mSwipeRefreshLayout.setOnRefreshListener(this);
 
-        if(getUserVisibleHint()){
-            newsfeedESQuery(0);
+        Log.d("mainattach", "frag query line");
+        if(mHostActivity.getAndSetRINQ()){
+            initialQuery();
         }
 
         return rootView;
     }
 
+    public void initialQuery(){
+        if(getUserVisibleHint()){
+            newsfeedESQuery(0);
+        }
+    }
+
     @Override
     public void onAttach(Context context) {
+
+        Log.d("mainattach", "attached");
         super.onAttach(context);
         //save the activity to a member of this fragment
         mHostActivity = (MainContainer)context;
