@@ -4,15 +4,29 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.login.LoginManager;
+import com.facebook.login.LoginResult;
+import com.facebook.login.widget.LoginButton;
 import com.vs.bcd.versus.R;
+
+import java.util.Arrays;
 
 public class StartScreen extends AppCompatActivity {
 
     //public static final String EXTRA_MESSAGE = "com.vs.bcd.versus.MESSAGE";
+
+
+    private CallbackManager callbackManager;
+    private static final String EMAIL = "email";
+    private LoginButton facebookLoginButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,6 +34,32 @@ public class StartScreen extends AppCompatActivity {
         setContentView(R.layout.activity_start_screen);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+
+        callbackManager = CallbackManager.Factory.create();
+        facebookLoginButton = (LoginButton) findViewById(R.id.facebook_login_button);
+
+        // Callback registration
+        facebookLoginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                // App code
+                Log.d("facebookLogin", "fb login was successful. logging out.");
+                LoginManager.getInstance().logOut();
+            }
+
+            @Override
+            public void onCancel() {
+                // App code
+                Log.d("facebookLogin", "fb login was cancelled.");
+            }
+
+            @Override
+            public void onError(FacebookException exception) {
+                // App code
+                Log.d("facebookLogin", "fb login error.");
+            }
+        });
     /*
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -31,6 +71,14 @@ public class StartScreen extends AppCompatActivity {
         });
     */
     }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        callbackManager.onActivityResult(requestCode, resultCode, data);
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.

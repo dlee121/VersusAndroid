@@ -26,5 +26,7 @@
     <string name="title_activity_log_in">LogIn</string>
     <string name="title_activity_post_page">PostPage</string>
     <string name="title_activity_sign_up">SignUp</string>
+    <string name="facebook_app_id">781801582026233</string>
+    <string name="fb_login_protocol_scheme">fb781801582026233</string>
 
 </resources>
