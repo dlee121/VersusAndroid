@@ -7,6 +7,7 @@
     <string name="new_user_sign_up">New User? Sign Up.</string>
     <string name="password">Password</string>
     <string name="username">Username</string>
+    <string name="title_activity_auth_signup">SignUp</string>
     <string name="title_activity_profile">Profile</string>
     <string name="title_activity_profile_page">ProfilePage</string>
     <string name="title_activity_post_before_vote">PostBeforeVote</string>

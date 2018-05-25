@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +19,7 @@ import android.widget.TextView;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.activity.SignUp;
 import com.vs.bcd.versus.model.FormValidator;
 import com.vs.bcd.versus.model.SessionManager;
@@ -46,7 +48,6 @@ public class WhatsYourPassword extends Fragment {
                              Bundle savedInstanceState) {
 
         rootView = inflater.inflate(R.layout.fragment_signup_pw, container, false);
-        activity = (SignUp)getActivity();
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();
 
@@ -110,9 +111,13 @@ public class WhatsYourPassword extends Fragment {
             @Override
             public void onClick(View v) {
                 InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
+                try{
+                    imm.hideSoftInputFromWindow(signupButton.getWindowToken(), 0);
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
                 activity.setBiebs(perkyText.getText().toString());
-                imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0);
                 activity.signUpUser();
             }
         });
@@ -124,6 +129,12 @@ public class WhatsYourPassword extends Fragment {
         return rootView;
     }
 
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        //save the activity to a member of this fragment
+        activity = (SignUp) context;
+    }
 
 
 

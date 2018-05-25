@@ -39,9 +39,6 @@ public class SessionManager {
     public static final String KEY_MKEY = "pref_mkey";
     public static final String KEY_PI = "pref_profileimage";
 
-    //keep password private
-    private static final String KEY_PASSWORD = "pref_password";
-
 
     // Constructor
     public SessionManager(Context context){
@@ -62,10 +59,9 @@ public class SessionManager {
         editor.putString(KEY_EMAIL, user.getEmail());
         editor.putString(KEY_FIRSTNAME, user.getFirstName());
         editor.putString(KEY_LASTNAME, user.getLastName());
-        editor.putString(KEY_PASSWORD, user.getPassword());
         editor.putString(KEY_PHONE, user.getPhone());
         editor.putString(KEY_USERNAME, user.getUsername());
-        editor.putString(KEY_MKEY, user.getMkey());
+        editor.putString(KEY_MKEY, user.getAuthID());
         editor.putInt(KEY_PI, user.getProfileImage());
         // commit changes
         editor.commit();
@@ -125,7 +121,6 @@ public class SessionManager {
         user.put(KEY_EMAIL, pref.getString(KEY_EMAIL, null));
         user.put(KEY_FIRSTNAME, pref.getString(KEY_FIRSTNAME, null));
         user.put(KEY_LASTNAME, pref.getString(KEY_LASTNAME, null));
-        user.put(KEY_PASSWORD, pref.getString(KEY_PASSWORD, null));
         user.put(KEY_PHONE, pref.getString(KEY_PHONE, null));
         user.put(KEY_USERNAME, pref.getString(KEY_USERNAME, null));
 

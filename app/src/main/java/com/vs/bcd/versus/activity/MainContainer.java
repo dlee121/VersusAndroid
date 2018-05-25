@@ -60,6 +60,7 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
 import com.auth0.android.jwt.JWT;
+import com.facebook.login.LoginManager;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdLoader;
 import com.google.android.gms.ads.AdRequest;
@@ -591,7 +592,7 @@ public class MainContainer extends AppCompatActivity {
         //soft input (keyboard) settings
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0);
+        //imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0);
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
@@ -2437,6 +2438,7 @@ public class MainContainer extends AppCompatActivity {
         FirebaseAuth.getInstance().signOut();
         credentialsProvider.clear();
         sessionManager.logoutUser();
+        LoginManager.getInstance().logOut();
     }
 
     public void meClickTrue(){

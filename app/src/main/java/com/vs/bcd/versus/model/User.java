@@ -2,9 +2,8 @@ package com.vs.bcd.versus.model;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 
 /**
@@ -14,10 +13,10 @@ import java.util.UUID;
 @DynamoDBTable(tableName = "user")
 public class User {
 
-    private String firstName, lastName, bday, username, password;
+    private String firstName, lastName, bday, username;
     private String email = "0"; //default value, since dynamodb doesn't want empty strings either email or phone may be unspecified by user
     private String phone = "0";
-    private String mkey; //pw for messenger auth
+    private String authID; //pw for messenger auth
     private int profileImage; //profile image storage url
     private int influence, g, s, b; //influece and medal count
 
@@ -54,14 +53,6 @@ public class User {
         this.username = username;
     }
 
-    @DynamoDBAttribute(attributeName = "pw")
-    public String getPassword() {
-        return password;
-    }
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     @DynamoDBAttribute(attributeName = "em")
     public String getEmail() {
         return email;
@@ -78,12 +69,12 @@ public class User {
         this.phone = phone;
     }
 
-    @DynamoDBAttribute(attributeName = "mk")
-    public String getMkey(){
-        return mkey;
+    @DynamoDBAttribute(attributeName = "ai")
+    public String getAuthID(){
+        return authID;
     }
-    public void setMkey(String mkey){
-        this.mkey = mkey;
+    public void setAuthID(String authID){
+        this.authID = authID;
     }
 
     @DynamoDBAttribute(attributeName = "pi")
@@ -140,10 +131,41 @@ public class User {
         lastName = userData[1];
         bday = userData[2];
         username = userData[3];
-        password = userData[4];
-        mkey = UUID.randomUUID().toString().substring(0, 5);
+        authID = "0"; //TODO: once we've moved on from ddb usage, this can be blank string (make sure ES can handle empty strings), but 0 for now since ddb doesn't accept empty string
         profileImage = 0; //default value meaning use a default in-app profile image
         influence = 0;
+        g = 0;
+        s = 0;
+        b = 0;
+    }
+
+    //for signing up user from facebook login and google login
+    public User(String firstName, String lastName, String bday, String username, String authID){
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.bday = bday;
+        this.username = username;
+        this.authID = authID;
+        profileImage = 0; //default value meaning use a default in-app profile image
+        influence = 0;
+        g = 0;
+        s = 0;
+        b = 0;
+    }
+
+    public User(JSONObject item, String username) throws JSONException {
+        this.username = username;
+        firstName = item.getString("fn");
+        lastName = item.getString("ln");
+        bday = item.getString("bd");
+        email = item.getString("em");
+        phone = item.getString("ph");
+        authID = item.getString("ai");
+        profileImage = item.getInt("pi");
+        influence = item.getInt("in");
+        g = item.getInt("g");
+        s = item.getInt("s");
+        b = item.getInt("b");
     }
 
 }
