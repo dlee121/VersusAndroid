@@ -56,5 +56,14 @@
         android:layout_marginBottom="24dp"
         android:text="@string/next" />
 
+    <ProgressBar
+        android:id="@+id/wyun_pb"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:visibility="invisible"
+        android:layout_alignTop="@id/wyunbutton"
+        android:layout_alignBottom="@id/wyunbutton"/>
+
 
 </RelativeLayout>

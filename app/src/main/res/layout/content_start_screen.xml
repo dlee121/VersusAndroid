@@ -50,7 +50,6 @@
         android:layout_centerHorizontal="true"
         app:srcCompat="@drawable/logo_splash" />
 
-
     <com.facebook.login.widget.LoginButton
         android:id="@+id/facebook_login_button"
         android:layout_width="wrap_content"

@@ -122,8 +122,6 @@ public class WhatsYourPassword extends Fragment {
             }
         });
 
-        displayProgressBar(false);
-
         disableChildViews();
 
         return rootView;

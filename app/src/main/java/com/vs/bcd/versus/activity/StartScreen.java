@@ -102,6 +102,10 @@ public class StartScreen extends AppCompatActivity {
                 facebookProgressbar.setVisibility(View.VISIBLE);
             }
         });
+
+        //check if facebook user logged in first, and also clear other providers including Cognito
+        resetLoginButtons();
+
         //facebookLoginButton.setReadPermissions("public_profile");
         // Callback registration
         facebookLoginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
@@ -195,16 +199,6 @@ public class StartScreen extends AppCompatActivity {
     */
     }
 
-    @Override
-    public void onStart(){
-        super.onStart();
-        //TODO: check if facebook user logged in first, and also clear other providers including Cognito
-        Log.d("facebookLogin", "logging out facebook user");
-        LoginManager.getInstance().logOut();
-        facebookLoginButton.setVisibility(View.VISIBLE);
-        facebookProgressbar.setVisibility(View.INVISIBLE);
-    }
-
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -238,13 +232,14 @@ public class StartScreen extends AppCompatActivity {
         Intent intent = new Intent(this, SignUp.class);
         startActivity(intent);
         overridePendingTransition(0, 0);
-
+        resetLoginButtons();
     }
 
     public void logInPressed(View view){
         Intent intent = new Intent(this, LogIn.class);
         startActivity(intent);
         overridePendingTransition(0, 0);
+        resetLoginButtons();
     }
 
 
@@ -372,6 +367,7 @@ public class StartScreen extends AppCompatActivity {
                                                 mythread.start();
                                                 SessionManager sessionManager = new SessionManager(thisActivity);
                                                 sessionManager.createLoginSession(user);
+                                                Log.d("facebookLogin", "facebook signin complete");
                                                 Intent intent = new Intent(thisActivity, MainContainer.class);
                                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);   //clears back stack for navigation
                                                 intent.putExtra("oitk", getTokenResult.getToken());
@@ -421,6 +417,14 @@ public class StartScreen extends AppCompatActivity {
             e.printStackTrace();
             //TODO: remove progress bar, pop a toast saying something went wrong, try again or check network connection
         }
+    }
+
+    private void resetLoginButtons(){
+        //TODO: check if facebook user logged in first, and also clear other providers including Cognito
+        Log.d("facebookLogin", "logging out facebook user");
+        LoginManager.getInstance().logOut();
+        facebookLoginButton.setVisibility(View.VISIBLE);
+        facebookProgressbar.setVisibility(View.INVISIBLE);
     }
 
 }

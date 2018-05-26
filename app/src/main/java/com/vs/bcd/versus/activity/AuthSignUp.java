@@ -62,7 +62,6 @@ public class AuthSignUp extends AppCompatActivity {
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPagerCustomDuration mViewPager;
-    private WhatsYourPassword ypfrag;
     private String bday, username;
     private DynamoDBMapper mapper;
     private SessionManager sessionManager;
@@ -223,6 +222,8 @@ public class AuthSignUp extends AppCompatActivity {
 
     public void signUpUser(){
 
+        wyun.displayProgressBar(true);
+
         final User newUser = new User(firstname, lastname, bday, username, authID);
 
         AuthCredential credential = FacebookAuthProvider.getCredential(authToken);
@@ -262,21 +263,19 @@ public class AuthSignUp extends AppCompatActivity {
                                 }).addOnFailureListener(new OnFailureListener() {
                                     @Override
                                     public void onFailure(@NonNull Exception e) {
-                                        ypfrag.displayProgressBar(false);
+                                        wyun.displayProgressBar(false);
                                         Toast.makeText(thisActivity, "There was a problem signing up. Please check your network connection and try again.", Toast.LENGTH_SHORT).show();
                                     }
                                 });
                             }
                             else {
-                                ypfrag.displayProgressBar(false);
+                                wyun.displayProgressBar(false);
                                 Toast.makeText(thisActivity, "There was a problem signing up. Please check your network connection and try again.", Toast.LENGTH_SHORT).show();
                             }
 
-
-
-
                         } else {
                             // If sign in fails, display a message to the user.
+                            wyun.displayProgressBar(false);
                             Log.w("facebookLogin", "signInWithCredential:failure", task.getException());
                             Toast.makeText(AuthSignUp.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();

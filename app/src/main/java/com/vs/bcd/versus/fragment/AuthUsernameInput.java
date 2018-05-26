@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,6 +41,7 @@ public class AuthUsernameInput extends Fragment {
     private ProgressBar usernamecheckPB;
     private boolean ignoreAsync = true;
     private boolean validated = false;
+    private ProgressBar wyunPB;
 
 
     @Override
@@ -111,6 +113,7 @@ public class AuthUsernameInput extends Fragment {
         nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.d("nextbuttonnext", "clicked");
                 InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
                 activity.setU(editText.getText().toString().trim());
@@ -119,6 +122,9 @@ public class AuthUsernameInput extends Fragment {
                 activity.signUpUser();
             }
         });
+
+        wyunPB = rootView.findViewById(R.id.wyun_pb);
+
         hideProgressBar();
         disableChildViews();
 
@@ -162,7 +168,23 @@ public class AuthUsernameInput extends Fragment {
     }
 
 
-
+    public void displayProgressBar(boolean display){
+        if(display){
+            editText.setEnabled(false);
+            nextButton.setEnabled(false);
+            nextButton.setVisibility(View.INVISIBLE);
+            wyunPB.setEnabled(true);
+            wyunPB.setVisibility(View.VISIBLE);
+        }
+        else{
+            editText.setEnabled(true);
+            nextButton.setBackgroundColor(ContextCompat.getColor(activity,R.color.vsRed));
+            nextButton.setEnabled(true);
+            nextButton.setVisibility(View.VISIBLE);
+            wyunPB.setEnabled(false);
+            wyunPB.setVisibility(View.INVISIBLE);
+        }
+    }
 
 
 
