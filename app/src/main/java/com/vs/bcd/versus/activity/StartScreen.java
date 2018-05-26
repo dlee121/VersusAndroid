@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
@@ -74,6 +75,7 @@ public class StartScreen extends AppCompatActivity {
     private FirebaseAuth mFirebaseAuth;
     private CognitoCachingCredentialsProvider credentialsProvider;
     private StartScreen thisActivity;
+    private ProgressBar facebookProgressbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,12 +93,16 @@ public class StartScreen extends AppCompatActivity {
         );
         mFirebaseAuth = FirebaseAuth.getInstance();
         callbackManager = CallbackManager.Factory.create();
+        facebookProgressbar = findViewById(R.id.facebook_login_progress_bar);
         facebookLoginButton = findViewById(R.id.facebook_login_button);
+        facebookLoginButton.setOnClickListener(new View.OnClickListener() { //This is an external click listener. Internal click listener handles the login.
+            @Override
+            public void onClick(View view) {
+                facebookLoginButton.setVisibility(View.INVISIBLE);
+                facebookProgressbar.setVisibility(View.VISIBLE);
+            }
+        });
         //facebookLoginButton.setReadPermissions("public_profile");
-
-        Log.d("facebookLogin", "logging out facebook user");
-        LoginManager.getInstance().logOut(); //TODO: check if facebook user logged in first, and also clear other providers including Cognito
-
         // Callback registration
         facebookLoginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
@@ -187,6 +193,16 @@ public class StartScreen extends AppCompatActivity {
             }
         });
     */
+    }
+
+    @Override
+    public void onStart(){
+        super.onStart();
+        //TODO: check if facebook user logged in first, and also clear other providers including Cognito
+        Log.d("facebookLogin", "logging out facebook user");
+        LoginManager.getInstance().logOut();
+        facebookLoginButton.setVisibility(View.VISIBLE);
+        facebookProgressbar.setVisibility(View.INVISIBLE);
     }
 
 
