@@ -26,6 +26,12 @@ import com.facebook.HttpMethod;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.SignInButton;
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -36,6 +42,7 @@ import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GetTokenResult;
+import com.google.firebase.auth.GoogleAuthProvider;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.SessionManager;
@@ -75,7 +82,10 @@ public class StartScreen extends AppCompatActivity {
     private FirebaseAuth mFirebaseAuth;
     private CognitoCachingCredentialsProvider credentialsProvider;
     private StartScreen thisActivity;
-    private ProgressBar facebookProgressbar;
+    private ProgressBar facebookProgressbar, googleProgressbar;
+    private SignInButton googleLoginButton;
+    private GoogleSignInClient mGoogleSignInClient;
+    private int RC_SIGN_IN = 58;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +102,7 @@ public class StartScreen extends AppCompatActivity {
                 Regions.US_EAST_1 // Region
         );
         mFirebaseAuth = FirebaseAuth.getInstance();
+
         callbackManager = CallbackManager.Factory.create();
         facebookProgressbar = findViewById(R.id.facebook_login_progress_bar);
         facebookLoginButton = findViewById(R.id.facebook_login_button);
@@ -102,6 +113,24 @@ public class StartScreen extends AppCompatActivity {
                 facebookProgressbar.setVisibility(View.VISIBLE);
             }
         });
+
+
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestIdToken("688623904224-mh3oeo8ega5uhlufua0f1rtrncqoj8k7.apps.googleusercontent.com").build();
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+
+        googleProgressbar = findViewById(R.id.google_login_progress_bar);
+        googleLoginButton = findViewById(R.id.google_login_button);
+        googleLoginButton.setSize(SignInButton.SIZE_WIDE);
+        googleLoginButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                googleLoginButton.setVisibility(View.INVISIBLE);
+                googleProgressbar.setVisibility(View.VISIBLE);
+                Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+                startActivityForResult(signInIntent, RC_SIGN_IN);
+            }
+        });
+        //googleLoginButton.setColorScheme(SignInButton.COLOR_DARK);
 
         //check if facebook user logged in first, and also clear other providers including Cognito
         resetLoginButtons();
@@ -126,7 +155,7 @@ public class StartScreen extends AppCompatActivity {
                                     String name = object.getString("name");
                                     String fname = object.getString("first_name");
                                     String lname = object.getString("last_name");
-                                    final String authID = object.getString("id");
+                                    final String authID = object.getString("id") + "&";
                                     final String firstname, lastname;
                                     if(fname != null && !fname.isEmpty()){
                                         if(lname != null && !lname.isEmpty()){
@@ -202,8 +231,56 @@ public class StartScreen extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        callbackManager.onActivityResult(requestCode, resultCode, data);
         super.onActivityResult(requestCode, resultCode, data);
+        // Result returned from launching the Intent from GoogleSignInClient.getSignInIntent(...);
+        if (requestCode == RC_SIGN_IN) {
+            // The Task returned from this call is always completed, no need to attach
+            // a listener.
+            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+            handleSignInResult(task);
+        }
+        else{
+            callbackManager.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
+        try {
+
+            final String firstname, lastname;
+            final GoogleSignInAccount account = completedTask.getResult(ApiException.class);
+
+            authToken = account.getIdToken();
+
+            if(account.getGivenName() == null || account.getGivenName().isEmpty()){
+                firstname = " ";
+            }
+            else{
+                firstname = account.getGivenName();
+            }
+            if(account.getFamilyName() == null || account.getFamilyName().isEmpty()) {
+                lastname = " ";
+            }
+            else{
+                lastname = account.getFamilyName();
+            }
+
+            Runnable runnable = new Runnable() {
+                public void run() {
+                    logInOrSignUpUser(account.getId(), firstname, lastname);
+                }
+            };
+            Thread mythread = new Thread(runnable);
+            mythread.start();
+
+            // Signed in successfully, show authenticated UI.
+            //updateUI(account);
+        } catch (ApiException e) {
+            // The ApiException status code indicates the detailed failure reason.
+            // Please refer to the GoogleSignInStatusCodes class reference for more information.
+            Log.w("googleLogin", "signInResult:failed code=" + e.getStatusCode());
+            //updateUI(null);
+        }
     }
 
     @Override
@@ -340,7 +417,14 @@ public class StartScreen extends AppCompatActivity {
                 Log.d("facebookLogin", "user exists");
                 //authenticate with firebase, then setLogins for cognito with firebase token, then create client session with SessionManager
 
-                AuthCredential credential = FacebookAuthProvider.getCredential(authToken);
+                AuthCredential credential;
+                if(authID.charAt(authID.length()-1) == '&'){ //we append facebook authIDs with an '&'
+                    credential = FacebookAuthProvider.getCredential(authToken);
+                }
+                else{
+                    credential = GoogleAuthProvider.getCredential(authToken, null);
+                }
+
                 mFirebaseAuth.signInWithCredential(credential)
                         .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                             @Override
@@ -425,6 +509,11 @@ public class StartScreen extends AppCompatActivity {
         LoginManager.getInstance().logOut();
         facebookLoginButton.setVisibility(View.VISIBLE);
         facebookProgressbar.setVisibility(View.INVISIBLE);
+
+        Log.d("googleLogin", "logging out google user");
+        mGoogleSignInClient.signOut();
+        googleLoginButton.setVisibility(View.VISIBLE);
+        googleProgressbar.setVisibility(View.INVISIBLE);
     }
 
 }

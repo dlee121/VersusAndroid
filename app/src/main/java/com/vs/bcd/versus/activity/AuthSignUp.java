@@ -21,6 +21,7 @@ import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.auth0.android.jwt.JWT;
 import com.facebook.AccessToken;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -32,6 +33,7 @@ import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GetTokenResult;
+import com.google.firebase.auth.GoogleAuthProvider;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.fragment.AuthBirthdayInput;
 import com.vs.bcd.versus.fragment.AuthUsernameInput;
@@ -225,8 +227,14 @@ public class AuthSignUp extends AppCompatActivity {
         wyun.displayProgressBar(true);
 
         final User newUser = new User(firstname, lastname, bday, username, authID);
+        AuthCredential credential;
+        if(authID.charAt(authID.length()-1) == '&'){ //we append facebook authIDs with an '&'
+            credential = FacebookAuthProvider.getCredential(authToken);
+        }
+        else{
+            credential = GoogleAuthProvider.getCredential(authToken, null);
+        }
 
-        AuthCredential credential = FacebookAuthProvider.getCredential(authToken);
         mFirebaseAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override

@@ -71,6 +71,8 @@ import com.google.android.gms.ads.formats.NativeAppInstallAd;
 import com.google.android.gms.ads.formats.NativeAppInstallAd.OnAppInstallAdLoadedListener;
 import com.google.android.gms.ads.formats.NativeContentAd;
 import com.google.android.gms.ads.formats.NativeContentAd.OnContentAdLoadedListener;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -2438,7 +2440,11 @@ public class MainContainer extends AppCompatActivity {
         FirebaseAuth.getInstance().signOut();
         credentialsProvider.clear();
         sessionManager.logoutUser();
-        LoginManager.getInstance().logOut();
+
+        LoginManager.getInstance().logOut(); //facebook logout
+
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build(); //google logout
+        GoogleSignIn.getClient(this, gso).signOut();
     }
 
     public void meClickTrue(){

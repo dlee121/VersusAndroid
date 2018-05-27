@@ -113,7 +113,7 @@ public class AuthUsernameInput extends Fragment {
         nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("nextbuttonnext", "clicked");
+                //Log.d("nextbuttonnext", "clicked");
                 InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
                 activity.setU(editText.getText().toString().trim());

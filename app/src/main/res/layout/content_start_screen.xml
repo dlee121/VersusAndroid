@@ -50,16 +50,30 @@
         android:layout_centerHorizontal="true"
         app:srcCompat="@drawable/logo_splash" />
 
+    <com.google.android.gms.common.SignInButton
+        android:id="@+id/google_login_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true" />
+    <ProgressBar
+        android:id="@+id/google_login_progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@id/google_login_button"
+        android:layout_alignBottom="@id/google_login_button"
+        android:layout_centerHorizontal="true"
+        android:visibility="invisible"/>
+
+
     <com.facebook.login.widget.LoginButton
         android:id="@+id/facebook_login_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="30dp"
-        android:layout_marginBottom="30dp"
-        android:layout_alignParentBottom="true"
-        android:scaleX="1.75"
-        android:scaleY="1.75" />
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:layout_above="@id/google_login_button"/>
     <ProgressBar
         android:id="@+id/facebook_login_progress_bar"
         android:layout_width="wrap_content"
@@ -68,6 +82,8 @@
         android:layout_alignBottom="@id/facebook_login_button"
         android:layout_centerHorizontal="true"
         android:visibility="invisible"/>
+
+
 
 
 </RelativeLayout>
