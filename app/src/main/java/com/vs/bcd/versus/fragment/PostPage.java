@@ -122,7 +122,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private PostPage thisPage;
     private boolean exitLoop = false;
     private Button topcardSortTypeSelector;
-    private LinearLayout topcardSortTypeSelectorBackground;
     final HashMap<String, VSCNode> nodeMap = new HashMap<>();
     private HashMap<String, VSComment> parentCache = new HashMap<>();
     private HashMap<String, Pair<Integer, Integer>> freshlyVotedComments = new HashMap<>();
@@ -170,6 +169,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     private Stack<List<Object>> masterListStack = new Stack<>();
     private Stack<Integer> scrollPositionStack = new Stack<>();
+    private Stack<HashMap<String, String>> medalWinnersListStack = new Stack<>();
     private int viewTreeTriggerCount = 0;
 
     private InputMethodManager imm;
@@ -868,7 +868,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     }
 
-    private void setMedals(ArrayList<VSComment> rootComments){
+    private void setMedals(ArrayList<VSComment> rootComments, String parentID){
         if(medalWinnersList == null){
             medalWinnersList = new HashMap<>();
         }
@@ -883,7 +883,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
 
         String query = "/vscomment/_search";
-        String payload = "{\"size\":4,\"sort\":[{\"u\":{\"order\":\"desc\"}},{\"ci\":{\"order\":\"desc\"}},{\"d\":{\"order\":\"desc\"}},{\"t\":{\"order\":\"asc\"}}],\"query\":{\"bool\":{\"filter\":[{\"term\":{\"pt\":\""+postID+"\"}},{\"range\":{\"u\":{\"gte\":10}}}]}}}";
+        String payload = "{\"size\":3,\"sort\":[{\"u\":{\"order\":\"desc\"}},{\"ci\":{\"order\":\"desc\"}},{\"d\":{\"order\":\"desc\"}},{\"t\":{\"order\":\"asc\"}}],\"query\":{\"bool\":{\"filter\":[{\"term\":{\"pt\":\""+postID+"\"}},{\"range\":{\"u\":{\"gte\":10}}}]}}}";
 
         String url = "https://" + host + query;
 
@@ -947,12 +947,17 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             if(hits.length() == 0){
                 return;
             }
+
             ArrayList<VSComment> medalWinners = new ArrayList<>();
             for(int i = 0; i < hits.length(); i++){
                 JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
                 String id = hits.getJSONObject(i).getString("_id");
                 //VSComment medalWinner = new VSComment(item);
                 medalWinners.add(new VSComment(item, id));
+            }
+
+            if(medalWinners.size() == 0){
+                return;
             }
 
             //int extraHearts = 1;
@@ -970,27 +975,56 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                     medalWinnersList.put(goldWinner.getComment_id(), 3);
 
-                    switch (getCommentLevel(goldWinner)){
-                        case 0:
-                            if(!winnerTreeRoots.contains(goldWinner.getComment_id())){
-                                rootComments.add(goldWinner);
-                                winnerTreeRoots.add(goldWinner.getComment_id());
-                            }
-                            break;
-                        case 1:
-                            VSComment winnerParent = getComment(goldWinner.getParent_id());
-                            if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
-                                rootComments.add(winnerParent);
-                                winnerTreeRoots.add(winnerParent.getComment_id());
-                            }
-                            break;
-                        case 2:
-                            VSComment winnerGrandParent = getComment(goldWinner.getRoot());
-                            if(!winnerTreeRoots.contains(winnerGrandParent.getComment_id())){
-                                rootComments.add(winnerGrandParent);
-                                winnerTreeRoots.add(winnerGrandParent.getComment_id());
-                            }
-                            break;
+                    if(postID.equals(parentID) || goldWinner.getParent_id().equals(parentID) || goldWinner.getRoot().equals(parentID)){
+                        switch (getCommentLevel(goldWinner)){
+                            case 0:
+                                if(pageLevel == 0){
+                                    if(!winnerTreeRoots.contains(goldWinner.getComment_id())){
+                                        rootComments.add(goldWinner);
+                                        winnerTreeRoots.add(goldWinner.getComment_id());
+                                    }
+                                }
+                                break;
+                            case 1:
+                                if(pageLevel == 0){
+                                    VSComment winnerParent = getComment(goldWinner.getParent_id());
+                                    if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
+                                        rootComments.add(winnerParent);
+                                        winnerTreeRoots.add(winnerParent.getComment_id());
+                                    }
+                                }
+                                else if(pageLevel == 1){
+                                    if(!winnerTreeRoots.contains(goldWinner.getComment_id())){
+                                        rootComments.add(goldWinner);
+                                        winnerTreeRoots.add(goldWinner.getComment_id());
+                                    }
+                                }
+
+                                break;
+                            case 2:
+                                if(pageLevel == 0){
+                                    VSComment winnerGrandParent = getComment(goldWinner.getRoot());
+                                    if(!winnerTreeRoots.contains(winnerGrandParent.getComment_id())){
+                                        rootComments.add(winnerGrandParent);
+                                        winnerTreeRoots.add(winnerGrandParent.getComment_id());
+                                    }
+                                }
+                                else if (pageLevel == 1){
+                                    VSComment winnerParent = getComment(goldWinner.getParent_id());
+                                    if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
+                                        rootComments.add(winnerParent);
+                                        winnerTreeRoots.add(winnerParent.getComment_id());
+                                    }
+                                }
+                                else{
+                                    if(!winnerTreeRoots.contains(goldWinner.getComment_id())){
+                                        rootComments.add(goldWinner);
+                                        winnerTreeRoots.add(goldWinner.getComment_id());
+                                    }
+                                }
+
+                                break;
+                        }
                     }
 
                     break;
@@ -1016,50 +1050,110 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     medalWinnersList.put(goldWinner.getComment_id(), 3);
                     medalWinnersList.put(silverWinner.getComment_id(), 2);
 
-                    switch (getCommentLevel(goldWinner)){
-                        case 0:
-                            if(!winnerTreeRoots.contains(goldWinner.getComment_id())){
-                                rootComments.add(goldWinner);
-                                winnerTreeRoots.add(goldWinner.getComment_id());
-                            }
-                            break;
-                        case 1:
-                            VSComment winnerParent = getComment(goldWinner.getParent_id());
-                            if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
-                                rootComments.add(winnerParent);
-                                winnerTreeRoots.add(winnerParent.getComment_id());
-                            }
-                            break;
-                        case 2:
-                            VSComment winnerGrandParent = getComment(goldWinner.getRoot());
-                            if(!winnerTreeRoots.contains(winnerGrandParent.getComment_id())){
-                                rootComments.add(winnerGrandParent);
-                                winnerTreeRoots.add(winnerGrandParent.getComment_id());
-                            }
-                            break;
+                    if(postID.equals(parentID) || goldWinner.getParent_id().equals(parentID) || goldWinner.getRoot().equals(parentID)){
+                        switch (getCommentLevel(goldWinner)){
+                            case 0:
+                                if(pageLevel == 0){
+                                    if(!winnerTreeRoots.contains(goldWinner.getComment_id())){
+                                        rootComments.add(goldWinner);
+                                        winnerTreeRoots.add(goldWinner.getComment_id());
+                                    }
+                                }
+                                break;
+                            case 1:
+                                if(pageLevel == 0){
+                                    VSComment winnerParent = getComment(goldWinner.getParent_id());
+                                    if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
+                                        rootComments.add(winnerParent);
+                                        winnerTreeRoots.add(winnerParent.getComment_id());
+                                    }
+                                }
+                                else if(pageLevel == 1){
+                                    if(!winnerTreeRoots.contains(goldWinner.getComment_id())){
+                                        rootComments.add(goldWinner);
+                                        winnerTreeRoots.add(goldWinner.getComment_id());
+                                    }
+                                }
+
+                                break;
+                            case 2:
+                                if(pageLevel == 0){
+                                    VSComment winnerGrandParent = getComment(goldWinner.getRoot());
+                                    if(!winnerTreeRoots.contains(winnerGrandParent.getComment_id())){
+                                        rootComments.add(winnerGrandParent);
+                                        winnerTreeRoots.add(winnerGrandParent.getComment_id());
+                                    }
+                                }
+                                else if (pageLevel == 1){
+                                    VSComment winnerParent = getComment(goldWinner.getParent_id());
+                                    if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
+                                        rootComments.add(winnerParent);
+                                        winnerTreeRoots.add(winnerParent.getComment_id());
+                                    }
+                                }
+                                else{
+                                    if(!winnerTreeRoots.contains(goldWinner.getComment_id())){
+                                        rootComments.add(goldWinner);
+                                        winnerTreeRoots.add(goldWinner.getComment_id());
+                                    }
+                                }
+
+                                break;
+                        }
                     }
 
-                    switch (getCommentLevel(silverWinner)){
-                        case 0:
-                            if(!winnerTreeRoots.contains(silverWinner.getComment_id())){
-                                rootComments.add(silverWinner);
-                                winnerTreeRoots.add(silverWinner.getComment_id());
-                            }
-                            break;
-                        case 1:
-                            VSComment winnerParent = getComment(silverWinner.getParent_id());
-                            if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
-                                rootComments.add(winnerParent);
-                                winnerTreeRoots.add(winnerParent.getComment_id());
-                            }
-                            break;
-                        case 2:
-                            VSComment winnerGrandParent = getComment(silverWinner.getRoot());
-                            if(!winnerTreeRoots.contains(winnerGrandParent.getComment_id())){
-                                rootComments.add(winnerGrandParent);
-                                winnerTreeRoots.add(winnerGrandParent.getComment_id());
-                            }
-                            break;
+                    if(postID.equals(parentID) || silverWinner.getParent_id().equals(parentID) || silverWinner.getRoot().equals(parentID)){
+                        switch (getCommentLevel(silverWinner)){
+                            case 0:
+                                if(pageLevel == 0){
+                                    if(!winnerTreeRoots.contains(silverWinner.getComment_id())){
+                                        rootComments.add(silverWinner);
+                                        winnerTreeRoots.add(silverWinner.getComment_id());
+                                    }
+                                }
+                                break;
+                            case 1:
+                                if(pageLevel == 0){
+                                    VSComment winnerParent = getComment(silverWinner.getParent_id());
+                                    if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
+                                        rootComments.add(winnerParent);
+                                        winnerTreeRoots.add(winnerParent.getComment_id());
+                                    }
+                                }
+                                else if(pageLevel == 1){
+                                    if(!winnerTreeRoots.contains(silverWinner.getComment_id())){
+                                        rootComments.add(silverWinner);
+                                        winnerTreeRoots.add(silverWinner.getComment_id());
+                                    }
+                                }
+
+                                break;
+                            case 2:
+                                if(pageLevel == 0){
+                                    VSComment winnerGrandParent = getComment(silverWinner.getRoot());
+                                    if(!winnerTreeRoots.contains(winnerGrandParent.getComment_id())){
+                                        rootComments.add(winnerGrandParent);
+                                        winnerTreeRoots.add(winnerGrandParent.getComment_id());
+                                    }
+                                }
+                                else if(pageLevel == 1){
+                                    VSComment winnerParent = getComment(silverWinner.getParent_id());
+                                    if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
+                                        rootComments.add(winnerParent);
+                                        winnerTreeRoots.add(winnerParent.getComment_id());
+                                    }
+                                }
+                                else{
+                                    if(!winnerTreeRoots.contains(silverWinner.getComment_id())){
+                                        rootComments.add(silverWinner);
+                                        winnerTreeRoots.add(silverWinner.getComment_id());
+                                    }
+
+                                }
+
+
+                                break;
+                        }
                     }
 
                     break;
@@ -1094,175 +1188,163 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     medalWinnersList.put(silverWinner.getComment_id(), 2);
                     medalWinnersList.put(bronzeWinner.getComment_id(), 1);
 
-                    switch (getCommentLevel(goldWinner)){
-                        case 0:
-                            if(!winnerTreeRoots.contains(goldWinner.getComment_id())){
-                                rootComments.add(goldWinner);
-                                winnerTreeRoots.add(goldWinner.getComment_id());
-                            }
-                            break;
-                        case 1:
-                            VSComment winnerParent = getComment(goldWinner.getParent_id());
-                            if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
-                                rootComments.add(winnerParent);
-                                winnerTreeRoots.add(winnerParent.getComment_id());
-                            }
-                            break;
-                        case 2:
-                            VSComment winnerGrandParent = getComment(goldWinner.getRoot());
-                            if(!winnerTreeRoots.contains(winnerGrandParent.getComment_id())){
-                                rootComments.add(winnerGrandParent);
-                                winnerTreeRoots.add(winnerGrandParent.getComment_id());
-                            }
-                            break;
-                    }
+                    if(postID.equals(parentID) || goldWinner.getParent_id().equals(parentID) || goldWinner.getRoot().equals(parentID)){
+                        switch (getCommentLevel(goldWinner)){
+                            case 0:
+                                if(pageLevel == 0){
+                                    if(!winnerTreeRoots.contains(goldWinner.getComment_id())){
+                                        rootComments.add(goldWinner);
+                                        winnerTreeRoots.add(goldWinner.getComment_id());
+                                    }
+                                }
+                                break;
+                            case 1:
+                                if(pageLevel == 0){
+                                    VSComment winnerParent = getComment(goldWinner.getParent_id());
+                                    if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
+                                        rootComments.add(winnerParent);
+                                        winnerTreeRoots.add(winnerParent.getComment_id());
+                                    }
+                                }
+                                else if(pageLevel == 1){
+                                    if(!winnerTreeRoots.contains(goldWinner.getComment_id())){
+                                        rootComments.add(goldWinner);
+                                        winnerTreeRoots.add(goldWinner.getComment_id());
+                                    }
+                                }
 
-                    switch (getCommentLevel(silverWinner)){
-                        case 0:
-                            if(!winnerTreeRoots.contains(silverWinner.getComment_id())){
-                                rootComments.add(silverWinner);
-                                winnerTreeRoots.add(silverWinner.getComment_id());
-                            }
-                            break;
-                        case 1:
-                            VSComment winnerParent = getComment(silverWinner.getParent_id());
-                            if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
-                                rootComments.add(winnerParent);
-                                winnerTreeRoots.add(winnerParent.getComment_id());
-                            }
-                            break;
-                        case 2:
-                            VSComment winnerGrandParent = getComment(silverWinner.getRoot());
-                            if(!winnerTreeRoots.contains(winnerGrandParent.getComment_id())){
-                                rootComments.add(winnerGrandParent);
-                                winnerTreeRoots.add(winnerGrandParent.getComment_id());
-                            }
-                            break;
-                    }
+                                break;
+                            case 2:
+                                if(pageLevel == 0){
+                                    VSComment winnerGrandParent = getComment(goldWinner.getRoot());
+                                    if(!winnerTreeRoots.contains(winnerGrandParent.getComment_id())){
+                                        rootComments.add(winnerGrandParent);
+                                        winnerTreeRoots.add(winnerGrandParent.getComment_id());
+                                    }
+                                }
+                                else if (pageLevel == 1){
+                                    VSComment winnerParent = getComment(goldWinner.getParent_id());
+                                    if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
+                                        rootComments.add(winnerParent);
+                                        winnerTreeRoots.add(winnerParent.getComment_id());
+                                    }
+                                }
+                                else{
+                                    if(!winnerTreeRoots.contains(goldWinner.getComment_id())){
+                                        rootComments.add(goldWinner);
+                                        winnerTreeRoots.add(goldWinner.getComment_id());
+                                    }
+                                }
 
-                    switch (getCommentLevel(bronzeWinner)){
-                        case 0:
-                            if(!winnerTreeRoots.contains(bronzeWinner.getComment_id())){
-                                rootComments.add(bronzeWinner);
-                                winnerTreeRoots.add(bronzeWinner.getComment_id());
-                            }
-                            break;
-                        case 1:
-                            VSComment winnerParent = getComment(bronzeWinner.getParent_id());
-                            if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
-                                rootComments.add(winnerParent);
-                                winnerTreeRoots.add(winnerParent.getComment_id());
-                            }
-                            break;
-                        case 2:
-                            VSComment winnerGrandParent = getComment(bronzeWinner.getRoot());
-                            if(!winnerTreeRoots.contains(winnerGrandParent.getComment_id())){
-                                rootComments.add(winnerGrandParent);
-                                winnerTreeRoots.add(winnerGrandParent.getComment_id());
-                            }
-                            break;
-                    }
-
-                    break;
-                case 4:
-
-                    goldWinner = medalWinners.get(0);
-                    silverWinner = medalWinners.get(1);
-                    bronzeWinner = medalWinners.get(2);
-                    fourthWinner = medalWinners.get(3);
-
-                    if(goldWinner.getTopmedal() < 3){
-                        if(!goldWinner.getAuthor().equals("[deleted]")){
-                            submitMedalUpdate(3, goldWinner);
+                                break;
                         }
                     }
-                    goldWinner.setCurrentMedal(3);
 
-                    if(silverWinner.getTopmedal() < 2) {
-                        if (!silverWinner.getAuthor().equals("[deleted]")) {
-                            submitMedalUpdate(2, silverWinner);
+                    if(postID.equals(parentID) || silverWinner.getParent_id().equals(parentID) || silverWinner.getRoot().equals(parentID)){
+                        switch (getCommentLevel(silverWinner)){
+                            case 0:
+                                if(pageLevel == 0){
+                                    if(!winnerTreeRoots.contains(silverWinner.getComment_id())){
+                                        rootComments.add(silverWinner);
+                                        winnerTreeRoots.add(silverWinner.getComment_id());
+                                    }
+                                }
+                                break;
+                            case 1:
+                                if(pageLevel == 0){
+                                    VSComment winnerParent = getComment(silverWinner.getParent_id());
+                                    if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
+                                        rootComments.add(winnerParent);
+                                        winnerTreeRoots.add(winnerParent.getComment_id());
+                                    }
+                                }
+                                else if(pageLevel == 1){
+                                    if(!winnerTreeRoots.contains(silverWinner.getComment_id())){
+                                        rootComments.add(silverWinner);
+                                        winnerTreeRoots.add(silverWinner.getComment_id());
+                                    }
+                                }
+
+                                break;
+                            case 2:
+                                if(pageLevel == 0){
+                                    VSComment winnerGrandParent = getComment(silverWinner.getRoot());
+                                    if(!winnerTreeRoots.contains(winnerGrandParent.getComment_id())){
+                                        rootComments.add(winnerGrandParent);
+                                        winnerTreeRoots.add(winnerGrandParent.getComment_id());
+                                    }
+                                }
+                                else if(pageLevel == 1){
+                                    VSComment winnerParent = getComment(silverWinner.getParent_id());
+                                    if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
+                                        rootComments.add(winnerParent);
+                                        winnerTreeRoots.add(winnerParent.getComment_id());
+                                    }
+                                }
+                                else{
+                                    if(!winnerTreeRoots.contains(silverWinner.getComment_id())){
+                                        rootComments.add(silverWinner);
+                                        winnerTreeRoots.add(silverWinner.getComment_id());
+                                    }
+
+                                }
+
+
+                                break;
                         }
                     }
-                    silverWinner.setCurrentMedal(2);
 
-                    if(bronzeWinner.getTopmedal() < 1) {
-                        if (!bronzeWinner.getAuthor().equals("[deleted]")) {
-                            submitMedalUpdate(1, bronzeWinner);
+                    if(postID.equals(parentID) || bronzeWinner.getParent_id().equals(parentID) || bronzeWinner.getRoot().equals(parentID)){
+                        switch (getCommentLevel(bronzeWinner)){
+                            case 0:
+                                if(pageLevel == 0){
+                                    if(!winnerTreeRoots.contains(bronzeWinner.getComment_id())){
+                                        rootComments.add(bronzeWinner);
+                                        winnerTreeRoots.add(bronzeWinner.getComment_id());
+                                    }
+                                }
+                                break;
+                            case 1:
+                                if(pageLevel == 0){
+                                    VSComment winnerParent = getComment(bronzeWinner.getParent_id());
+                                    if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
+                                        rootComments.add(winnerParent);
+                                        winnerTreeRoots.add(winnerParent.getComment_id());
+                                    }
+                                }
+                                else if(pageLevel == 1){
+                                    if(!winnerTreeRoots.contains(bronzeWinner.getComment_id())){
+                                        rootComments.add(bronzeWinner);
+                                        winnerTreeRoots.add(bronzeWinner.getComment_id());
+                                    }
+                                }
+
+                                break;
+                            case 2:
+                                if(pageLevel == 0){
+                                    VSComment winnerGrandParent = getComment(bronzeWinner.getRoot());
+                                    if(!winnerTreeRoots.contains(winnerGrandParent.getComment_id())){
+                                        rootComments.add(winnerGrandParent);
+                                        winnerTreeRoots.add(winnerGrandParent.getComment_id());
+                                    }
+                                }
+                                else if(pageLevel == 1){
+                                    VSComment winnerParent = getComment(bronzeWinner.getParent_id());
+                                    if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
+                                        rootComments.add(winnerParent);
+                                        winnerTreeRoots.add(winnerParent.getComment_id());
+                                    }
+
+                                }
+                                else{
+                                    if(!winnerTreeRoots.contains(bronzeWinner.getComment_id())){
+                                        rootComments.add(bronzeWinner);
+                                        winnerTreeRoots.add(bronzeWinner.getComment_id());
+                                    }
+                                }
+
+                                break;
                         }
-                    }
-                    bronzeWinner.setCurrentMedal(1);
-
-                    medalWinnersList.put(goldWinner.getComment_id(), 3);
-                    medalWinnersList.put(silverWinner.getComment_id(), 2);
-                    medalWinnersList.put(bronzeWinner.getComment_id(), 1);
-
-                    switch (getCommentLevel(goldWinner)){
-                        case 0:
-                            if(!winnerTreeRoots.contains(goldWinner.getComment_id())){
-                                rootComments.add(goldWinner);
-                                winnerTreeRoots.add(goldWinner.getComment_id());
-                            }
-                            break;
-                        case 1:
-                            VSComment winnerParent = getComment(goldWinner.getParent_id());
-                            if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
-                                rootComments.add(winnerParent);
-                                winnerTreeRoots.add(winnerParent.getComment_id());
-                            }
-                            break;
-                        case 2:
-                            VSComment winnerGrandParent = getComment(goldWinner.getRoot());
-                            if(!winnerTreeRoots.contains(winnerGrandParent.getComment_id())){
-                                rootComments.add(winnerGrandParent);
-                                winnerTreeRoots.add(winnerGrandParent.getComment_id());
-                            }
-                            break;
-                    }
-
-                    switch (getCommentLevel(silverWinner)){
-                        case 0:
-                            if(!winnerTreeRoots.contains(silverWinner.getComment_id())){
-                                rootComments.add(silverWinner);
-                                winnerTreeRoots.add(silverWinner.getComment_id());
-                            }
-                            break;
-                        case 1:
-                            VSComment winnerParent = getComment(silverWinner.getParent_id());
-                            if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
-                                rootComments.add(winnerParent);
-                                winnerTreeRoots.add(winnerParent.getComment_id());
-                            }
-                            break;
-                        case 2:
-                            VSComment winnerGrandParent = getComment(silverWinner.getRoot());
-                            if(!winnerTreeRoots.contains(winnerGrandParent.getComment_id())){
-                                rootComments.add(winnerGrandParent);
-                                winnerTreeRoots.add(winnerGrandParent.getComment_id());
-                            }
-                            break;
-                    }
-
-                    switch (getCommentLevel(bronzeWinner)){
-                        case 0:
-                            if(!winnerTreeRoots.contains(bronzeWinner.getComment_id())){
-                                rootComments.add(bronzeWinner);
-                                winnerTreeRoots.add(bronzeWinner.getComment_id());
-                            }
-                            break;
-                        case 1:
-                            VSComment winnerParent = getComment(bronzeWinner.getParent_id());
-                            if(!winnerTreeRoots.contains(winnerParent.getComment_id())){
-                                rootComments.add(winnerParent);
-                                winnerTreeRoots.add(winnerParent.getComment_id());
-                            }
-                            break;
-                        case 2:
-                            VSComment winnerGrandParent = getComment(bronzeWinner.getRoot());
-                            if(!winnerTreeRoots.contains(winnerGrandParent.getComment_id())){
-                                rootComments.add(winnerGrandParent);
-                                winnerTreeRoots.add(winnerGrandParent.getComment_id());
-                            }
-                            break;
                     }
 
                     break;
@@ -1326,7 +1408,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     long thisThreadID = Thread.currentThread().getId();
                     final List<Object> masterList = new ArrayList<>();
 
-                    setMedals(rootComments);
+                    if(uORt.equals("u")){
+                        setMedals(rootComments, rootParentID);
+                    }
 
                     getRootComments(0, rootComments, rootParentID, uORt);
 
@@ -2860,14 +2944,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         String sortBy, ascORdesc;
         switch (uORt){
             case "u": //sort by comment influence, and then by upvotes
-                if(fromIndex == 0 && medalWinnersList != null && !medalWinnersList.isEmpty()){
-                    //getGT(results, prIn);
-                    Log.d("gtstbt", "get it");
-                }
-                else{
-
-                    Log.d("gtstbt", "fill it");
-                }
                 payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\"ci\":{\"order\":\"desc\"}},{\"u\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"pr\":\""+prIn+"\"}}}";
 
                 break;
@@ -2968,7 +3044,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
                 String id = hits.getJSONObject(i).getString("_id");
                 Log.d("winnertree", "winnerTreeRoots size: " + winnerTreeRoots.size());
-                if(!winnerTreeRoots.contains(id)){
+                if(!uORt.equals("u") || !winnerTreeRoots.contains(id)){
                     results.add(new VSComment(item, id));
                     Log.d("winnertree", "didn't skip for " + id);
                 }
