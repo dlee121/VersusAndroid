@@ -20,9 +20,13 @@ import android.widget.Toast;
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Regions;
+import com.amazonaws.services.cognitoidentity.model.NotAuthorizedException;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.auth0.android.jwt.JWT;
 import com.facebook.AccessToken;
+import com.facebook.login.LoginManager;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -76,6 +80,7 @@ public class AuthSignUp extends AppCompatActivity {
     private String lastname = " ";
     private String authID = " ";
     private String authToken = " ";
+    private Toast mToast;
 
     @Override
     public void onBackPressed(){
@@ -247,26 +252,56 @@ public class AuthSignUp extends AppCompatActivity {
                             if(firebaseUser != null){
                                 mFirebaseAuth.getCurrentUser().getIdToken(true).addOnSuccessListener(new OnSuccessListener<GetTokenResult>() {
                                     @Override
-                                    public void onSuccess(GetTokenResult getTokenResult) {
+                                    public void onSuccess(final GetTokenResult getTokenResult) {
                                         Map<String, String> logins = new HashMap<>();
                                         logins.put("securetoken.google.com/bcd-versus", getTokenResult.getToken());
+
                                         credentialsProvider.setLogins(logins);
 
                                         Runnable runnable = new Runnable() {
                                             public void run() {
-                                                credentialsProvider.refresh();
-                                                mapper.save(newUser);
+                                                try{
+                                                    credentialsProvider.refresh();
+                                                    mapper.save(newUser);
+                                                }catch (NotAuthorizedException e){
+                                                    thisActivity.runOnUiThread(new Runnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            sessionManager.logoutUser();
+                                                            credentialsProvider.clear();
+                                                            credentialsProvider = new CognitoCachingCredentialsProvider(
+                                                                    getApplicationContext(),
+                                                                    "us-east-1:88614505-c8df-4dce-abd8-79a0543852ff", // Identity Pool ID
+                                                                    Regions.US_EAST_1 // Region
+                                                            );
+                                                            LoginManager.getInstance().logOut();
+                                                            GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build(); //google logout
+                                                            GoogleSignIn.getClient(thisActivity, gso).signOut();
+                                                            if(mToast != null){
+                                                                mToast.cancel();
+                                                            }
+                                                            mToast = Toast.makeText(thisActivity, "Something went wrong. Please try again.", Toast.LENGTH_SHORT);
+                                                            mToast.show();
+                                                        }
+                                                    });
+                                                }
+
+                                                thisActivity.runOnUiThread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        sessionManager.createLoginSession(newUser);
+                                                        Intent intent = new Intent(thisActivity, MainContainer.class);
+                                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);   //clears back stack for navigation
+                                                        intent.putExtra("oitk", getTokenResult.getToken());
+                                                        startActivity(intent);
+                                                        overridePendingTransition(0, 0);
+                                                    }
+                                                });
                                             }
                                         };
                                         Thread mythread = new Thread(runnable);
                                         mythread.start();
 
-                                        sessionManager.createLoginSession(newUser);
-                                        Intent intent = new Intent(thisActivity, MainContainer.class);
-                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);   //clears back stack for navigation
-                                        intent.putExtra("oitk", getTokenResult.getToken());
-                                        startActivity(intent);
-                                        overridePendingTransition(0, 0);
                                     }
                                 }).addOnFailureListener(new OnFailureListener() {
                                     @Override

@@ -22,6 +22,7 @@ import android.widget.Toast;
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Regions;
+import com.amazonaws.services.cognitoidentity.model.NotAuthorizedException;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
@@ -408,29 +409,46 @@ public class StartScreen extends AppCompatActivity {
                                                 logins.put("securetoken.google.com/bcd-versus", token);
                                                 credentialsProvider.setLogins(logins);
 
-                                                Runnable runnable = new Runnable() {
-                                                    public void run() {
-                                                        credentialsProvider.refresh();
-                                                        final User user = mapper.load(User.class, usernameIn); //TODO: replace with ES user GET
 
-                                                        thisActivity.runOnUiThread(new Runnable() {
-                                                            @Override
-                                                            public void run() {
-                                                                SessionManager sessionManager = new SessionManager(thisActivity);
-                                                                sessionManager.createLoginSession(user);    //store login session data in Shared Preferences
+                                                    Runnable runnable = new Runnable() {
+                                                        public void run() {
+                                                            try{
+                                                                credentialsProvider.refresh();
+                                                                final User user = mapper.load(User.class, usernameIn); //TODO: replace with ES user GET
 
-                                                                Intent intent = new Intent(thisActivity, MainContainer.class);
-                                                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                                                intent.putExtra("oitk", token);
-                                                                loginThreadRunning = false;
-                                                                startActivity(intent);  //go on to the next activity, MainContainer
-                                                                overridePendingTransition(0, 0);
+                                                                thisActivity.runOnUiThread(new Runnable() {
+                                                                    @Override
+                                                                    public void run() {
+                                                                        SessionManager sessionManager = new SessionManager(thisActivity);
+                                                                        sessionManager.createLoginSession(user);    //store login session data in Shared Preferences
+
+                                                                        Intent intent = new Intent(thisActivity, MainContainer.class);
+                                                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                                                        intent.putExtra("oitk", token);
+                                                                        loginThreadRunning = false;
+                                                                        startActivity(intent);  //go on to the next activity, MainContainer
+                                                                        overridePendingTransition(0, 0);
+                                                                    }
+                                                                });
+                                                            }catch (NotAuthorizedException e){
+                                                                thisActivity.runOnUiThread(new Runnable() {
+                                                                    @Override
+                                                                    public void run() {
+                                                                        resetLoginButtons();
+                                                                        if(mToast != null){
+                                                                            mToast.cancel();
+                                                                        }
+                                                                        mToast = Toast.makeText(thisActivity, "Something went wrong. Please try again.", Toast.LENGTH_SHORT);
+                                                                    }
+                                                                });
                                                             }
-                                                        });
-                                                    }
-                                                };
-                                                Thread mythread = new Thread(runnable);
-                                                mythread.start();
+
+                                                        }
+                                                    };
+                                                    Thread mythread = new Thread(runnable);
+                                                    mythread.start();
+
+
                                             }
                                         }).addOnFailureListener(new OnFailureListener() {
                                             @Override
@@ -535,16 +553,6 @@ public class StartScreen extends AppCompatActivity {
                 //once the registration is complete,
                 //authenticate with firebase, then setLogins for cognito with firebase token, then create client session with SessionManager
 
-                Log.d("facebookLogin", "first time");
-                this.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        //TODO: remove the progress bar that was put on earlier by facebook login success
-
-
-                    }
-                });
-
                 Intent intent = new Intent(this, AuthSignUp.class);
                 intent.putExtra("firstname", firstname);
                 intent.putExtra("lastname", lastname);
@@ -581,26 +589,44 @@ public class StartScreen extends AppCompatActivity {
                                     if(firebaseUser != null){
                                         mFirebaseAuth.getCurrentUser().getIdToken(true).addOnSuccessListener(new OnSuccessListener<GetTokenResult>() {
                                             @Override
-                                            public void onSuccess(GetTokenResult getTokenResult) {
+                                            public void onSuccess(final GetTokenResult getTokenResult) {
                                                 Map<String, String> logins = new HashMap<>();
                                                 logins.put("securetoken.google.com/bcd-versus", getTokenResult.getToken());
                                                 credentialsProvider.setLogins(logins);
 
                                                 Runnable runnable = new Runnable() {
                                                     public void run() {
-                                                        credentialsProvider.refresh();
+                                                        try {
+                                                            credentialsProvider.refresh();
+
+                                                            thisActivity.runOnUiThread(new Runnable() {
+                                                                @Override
+                                                                public void run() {
+                                                                    SessionManager sessionManager = new SessionManager(thisActivity);
+                                                                    sessionManager.createLoginSession(user);
+                                                                    Intent intent = new Intent(thisActivity, MainContainer.class);
+                                                                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);   //clears back stack for navigation
+                                                                    intent.putExtra("oitk", getTokenResult.getToken());
+                                                                    startActivity(intent);
+                                                                    overridePendingTransition(0, 0);
+                                                                }
+                                                            });
+                                                        }catch (NotAuthorizedException e){
+                                                            thisActivity.runOnUiThread(new Runnable() {
+                                                                @Override
+                                                                public void run() {
+                                                                    resetLoginButtons();
+                                                                    if(mToast != null){
+                                                                        mToast.cancel();
+                                                                    }
+                                                                    mToast = Toast.makeText(thisActivity, "Something went wrong. Please try again.", Toast.LENGTH_SHORT);
+                                                                }
+                                                            });
+                                                        }
                                                     }
                                                 };
                                                 Thread mythread = new Thread(runnable);
                                                 mythread.start();
-                                                SessionManager sessionManager = new SessionManager(thisActivity);
-                                                sessionManager.createLoginSession(user);
-                                                Log.d("facebookLogin", "facebook signin complete");
-                                                Intent intent = new Intent(thisActivity, MainContainer.class);
-                                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);   //clears back stack for navigation
-                                                intent.putExtra("oitk", getTokenResult.getToken());
-                                                startActivity(intent);
-                                                overridePendingTransition(0, 0);
                                             }
                                         }).addOnFailureListener(new OnFailureListener() {
                                             @Override
