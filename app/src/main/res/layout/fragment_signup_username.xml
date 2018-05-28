@@ -3,8 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/unamepagefrag"
-    tools:context="com.vs.bcd.versus.activity.SignUp">
+    android:id="@+id/unamepagefrag">
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

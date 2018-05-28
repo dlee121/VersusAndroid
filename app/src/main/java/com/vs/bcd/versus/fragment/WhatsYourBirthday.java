@@ -13,12 +13,15 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.activity.AuthSignUp;
 import com.vs.bcd.versus.activity.SignUp;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 
 public class WhatsYourBirthday extends Fragment {
 
@@ -30,13 +33,13 @@ public class WhatsYourBirthday extends Fragment {
     private Button nextButton;
     private boolean firstRound = true;
     private boolean validated = false;
+    private Toast mToast;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
         rootView = inflater.inflate(R.layout.fragment_signup_bday, container, false);
-        activity = (SignUp)getActivity();
         nextButton = (Button)rootView.findViewById(R.id.wybbutton);
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();
@@ -74,14 +77,45 @@ public class WhatsYourBirthday extends Fragment {
         nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0);
                 int month = datePicker.getMonth() + 1;
                 int day = datePicker.getDayOfMonth();
                 int year = datePicker.getYear();
-                String bday = Integer.toString(month) + "-" + Integer.toString(day) + "-" + Integer.toString(year);
-                activity.setThr(bday);
-                activity.getViewPager().setCurrentItem(2);
+
+                Log.d("bdaycalendar", "month picked: "+month);
+
+                Calendar today = Calendar.getInstance();
+                Log.d("bdaycalendar", "current month: "+Calendar.getInstance().get(Calendar.MONTH));
+                int yearDiff = today.get(Calendar.YEAR) - year;
+                boolean ageRequirementMet = false;
+                if(yearDiff > 18){
+                    ageRequirementMet = true;
+                }
+                else if(yearDiff == 18){
+                    int monthDiff = today.get(Calendar.MONTH) + 1 - month;
+                    if(monthDiff > 0){
+                        ageRequirementMet = true;
+                    }
+                    else if(monthDiff == 0){
+                        if(today.get(Calendar.DAY_OF_MONTH) >= day){
+                            ageRequirementMet = true;
+                        }
+                    }
+                }
+
+                if(ageRequirementMet){
+                    InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0);
+                    String bday = Integer.toString(month) + "-" + Integer.toString(day) + "-" + Integer.toString(year);
+                    activity.setThr(bday);
+                    activity.getViewPager().setCurrentItem(2);
+                }
+                else{
+                    if(mToast != null){
+                        mToast.cancel();
+                    }
+                    mToast = Toast.makeText(activity, "You must be at least 18 years old", Toast.LENGTH_SHORT);
+                    mToast.show();
+                }
 
             }
         });
@@ -95,11 +129,24 @@ public class WhatsYourBirthday extends Fragment {
     }
 
     @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        activity = (SignUp) context;
+    }
+
+    @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
-            if(rootView != null)
+            if(rootView != null){
                 enableChildViews();
+                try{
+                    InputMethodManager mgr = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                    mgr.hideSoftInputFromWindow(nextButton.getWindowToken(), 0);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
         }
         else {
             if (rootView != null)

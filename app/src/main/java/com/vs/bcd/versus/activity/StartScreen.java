@@ -573,6 +573,7 @@ public class StartScreen extends AppCompatActivity {
                 intent.putExtra("token", authToken);
                 startActivity(intent);
                 overridePendingTransition(0, 0);
+                resetLoginButtonsUIOnly();
             }
             else{
                 JSONObject item = hits.getJSONObject(0);
@@ -700,6 +701,16 @@ public class StartScreen extends AppCompatActivity {
 
         displayLoginProgressbar(false);
         loginThreadRunning = false;
+    }
+
+    private void resetLoginButtonsUIOnly(){
+        facebookLoginButton.setVisibility(View.VISIBLE);
+        facebookProgressbar.setVisibility(View.INVISIBLE);
+
+        googleLoginButton.setVisibility(View.VISIBLE);
+        googleProgressbar.setVisibility(View.INVISIBLE);
+        
+        displayLoginProgressbar(false);
     }
 
 }
