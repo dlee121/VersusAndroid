@@ -1,28 +1,33 @@
 package com.vs.bcd.versus.activity;
 
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Regions;
-import com.facebook.AccessToken;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
-import com.facebook.FacebookRequestError;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
-import com.facebook.HttpMethod;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
@@ -47,13 +52,11 @@ import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.User;
-import com.vs.bcd.versus.model.VSComment;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -82,10 +85,16 @@ public class StartScreen extends AppCompatActivity {
     private FirebaseAuth mFirebaseAuth;
     private CognitoCachingCredentialsProvider credentialsProvider;
     private StartScreen thisActivity;
-    private ProgressBar facebookProgressbar, googleProgressbar;
+    private ProgressBar nativeProgressbar, facebookProgressbar, googleProgressbar;
     private SignInButton googleLoginButton;
     private GoogleSignInClient mGoogleSignInClient;
+    private Button nativeLoginButton;
     private int RC_SIGN_IN = 58;
+    private EditText usernameET, pwET;
+    private boolean loginThreadRunning = false;
+    private AmazonDynamoDBClient ddbClient;
+    private DynamoDBMapper mapper = new DynamoDBMapper(ddbClient);
+    private Toast mToast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,6 +110,10 @@ public class StartScreen extends AppCompatActivity {
                 "us-east-1:88614505-c8df-4dce-abd8-79a0543852ff", // Identity Pool ID
                 Regions.US_EAST_1 // Region
         );
+
+        ddbClient = new AmazonDynamoDBClient(credentialsProvider);
+        mapper = new DynamoDBMapper(ddbClient);
+
         mFirebaseAuth = FirebaseAuth.getInstance();
 
         callbackManager = CallbackManager.Factory.create();
@@ -131,9 +144,6 @@ public class StartScreen extends AppCompatActivity {
             }
         });
         //googleLoginButton.setColorScheme(SignInButton.COLOR_DARK);
-
-        //check if facebook user logged in first, and also clear other providers including Cognito
-        resetLoginButtons();
 
         //facebookLoginButton.setReadPermissions("public_profile");
         // Callback registration
@@ -226,6 +236,17 @@ public class StartScreen extends AppCompatActivity {
             }
         });
     */
+
+
+        usernameET = findViewById(R.id.editTextUsernameIN);
+        pwET = findViewById(R.id.editTextPWIN);
+        nativeProgressbar = findViewById(R.id.native_login_progress_bar);
+        nativeLoginButton = findViewById(R.id.native_login_button);
+
+        //check if facebook user logged in first, and also clear other providers including Cognito
+        resetLoginButtons();
+
+
     }
 
 
@@ -312,11 +333,134 @@ public class StartScreen extends AppCompatActivity {
         resetLoginButtons();
     }
 
+    @Override
+    protected void onStart(){
+        super.onStart();
+        displayLoginProgressbar(false);
+    }
+
+    private void displayLoginProgressbar(boolean set){
+        if(set){
+            Log.d("loginpb", "true");
+            nativeLoginButton.setClickable(false);
+            nativeLoginButton.setVisibility(View.INVISIBLE);
+            nativeLoginButton.setEnabled(false);
+
+            nativeProgressbar.setEnabled(true);
+            nativeProgressbar.setVisibility(View.VISIBLE);
+        }
+        else{
+            nativeProgressbar.setEnabled(false);
+            nativeProgressbar.setVisibility(View.INVISIBLE);
+
+            nativeLoginButton.setEnabled(true);
+            nativeLoginButton.setVisibility(View.VISIBLE);
+            nativeLoginButton.setClickable(true);
+        }
+
+    }
+
     public void logInPressed(View view){
-        Intent intent = new Intent(this, LogIn.class);
-        startActivity(intent);
-        overridePendingTransition(0, 0);
-        resetLoginButtons();
+        if(usernameET.getText().toString().trim().isEmpty()){
+            if(mToast != null){
+                mToast.cancel();
+            }
+            mToast = Toast.makeText(this, "Please enter a username", Toast.LENGTH_SHORT);
+            mToast.show();
+            return;
+        }
+        if(pwET.getText().toString().trim().isEmpty()){
+            if(mToast != null){
+                mToast.cancel();
+            }
+            mToast = Toast.makeText(this, "Please enter a password", Toast.LENGTH_SHORT);
+            mToast.show();
+            return;
+        }
+
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow( getCurrentFocus().getWindowToken(), 0);
+        //TODO: better way to prevent multiple login submission from tapping the button rapidly multiple times?
+
+        if(!loginThreadRunning){
+            loginThreadRunning = true;
+            displayLoginProgressbar(true);
+
+            final String usernameIn = usernameET.getText().toString();
+
+            //TODO: form validation here
+            try{
+                mFirebaseAuth.signInWithEmailAndPassword(usernameIn + "@versusbcd.com", pwET.getText().toString())
+                        .addOnCompleteListener(StartScreen.this, new OnCompleteListener<AuthResult>() {
+                            @Override
+                            public void onComplete(@NonNull Task<AuthResult> task) {
+                                if (task.isSuccessful()) {
+                                    Log.d("authsuccess", "aye success");
+                                    FirebaseUser firebaseUser= mFirebaseAuth.getCurrentUser();
+
+                                    if(firebaseUser != null){
+
+                                        firebaseUser.getIdToken(true).addOnSuccessListener(new OnSuccessListener<GetTokenResult>() {
+                                            @Override
+                                            public void onSuccess(GetTokenResult getTokenResult) {
+                                                Map<String, String> logins = new HashMap<>();
+                                                final String token = getTokenResult.getToken();
+                                                logins.put("securetoken.google.com/bcd-versus", token);
+                                                credentialsProvider.setLogins(logins);
+
+                                                Runnable runnable = new Runnable() {
+                                                    public void run() {
+                                                        credentialsProvider.refresh();
+                                                        final User user = mapper.load(User.class, usernameIn); //TODO: replace with ES user GET
+
+                                                        thisActivity.runOnUiThread(new Runnable() {
+                                                            @Override
+                                                            public void run() {
+                                                                SessionManager sessionManager = new SessionManager(thisActivity);
+                                                                sessionManager.createLoginSession(user);    //store login session data in Shared Preferences
+
+                                                                Intent intent = new Intent(thisActivity, MainContainer.class);
+                                                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                                                intent.putExtra("oitk", token);
+                                                                loginThreadRunning = false;
+                                                                startActivity(intent);  //go on to the next activity, MainContainer
+                                                                overridePendingTransition(0, 0);
+                                                            }
+                                                        });
+                                                    }
+                                                };
+                                                Thread mythread = new Thread(runnable);
+                                                mythread.start();
+                                            }
+                                        }).addOnFailureListener(new OnFailureListener() {
+                                            @Override
+                                            public void onFailure(@NonNull Exception e) {
+                                                displayLoginProgressbar(false);
+                                                loginThreadRunning = false;
+                                                Toast.makeText(thisActivity, "There was a problem logging in. Please check your network connection and try again.", Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+                                    }
+                                    else{
+                                        displayLoginProgressbar(false);
+                                        loginThreadRunning = false;
+                                        Toast.makeText(thisActivity, "There was a problem logging in. Please check your network connection and try again.", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                                else {
+                                    displayLoginProgressbar(false);
+                                    loginThreadRunning = false;
+                                    Toast.makeText(StartScreen.this, "Check your username or password", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
+            }catch (Exception e){
+                displayLoginProgressbar(false);
+                loginThreadRunning = false;
+                Toast.makeText(StartScreen.this, "Check your username or password", Toast.LENGTH_SHORT).show();
+                e.printStackTrace();
+            }
+        }
     }
 
 
@@ -514,6 +658,9 @@ public class StartScreen extends AppCompatActivity {
         mGoogleSignInClient.signOut();
         googleLoginButton.setVisibility(View.VISIBLE);
         googleProgressbar.setVisibility(View.INVISIBLE);
+
+        displayLoginProgressbar(false);
+        loginThreadRunning = false;
     }
 
 }

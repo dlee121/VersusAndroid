@@ -11,29 +11,89 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
         android:orientation="vertical">
 
-        <Button
-            android:id="@+id/button2"
+        <LinearLayout
             android:layout_width="match_parent"
+            android:layout_height="104dp"
+            android:weightSum="2"
+            android:orientation="vertical">
+
+            <!-- Dummy item to prevent AutoCompleteTextView from receiving focus -->
+            <LinearLayout
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:layout_width="0px"
+                android:layout_height="0px"/>
+
+            <android.support.design.widget.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                app:passwordToggleContentDescription="Please enter your username">
+                <EditText
+                    android:id="@+id/editTextUsernameIN"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:ems="10"
+                    android:hint="Username"
+                    android:inputType="text" />
+            </android.support.design.widget.TextInputLayout>
+
+            <android.support.design.widget.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                app:passwordToggleContentDescription="Please enter your password"
+                app:passwordToggleEnabled="true">
+                <android.support.design.widget.TextInputEditText
+                    android:id="@+id/editTextPWIN"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:ems="10"
+                    android:hint="Password"
+                    android:inputType="textPassword"/>
+            </android.support.design.widget.TextInputLayout>
+
+
+        </LinearLayout>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal|center"
-            android:background="@color/vsRed"
-            android:text="LOG IN"
-            android:textColor="@color/vsBlue"
-            android:textSize="30sp"
-            android:textStyle="bold"
-            android:layout_margin="8dp"
-            android:onClick="logInPressed" />
+            android:layout_gravity="center_horizontal|center">
+
+            <Button
+                android:id="@+id/native_login_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/vsRed"
+                android:text="LOG IN"
+                android:textColor="@color/vsBlue"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                android:onClick="logInPressed" />
+
+            <ProgressBar
+                android:id="@+id/native_login_progress_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignTop="@id/native_login_button"
+                android:layout_alignBottom="@id/native_login_button"
+                android:visibility="invisible"/>
+
+        </RelativeLayout>
 
         <Button
             android:id="@+id/button3"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
             android:layout_gravity="center_horizontal|center"
             android:background="@color/vsBlue"
             android:onClick="signUpPressed"
-            android:layout_margin="8dp"
             android:text="SIGN UP"
             android:textColor="@color/vsRed"
             android:textSize="30sp"
@@ -54,6 +114,7 @@
         android:id="@+id/google_login_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
         android:layout_centerHorizontal="true"
         android:layout_alignParentBottom="true" />
     <ProgressBar
@@ -73,6 +134,7 @@
         android:layout_centerHorizontal="true"
         android:paddingTop="12dp"
         android:paddingBottom="12dp"
+        android:layout_marginBottom="6dp"
         android:layout_above="@id/google_login_button"/>
     <ProgressBar
         android:id="@+id/facebook_login_progress_bar"

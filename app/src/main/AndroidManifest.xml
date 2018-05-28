@@ -95,17 +95,6 @@
                 android:value="com.vs.bcd.versus.activity.StartScreen" />
         </activity>
         <activity
-            android:name=".activity.LogIn"
-            android:label="@string/title_activity_log_in"
-            android:screenOrientation="portrait"
-            android:parentActivityName=".activity.StartScreen"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:windowSoftInputMode="adjustResize">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.vs.bcd.versus.activity.StartScreen" />
-        </activity>
-        <activity
             android:name=".activity.MainContainer"
             android:label="@string/title_activity_main_container"
             android:screenOrientation="portrait"

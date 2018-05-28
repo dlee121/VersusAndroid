@@ -19,7 +19,7 @@
             android:textSize="22sp" />
 
         <EditText
-            android:id="@+id/editText6"
+            android:id="@+id/editTextUsernameIN"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/textView7"
@@ -34,7 +34,7 @@
             android:layout_height="wrap_content"
             android:textAlignment="center"
             android:textSize="22sp"
-            android:layout_below="@+id/editText6"
+            android:layout_below="@+id/editTextUsernameIN"
             android:text="Password:" />
 
         <android.support.design.widget.TextInputLayout
@@ -42,7 +42,8 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/textView2"
             app:passwordToggleContentDescription="Please enter your password"
-            app:passwordToggleEnabled="true">
+            app:passwordToggleEnabled="true"
+            app:hintEnabled="false">
             <android.support.design.widget.TextInputEditText
                 android:id="@+id/editTextPWIN"
                 android:layout_width="match_parent"
