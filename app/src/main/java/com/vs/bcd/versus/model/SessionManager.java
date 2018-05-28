@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.vs.bcd.versus.activity.StartScreen;
 
 public class SessionManager {
@@ -153,6 +154,7 @@ public class SessionManager {
      * **/
     // Get Login State
     public boolean isLoggedIn(){
-        return pref.getBoolean(IS_LOGIN, false);
+
+        return pref.getBoolean(IS_LOGIN, false) && FirebaseAuth.getInstance().getCurrentUser() != null;
     }
 }

@@ -123,6 +123,7 @@ public class StartScreen extends AppCompatActivity {
         facebookLoginButton.setOnClickListener(new View.OnClickListener() { //This is an external click listener. Internal click listener handles the login.
             @Override
             public void onClick(View view) {
+                resetLoginButtons();
                 facebookLoginButton.setVisibility(View.INVISIBLE);
                 facebookProgressbar.setVisibility(View.VISIBLE);
             }
@@ -138,6 +139,7 @@ public class StartScreen extends AppCompatActivity {
         googleLoginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                resetLoginButtons();
                 googleLoginButton.setVisibility(View.INVISIBLE);
                 googleProgressbar.setVisibility(View.VISIBLE);
                 Intent signInIntent = mGoogleSignInClient.getSignInIntent();
@@ -378,6 +380,7 @@ public class StartScreen extends AppCompatActivity {
             mToast.show();
             return;
         }
+        resetLoginButtons();
 
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow( getCurrentFocus().getWindowToken(), 0);

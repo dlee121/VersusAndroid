@@ -50,6 +50,7 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Regions;
+import com.amazonaws.services.cognitoidentity.model.NotAuthorizedException;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.model.AttributeAction;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
@@ -459,8 +460,12 @@ public class MainContainer extends AppCompatActivity {
 
                 Runnable runnable = new Runnable() {
                     public void run() {
-                        credentialsProvider.refresh();
-                        credentialsProvider.getCredentials();
+                        try{
+                            credentialsProvider.refresh();
+                            credentialsProvider.getCredentials();
+                        }catch (NotAuthorizedException e){
+                            handleNotAuthorizedException();
+                        }
                         Log.d("mainattach", "credentials refreshed");
                         if(runInitialNewsfeedQuery.getAndSet(true)){
                             if(mainActivityFragRef != null && mainActivityFragRef.getTab1() != null){
@@ -501,8 +506,12 @@ public class MainContainer extends AppCompatActivity {
 
                                     Runnable runnable = new Runnable() {
                                         public void run() {
-                                            credentialsProvider.refresh();
-                                            credentialsProvider.getCredentials();
+                                            try{
+                                                credentialsProvider.refresh();
+                                                credentialsProvider.getCredentials();
+                                            }catch (NotAuthorizedException e){
+                                                handleNotAuthorizedException();
+                                            }
                                             Log.d("mainattach", "credentials refreshed");
                                             if(runInitialNewsfeedQuery.getAndSet(true)){
                                                 if(mainActivityFragRef != null && mainActivityFragRef.getTab1() != null){
@@ -534,8 +543,12 @@ public class MainContainer extends AppCompatActivity {
 
                             Runnable runnable = new Runnable() {
                                 public void run() {
-                                    credentialsProvider.refresh();
-                                    credentialsProvider.getCredentials();
+                                    try{
+                                        credentialsProvider.refresh();
+                                        credentialsProvider.getCredentials();
+                                    }catch (NotAuthorizedException e){
+                                        handleNotAuthorizedException();
+                                    }
                                     Log.d("mainattach", "credentials refreshed");
                                     if(runInitialNewsfeedQuery.getAndSet(true)){
                                         if(mainActivityFragRef != null && mainActivityFragRef.getTab1() != null){
@@ -3037,6 +3050,83 @@ public class MainContainer extends AppCompatActivity {
         if(followersAndFollowings != null){
             followersAndFollowings.clearStack();
         }
+    }
+
+    public void handleNotAuthorizedException(){
+        final FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        if(firebaseUser == null){
+            sessionLogOut();
+        }
+        else {
+            firebaseUser.getIdToken(false).addOnSuccessListener(new OnSuccessListener<GetTokenResult>() {
+                @Override
+                public void onSuccess(GetTokenResult getTokenResult) {
+                    String token = getTokenResult.getToken();
+                    JWT jwt = new JWT(token);
+                    Log.d("exptime", ""+jwt.getExpiresAt().getTime());
+                    if(jwt.getExpiresAt().getTime() - 300000 < System.currentTimeMillis()){ //token close to expiration, so refresh it
+                        Log.d("exptime", "token expires in less than 5 minutes");
+                        //get fresh token
+                        firebaseUser.getIdToken(true).addOnSuccessListener(new OnSuccessListener<GetTokenResult>() {
+                            @Override
+                            public void onSuccess(GetTokenResult getTokenResult) {
+                                Map<String, String> logins = new HashMap<>();
+                                logins.put("securetoken.google.com/bcd-versus", getTokenResult.getToken());
+                                credentialsProvider.setLogins(logins);
+
+                                Runnable runnable = new Runnable() {
+                                    public void run() {
+                                        try{
+                                            credentialsProvider.refresh();
+                                            credentialsProvider.getCredentials();
+                                        }
+                                        catch (Exception e){
+                                            sessionLogOut();
+                                        }
+                                    }
+                                };
+                                Thread mythread = new Thread(runnable);
+                                mythread.start();
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                sessionLogOut();
+                            }
+                        });
+                    }
+                    else{ //token is still fresh so use it
+                        Map<String, String> logins = new HashMap<>();
+                        logins.put("securetoken.google.com/bcd-versus", token);
+                        credentialsProvider.setLogins(logins);
+
+                        Runnable runnable = new Runnable() {
+                            public void run() {
+                                try{
+                                    credentialsProvider.refresh();
+                                    credentialsProvider.getCredentials();
+                                }
+                                catch (Exception e){
+                                    sessionLogOut();
+                                }
+                            }
+                        };
+                        Thread mythread = new Thread(runnable);
+                        mythread.start();
+
+                    }
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    sessionLogOut();
+                }
+            });
+        }
+
+
+
+
     }
 
 }
