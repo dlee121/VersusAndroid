@@ -118,7 +118,7 @@ public class MessageRoom extends Fragment {
     private ProgressBar mProgressBar;
     private Button mSendButton;
     private EditText mMessageEditText;
-    private ImageView mAddMessageImageView;
+    //private ImageView mAddMessageImageView;
     private String mUsername = "";
     private String userMKey = "";
     private boolean firstMessage = false;
@@ -364,7 +364,7 @@ public class MessageRoom extends Fragment {
 
             }
         });
-
+        /*
         mAddMessageImageView = (ImageView) rootView.findViewById(R.id.addMessageImageView);
         mAddMessageImageView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -375,6 +375,7 @@ public class MessageRoom extends Fragment {
                 startActivityForResult(intent, REQUEST_IMAGE);
             }
         });
+        */
 
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(getActivity());
     }
@@ -484,6 +485,7 @@ public class MessageRoom extends Fragment {
             }
         });
 
+        /*
         mAddMessageImageView = (ImageView) rootView.findViewById(R.id.addMessageImageView);
         mAddMessageImageView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -494,6 +496,7 @@ public class MessageRoom extends Fragment {
                 startActivityForResult(intent, REQUEST_IMAGE);
             }
         });
+        */
 
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(getActivity());
     }
@@ -713,6 +716,7 @@ public class MessageRoom extends Fragment {
             }
         });
 
+        /*
         mAddMessageImageView = (ImageView) rootView.findViewById(R.id.addMessageImageView);
         mAddMessageImageView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -723,6 +727,7 @@ public class MessageRoom extends Fragment {
                 startActivityForResult(intent, REQUEST_IMAGE);
             }
         });
+        */
 
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(getActivity());
 
