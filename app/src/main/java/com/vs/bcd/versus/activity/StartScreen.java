@@ -32,10 +32,12 @@ import com.facebook.GraphResponse;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
+import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -221,12 +223,14 @@ public class StartScreen extends AppCompatActivity {
             public void onCancel() {
                 // App code
                 Log.d("facebookLogin", "fb login was cancelled.");
+                resetLoginButtons();
             }
 
             @Override
             public void onError(FacebookException exception) {
                 // App code
                 Log.d("facebookLogin", "fb login error.");
+                resetLoginButtons();
             }
         });
     /*
@@ -260,8 +264,14 @@ public class StartScreen extends AppCompatActivity {
         if (requestCode == RC_SIGN_IN) {
             // The Task returned from this call is always completed, no need to attach
             // a listener.
-            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-            handleSignInResult(task);
+            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+            if(result.isSuccess()){
+                Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+                handleSignInResult(task);
+            }
+            else{
+                resetLoginButtons();
+            }
         }
         else{
             callbackManager.onActivityResult(requestCode, resultCode, data);
