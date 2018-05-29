@@ -634,6 +634,7 @@ public class StartScreen extends AppCompatActivity {
                                                                         mToast.cancel();
                                                                     }
                                                                     mToast = Toast.makeText(thisActivity, "Something went wrong. Please try again.", Toast.LENGTH_SHORT);
+                                                                    mToast.show();
                                                                 }
                                                             });
                                                         }
@@ -709,7 +710,7 @@ public class StartScreen extends AppCompatActivity {
 
         googleLoginButton.setVisibility(View.VISIBLE);
         googleProgressbar.setVisibility(View.INVISIBLE);
-        
+
         displayLoginProgressbar(false);
     }
 

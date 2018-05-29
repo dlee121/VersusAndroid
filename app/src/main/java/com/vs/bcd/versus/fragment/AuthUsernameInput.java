@@ -117,7 +117,6 @@ public class AuthUsernameInput extends Fragment {
                 InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
                 activity.setU(editText.getText().toString().trim());
-                imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0);
 
                 activity.signUpUser();
             }

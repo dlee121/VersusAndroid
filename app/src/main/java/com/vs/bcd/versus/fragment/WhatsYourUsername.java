@@ -110,11 +110,8 @@ public class WhatsYourUsername extends Fragment {
         nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
                 activity.setFo(editText.getText().toString().trim());
                 activity.getViewPager().setCurrentItem(3);
-                imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0);
             }
         });
         hideProgressBar();

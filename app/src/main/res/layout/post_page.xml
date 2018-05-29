@@ -12,6 +12,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:focusableInTouchMode="true"
+        android:layout_marginStart="4dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginBottom="4dp"
         android:layout_alignParentBottom="true">
         <TextView
             android:id="@+id/replying_to"
@@ -29,19 +32,19 @@
             android:visibility="invisible"
             android:clickable="false"
             android:src="@drawable/ic_send_grey"/>
-
+        <!--
         <TextView
             android:id="@+id/reply_target_tv"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"/>
-
+        -->
         <com.vs.bcd.versus.model.CustomEditText
             android:id="@+id/page_comment_input"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toEndOf="@id/reply_target_tv"
             android:layout_below="@id/replying_to"
+            android:layout_alignParentStart="true"
             android:layout_toStartOf="@id/send_button_placeholder"
             android:textSize="14sp"
             android:hint="Join the discussion!"/>
@@ -60,7 +63,8 @@
                 android:layout_height="wrap_content"
                 android:background="@null"
                 android:layout_gravity="bottom"
-                android:paddingBottom="8dp"
+                android:paddingStart="1dp"
+                android:paddingBottom="2dp"
                 android:src="@drawable/ic_send_grey"/>
 
         </LinearLayout>

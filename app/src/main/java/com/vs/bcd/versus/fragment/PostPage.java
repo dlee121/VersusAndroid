@@ -161,7 +161,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private CustomEditText pageCommentInput;
     private RelativeLayout pageCommentInputContainer;
     private VSComment replyTarget;
-    private TextView replyingTo, replyTV;
+    private TextView replyingTo;
     private int trueReplyTargetIndex;
     private VSComment trueReplyTarget;
     private int editIndex;
@@ -207,7 +207,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         sendButton = rootView.findViewById(R.id.comment_send_button);
         pageCommentInput = rootView.findViewById(R.id.page_comment_input);
         replyingTo = rootView.findViewById(R.id.replying_to);
-        replyTV = rootView.findViewById(R.id.reply_target_tv);
+        //replyTV = rootView.findViewById(R.id.reply_target_tv);
 
         rootView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener(){
             public void onGlobalLayout(){
@@ -3379,7 +3379,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         //trueReplytarget = null;
         pageCommentInput.setText("");
         pageCommentInput.setPrefix(null);
-        replyTV.getLayoutParams().width = 0;
+        //replyTV.getLayoutParams().width = 0;
         editTarget = null;
         editIndex = 0;
         sendInProgress = false;
