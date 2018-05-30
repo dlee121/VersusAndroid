@@ -25,6 +25,9 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/invited_users_rv"
         android:ems="10"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
         android:inputType="textPersonName"
         android:imeOptions="actionDone"
         android:hint="Type a name" />

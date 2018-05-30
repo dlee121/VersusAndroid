@@ -2533,6 +2533,9 @@ public class MainContainer extends AppCompatActivity {
     public AWSCredentials getCred(){
         return credentialsProvider.getCredentials();
     }
+    public String getST(){
+        return credentialsProvider.getCredentials().getSessionToken();
+    }
 
     private void loadNativeAds(){
         AdLoader adLoader = new AdLoader.Builder(this, "ca-app-pub-3940256099942544/2247696110")

@@ -880,6 +880,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
     @Override
     @Nullable
     public RequestBuilder getPreloadRequestBuilder(Post post) {
+
         try {
             int profileImg;
             switch (fragmentInt) {

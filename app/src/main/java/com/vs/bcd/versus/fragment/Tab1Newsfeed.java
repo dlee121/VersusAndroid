@@ -225,7 +225,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                 TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
                 awsHeaders.put("host", host);
 
-                AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
+                AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder(mHostActivity.getCred().getAWSAccessKeyId(), mHostActivity.getCred().getAWSSecretKey())
                         .regionName(region)
                         .serviceName("es") // es - elastic search. use your service name
                         .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
@@ -242,6 +242,8 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
 
 		        /* Get header calculated for request */
                 Map<String, String> header = aWSV4Auth.getHeaders();
+                header.put("X-Amz-Security-Token", mHostActivity.getST());
+                Log.d("yayaheaders", header.toString());
                 for (Map.Entry<String, String> entrySet : header.entrySet()) {
                     String key = entrySet.getKey();
                     String value = entrySet.getValue();
