@@ -179,15 +179,6 @@ public class SearchPage extends Fragment {
 
         Runnable runnable = new Runnable() {
             public void run() {
-                /*
-                if(accessKey == null || accessKey.equals("")){
-                    accessKey = activity.getCred().getAWSAccessKeyId();
-                }
-                if(secretKey == null || secretKey.equals("")){
-                    secretKey = activity.getCred().getAWSSecretKey();
-                }
-                */
-                //TODO: get accesskey and secretkey
 
                 String query = "/post/_search";
                 String searchInput = searchET.getText().toString();
@@ -311,7 +302,7 @@ public class SearchPage extends Fragment {
         if(postSearchResults != null && !postSearchResults.isEmpty() && searchResultsPostsAdapter != null && index >= 0){
             if(postSearchResults.get(index).getRedname().equals(redName)){
                 Post deletedPost = postSearchResults.get(index);
-                deletedPost.setAuthor("[deleted]");
+                deletedPost.setAuthor("deleted");
                 postSearchResults.set(index, deletedPost);
                 searchResultsPostsAdapter.notifyItemChanged(index);
             }

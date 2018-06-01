@@ -340,19 +340,19 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                                     //send appropriate notification
                                     if(replyingTo.getLayoutParams().height == 0){ //if root comment
-                                        if(pageLevel == 0 && post != null && !post.getAuthor().equals("[deleted]") && !post.getAuthor().equals(activity.getUsername())){
+                                        if(pageLevel == 0 && post != null && !post.getAuthor().equals("deleted") && !post.getAuthor().equals(activity.getUsername())){
                                             String nKey = postID+":"+sanitizeContentForURL(post.getRedname())+":"+sanitizeContentForURL(post.getBlackname());
                                             String postAuthorPath = getUsernameHash(post.getAuthor()) + "/" + post.getAuthor() + "/n/r/" + nKey;
                                             mFirebaseDatabaseReference.child(postAuthorPath).child(activity.getUsername()).setValue(System.currentTimeMillis()/1000);  //set value = timestamp as seconds from epoch
                                         }
-                                        else if(topCardContent != null && !topCardContent.getAuthor().equals("[deleted]") && !topCardContent.getAuthor().equals(activity.getUsername())){
+                                        else if(topCardContent != null && !topCardContent.getAuthor().equals("deleted") && !topCardContent.getAuthor().equals(activity.getUsername())){
                                             String payloadContent = sanitizeContentForURL(topCardContent.getContent());
                                             String subjectAuthorPath = getUsernameHash(topCardContent.getAuthor()) + "/" + topCardContent.getAuthor() + "/n/c/"
                                                     + topCardContent.getComment_id() + ":" + payloadContent;
                                             mFirebaseDatabaseReference.child(subjectAuthorPath).child(activity.getUsername()).setValue(System.currentTimeMillis()/1000);
                                         }
                                     }
-                                    else if(trueReplyTarget != null && !trueReplyTarget.getAuthor().equals("[deleted]") && !trueReplyTarget.getAuthor().equals(activity.getUsername())){ //reply to a comment
+                                    else if(trueReplyTarget != null && !trueReplyTarget.getAuthor().equals("deleted") && !trueReplyTarget.getAuthor().equals(activity.getUsername())){ //reply to a comment
                                         String payloadContent = sanitizeContentForURL(trueReplyTarget.getContent());
                                         String subjectAuthorPath = getUsernameHash(trueReplyTarget.getAuthor()) + "/" + trueReplyTarget.getAuthor() + "/n/c/"
                                                 + trueReplyTarget.getComment_id() + ":" + payloadContent;
@@ -967,7 +967,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     goldWinner = medalWinners.get(0);
 
                     if(goldWinner.getTopmedal() < 3){
-                        if(!goldWinner.getAuthor().equals("[deleted]")){
+                        if(!goldWinner.getAuthor().equals("deleted")){
                             submitMedalUpdate(3, goldWinner);
                         }
                     }
@@ -1034,14 +1034,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     silverWinner = medalWinners.get(1);
 
                     if(goldWinner.getTopmedal() < 3){
-                        if(!goldWinner.getAuthor().equals("[deleted]")){
+                        if(!goldWinner.getAuthor().equals("deleted")){
                             submitMedalUpdate(3, goldWinner);
                         }
                     }
                     goldWinner.setCurrentMedal(3);
 
                     if(silverWinner.getTopmedal() < 2) {
-                        if (!silverWinner.getAuthor().equals("[deleted]")) {
+                        if (!silverWinner.getAuthor().equals("deleted")) {
                             submitMedalUpdate(2, silverWinner);
                         }
                     }
@@ -1164,21 +1164,21 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     bronzeWinner = medalWinners.get(2);
 
                     if(goldWinner.getTopmedal() < 3){
-                        if(!goldWinner.getAuthor().equals("[deleted]")){
+                        if(!goldWinner.getAuthor().equals("deleted")){
                             submitMedalUpdate(3, goldWinner);
                         }
                     }
                     goldWinner.setCurrentMedal(3);
 
                     if(silverWinner.getTopmedal() < 2) {
-                        if (!silverWinner.getAuthor().equals("[deleted]")) {
+                        if (!silverWinner.getAuthor().equals("deleted")) {
                             submitMedalUpdate(2, silverWinner);
                         }
                     }
                     silverWinner.setCurrentMedal(2);
 
                     if(bronzeWinner.getTopmedal() < 1) {
-                        if (!bronzeWinner.getAuthor().equals("[deleted]")) {
+                        if (!bronzeWinner.getAuthor().equals("deleted")) {
                             submitMedalUpdate(1, bronzeWinner);
                         }
                     }
@@ -2042,7 +2042,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                                     activity.getDDBClient().updateItem(request);
 
-                                    if(!(author.equals("[deleted]"))){
+                                    if(!(author.equals("deleted"))){
                                         //increment author's influence
                                         HashMap<String, AttributeValue> userKeyMap =
                                                 new HashMap<>();
@@ -2097,7 +2097,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     activity.getDDBClient().updateItem(request);
 
 
-                                    if(incrementInfluence && !(author.equals("[deleted]"))){ //as long as downvotes are less than 10*upvotes, we increase user's influence
+                                    if(incrementInfluence && !(author.equals("deleted"))){ //as long as downvotes are less than 10*upvotes, we increase user's influence
 
                                         //increment author's influence
                                         HashMap<String, AttributeValue> userKeyMap =
@@ -2876,7 +2876,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     private void sendCommentUpvoteNotification(VSComment content){
-        if(!content.getAuthor().equals("[deleted]") && !content.getAuthor().equals(activity.getUsername())){
+        if(!content.getAuthor().equals("deleted") && !content.getAuthor().equals(activity.getUsername())){
             String payloadContent = sanitizeContentForURL(content.getContent());
             String commentAuthorPath = getUsernameHash(content.getAuthor()) + "/" + content.getAuthor() + "/n/u/" +content.getComment_id() + ":" + payloadContent;
             mFirebaseDatabaseReference.child(commentAuthorPath).child(activity.getUsername()).setValue(System.currentTimeMillis()/1000);
@@ -2884,7 +2884,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     private void sendPostVoteNotification(){
-        if(!post.getAuthor().equals("[deleted]") && !post.getAuthor().equals(activity.getUsername())){
+        if(!post.getAuthor().equals("deleted") && !post.getAuthor().equals(activity.getUsername())){
             String nKey = postID+":"+sanitizeContentForURL(post.getRedname())+":"+sanitizeContentForURL(post.getBlackname())+":"+sanitizeContentForURL(post.getQuestion());
             String postAuthorPath = getUsernameHash(post.getAuthor()) + "/" + post.getAuthor() + "/n/v/" + nKey;
             mFirebaseDatabaseReference.child(postAuthorPath).child(activity.getUsername()).setValue(System.currentTimeMillis()/1000);

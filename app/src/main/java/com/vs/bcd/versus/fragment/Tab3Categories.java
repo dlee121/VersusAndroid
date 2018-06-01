@@ -369,15 +369,6 @@ public class Tab3Categories extends Fragment implements SwipeRefreshLayout.OnRef
 
         Runnable runnable = new Runnable() {
             public void run() {
-                /*
-                if(accessKey == null || accessKey.equals("")){
-                    accessKey = activity.getCred().getAWSAccessKeyId();
-                }
-                if(secretKey == null || secretKey.equals("")){
-                    secretKey = activity.getCred().getAWSSecretKey();
-                }
-                */
-                //TODO: get accesskey and secretkey
 
                 String query = "/_search";
                 //String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\"t\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"c\":"+Integer.toString(currCategoryInt)+"}}}";
@@ -598,7 +589,7 @@ public class Tab3Categories extends Fragment implements SwipeRefreshLayout.OnRef
             if(posts.get(index).getPost_id().equals(postID)){
                 if(sortType == POPULAR){
                     Post deletedPost = posts.get(index);
-                    deletedPost.setAuthor("[deleted]");
+                    deletedPost.setAuthor("deleted");
                     posts.set(index, deletedPost);
                     myAdapter.notifyItemChanged(index);
                 }

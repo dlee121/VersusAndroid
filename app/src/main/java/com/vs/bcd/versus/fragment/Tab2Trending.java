@@ -310,7 +310,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                         Log.d("adscheck", "ads not loaded");
                     }
                 }
-                if(!item.getString("a").equals("[deleted]")){
+                if(!item.getString("a").equals("deleted")){
                     //add username to parameter string, then at loop finish we do multiget of those users and create hashmap of username:profileImgVersion
                     if(j == 0){
                         strBuilder.append("{\"_id\":\""+item.getString("a")+"\",\"_source\":\"pi\"}");
@@ -350,7 +350,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
         if(posts != null && !posts.isEmpty() && myAdapter != null && index >= 0){
             if(posts.get(index).getPost_id().equals(postID)){
                 Post deletedPost = posts.get(index);
-                deletedPost.setAuthor("[deleted]");
+                deletedPost.setAuthor("deleted");
                 posts.set(index, deletedPost);
                 myAdapter.notifyItemChanged(index);
             }

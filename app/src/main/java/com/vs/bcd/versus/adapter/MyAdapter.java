@@ -190,7 +190,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
             txtImgViewHolder.circView.setOnClickListener(new View.OnClickListener(){
                 @Override
                 public void onClick(View v){
-                    if(!authorName.equals("[deleted]")){
+                    if(!authorName.equals("deleted")){
                         activity.goToProfile(authorName, true);
                     }
                 }
@@ -198,7 +198,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
             txtImgViewHolder.author.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if(!authorName.equals("[deleted]")){
+                    if(!authorName.equals("deleted")){
                         activity.goToProfile(authorName, true);
                     }
                 }
@@ -301,7 +301,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
             txtOnlyViewHolder.circView.setOnClickListener(new View.OnClickListener(){
                 @Override
                 public void onClick(View v){
-                    if(!authorName.equals("[deleted]")){
+                    if(!authorName.equals("deleted")){
                         activity.goToProfile(authorName, true);
                     }
                 }
@@ -310,7 +310,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
             txtOnlyViewHolder.author.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if(!authorName.equals("[deleted]")){
+                    if(!authorName.equals("deleted")){
                         activity.goToProfile(authorName, true);
                     }
                 }
@@ -436,7 +436,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
                 compactViewHolder.author.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        if(!authorName.equals("[deleted]")){
+                        if(!authorName.equals("deleted")){
                             activity.goToProfile(authorName, true);
                         }
                     }
@@ -445,7 +445,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
                 compactViewHolder.circView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        if(!authorName.equals("[deleted]")){
+                        if(!authorName.equals("deleted")){
                             activity.goToProfile(authorName, true);
                         }
                     }

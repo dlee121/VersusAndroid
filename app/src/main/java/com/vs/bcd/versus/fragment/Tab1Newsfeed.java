@@ -218,7 +218,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                 //TODO: get accesskey and secretkey
 
                 String query = "/post/_search";
-                String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\"t\":{\"order\":\"desc\"}}],\"query\":{\"bool\":{\"must_not\":{\"match\":{\"a\":\"[deleted]\"}}}}}";
+                String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\"t\":{\"order\":\"desc\"}}],\"query\":{\"bool\":{\"must_not\":{\"match\":{\"a\":\"deleted\"}}}}}";
 
                 String url = "https://" + host + query;
 
@@ -243,7 +243,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
 		        /* Get header calculated for request */
                 Map<String, String> header = aWSV4Auth.getHeaders();
                 header.put("X-Amz-Security-Token", mHostActivity.getST());
-                Log.d("yayaheaders", header.toString());
+
                 for (Map.Entry<String, String> entrySet : header.entrySet()) {
                     String key = entrySet.getKey();
                     String value = entrySet.getValue();
@@ -253,6 +253,10 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
 
                     httpPost.addHeader(key, value);
                 }
+                Log.d("requeststring", "headers: " + header.toString());
+                Log.d("requeststring", "path: " + url);
+
+
                 httpPostRequest(httpPost);
 
             }

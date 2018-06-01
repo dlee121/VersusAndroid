@@ -283,7 +283,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 }
 
                 commentViewHolder.author.setText(currentComment.getAuthor());
-                if(!currentComment.getAuthor().equals("[deleted]")){
+                if(!currentComment.getAuthor().equals("deleted")){
                     commentViewHolder.author.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
@@ -457,7 +457,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             postCardViewHolder.author.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if (!post.getAuthor().equals("[deleted]")) {
+                    if (!post.getAuthor().equals("deleted")) {
                         activity.goToProfile(post.getAuthor(), true);
                         activity.setProfileBackDestination(3);
                     }
@@ -467,7 +467,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             postCardViewHolder.profileImg.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if (!post.getAuthor().equals("[deleted]")) {
+                    if (!post.getAuthor().equals("deleted")) {
                         activity.goToProfile(post.getAuthor(), true);
                         activity.setProfileBackDestination(3);
                     }
@@ -652,7 +652,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             postCardTextOnlyViewHolder.author.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if (!post.getAuthor().equals("[deleted]")) {
+                    if (!post.getAuthor().equals("deleted")) {
                         activity.goToProfile(post.getAuthor(), true);
                         activity.setProfileBackDestination(3);
                     }
@@ -662,7 +662,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             postCardTextOnlyViewHolder.profileImg.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if (!post.getAuthor().equals("[deleted]")) {
+                    if (!post.getAuthor().equals("deleted")) {
                         activity.goToProfile(post.getAuthor(), true);
                         activity.setProfileBackDestination(3);
                     }
@@ -816,7 +816,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
             topCardViewHolder.author.setText(topCardObject.getAuthor());
             final String authorName = topCardObject.getAuthor();
-            if(!authorName.equals("[deleted]")){
+            if(!authorName.equals("deleted")){
                 topCardViewHolder.author.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
@@ -1544,7 +1544,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         Runnable runnable = new Runnable() {
             public void run() {
-                //sets author of the comment to "[deleted]"
+                //sets author of the comment to "deleted"
                 final VSComment commentToEdit = ((VSComment) masterList.get(index));
 
                 HashMap<String, AttributeValue> keyMap = new HashMap<>();
@@ -1552,7 +1552,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 HashMap<String, AttributeValueUpdate> updates = new HashMap<>();
 
                 AttributeValueUpdate newA = new AttributeValueUpdate()
-                        .withValue(new AttributeValue().withS("[deleted]"))
+                        .withValue(new AttributeValue().withS("deleted"))
                         .withAction(AttributeAction.PUT);
                 updates.put("a", newA);
 
@@ -1592,7 +1592,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        commentToEdit.setAuthor("[deleted]");
+                        commentToEdit.setAuthor("deleted");
                         masterList.set(index, commentToEdit);
                         notifyItemChanged(index);
                     }

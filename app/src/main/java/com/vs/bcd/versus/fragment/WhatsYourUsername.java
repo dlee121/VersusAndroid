@@ -158,6 +158,15 @@ public class WhatsYourUsername extends Fragment {
 
 
     private void checkUsername(final String username, final int thisVersion) { //TODO: do this using Elasticsearch instead (so first we need to set up API gateway for that)
+        if(username.equals("deleted")){
+            hideProgressBar();
+            etWarning.setTextColor(ContextCompat.getColor(activity,R.color.noticeRed));
+            etWarning.setText(username + " is already taken!");
+            nextButton.setBackgroundColor(Color.rgb(238, 238, 238));
+            nextButton.setEnabled(false);
+            validated = false;
+            return;
+        }
 
         AsyncTask<String, String, String> _Task = new AsyncTask<String, String, String>() {
 

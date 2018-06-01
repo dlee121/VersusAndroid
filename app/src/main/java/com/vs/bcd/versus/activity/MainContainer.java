@@ -2360,7 +2360,7 @@ public class MainContainer extends AppCompatActivity {
                     keyMap.put("i", new AttributeValue().withS(postToDelete.getPost_id()));
                     HashMap<String, AttributeValueUpdate> updates = new HashMap<>();
                     AttributeValueUpdate newA = new AttributeValueUpdate()
-                            .withValue(new AttributeValue().withS("[deleted]"))
+                            .withValue(new AttributeValue().withS("deleted"))
                             .withAction(AttributeAction.PUT);
                     updates.put("a", newA);
                     AttributeValueUpdate newRI = new AttributeValueUpdate()
@@ -2392,12 +2392,12 @@ public class MainContainer extends AppCompatActivity {
                                     mainActivityFragRef.getTab3().removePostFromList(clickedPostIndex, postToDelete.getPost_id());
                                 }
                                 else{ //Trending
-                                    mainActivityFragRef.getTab2().removePostFromList(clickedPostIndex, postToDelete.getPost_id()); //updates author name to [deleted] in the UI
+                                    mainActivityFragRef.getTab2().removePostFromList(clickedPostIndex, postToDelete.getPost_id()); //updates author name to deleted in the UI
                                 }
                                 mViewPager.setCurrentItem(0);
                                 break;
                             case 1: //Search
-                                searchPage.removePostFromList(clickedPostIndex, postToDelete.getRedname()); //updates author name to [deleted] in the UI
+                                searchPage.removePostFromList(clickedPostIndex, postToDelete.getRedname()); //updates author name to deleted in the UI
                                 mViewPager.setCurrentItem(1);
                                 break;
                             case 8:
