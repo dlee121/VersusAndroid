@@ -48,6 +48,7 @@ import android.widget.Toast;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
+import com.amazonaws.mobileconnectors.apigateway.ApiClientFactory;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.cognitoidentity.model.NotAuthorizedException;
@@ -87,6 +88,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.vs.bcd.versus.VSAPIClient;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
 import com.vs.bcd.versus.adapter.MyFirebaseMessagingService;
 import com.vs.bcd.versus.fragment.FollowersAndFollowings;
@@ -223,7 +225,8 @@ public class MainContainer extends AppCompatActivity {
     private boolean fromRItem = true;
     private AtomicBoolean runInitialNewsfeedQuery = new AtomicBoolean(false);
 
-
+    private ApiClientFactory factory;
+    private VSAPIClient client;
 
     private BroadcastReceiver myReceiver = new BroadcastReceiver() {
         @Override
@@ -463,7 +466,9 @@ public class MainContainer extends AppCompatActivity {
                         try{
                             credentialsProvider.refresh();
                             credentialsProvider.getCredentials();
-                        }catch (NotAuthorizedException e){
+                            setUpAPI();
+                        }
+                        catch (NotAuthorizedException e){
                             handleNotAuthorizedException();
                         }
                         Log.d("mainattach", "credentials refreshed");
@@ -509,7 +514,9 @@ public class MainContainer extends AppCompatActivity {
                                             try{
                                                 credentialsProvider.refresh();
                                                 credentialsProvider.getCredentials();
-                                            }catch (NotAuthorizedException e){
+                                                setUpAPI();
+                                            }
+                                            catch (NotAuthorizedException e){
                                                 handleNotAuthorizedException();
                                             }
                                             Log.d("mainattach", "credentials refreshed");
@@ -546,7 +553,9 @@ public class MainContainer extends AppCompatActivity {
                                     try{
                                         credentialsProvider.refresh();
                                         credentialsProvider.getCredentials();
-                                    }catch (NotAuthorizedException e){
+                                        setUpAPI();
+                                    }
+                                    catch (NotAuthorizedException e){
                                         handleNotAuthorizedException();
                                     }
                                     Log.d("mainattach", "credentials refreshed");
@@ -2536,6 +2545,16 @@ public class MainContainer extends AppCompatActivity {
     public CognitoCachingCredentialsProvider getCredentialsProvider(){
         return credentialsProvider;
     }
+
+    private void setUpAPI(){
+        factory = new ApiClientFactory().credentialsProvider(credentialsProvider);
+        client = factory.build(VSAPIClient.class);
+    }
+
+    public VSAPIClient getClient(){
+        return client;
+    }
+
     public String getST(){
         return credentialsProvider.getCredentials().getSessionToken();
     }
@@ -3085,6 +3104,7 @@ public class MainContainer extends AppCompatActivity {
                                         try{
                                             credentialsProvider.refresh();
                                             credentialsProvider.getCredentials();
+                                            setUpAPI();
                                         }
                                         catch (Exception e){
                                             sessionLogOut();
@@ -3111,6 +3131,7 @@ public class MainContainer extends AppCompatActivity {
                                 try{
                                     credentialsProvider.refresh();
                                     credentialsProvider.getCredentials();
+                                    setUpAPI();
                                 }
                                 catch (Exception e){
                                     sessionLogOut();

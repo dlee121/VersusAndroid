@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
@@ -31,6 +32,9 @@ import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.MyAdapter;
 import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.Post;
+import com.vs.bcd.versus.model.PostResults;
+import com.vs.bcd.versus.model.PostResultsHitsHitsItem;
+import com.vs.bcd.versus.model.PostResultsHitsHitsItemSource;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -163,7 +167,6 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
 
 
     public void trendingESQuery(final int fromIndex) {
-
         if(fromIndex == 0){
             mSwipeRefreshLayout.setRefreshing(true);
             currPostsIndex = 0;
@@ -172,58 +175,111 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
 
         Runnable runnable = new Runnable() {
             public void run() {
-                /*
-                if(accessKey == null || accessKey.equals("")){
-                    accessKey = activity.getCred().getAWSAccessKeyId();
+
+                try {
+                    /* Execute URL and attach after execution response handler */
+                    if(posts == null){
+                        posts = new ArrayList<>();
+                        myAdapter = new MyAdapter(posts, mHostActivity, profileImgVersions, 0);
+                        recyclerView.setAdapter(myAdapter);
+                    }
+
+
+                    PostResults results = mHostActivity.getClient().vSLambdaGet(null, null, "tr", Integer.toString(fromIndex));
+                    if(results != null){
+                        List<PostResultsHitsHitsItem> hits = results.getHits().getHits();
+                        if(hits != null && !hits.isEmpty()){
+                            int i = 0;
+                            StringBuilder strBuilder = new StringBuilder((56*hits.size()) - 1);
+                            for(PostResultsHitsHitsItem item : hits){
+                                PostResultsHitsHitsItemSource source = item.getSource();
+                                String id = item.getId();
+                                posts.add(new Post(source, id, false));
+                                currPostsIndex++;
+
+                                if(currPostsIndex%adFrequency == 0){
+                                    Post adSkeleton = new Post();
+                                    NativeAd nextAd = mHostActivity.getNextAd();
+                                    if(nextAd != null){
+                                        Log.d("adscheck", "ads loaded");
+                                        if(nextAd instanceof NativeAppInstallAd){
+                                            adSkeleton.setCategory(NATIVE_APP_INSTALL_AD);
+                                            adSkeleton.setNAI((NativeAppInstallAd) nextAd);
+                                            posts.add(adSkeleton);
+                                            adCount++;
+                                        }
+                                        else if(nextAd instanceof NativeContentAd){
+                                            adSkeleton.setCategory(NATIVE_CONTENT_AD);
+                                            adSkeleton.setNC((NativeContentAd) nextAd);
+                                            posts.add(adSkeleton);
+                                            adCount++;
+                                        }
+                                    }
+                                    else{
+                                        Log.d("adscheck", "ads not loaded");
+                                    }
+                                }
+
+                                //add username to parameter string, then at loop finish we do multiget of those users and create hashmap of username:profileImgVersion
+                                if(i == 0){
+                                    strBuilder.append("{\"_id\":\""+source.getA()+"\",\"_source\":\"pi\"}");
+                                }
+                                else{
+                                    strBuilder.append(",{\"_id\":\""+source.getA()+"\",\"_source\":\"pi\"}");
+                                }
+                                i++;
+                            }
+
+                            if(strBuilder.length() > 0){
+                                String payload = "{\"docs\":["+strBuilder.toString()+"]}";
+                                getProfileImgVersions(payload);
+                            }
+
+                            mHostActivity.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mSwipeRefreshLayout.setRefreshing(false);
+                                    if(nowLoading){
+                                        nowLoading = false;
+                                    }
+                                    if(posts != null && !posts.isEmpty()){
+                                        myAdapter.notifyDataSetChanged();
+                                    }
+                                }
+                            });
+                        }
+                        else{
+                            mHostActivity.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Log.d("loadmore", "end reached, disabling loadMore");
+                                    nowLoading = true;
+                                    mSwipeRefreshLayout.setRefreshing(false);
+                                }
+                            });
+                        }
+                    }
+                    else{
+                        mHostActivity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Log.d("loadmore", "end reached, disabling loadMore");
+                                nowLoading = true;
+                                mSwipeRefreshLayout.setRefreshing(false);
+                            }
+                        });
+                    }
+
+                    //System.out.println("Response: " + strResponse);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-                if(secretKey == null || secretKey.equals("")){
-                    secretKey = activity.getCred().getAWSSecretKey();
-                }
-                */
-                //TODO: get accesskey and secretkey
 
-                String query = "/post/_search";
-                String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\"ps\":{\"order\":\"desc\"}}],\"query\":{\"match_all\":{}}}";
-
-                String url = "https://" + host + query;
-
-                TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
-                awsHeaders.put("host", host);
-
-                AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
-                        .regionName(region)
-                        .serviceName("es") // es - elastic search. use your service name
-                        .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
-                        .canonicalURI(query) //end point
-                        .queryParametes(null) //query parameters if any
-                        .awsHeaders(awsHeaders) //aws header parameters
-                        .payload(payload) // payload if any
-                        .debug() // turn on the debug mode
-                        .build();
-
-                HttpPost httpPost = new HttpPost(url);
-                StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
-                httpPost.setEntity(requestEntity);
-
-		        /* Get header calculated for request */
-                Map<String, String> header = aWSV4Auth.getHeaders();
-                for (Map.Entry<String, String> entrySet : header.entrySet()) {
-                    String key = entrySet.getKey();
-                    String value = entrySet.getValue();
-
-			    /* Attach header in your request */
-			    /* Simple get request */
-
-                    httpPost.addHeader(key, value);
-                }
-                httpPostRequest(httpPost);
 
             }
         };
         Thread mythread = new Thread(runnable);
         mythread.start();
-
-        //TODO: also ad ads as we did with the ddb Newsfeed query
     }
 
     public void httpPostRequest(HttpPost httpPost) {

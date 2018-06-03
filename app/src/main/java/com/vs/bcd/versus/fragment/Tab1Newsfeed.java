@@ -199,9 +199,6 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
 
     public void newsfeedESQuery(final int fromIndex) {
 
-
-
-
         if(fromIndex == 0){
             mSwipeRefreshLayout.setRefreshing(true);
             currPostsIndex = 0;
@@ -211,7 +208,6 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
         Runnable runnable = new Runnable() {
             public void run() {
 
-
                 try {
                     /* Execute URL and attach after execution response handler */
                     if(posts == null){
@@ -220,9 +216,8 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                         recyclerView.setAdapter(myAdapter);
                     }
 
-                    ApiClientFactory factory = new ApiClientFactory().credentialsProvider(mHostActivity.getCredentialsProvider());
-                    final VSAPIClient client = factory.build(VSAPIClient.class);
-                    PostResults results = client.vSLambdaGet("nw", "0", "nw", "0");
+
+                    PostResults results = mHostActivity.getClient().vSLambdaGet(null, null, "nw", Integer.toString(fromIndex));
                     if(results != null){
                         List<PostResultsHitsHitsItem> hits = results.getHits().getHits();
                         if(hits != null && !hits.isEmpty()){
@@ -317,29 +312,6 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
         };
         Thread mythread = new Thread(runnable);
         mythread.start();
-    }
-
-    public void httpGetRequest(HttpGet httpGet) {
-		/* Create object of CloseableHttpClient */
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-
-		/* Response handler for after request execution */
-        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
-
-            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-				/* Get status code */
-                int status = response.getStatusLine().getStatusCode();
-                if (status >= 200 && status < 300) {
-					/* Convert response to String */
-                    HttpEntity entity = response.getEntity();
-                    return entity != null ? EntityUtils.toString(entity) : null;
-                } else {
-                    throw new ClientProtocolException("Unexpected response status: " + status);
-                }
-            }
-        };
-
-
     }
 
     public void editedPostRefresh(int index, Post editedPost){
