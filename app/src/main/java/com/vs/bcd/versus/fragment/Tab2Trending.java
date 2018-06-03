@@ -185,7 +185,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                     }
 
 
-                    PostResults results = mHostActivity.getClient().vSLambdaGet(null, null, "tr", Integer.toString(fromIndex));
+                    PostResults results = mHostActivity.getClient1().vSLambdaGet(null, null, "tr", Integer.toString(fromIndex));
                     if(results != null){
                         List<PostResultsHitsHitsItem> hits = results.getHits().getHits();
                         if(hits != null && !hits.isEmpty()){
@@ -280,126 +280,6 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
         };
         Thread mythread = new Thread(runnable);
         mythread.start();
-    }
-
-    public void httpPostRequest(HttpPost httpPost) {
-		/* Create object of CloseableHttpClient */
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-
-		/* Response handler for after request execution */
-        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
-
-            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-				/* Get status code */
-                int status = response.getStatusLine().getStatusCode();
-                if (status >= 200 && status < 300) {
-					/* Convert response to String */
-                    HttpEntity entity = response.getEntity();
-                    return entity != null ? EntityUtils.toString(entity) : null;
-                } else {
-                    throw new ClientProtocolException("Unexpected response status: " + status);
-                }
-            }
-        };
-
-        try {
-			/* Execute URL and attach after execution response handler */
-            String strResponse = httpClient.execute(httpPost, responseHandler);
-            if(posts == null){
-                posts = new ArrayList<>();
-                myAdapter = new MyAdapter(posts, mHostActivity, profileImgVersions, 0);
-                recyclerView.setAdapter(myAdapter);
-            }
-
-            JSONObject obj = new JSONObject(strResponse);
-            JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
-            if(hits.length() == 0){
-                Log.d("loadmore", "end reached, disabling loadMore");
-                mHostActivity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mSwipeRefreshLayout.setRefreshing(false);
-                    }
-                });
-                return;
-            }
-            int j = 0;
-            StringBuilder strBuilder = new StringBuilder((56*hits.length()) - 1);
-            for(int i = 0; i < hits.length(); i++) {
-                JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
-                String id = hits.getJSONObject(i).getString("_id");
-                Post postItem = null;
-                try{
-                    postItem = new Post(item, id, false);
-                }
-                catch (Exception e){
-                    if(hits.getJSONObject(i).getString("_id") != null){
-                        Log.d("skipNullPost", "skipped: " + hits.getJSONObject(i).getString("_id"));
-                        //TODO: delete this post from DB
-                        //hoshhosh
-                    }
-                    e.printStackTrace();
-                }
-                if(postItem == null){
-                    continue;
-                }
-                posts.add(postItem);
-
-                currPostsIndex++;
-                if (currPostsIndex % adFrequency == 0) {
-                    Post adSkeleton = new Post();
-                    NativeAd nextAd = mHostActivity.getNextAd();
-                    if (nextAd != null) {
-                        Log.d("adscheck", "ads loaded");
-                        if (nextAd instanceof NativeAppInstallAd) {
-                            adSkeleton.setCategory(NATIVE_APP_INSTALL_AD);
-                            adSkeleton.setNAI((NativeAppInstallAd) nextAd);
-                            posts.add(adSkeleton);
-                            adCount++;
-                        } else if (nextAd instanceof NativeContentAd) {
-                            adSkeleton.setCategory(NATIVE_CONTENT_AD);
-                            adSkeleton.setNC((NativeContentAd) nextAd);
-                            posts.add(adSkeleton);
-                            adCount++;
-                        }
-                    } else {
-                        Log.d("adscheck", "ads not loaded");
-                    }
-                }
-                if(!item.getString("a").equals("deleted")){
-                    //add username to parameter string, then at loop finish we do multiget of those users and create hashmap of username:profileImgVersion
-                    if(j == 0){
-                        strBuilder.append("{\"_id\":\""+item.getString("a")+"\",\"_source\":\"pi\"}");
-                    }
-                    else{
-                        strBuilder.append(",{\"_id\":\""+item.getString("a")+"\",\"_source\":\"pi\"}");
-                    }
-                    j++;
-                }
-            }
-
-            if(strBuilder.length() > 0){
-                String payload = "{\"docs\":["+strBuilder.toString()+"]}";
-                getProfileImgVersions(payload);
-            }
-
-            mHostActivity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mSwipeRefreshLayout.setRefreshing(false);
-                    if(nowLoading){
-                        nowLoading = false;
-                    }
-                    if(posts != null && !posts.isEmpty()){
-                        myAdapter.notifyDataSetChanged();
-                    }
-                }
-            });
-
-            //System.out.println("Response: " + strResponse);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public void removePostFromList(int index, String postID){

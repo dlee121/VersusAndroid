@@ -226,7 +226,8 @@ public class MainContainer extends AppCompatActivity {
     private AtomicBoolean runInitialNewsfeedQuery = new AtomicBoolean(false);
 
     private ApiClientFactory factory;
-    private VSAPIClient client;
+    private VSAPIClient client1; //nw, tr, ct
+    private com.vs.api.vs2.VSAPIClient client2; //profileImageVersions
 
     private BroadcastReceiver myReceiver = new BroadcastReceiver() {
         @Override
@@ -2548,11 +2549,16 @@ public class MainContainer extends AppCompatActivity {
 
     private void setUpAPI(){
         factory = new ApiClientFactory().credentialsProvider(credentialsProvider);
-        client = factory.build(VSAPIClient.class);
+        client1 = factory.build(VSAPIClient.class);
+        client2 = factory.build(com.vs.api.vs2.VSAPIClient.class);
     }
 
-    public VSAPIClient getClient(){
-        return client;
+    public VSAPIClient getClient1(){
+        return client1;
+    }
+
+    public com.vs.api.vs2.VSAPIClient getClient2(){
+        return client2;
     }
 
     public String getST(){

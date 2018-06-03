@@ -4,19 +4,15 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ListAdapter;
 import android.widget.RelativeLayout;
 
@@ -61,8 +57,6 @@ import cz.msebera.android.httpclient.entity.StringEntity;
 import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
 import cz.msebera.android.httpclient.impl.client.HttpClients;
 import cz.msebera.android.httpclient.util.EntityUtils;
-
-import static android.content.ContentValues.TAG;
 
 /**
  * Created by dlee on 8/6/17.
@@ -381,7 +375,7 @@ public class Tab3Categories extends Fragment implements SwipeRefreshLayout.OnRef
                     }
 
 
-                    PostResults results = mHostActivity.getClient().vSLambdaGet(Integer.toString(currCategoryInt), "t", "ct", Integer.toString(fromIndex));
+                    PostResults results = mHostActivity.getClient1().vSLambdaGet(Integer.toString(currCategoryInt), "t", "ct", Integer.toString(fromIndex));
                     if(results != null){
                         List<PostResultsHitsHitsItem> hits = results.getHits().getHits();
                         if(hits != null && !hits.isEmpty()){
@@ -498,7 +492,7 @@ public class Tab3Categories extends Fragment implements SwipeRefreshLayout.OnRef
                     }
 
 
-                    PostResults results = mHostActivity.getClient().vSLambdaGet(Integer.toString(currCategoryInt), "ps", "ct", Integer.toString(fromIndex));
+                    PostResults results = mHostActivity.getClient1().vSLambdaGet(Integer.toString(currCategoryInt), "ps", "ct", Integer.toString(fromIndex));
                     if(results != null){
                         List<PostResultsHitsHitsItem> hits = results.getHits().getHits();
                         if(hits != null && !hits.isEmpty()){
@@ -594,112 +588,6 @@ public class Tab3Categories extends Fragment implements SwipeRefreshLayout.OnRef
         Thread mythread = new Thread(runnable);
         mythread.start();
     }
-
-    public void httpPostRequest(HttpPost httpPost) {
-        /* Create object of CloseableHttpClient */
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-
-        /* Response handler for after request execution */
-        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
-
-            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-                /* Get status code */
-                int status = response.getStatusLine().getStatusCode();
-                if (status >= 200 && status < 300) {
-                    /* Convert response to String */
-                    HttpEntity entity = response.getEntity();
-                    return entity != null ? EntityUtils.toString(entity) : null;
-                } else {
-                    throw new ClientProtocolException("Unexpected response status: " + status);
-                }
-            }
-        };
-
-        try {
-            /* Execute URL and attach after execution response handler */
-            String strResponse = httpClient.execute(httpPost, responseHandler);
-
-            JSONObject obj = new JSONObject(strResponse);
-            JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
-            if(hits.length() == 0){
-                Log.d("loadmore", "end reached, disabling loadMore");
-                mHostActivity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mSwipeRefreshLayout.setRefreshing(false);
-                    }
-                });
-                return;
-            }
-
-            StringBuilder strBuilder = new StringBuilder((56*hits.length()) - 1);
-            for(int i = 0; i < hits.length(); i++){
-                JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
-                String id = hits.getJSONObject(i).getString("_id");
-                posts.add(new Post(item, id, false));
-                currPostsIndex++;
-                if(currPostsIndex%adFrequency == 0){
-                    Post adSkeleton = new Post();
-                    NativeAd nextAd = mHostActivity.getNextAd();
-                    if(nextAd != null){
-                        Log.d("adscheck", "ads loaded");
-                        if(nextAd instanceof NativeAppInstallAd){
-                            adSkeleton.setCategory(NATIVE_APP_INSTALL_AD);
-                            adSkeleton.setNAI((NativeAppInstallAd) nextAd);
-                            posts.add(adSkeleton);
-                            adCount++;
-                        }
-                        else if(nextAd instanceof NativeContentAd){
-                            adSkeleton.setCategory(NATIVE_CONTENT_AD);
-                            adSkeleton.setNC((NativeContentAd) nextAd);
-                            posts.add(adSkeleton);
-                            adCount++;
-                        }
-                    }
-                    else{
-                        Log.d("adscheck", "ads not loaded");
-                    }
-                }
-
-                //add username to parameter string, then at loop finish we do multiget of those users and create hashmap of username:profileImgVersion
-                if(i == 0){
-                    strBuilder.append("{\"_id\":\""+item.getString("a")+"\",\"_source\":\"pi\"}");
-                }
-                else{
-                    strBuilder.append(",{\"_id\":\""+item.getString("a")+"\",\"_source\":\"pi\"}");
-                }
-            }
-
-            if(strBuilder.length() > 0){
-                String payload = "{\"docs\":["+strBuilder.toString()+"]}";
-                getProfileImgVersions(payload);
-            }
-
-            mHostActivity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mSwipeRefreshLayout.setRefreshing(false);
-                    if(nowLoading){
-                        nowLoading = false;
-                    }
-                    if(posts != null && !posts.isEmpty()){
-                        myAdapter.notifyDataSetChanged();
-                    }
-                }
-            });
-
-
-            //System.out.println("Response: " + strResponse);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    /*
-    public FollowersAndFollowings setCurrCategoryInt(int currCategoryInt){
-        this.currCategoryInt = currCategoryInt;
-        return this;
-    }
-    */
 
     public void removePostFromList(int index, String postID){
         if(posts != null && !posts.isEmpty() && myAdapter != null && index >= 0){
