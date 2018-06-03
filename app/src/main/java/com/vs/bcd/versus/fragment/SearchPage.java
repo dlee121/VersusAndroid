@@ -190,19 +190,18 @@ public class SearchPage extends Fragment {
             public void run() {
 
                 String query = "/post/_search";
-                String searchInput = searchET.getText().toString();
-                if(searchInput == null || searchInput.trim().length() == 0){
-                    Log.d("SEARCHINPUT", "empty input");
+                String searchTerm = searchET.getText().toString();
+
+                if(searchTerm.trim().length() == 0){
                     return;
                 }
-
 
                 try {
                     if(postSearchResults == null){
                         postSearchResults = new ArrayList<>();
                     }
 
-                    PostResults results = activity.getClient1().vSLambdaGet(null, null, "nw", Integer.toString(fromIndex));
+                    PostResults results = activity.getClient1().vSLambdaGet(searchTerm, null, "sp", Integer.toString(fromIndex));
 
                     if(results != null){
                         List<PostResultsHitsHitsItem> hits = results.getHits().getHits();
@@ -212,7 +211,7 @@ public class SearchPage extends Fragment {
                             for(PostResultsHitsHitsItem item : hits){
                                 PostResultsHitsHitsItemSource source = item.getSource();
                                 String id = item.getId();
-                                postSearchResults.add(new Post(source, id, false));
+                                postSearchResults.add(new Post(source, id, true));
 
                                 //add username to parameter string, then at loop finish we do multiget of those users and create hashmap of username:profileImgVersion
                                 if(i == 0){
