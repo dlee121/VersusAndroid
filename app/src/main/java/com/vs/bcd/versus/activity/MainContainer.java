@@ -2533,6 +2533,9 @@ public class MainContainer extends AppCompatActivity {
     public AWSCredentials getCred(){
         return credentialsProvider.getCredentials();
     }
+    public CognitoCachingCredentialsProvider getCredentialsProvider(){
+        return credentialsProvider;
+    }
     public String getST(){
         return credentialsProvider.getCredentials().getSessionToken();
     }

@@ -249,6 +249,34 @@ public class Post {
         post_id = UUID.randomUUID().toString().replace("-", ""); //generate random UUID as post_id when post is created
     }
 
+    public Post(PostResultsHitsHitsItemSource source, String id, boolean compact){
+        if(!compact){
+            question = source.getQ();
+            author = source.getA();
+            time = source.getT();
+            redname = source.getRn();
+            redcount = source.getRc().intValue(); //TODO: will we ever need to change this to intValueExact()?
+            blackname  = source.getBn();
+            blackcount = source.getBc().intValue();
+            category = source.getC().intValue();
+            post_id = id;
+            redimg = source.getRi().intValue();
+            blackimg = source.getBi().intValue();
+            pt = source.getPt().intValue();
+            ps = source.getPs();
+        }
+        else{
+            question = source.getQ();
+            time = source.getT();
+            redname = source.getRn();
+            redcount = source.getRc().intValue();
+            blackname  = source.getBn();
+            blackcount = source.getBc().intValue();
+            author = source.getA();
+            post_id = id;
+        }
+
+    }
 
     public Post(JSONObject postObj, String id, boolean compact) throws JSONException{
         if(!compact){
