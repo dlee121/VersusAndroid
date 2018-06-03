@@ -16,11 +16,19 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.ads.formats.NativeAd;
+import com.google.android.gms.ads.formats.NativeAppInstallAd;
+import com.google.android.gms.ads.formats.NativeContentAd;
+import com.vs.api.vs2.model.ProfileImageViews;
+import com.vs.api.vs2.model.ProfileImageViewsDocsItem;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.MyAdapter;
 import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.Post;
+import com.vs.bcd.versus.model.PostResults;
+import com.vs.bcd.versus.model.PostResultsHitsHitsItem;
+import com.vs.bcd.versus.model.PostResultsHitsHitsItemSource;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -28,6 +36,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -186,116 +195,83 @@ public class SearchPage extends Fragment {
                     Log.d("SEARCHINPUT", "empty input");
                     return;
                 }
-                Log.d("SEARCHINPUT", searchInput.trim());
-                String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"_source\":[\"bn\",\"bc\",\"q\",\"t\",\"rn\",\"rc\",\"a\",\"i\"],\"query\":{\"multi_match\":{\"query\": \"" + searchInput.trim() +
-                        "\",\"fields\": [\"rn\", \"bn\", \"q\"],\"type\": \"most_fields\"}}}";
 
-                String url = "https://" + host + query;
 
-                TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
-                awsHeaders.put("host", host);
+                try {
+                    if(postSearchResults == null){
+                        postSearchResults = new ArrayList<>();
+                    }
 
-                AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
-                        .regionName(region)
-                        .serviceName("es") // es - elastic search. use your service name
-                        .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
-                        .canonicalURI(query) //end point
-                        .queryParametes(null) //query parameters if any
-                        .awsHeaders(awsHeaders) //aws header parameters
-                        .payload(payload) // payload if any
-                        .debug() // turn on the debug mode
-                        .build();
+                    PostResults results = activity.getClient1().vSLambdaGet(null, null, "nw", Integer.toString(fromIndex));
 
-                HttpPost httpPost = new HttpPost(url);
-                StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
-                httpPost.setEntity(requestEntity);
+                    if(results != null){
+                        List<PostResultsHitsHitsItem> hits = results.getHits().getHits();
+                        if(hits != null && !hits.isEmpty()){
+                            int i = 0;
+                            StringBuilder strBuilder = new StringBuilder((56*hits.size()) - 1);
+                            for(PostResultsHitsHitsItem item : hits){
+                                PostResultsHitsHitsItemSource source = item.getSource();
+                                String id = item.getId();
+                                postSearchResults.add(new Post(source, id, false));
 
-		        /* Get header calculated for request */
-                Map<String, String> header = aWSV4Auth.getHeaders();
-                for (Map.Entry<String, String> entrySet : header.entrySet()) {
-                    String key = entrySet.getKey();
-                    String value = entrySet.getValue();
+                                //add username to parameter string, then at loop finish we do multiget of those users and create hashmap of username:profileImgVersion
+                                if(i == 0){
+                                    strBuilder.append("\""+source.getA()+"\"");
+                                }
+                                else{
+                                    strBuilder.append(",\""+source.getA()+"\"");
+                                }
+                                i++;
+                            }
 
-			    /* Attach header in your request */
-			    /* Simple get request */
+                            if(strBuilder.length() > 0){
+                                String payload = "{\"ids\":["+strBuilder.toString()+"]}";
+                                getProfileImgVersions(payload);
+                            }
 
-                    httpPost.addHeader(key, value);
+                            activity.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if(nowLoading){
+                                        nowLoading = false;
+                                    }
+                                    if(postSearchResults != null && !postSearchResults.isEmpty()){
+                                        searchResultsPostsAdapter.notifyDataSetChanged();
+                                    }
+                                }
+                            });
+                        }
+                        else{
+                            activity.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Log.d("loadmore", "end reached, disabling loadMore");
+                                    nowLoading = true;
+                                }
+                            });
+                        }
+                    }
+                    else {
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Log.d("loadmore", "end reached, disabling loadMore");
+                                nowLoading = true;
+                            }
+                        });
+                    }
+
+                    //System.out.println("Response: " + strResponse);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-                httpPostRequest(httpPost);
+
+
 
             }
         };
         Thread mythread = new Thread(runnable);
         mythread.start();
-    }
-
-    public void httpPostRequest(HttpPost httpPost) {
-		/* Create object of CloseableHttpClient */
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-
-		/* Response handler for after request execution */
-        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
-
-            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-				/* Get status code */
-                int status = response.getStatusLine().getStatusCode();
-                if (status >= 200 && status < 300) {
-					/* Convert response to String */
-                    HttpEntity entity = response.getEntity();
-                    return entity != null ? EntityUtils.toString(entity) : null;
-                } else {
-                    throw new ClientProtocolException("Unexpected response status: " + status);
-                }
-            }
-        };
-
-        try {
-			/* Execute URL and attach after execution response handler */
-            String strResponse = httpClient.execute(httpPost, responseHandler);
-            if(postSearchResults == null){
-                postSearchResults = new ArrayList<>();
-            }
-
-            JSONObject obj = new JSONObject(strResponse);
-            JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
-
-            StringBuilder strBuilder = new StringBuilder((56*hits.length()) - 1);
-            for(int i = 0; i < hits.length(); i++){
-                JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
-                String id = hits.getJSONObject(i).getString("_id");
-                postSearchResults.add(new Post(item, id, true));
-
-                //add username to parameter string, then at loop finish we do multiget of those users and create hashmap of username:profileImgVersion
-                if(i == 0){
-                    strBuilder.append("{\"_id\":\""+item.getString("a")+"\",\"_source\":\"pi\"}");
-                }
-                else{
-                    strBuilder.append(",{\"_id\":\""+item.getString("a")+"\",\"_source\":\"pi\"}");
-                }
-
-            }
-
-            if(strBuilder.length() > 0){
-                String payload = "{\"docs\":["+strBuilder.toString()+"]}";
-                getProfileImgVersions(payload);
-            }
-
-            if(postSearchResults != null && !postSearchResults.isEmpty()){
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        searchResultsPostsAdapter.notifyDataSetChanged();
-                        if(nowLoading){
-                            nowLoading = false;
-                        }
-                    }
-                });
-            }
-
-            //System.out.println("Response: " + strResponse);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public void removePostFromList(int index, String redName){
@@ -312,70 +288,14 @@ public class SearchPage extends Fragment {
     //TODO: also implement request cancelling where cancel() is called on the Request, in case user exists search before current search completes, so as to not trigger handler unnecessarily, although it may not matter and may actually work better that way to not cancel...think about that too, not cancelling.
 
     private void getProfileImgVersions(String payload){
-        String query = "/user/user_type/_mget";
-        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
-        awsHeaders.put("host", host);
-        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
-                .regionName(region)
-                .serviceName("es") // es - elastic search. use your service name
-                .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
-                .canonicalURI(query) //end point
-                .queryParametes(null) //query parameters if any
-                .awsHeaders(awsHeaders) //aws header parameters
-                .payload(payload) // payload if any
-                .debug() // turn on the debug mode
-                .build();
-
-        String url = "https://" + host + query;
-
-        HttpPost httpPost = new HttpPost(url);
-        StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
-        httpPost.setEntity(requestEntity);
-
-		        /* Get header calculated for request */
-        Map<String, String> header = aWSV4Auth.getHeaders();
-        for (Map.Entry<String, String> entrySet : header.entrySet()) {
-            String key = entrySet.getKey();
-            String value = entrySet.getValue();
-
-			    /* Attach header in your request */
-			    /* Simple get request */
-
-            httpPost.addHeader(key, value);
-        }
-
-        /* Create object of CloseableHttpClient */
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-
-		/* Response handler for after request execution */
-        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
-
-            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-				/* Get status code */
-                int status = response.getStatusLine().getStatusCode();
-                if (status >= 200 && status < 300) {
-					/* Convert response to String */
-                    HttpEntity entity = response.getEntity();
-                    return entity != null ? EntityUtils.toString(entity) : null;
-                } else {
-                    throw new ClientProtocolException("Unexpected response status: " + status);
-                }
-            }
-        };
-
         try {
-			/* Execute URL and attach after execution response handler */
+            ProfileImageViews pivResult = activity.getClient2().vSLambdaGet("pis", payload);
 
-            String strResponse = httpClient.execute(httpPost, responseHandler);
-            Log.d("hahahai", strResponse);
-
-            //iterate through hits and put the info in postInfoMap
-            JSONObject obj = new JSONObject(strResponse);
-            JSONArray hits = obj.getJSONArray("docs");
-            for(int i = 0; i<hits.length(); i++){
-                JSONObject item = hits.getJSONObject(i);
-                JSONObject src = item.getJSONObject("_source");
-                profileImgVersions.put(item.getString("_id"), src.getInt("pi"));
+            List<ProfileImageViewsDocsItem> pivList = pivResult.getDocs();
+            if(pivList != null && !pivList.isEmpty()){
+                for(ProfileImageViewsDocsItem item : pivList){
+                    profileImgVersions.put(item.getId(), item.getSource().getPi().intValue());
+                }
             }
 
         } catch (Exception e) {

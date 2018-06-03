@@ -330,7 +330,6 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
 
 
     private void getProfileImgVersions(String payload){
-
         try {
             ProfileImageViews pivResult = mHostActivity.getClient2().vSLambdaGet("pis", payload);
 
@@ -344,7 +343,6 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     public MyAdapter getMyAdapter() {
