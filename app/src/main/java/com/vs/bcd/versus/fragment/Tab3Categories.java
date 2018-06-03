@@ -23,6 +23,8 @@ import com.bumptech.glide.util.FixedPreloadSizeProvider;
 import com.google.android.gms.ads.formats.NativeAd;
 import com.google.android.gms.ads.formats.NativeAppInstallAd;
 import com.google.android.gms.ads.formats.NativeContentAd;
+import com.vs.api.vs2.model.ProfileImageViews;
+import com.vs.api.vs2.model.ProfileImageViewsDocsItem;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
@@ -412,16 +414,16 @@ public class Tab3Categories extends Fragment implements SwipeRefreshLayout.OnRef
 
                                 //add username to parameter string, then at loop finish we do multiget of those users and create hashmap of username:profileImgVersion
                                 if(i == 0){
-                                    strBuilder.append("{\"_id\":\""+source.getA()+"\",\"_source\":\"pi\"}");
+                                    strBuilder.append("\""+source.getA()+"\"");
                                 }
                                 else{
-                                    strBuilder.append(",{\"_id\":\""+source.getA()+"\",\"_source\":\"pi\"}");
+                                    strBuilder.append(",\""+source.getA()+"\"");
                                 }
                                 i++;
                             }
 
                             if(strBuilder.length() > 0){
-                                String payload = "{\"docs\":["+strBuilder.toString()+"]}";
+                                String payload = "{\"ids\":["+strBuilder.toString()+"]}";
                                 getProfileImgVersions(payload);
                             }
 
@@ -529,16 +531,16 @@ public class Tab3Categories extends Fragment implements SwipeRefreshLayout.OnRef
 
                                 //add username to parameter string, then at loop finish we do multiget of those users and create hashmap of username:profileImgVersion
                                 if(i == 0){
-                                    strBuilder.append("{\"_id\":\""+source.getA()+"\",\"_source\":\"pi\"}");
+                                    strBuilder.append("\""+source.getA()+"\"");
                                 }
                                 else{
-                                    strBuilder.append(",{\"_id\":\""+source.getA()+"\",\"_source\":\"pi\"}");
+                                    strBuilder.append(",\""+source.getA()+"\"");
                                 }
                                 i++;
                             }
 
                             if(strBuilder.length() > 0){
-                                String payload = "{\"docs\":["+strBuilder.toString()+"]}";
+                                String payload = "{\"ids\":["+strBuilder.toString()+"]}";
                                 getProfileImgVersions(payload);
                             }
 
@@ -617,70 +619,15 @@ public class Tab3Categories extends Fragment implements SwipeRefreshLayout.OnRef
     }
 
     private void getProfileImgVersions(String payload){
-        String query = "/user/user_type/_mget";
-        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
-        awsHeaders.put("host", host);
-        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
-                .regionName(region)
-                .serviceName("es") // es - elastic search. use your service name
-                .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
-                .canonicalURI(query) //end point
-                .queryParametes(null) //query parameters if any
-                .awsHeaders(awsHeaders) //aws header parameters
-                .payload(payload) // payload if any
-                .debug() // turn on the debug mode
-                .build();
-
-        String url = "https://" + host + query;
-
-        HttpPost httpPost = new HttpPost(url);
-        StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
-        httpPost.setEntity(requestEntity);
-
-        /* Get header calculated for request */
-        Map<String, String> header = aWSV4Auth.getHeaders();
-        for (Map.Entry<String, String> entrySet : header.entrySet()) {
-            String key = entrySet.getKey();
-            String value = entrySet.getValue();
-
-            /* Attach header in your request */
-            /* Simple get request */
-
-            httpPost.addHeader(key, value);
-        }
-
-        /* Create object of CloseableHttpClient */
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-
-        /* Response handler for after request execution */
-        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
-
-            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-                /* Get status code */
-                int status = response.getStatusLine().getStatusCode();
-                if (status >= 200 && status < 300) {
-                    /* Convert response to String */
-                    HttpEntity entity = response.getEntity();
-                    return entity != null ? EntityUtils.toString(entity) : null;
-                } else {
-                    throw new ClientProtocolException("Unexpected response status: " + status);
-                }
-            }
-        };
 
         try {
-            /* Execute URL and attach after execution response handler */
+            ProfileImageViews pivResult = mHostActivity.getClient2().vSLambdaGet("pis", payload);
 
-            String strResponse = httpClient.execute(httpPost, responseHandler);
-            Log.d("hahahai", strResponse);
-
-            //iterate through hits and put the info in postInfoMap
-            JSONObject obj = new JSONObject(strResponse);
-            JSONArray hits = obj.getJSONArray("docs");
-            for(int i = 0; i<hits.length(); i++){
-                JSONObject item = hits.getJSONObject(i);
-                JSONObject src = item.getJSONObject("_source");
-                profileImgVersions.put(item.getString("_id"), src.getInt("pi"));
+            List<ProfileImageViewsDocsItem> pivList = pivResult.getDocs();
+            if(pivList != null && !pivList.isEmpty()){
+                for(ProfileImageViewsDocsItem item : pivList){
+                    profileImgVersions.put(item.getId(), item.getSource().getPi().intValue());
+                }
             }
 
         } catch (Exception e) {
