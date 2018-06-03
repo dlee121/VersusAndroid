@@ -17,6 +17,7 @@ import android.widget.RelativeLayout;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.TreeMap;
@@ -24,6 +25,8 @@ import java.util.TreeMap;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
+import com.vs.api.vs2.model.ProfileImageViews;
+import com.vs.api.vs2.model.ProfileImageViewsDocsItem;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.GroupMembersAdapter;
@@ -201,10 +204,10 @@ public class FollowersAndFollowings extends Fragment {
                             usersList.add(followerH.getKey());
                             if(profileImgVersions.get(followerH.getKey()) == null){
                                 if(i == 0){
-                                    strBuilder.append("{\"_id\":\""+followerH.getKey()+"\",\"_source\":\"pi\"}");
+                                    strBuilder.append("\""+followerH.getKey()+"\"");
                                 }
                                 else{
-                                    strBuilder.append(",{\"_id\":\""+followerH.getKey()+"\",\"_source\":\"pi\"}");
+                                    strBuilder.append(",\""+followerH.getKey()+"\"");
                                 }
                                 i++;
                             }
@@ -213,10 +216,10 @@ public class FollowersAndFollowings extends Fragment {
                             usersList.add(followerF.getKey());
                             if(profileImgVersions.get(followerF.getKey()) == null){
                                 if(i == 0){
-                                    strBuilder.append("{\"_id\":\""+followerF.getKey()+"\",\"_source\":\"pi\"}");
+                                    strBuilder.append("\""+followerF.getKey()+"\"");
                                 }
                                 else{
-                                    strBuilder.append(",{\"_id\":\""+followerF.getKey()+"\",\"_source\":\"pi\"}");
+                                    strBuilder.append(",\""+followerF.getKey()+"\"");
                                 }
                                 i++;
                             }
@@ -225,7 +228,7 @@ public class FollowersAndFollowings extends Fragment {
                         usersAdapter.setProfileImgVersions(profileImgVersions);
 
                         if(strBuilder.length() > 0){
-                            final String payload = "{\"docs\":["+strBuilder.toString()+"]}";
+                            final String payload = "{\"ids\":["+strBuilder.toString()+"]}";
                             Runnable runnable = new Runnable() {
                                 public void run() {
                                     getProfileImgVersions(payload);
@@ -295,10 +298,10 @@ public class FollowersAndFollowings extends Fragment {
                             usersList.add(followingH.getKey());
                             if(profileImgVersions.get(followingH.getKey()) == null){
                                 if(i == 0){
-                                    strBuilder.append("{\"_id\":\""+followingH.getKey()+"\",\"_source\":\"pi\"}");
+                                    strBuilder.append("\""+followingH.getKey()+"\"");
                                 }
                                 else{
-                                    strBuilder.append(",{\"_id\":\""+followingH.getKey()+"\",\"_source\":\"pi\"}");
+                                    strBuilder.append(",\""+followingH.getKey()+"\"");
                                 }
                                 i++;
                             }
@@ -307,10 +310,10 @@ public class FollowersAndFollowings extends Fragment {
                             usersList.add(followingG.getKey());
                             if(profileImgVersions.get(followingG.getKey()) == null){
                                 if(i == 0){
-                                    strBuilder.append("{\"_id\":\""+followingG.getKey()+"\",\"_source\":\"pi\"}");
+                                    strBuilder.append("\""+followingG.getKey()+"\"");
                                 }
                                 else{
-                                    strBuilder.append(",{\"_id\":\""+followingG.getKey()+"\",\"_source\":\"pi\"}");
+                                    strBuilder.append(",\""+followingG.getKey()+"\"");
                                 }
                                 i++;
                             }
@@ -319,7 +322,7 @@ public class FollowersAndFollowings extends Fragment {
                         usersAdapter.setProfileImgVersions(profileImgVersions);
 
                         if(strBuilder.length() > 0){
-                            final String payload = "{\"docs\":["+strBuilder.toString()+"]}";
+                            final String payload = "{\"ids\":["+strBuilder.toString()+"]}";
                             Runnable runnable = new Runnable() {
                                 public void run() {
                                     getProfileImgVersions(payload);
@@ -352,73 +355,15 @@ public class FollowersAndFollowings extends Fragment {
     }
 
     private void getProfileImgVersions(String payload){
-        String query = "/user/user_type/_mget";
-        String host = activity.getESHost();
-        String region = activity.getESRegion();
-        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
-        awsHeaders.put("host", host);
-        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
-                .regionName(region)
-                .serviceName("es") // es - elastic search. use your service name
-                .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
-                .canonicalURI(query) //end point
-                .queryParametes(null) //query parameters if any
-                .awsHeaders(awsHeaders) //aws header parameters
-                .payload(payload) // payload if any
-                .debug() // turn on the debug mode
-                .build();
+        try {
+            ProfileImageViews pivResult = activity.getClient2().vSLambdaGet("pis", payload);
 
-        String url = "https://" + host + query;
-
-        HttpPost httpPost = new HttpPost(url);
-        StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
-        httpPost.setEntity(requestEntity);
-
-        /* Get header calculated for request */
-        Map<String, String> header = aWSV4Auth.getHeaders();
-        for (Map.Entry<String, String> entrySet : header.entrySet()) {
-            String key = entrySet.getKey();
-            String value = entrySet.getValue();
-
-            /* Attach header in your request */
-            /* Simple get request */
-
-            httpPost.addHeader(key, value);
-        }
-
-        /* Create object of CloseableHttpClient */
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-
-        /* Response handler for after request execution */
-        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
-
-            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-                /* Get status code */
-                int status = response.getStatusLine().getStatusCode();
-                if (status >= 200 && status < 300) {
-                    /* Convert response to String */
-                    HttpEntity entity = response.getEntity();
-                    return entity != null ? EntityUtils.toString(entity) : null;
-                } else {
-                    throw new ClientProtocolException("Unexpected response status: " + status);
+            List<ProfileImageViewsDocsItem> pivList = pivResult.getDocs();
+            if(pivList != null && !pivList.isEmpty()){
+                for(ProfileImageViewsDocsItem item : pivList){
+                    profileImgVersions.put(item.getId(), item.getSource().getPi().intValue());
                 }
             }
-        };
-
-        try {
-            /* Execute URL and attach after execution response handler */
-
-            String strResponse = httpClient.execute(httpPost, responseHandler);
-
-            //iterate through hits and put the info in postInfoMap
-            JSONObject obj = new JSONObject(strResponse);
-            JSONArray hits = obj.getJSONArray("docs");
-            for(int i = 0; i<hits.length(); i++){
-                JSONObject item = hits.getJSONObject(i);
-                JSONObject src = item.getJSONObject("_source");
-                profileImgVersions.put(item.getString("_id"), src.getInt("pi"));
-            }
-
             if(usersAdapter != null){
                 activity.runOnUiThread(new Runnable() {
                     @Override
