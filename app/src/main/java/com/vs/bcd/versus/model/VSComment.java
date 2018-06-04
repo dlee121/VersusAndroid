@@ -3,6 +3,7 @@ package com.vs.bcd.versus.model;
 import android.util.Log;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
+import com.vs.bcd.api.model.CGCModelResponsesItemHitsHitsItemSource;
 import com.vs.bcd.api.model.CommentModel;
 import com.vs.bcd.api.model.CommentModelSource;
 import com.vs.bcd.api.model.CommentsListModelHitsHitsItemSource;
@@ -76,6 +77,20 @@ public class VSComment {
     }
 
     public VSComment(CommentsListModelHitsHitsItemSource source, String id){
+        parent_id = source.getPr();
+        post_id = source.getPt();
+        time = source.getT();
+        comment_id = id;
+        author = source.getA();
+        content = source.getCt();
+        topmedal = source.getM().intValue();
+        upvotes = source.getU().intValue();
+        downvotes = source.getD().intValue();
+        comment_influence = source.getCi().intValue();
+        root = source.getR();
+    }
+
+    public VSComment(CGCModelResponsesItemHitsHitsItemSource source, String id){
         parent_id = source.getPr();
         post_id = source.getPt();
         time = source.getT();

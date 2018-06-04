@@ -37,6 +37,10 @@ import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.loopj.android.http.HttpGet;
+import com.vs.bcd.api.model.CGCModel;
+import com.vs.bcd.api.model.CGCModelResponsesItem;
+import com.vs.bcd.api.model.CGCModelResponsesItemHits;
+import com.vs.bcd.api.model.CGCModelResponsesItemHitsHitsItem;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
@@ -3066,94 +3070,40 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
 
     private void getChildComments(ArrayList<VSComment> commentParents, ArrayList<VSComment> results) {
-        String query = "/vscomment/_msearch";
-        StringBuilder strBuilder = new StringBuilder(100*commentParents.size());
+        StringBuilder strBuilder = new StringBuilder(33*commentParents.size() - 1);
 
-        //strBuilder.append("{}\n{\"query\":{\"match\":{\"pr\":\""+commentParents.get(0).getComment_id()+"\"}},\"size\":2}");
         for(int n = 0; n<commentParents.size(); n++){
-            strBuilder.append("{}\n{\"from\":0,\"size\":2,\"sort\":[{\"ci\":{\"order\":\"desc\"}},{\"u\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"pr\":\"" + commentParents.get(n).getComment_id() + "\"}}}\n");
+            if(n == 0){
+                strBuilder.append(commentParents.get(n).getComment_id());
+            }
+            else{
+                strBuilder.append(",").append(commentParents.get(n).getComment_id());
+            }
         }
         String payload = strBuilder.toString();
 
-        //Log.d("childCommentsQuery", payload);
-
-        String url = "https://" + host + query;
-
-        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
-        awsHeaders.put("host", host);
-
-        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
-                .regionName(region)
-                .serviceName("es") // es - elastic search. use your service name
-                .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
-                .canonicalURI(query) //end point
-                .queryParametes(null) //query parameters if any
-                .awsHeaders(awsHeaders) //aws header parameters
-                .payload(payload) // payload if any
-                .debug() // turn on the debug mode
-                .build();
-
-        HttpPost httpPost = new HttpPost(url);
-        StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
-        httpPost.setEntity(requestEntity);
-
-        /* Get header calculated for request */
-        Map<String, String> header = aWSV4Auth.getHeaders();
-        for (Map.Entry<String, String> entrySet : header.entrySet()) {
-            String key = entrySet.getKey();
-            String value = entrySet.getValue();
-
-            /* Attach header in your request */
-            /* Simple get request */
-
-            httpPost.addHeader(key, value);
-        }
-
-        /* Create object of CloseableHttpClient */
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-
-        /* Response handler for after request execution */
-        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
-
-            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-                /* Get status code */
-                int status = response.getStatusLine().getStatusCode();
-                if (status >= 200 && status < 300) {
-                    /* Convert response to String */
-                    HttpEntity entity = response.getEntity();
-                    return entity != null ? EntityUtils.toString(entity) : null;
-                } else {
-                    throw new ClientProtocolException("Unexpected response status: " + status);
-                }
-            }
-        };
+        CGCModel result = activity.getClient().cgcGet("cgc", payload);
 
         try {
-            /* Execute URL and attach after execution response handler */
+            List<CGCModelResponsesItem> responses = result.getResponses();
+            int r = 0;
+            for(CGCModelResponsesItem item : responses){
 
-            String strResponse = httpClient.execute(httpPost, responseHandler);
-
-            //Log.d("childCommentsQuery", strResponse);
-            JSONObject responseObj = new JSONObject(strResponse);
-            JSONArray responseArray = responseObj.getJSONArray("responses");
-            for(int r = 0; r<responseArray.length(); r++){
-
-                JSONObject hitsObject = responseArray.getJSONObject(r).getJSONObject("hits");
+                CGCModelResponsesItemHits hitsObject = item.getHits();
 
                 //set the child_count on the parent comment
-                int childCount = hitsObject.getInt("total");
+                int childCount = hitsObject.getTotal().intValue();
                 VSCNode parentNode = nodeMap.get(commentParents.get(r).getComment_id());
                 if(parentNode != null){
                     parentNode.getNodeContent().setChild_count(childCount);
                 }
 
-                JSONArray hArray = hitsObject.getJSONArray("hits");
-                for(int h = 0; h<hArray.length(); h++){
-                    String id = hArray.getJSONObject(h).getString("_id");
-                    results.add(new VSComment(hArray.getJSONObject(h).getJSONObject("_source"), id));
+                List<CGCModelResponsesItemHitsHitsItem> hitsList = hitsObject.getHits();
+                for(CGCModelResponsesItemHitsHitsItem hitsItem : hitsList){
+                    results.add(new VSComment(hitsItem.getSource(), hitsItem.getId()));
                     childrenCount++;
                 }
-
+                r++;
             }
 
             //System.out.println("Response: " + strResponse);
