@@ -13,6 +13,14 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 
 import com.loopj.android.http.HttpGet;
+import com.vs.bcd.api.model.CommentsListModel;
+import com.vs.bcd.api.model.CommentsListModelHits;
+import com.vs.bcd.api.model.CommentsListModelHitsHitsItem;
+import com.vs.bcd.api.model.CommentsListModelHitsHitsItemSource;
+import com.vs.bcd.api.model.PostInfoModel;
+import com.vs.bcd.api.model.PostInfoMultiModel;
+import com.vs.bcd.api.model.PostInfoMultiModelDocsItem;
+import com.vs.bcd.api.model.PostInfoMultiModelDocsItemSource;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.CommentHistoryAdapter;
@@ -29,6 +37,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
@@ -157,69 +166,13 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
                     nowLoading = false;
                 }
 
-                String query = "/vscomment/_search";
-                String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\""+uORt+"\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"a\":\""+profileUsername+"\"}}}";
-
-                String url = "https://" + host + query;
-
-                TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
-                awsHeaders.put("host", host);
-
-                AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
-                        .regionName(region)
-                        .serviceName("es") // es - elastic search. use your service name
-                        .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
-                        .canonicalURI(query) //end point
-                        .queryParametes(null) //query parameters if any
-                        .awsHeaders(awsHeaders) //aws header parameters
-                        .payload(payload) // payload if any
-                        .debug() // turn on the debug mode
-                        .build();
-
-                HttpPost httpPost = new HttpPost(url);
-                StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
-                httpPost.setEntity(requestEntity);
-
-		        /* Get header calculated for request */
-                Map<String, String> header = aWSV4Auth.getHeaders();
-                for (Map.Entry<String, String> entrySet : header.entrySet()) {
-                    String key = entrySet.getKey();
-                    String value = entrySet.getValue();
-
-			    /* Attach header in your request */
-			    /* Simple get request */
-
-                    httpPost.addHeader(key, value);
-                }
-
-        /* Create object of CloseableHttpClient */
-                CloseableHttpClient httpClient = HttpClients.createDefault();
-
-		/* Response handler for after request execution */
-                ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
-
-                    public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-				/* Get status code */
-                        int status = response.getStatusLine().getStatusCode();
-                        if (status >= 200 && status < 300) {
-					/* Convert response to String */
-                            HttpEntity entity = response.getEntity();
-                            return entity != null ? EntityUtils.toString(entity) : null;
-                        } else {
-                            throw new ClientProtocolException("Unexpected response status: " + status);
-                        }
-                    }
-                };
+                CommentsListModel result = activity.getClient().commentslistGet(profileUsername, null, "pc", Integer.toString(fromIndex));
 
                 try {
-			/* Execute URL and attach after execution response handler */
 
-                    String strResponse = httpClient.execute(httpPost, responseHandler);
+                    List<CommentsListModelHitsHitsItem> hits = result.getHits().getHits();
 
-                    JSONObject obj = new JSONObject(strResponse);
-                    JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
-                    //Log.d("idformat", hits.getJSONObject(0).getString("_id"));
-                    int hitsLength = hits.length();
+                    int hitsLength = hits.size();
                     if(hitsLength == 0) {
                         Log.d("loadmore", "end reached, disabling loadMore");
                         nowLoading = true;
@@ -236,8 +189,8 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
 
                     if(hitsLength == 1){
                         //do a single GET for the post info for the VSComment item
-                        JSONObject item = hits.getJSONObject(0).getJSONObject("_source");
-                        String id0 = hits.getJSONObject(0).getString("_id");
+                        CommentsListModelHitsHitsItemSource item = hits.get(0).getSource();
+                        String id0 = hits.get(0).getId();
                         VSComment vsc = new VSComment(item, id0);
                         comments.add(vsc);
                         PostInfo postInfo = postInfoMap.get(vsc.getPost_id());
@@ -252,33 +205,25 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
                         //use StringBuilder to generate postIDs payload and do Multi-GET to get the post info for the VSComment items
 
                         StringBuilder strBuilder = new StringBuilder((67*hitsLength) - 1);
-                        JSONObject item = hits.getJSONObject(0).getJSONObject("_source");
-                        String id0 = hits.getJSONObject(0).getString("_id");
-                        VSComment vsc = new VSComment(item, id0);
-                        comments.add(vsc);
-                        if(postInfoMap.get(vsc.getPost_id()) == null){
-                            postInfoMap.put(vsc.getPost_id(), new PostInfo());
-                            strBuilder.append("{\"_id\":\""+vsc.getPost_id()+"\",\"_source\":[\"rn\",\"bn\"]}");
-                        }
 
-                        for(int i = 1; i < hits.length(); i++){
-                            item = hits.getJSONObject(i).getJSONObject("_source");
-                            String id = hits.getJSONObject(i).getString("_id");
-                            vsc = new VSComment(item, id);
+                        for(CommentsListModelHitsHitsItem item : hits){
+                            CommentsListModelHitsHitsItemSource source = item.getSource();
+                            String id = item.getId();
+                            VSComment vsc = new VSComment(source, id);
                             comments.add(vsc);
                             if(postInfoMap.get(vsc.getPost_id()) == null){
                                 postInfoMap.put(vsc.getPost_id(), new PostInfo());
-                                if(strBuilder.length() != 0){
-                                    strBuilder.append(",{\"_id\":\""+vsc.getPost_id()+"\",\"_source\":[\"rn\",\"bn\"]}");
+                                if(strBuilder.length() == 0){
+                                    strBuilder.append("\""+vsc.getPost_id()+"\"");
                                 }
                                 else{
-                                    strBuilder.append("{\"_id\":\""+vsc.getPost_id()+"\",\"_source\":[\"rn\",\"bn\"]}"); //start without comma since this is the first one appended to the string builder
+                                    strBuilder.append(",\""+vsc.getPost_id()+"\""); //start without comma since this is the first one appended to the string builder
                                 }
 
                             }
                         }
                         if(strBuilder.length() > 0){
-                            String postIDs = "{\"docs\":["+strBuilder.toString()+"]}";
+                            String postIDs = "{\"ids\":["+strBuilder.toString()+"]}";
                             addPostInfo(true, postIDs, fromIndex);
                         }
                         else{
@@ -314,79 +259,22 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
         if(problemPosts == null){
             problemPosts = new HashSet<>();
         }
-        String query;
-        AWSV4Auth aWSV4Auth;
-        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
-        awsHeaders.put("host", host);
 
         if(multiGet){
-            query = "/post/post_type/_mget";
-            aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
-                    .regionName(region)
-                    .serviceName("es") // es - elastic search. use your service name
-                    .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
-                    .canonicalURI(query) //end point
-                    .queryParametes(null) //query parameters if any
-                    .awsHeaders(awsHeaders) //aws header parameters
-                    .payload(payload) // payload if any
-                    .debug() // turn on the debug mode
-                    .build();
-
-            String url = "https://" + host + query;
-
-            HttpPost httpPost = new HttpPost(url);
-            StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
-            httpPost.setEntity(requestEntity);
-
-		        /* Get header calculated for request */
-            Map<String, String> header = aWSV4Auth.getHeaders();
-            for (Map.Entry<String, String> entrySet : header.entrySet()) {
-                String key = entrySet.getKey();
-                String value = entrySet.getValue();
-
-			    /* Attach header in your request */
-			    /* Simple get request */
-
-                httpPost.addHeader(key, value);
-            }
-
-        /* Create object of CloseableHttpClient */
-            CloseableHttpClient httpClient = HttpClients.createDefault();
-
-		/* Response handler for after request execution */
-            ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
-
-                public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-				/* Get status code */
-                    int status = response.getStatusLine().getStatusCode();
-                    if (status >= 200 && status < 300) {
-					/* Convert response to String */
-                        HttpEntity entity = response.getEntity();
-                        return entity != null ? EntityUtils.toString(entity) : null;
-                    } else {
-                        throw new ClientProtocolException("Unexpected response status: " + status);
-                    }
-                }
-            };
+            PostInfoMultiModel result = activity.getClient().postinfomultiGet("mpinf", payload);
 
             try {
-			/* Execute URL and attach after execution response handler */
 
-                String strResponse = httpClient.execute(httpPost, responseHandler);
-
-                //iterate through hits and put the info in postInfoMap
-                JSONObject obj = new JSONObject(strResponse);
-                JSONArray hits = obj.getJSONArray("docs");
-                for(int i = 0; i<hits.length(); i++){
-                    JSONObject item = hits.getJSONObject(i);
-                    JSONObject src = item.getJSONObject("_source");
+                List<PostInfoMultiModelDocsItem> hits = result.getDocs();
+                for(PostInfoMultiModelDocsItem item : hits){
+                    PostInfoMultiModelDocsItemSource src = item.getSource();
                     String id = null;
                     String rn = null;
                     String bn = null;
                     try{
-                        id = item.getString("_id");
-                        rn = src.getString("rn");
-                        bn = src.getString("bn");
+                        id = item.getId();
+                        rn = src.getRn();
+                        bn = src.getBn();
                     }
                     catch (Exception e) {
                         if(id != null){
@@ -425,61 +313,9 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
 
         }
         else{
-            TreeMap<String, String> queryParams = new TreeMap<>();
-            queryParams.put("_source", "bn,rn");
-            query = "/post/post_type/" + payload + "/_source";
-            aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
-                    .regionName(region)
-                    .serviceName("es") // es - elastic search. use your service name
-                    .httpMethodName("GET") //GET, PUT, POST, DELETE, etc...
-                    .canonicalURI(query) //end point
-                    .queryParametes(queryParams) //query parameters if any
-                    .awsHeaders(awsHeaders) //aws header parameters
-                    .debug() // turn on the debug mode
-                    .build();
-
-            String url = "https://" + host + query + "?_source=bn,rn";
-
-            HttpGet httpGet = new HttpGet(url);
-
-		        /* Get header calculated for request */
-            Map<String, String> header = aWSV4Auth.getHeaders();
-            for (Map.Entry<String, String> entrySet : header.entrySet()) {
-                String key = entrySet.getKey();
-                String value = entrySet.getValue();
-
-			    /* Attach header in your request */
-			    /* Simple get request */
-
-                httpGet.addHeader(key, value);
-            }
-
-        /* Create object of CloseableHttpClient */
-            CloseableHttpClient httpClient = HttpClients.createDefault();
-
-		/* Response handler for after request execution */
-            ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
-
-                public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-				/* Get status code */
-                    int status = response.getStatusLine().getStatusCode();
-                    if (status >= 200 && status < 300) {
-					/* Convert response to String */
-                        HttpEntity entity = response.getEntity();
-                        return entity != null ? EntityUtils.toString(entity) : null;
-                    } else {
-                        throw new ClientProtocolException("Unexpected response status: " + status);
-                    }
-                }
-            };
 
             try {
-			/* Execute URL and attach after execution response handler */
-
-                String strResponse = httpClient.execute(httpGet, responseHandler);
-
-                //TODO: there's only one comment in the comments array, add the post info to the fromIndex-th of the comments array
-                JSONObject obj = new JSONObject(strResponse);
+                PostInfoModel obj = activity.getClient().postinfoGet("pinf", payload);
                 //JSONObject item = obj.getJSONObject("_source");
                 PostInfo postInfo = new PostInfo();
 
@@ -488,8 +324,8 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
                 String bn = null;
                 try{
                     id = payload;
-                    rn = obj.getString("rn");
-                    bn = obj.getString("bn");
+                    rn = obj.getRn();
+                    bn = obj.getBn();
                 }catch (Exception e){
                     if(id != null){
                         Log.d("skipNullPost", "skipped in CH: " + id);
@@ -500,6 +336,7 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
                 }
                 if(id != null && rn != null && bn != null){
                     postInfo.setRB(rn, bn);
+                    //there's only one comment in the comments array, add the post info to the fromIndex-th index of the comments array
                     comments.get(fromIndex).setR(postInfo.getR()).setB(postInfo.getB());
                     postInfoMap.put(payload, postInfo);
                 }

@@ -1,6 +1,7 @@
 package com.vs.bcd.versus.adapter;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +12,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.loopj.android.http.HttpGet;
+import com.vs.bcd.api.model.CommentModel;
+import com.vs.bcd.api.model.PostModel;
+import com.vs.bcd.api.model.PostModelSource;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.fragment.NotificationsTab;
 import com.vs.bcd.versus.model.AWSV4Auth;
@@ -268,70 +272,12 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
     //call in new thread
     private Post getPost(String post_id){
 
-        String query = "/post/post_type/"+post_id;
-        String url = "https://" + host + query;
-
-        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
-        awsHeaders.put("host", host);
-
-        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
-                .regionName(region)
-                .serviceName("es") // es - elastic search. use your service name
-                .httpMethodName("GET") //GET, PUT, POST, DELETE, etc...
-                .canonicalURI(query) //end point
-                .queryParametes(null) //query parameters if any
-                .awsHeaders(awsHeaders) //aws header parameters
-                .debug() // turn on the debug mode
-                .build();
-
-        HttpGet httpGet = new HttpGet(url);
-
-        /* Get header calculated for request */
-        Map<String, String> header = aWSV4Auth.getHeaders();
-        for (Map.Entry<String, String> entrySet : header.entrySet()) {
-            String key = entrySet.getKey();
-            String value = entrySet.getValue();
-
-            /* Attach header in your request */
-            /* Simple get request */
-
-            httpGet.addHeader(key, value);
-        }
-
-        /* Create object of CloseableHttpClient */
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-
-        /* Response handler for after request execution */
-        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
-
-            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-                /* Get status code */
-                int status = response.getStatusLine().getStatusCode();
-                if (status >= 200 && status < 300) {
-                    /* Convert response to String */
-                    HttpEntity entity = response.getEntity();
-                    return entity != null ? EntityUtils.toString(entity) : null;
-                } else {
-                    throw new ClientProtocolException("Unexpected response status: " + status);
-                }
-            }
-        };
+        PostModel result = activity.getClient().postGet("p", post_id);
 
         try {
-            /* Execute URL and attach after execution response handler */
-            long startTime = System.currentTimeMillis();
 
-            String strResponse = httpClient.execute(httpGet, responseHandler);
+            return new Post(result.getSource(), result.getId());
 
-            JSONObject obj = new JSONObject(strResponse);
-            JSONObject item = obj.getJSONObject("_source");
-            String id = obj.getString("_id");
-
-            final Post clickedPost = new Post(item, id, false);
-
-            return clickedPost;
-
-            //System.out.println("Response: " + strResponse);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -344,72 +290,16 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
     //Call this in a new thread
     private VSComment getComment(String comment_id){
 
-        String query = "/vscomment/vscomment_type/"+comment_id;
-        String url = "https://" + host + query;
-
-        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
-        awsHeaders.put("host", host);
-
-        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
-                .regionName(region)
-                .serviceName("es") // es - elastic search. use your service name
-                .httpMethodName("GET") //GET, PUT, POST, DELETE, etc...
-                .canonicalURI(query) //end point
-                .queryParametes(null) //query parameters if any
-                .awsHeaders(awsHeaders) //aws header parameters
-                .debug() // turn on the debug mode
-                .build();
-
-        HttpGet httpGet = new HttpGet(url);
-
-        /* Get header calculated for request */
-        Map<String, String> header = aWSV4Auth.getHeaders();
-        for (Map.Entry<String, String> entrySet : header.entrySet()) {
-            String key = entrySet.getKey();
-            String value = entrySet.getValue();
-
-            /* Attach header in your request */
-            /* Simple get request */
-
-            httpGet.addHeader(key, value);
-        }
-
-        /* Create object of CloseableHttpClient */
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-
-        /* Response handler for after request execution */
-        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
-
-            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-                /* Get status code */
-                int status = response.getStatusLine().getStatusCode();
-                if (status >= 200 && status < 300) {
-                    /* Convert response to String */
-                    HttpEntity entity = response.getEntity();
-                    return entity != null ? EntityUtils.toString(entity) : null;
-                } else {
-                    throw new ClientProtocolException("Unexpected response status: " + status);
-                }
-            }
-        };
+        CommentModel result = activity.getClient().commentGet("c", comment_id);
 
         try {
-            /* Execute URL and attach after execution response handler */
-            long startTime = System.currentTimeMillis();
 
-            String strResponse = httpClient.execute(httpGet, responseHandler);
+            return new VSComment(result.getSource(), result.getId());
 
-            JSONObject obj = new JSONObject(strResponse);
-            JSONObject item = obj.getJSONObject("_source");
-            String id = obj.getString("_id");
-            return new VSComment(item, id);
-
-            //System.out.println("Response: " + strResponse);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        //if the ES GET fails, then return old topCardContent
         return null;
     }
 }

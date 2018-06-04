@@ -3,6 +3,7 @@ package com.vs.bcd.versus.model;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 import com.google.android.gms.ads.formats.NativeAppInstallAd;
 import com.google.android.gms.ads.formats.NativeContentAd;
+import com.vs.bcd.api.model.PostModelSource;
 import com.vs.bcd.api.model.PostsListCompactModelHitsHitsItemSource;
 import com.vs.bcd.api.model.PostsListModelHitsHitsItemSource;
 
@@ -252,6 +253,22 @@ public class Post {
     }
 
     public Post(PostsListModelHitsHitsItemSource source, String id){
+        question = source.getQ();
+        author = source.getA();
+        time = source.getT();
+        redname = source.getRn();
+        redcount = source.getRc().intValue(); //TODO: will we ever need to change this to intValueExact()?
+        blackname  = source.getBn();
+        blackcount = source.getBc().intValue();
+        category = source.getC().intValue();
+        post_id = id;
+        redimg = source.getRi().intValue();
+        blackimg = source.getBi().intValue();
+        pt = source.getPt().intValue();
+        ps = source.getPs();
+    }
+
+    public Post(PostModelSource source, String id){
         question = source.getQ();
         author = source.getA();
         time = source.getT();
