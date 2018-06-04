@@ -16,40 +16,18 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.google.android.gms.ads.formats.NativeAd;
-import com.google.android.gms.ads.formats.NativeAppInstallAd;
-import com.google.android.gms.ads.formats.NativeContentAd;
-import com.vs.api.vs2.model.ProfileImageViews;
-import com.vs.api.vs2.model.ProfileImageViewsDocsItem;
+import com.vs.bcd.api.model.PIVModel;
+import com.vs.bcd.api.model.PIVModelDocsItem;
+import com.vs.bcd.api.model.PostsListCompactModel;
+import com.vs.bcd.api.model.PostsListCompactModelHitsHitsItem;
+import com.vs.bcd.api.model.PostsListCompactModelHitsHitsItemSource;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.MyAdapter;
-import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.Post;
-import com.vs.bcd.versus.model.PostResults;
-import com.vs.bcd.versus.model.PostResultsHitsHitsItem;
-import com.vs.bcd.versus.model.PostResultsHitsHitsItemSource;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
-import cz.msebera.android.httpclient.HttpEntity;
-import cz.msebera.android.httpclient.HttpResponse;
-import cz.msebera.android.httpclient.client.ClientProtocolException;
-import cz.msebera.android.httpclient.client.ResponseHandler;
-import cz.msebera.android.httpclient.client.methods.HttpPost;
-import cz.msebera.android.httpclient.entity.ContentType;
-import cz.msebera.android.httpclient.entity.StringEntity;
-import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
-import cz.msebera.android.httpclient.impl.client.HttpClients;
-import cz.msebera.android.httpclient.util.EntityUtils;
 
 
 /**
@@ -201,17 +179,17 @@ public class SearchPage extends Fragment {
                         postSearchResults = new ArrayList<>();
                     }
 
-                    PostResults results = activity.getClient1().vSLambdaGet(searchTerm, null, "sp", Integer.toString(fromIndex));
+                    PostsListCompactModel results = activity.getClient().postslistcompactGet(searchTerm,"sp", Integer.toString(fromIndex));
 
                     if(results != null){
-                        List<PostResultsHitsHitsItem> hits = results.getHits().getHits();
+                        List<PostsListCompactModelHitsHitsItem> hits = results.getHits().getHits();
                         if(hits != null && !hits.isEmpty()){
                             int i = 0;
                             StringBuilder strBuilder = new StringBuilder((56*hits.size()) - 1);
-                            for(PostResultsHitsHitsItem item : hits){
-                                PostResultsHitsHitsItemSource source = item.getSource();
+                            for(PostsListCompactModelHitsHitsItem item : hits){
+                                PostsListCompactModelHitsHitsItemSource source = item.getSource();
                                 String id = item.getId();
-                                postSearchResults.add(new Post(source, id, true));
+                                postSearchResults.add(new Post(source, id));
 
                                 //add username to parameter string, then at loop finish we do multiget of those users and create hashmap of username:profileImgVersion
                                 if(i == 0){
@@ -288,11 +266,11 @@ public class SearchPage extends Fragment {
 
     private void getProfileImgVersions(String payload){
         try {
-            ProfileImageViews pivResult = activity.getClient2().vSLambdaGet("pis", payload);
+            PIVModel pivResult = activity.getClient().pivGet("pis", payload);
 
-            List<ProfileImageViewsDocsItem> pivList = pivResult.getDocs();
+            List<PIVModelDocsItem> pivList = pivResult.getDocs();
             if(pivList != null && !pivList.isEmpty()){
-                for(ProfileImageViewsDocsItem item : pivList){
+                for(PIVModelDocsItem item : pivList){
                     profileImgVersions.put(item.getId(), item.getSource().getPi().intValue());
                 }
             }

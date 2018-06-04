@@ -88,7 +88,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
-import com.vs.bcd.versus.VSAPIClient;
+import com.vs.bcd.api.VersusAPIClient;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
 import com.vs.bcd.versus.adapter.MyFirebaseMessagingService;
 import com.vs.bcd.versus.fragment.FollowersAndFollowings;
@@ -226,8 +226,7 @@ public class MainContainer extends AppCompatActivity {
     private AtomicBoolean runInitialNewsfeedQuery = new AtomicBoolean(false);
 
     private ApiClientFactory factory;
-    private VSAPIClient client1; //nw, tr, ct
-    private com.vs.api.vs2.VSAPIClient client2; //profileImageVersions
+    private VersusAPIClient client;
 
     private BroadcastReceiver myReceiver = new BroadcastReceiver() {
         @Override
@@ -2540,29 +2539,13 @@ public class MainContainer extends AppCompatActivity {
         return mViewPager.getCurrentItem() == 11;
     }
 
-    public AWSCredentials getCred(){
-        return credentialsProvider.getCredentials();
-    }
-    public CognitoCachingCredentialsProvider getCredentialsProvider(){
-        return credentialsProvider;
-    }
-
     private void setUpAPI(){
         factory = new ApiClientFactory().credentialsProvider(credentialsProvider);
-        client1 = factory.build(VSAPIClient.class);
-        client2 = factory.build(com.vs.api.vs2.VSAPIClient.class);
+        client = factory.build(VersusAPIClient.class);
     }
 
-    public VSAPIClient getClient1(){
-        return client1;
-    }
-
-    public com.vs.api.vs2.VSAPIClient getClient2(){
-        return client2;
-    }
-
-    public String getST(){
-        return credentialsProvider.getCredentials().getSessionToken();
+    public VersusAPIClient getClient(){
+        return client;
     }
 
     private void loadNativeAds(){

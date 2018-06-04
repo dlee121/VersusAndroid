@@ -11,14 +11,11 @@ import android.view.ViewGroup;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.TreeMap;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.ListPreloader;
@@ -27,31 +24,15 @@ import com.bumptech.glide.util.FixedPreloadSizeProvider;
 import com.google.android.gms.ads.formats.NativeAd;
 import com.google.android.gms.ads.formats.NativeAppInstallAd;
 import com.google.android.gms.ads.formats.NativeContentAd;
-import com.vs.api.vs2.model.ProfileImageViews;
-import com.vs.api.vs2.model.ProfileImageViewsDocsItem;
-import com.vs.api.vs2.model.ProfileImageViewsDocsItemSource;
+import com.vs.bcd.api.model.PIVModel;
+import com.vs.bcd.api.model.PIVModelDocsItem;
+import com.vs.bcd.api.model.PostsListModel;
+import com.vs.bcd.api.model.PostsListModelHitsHitsItem;
+import com.vs.bcd.api.model.PostsListModelHitsHitsItemSource;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.MyAdapter;
-import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.Post;
-import com.vs.bcd.versus.model.PostResults;
-import com.vs.bcd.versus.model.PostResultsHitsHitsItem;
-import com.vs.bcd.versus.model.PostResultsHitsHitsItemSource;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import cz.msebera.android.httpclient.HttpEntity;
-import cz.msebera.android.httpclient.HttpResponse;
-import cz.msebera.android.httpclient.client.ClientProtocolException;
-import cz.msebera.android.httpclient.client.ResponseHandler;
-import cz.msebera.android.httpclient.client.methods.HttpPost;
-import cz.msebera.android.httpclient.entity.ContentType;
-import cz.msebera.android.httpclient.entity.StringEntity;
-import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
-import cz.msebera.android.httpclient.impl.client.HttpClients;
-import cz.msebera.android.httpclient.util.EntityUtils;
 
 /**
  * Created by dlee on 4/29/17.
@@ -217,16 +198,16 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                     }
 
 
-                    PostResults results = mHostActivity.getClient1().vSLambdaGet(null, null, "nw", Integer.toString(fromIndex));
+                    PostsListModel results = mHostActivity.getClient().postslistGet(null, null, "nw", Integer.toString(fromIndex));
                     if(results != null){
-                        List<PostResultsHitsHitsItem> hits = results.getHits().getHits();
+                        List<PostsListModelHitsHitsItem> hits = results.getHits().getHits();
                         if(hits != null && !hits.isEmpty()){
                             int i = 0;
                             StringBuilder strBuilder = new StringBuilder((56*hits.size()) - 1);
-                            for(PostResultsHitsHitsItem item : hits){
-                                PostResultsHitsHitsItemSource source = item.getSource();
+                            for(PostsListModelHitsHitsItem item : hits){
+                                PostsListModelHitsHitsItemSource source = item.getSource();
                                 String id = item.getId();
-                                posts.add(new Post(source, id, false));
+                                posts.add(new Post(source, id));
                                 currPostsIndex++;
 
                                 if(currPostsIndex%adFrequency == 0){
@@ -331,11 +312,11 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
 
     private void getProfileImgVersions(String payload){
         try {
-            ProfileImageViews pivResult = mHostActivity.getClient2().vSLambdaGet("pis", payload);
+            PIVModel pivResult = mHostActivity.getClient().pivGet("pis", payload);
 
-            List<ProfileImageViewsDocsItem> pivList = pivResult.getDocs();
+            List<PIVModelDocsItem> pivList = pivResult.getDocs();
             if(pivList != null && !pivList.isEmpty()){
-                for(ProfileImageViewsDocsItem item : pivList){
+                for(PIVModelDocsItem item : pivList){
                     profileImgVersions.put(item.getId(), item.getSource().getPi().intValue());
                 }
             }

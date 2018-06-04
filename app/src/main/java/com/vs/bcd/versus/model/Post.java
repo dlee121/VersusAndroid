@@ -3,6 +3,8 @@ package com.vs.bcd.versus.model;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 import com.google.android.gms.ads.formats.NativeAppInstallAd;
 import com.google.android.gms.ads.formats.NativeContentAd;
+import com.vs.bcd.api.model.PostsListCompactModelHitsHitsItemSource;
+import com.vs.bcd.api.model.PostsListModelHitsHitsItemSource;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -249,33 +251,42 @@ public class Post {
         post_id = UUID.randomUUID().toString().replace("-", ""); //generate random UUID as post_id when post is created
     }
 
-    public Post(PostResultsHitsHitsItemSource source, String id, boolean compact){
-        if(!compact){
-            question = source.getQ();
-            author = source.getA();
-            time = source.getT();
-            redname = source.getRn();
-            redcount = source.getRc().intValue(); //TODO: will we ever need to change this to intValueExact()?
-            blackname  = source.getBn();
-            blackcount = source.getBc().intValue();
-            category = source.getC().intValue();
-            post_id = id;
-            redimg = source.getRi().intValue();
-            blackimg = source.getBi().intValue();
-            pt = source.getPt().intValue();
-            ps = source.getPs();
-        }
-        else{
-            question = source.getQ();
-            time = source.getT();
-            redname = source.getRn();
-            redcount = source.getRc().intValue();
-            blackname  = source.getBn();
-            blackcount = source.getBc().intValue();
-            author = source.getA();
-            post_id = id;
-        }
+    public Post(PostsListModelHitsHitsItemSource source, String id){
+        question = source.getQ();
+        author = source.getA();
+        time = source.getT();
+        redname = source.getRn();
+        redcount = source.getRc().intValue(); //TODO: will we ever need to change this to intValueExact()?
+        blackname  = source.getBn();
+        blackcount = source.getBc().intValue();
+        category = source.getC().intValue();
+        post_id = id;
+        redimg = source.getRi().intValue();
+        blackimg = source.getBi().intValue();
+        pt = source.getPt().intValue();
+        ps = source.getPs();
+    }
 
+    public Post(PostsListCompactModelHitsHitsItemSource source, String id, String author){
+        question = source.getQ();
+        time = source.getT();
+        redname = source.getRn();
+        redcount = source.getRc().intValue();
+        blackname  = source.getBn();
+        blackcount = source.getBc().intValue();
+        this.author = author;
+        post_id = id;
+    }
+
+    public Post(PostsListCompactModelHitsHitsItemSource source, String id){
+        question = source.getQ();
+        time = source.getT();
+        redname = source.getRn();
+        redcount = source.getRc().intValue();
+        blackname  = source.getBn();
+        blackcount = source.getBc().intValue();
+        author = source.getA();
+        post_id = id;
     }
 
     public Post(JSONObject postObj, String id, boolean compact) throws JSONException{

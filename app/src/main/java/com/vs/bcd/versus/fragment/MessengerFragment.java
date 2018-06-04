@@ -45,22 +45,18 @@ import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
-import com.vs.api.vs2.model.ProfileImageViews;
-import com.vs.api.vs2.model.ProfileImageViewsDocsItem;
+
+import com.vs.bcd.api.model.PIVModel;
+import com.vs.bcd.api.model.PIVModelDocsItem;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
 import com.vs.bcd.versus.adapter.CustomFirebaseRecyclerAdapter;
-import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.GlideApp;
 import com.vs.bcd.versus.model.MessageObject;
 import com.vs.bcd.versus.model.RoomObject;
 import com.vs.bcd.versus.model.SessionManager;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -68,18 +64,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
-import cz.msebera.android.httpclient.HttpEntity;
-import cz.msebera.android.httpclient.HttpResponse;
-import cz.msebera.android.httpclient.client.ClientProtocolException;
-import cz.msebera.android.httpclient.client.ResponseHandler;
-import cz.msebera.android.httpclient.client.methods.HttpPost;
-import cz.msebera.android.httpclient.entity.ContentType;
-import cz.msebera.android.httpclient.entity.StringEntity;
-import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
-import cz.msebera.android.httpclient.impl.client.HttpClients;
-import cz.msebera.android.httpclient.util.EntityUtils;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 /**
@@ -1694,11 +1679,11 @@ public class MessengerFragment extends Fragment {
     private void getProfileImgVersions(String payload){
 
         try {
-            ProfileImageViews pivResult = activity.getClient2().vSLambdaGet("pis", payload);
+            PIVModel pivResult = activity.getClient().pivGet("pis", payload);
 
-            List<ProfileImageViewsDocsItem> pivList = pivResult.getDocs();
+            List<PIVModelDocsItem> pivList = pivResult.getDocs();
             if(pivList != null && !pivList.isEmpty()){
-                for(ProfileImageViewsDocsItem item : pivList){
+                for(PIVModelDocsItem item : pivList){
                     profileImgVersions.put(item.getId(), item.getSource().getPi().intValue());
                 }
             }
