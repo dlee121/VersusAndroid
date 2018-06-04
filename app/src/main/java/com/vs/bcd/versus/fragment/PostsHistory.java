@@ -17,6 +17,10 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.vs.bcd.api.model.PostsListCompactModel;
+import com.vs.bcd.api.model.PostsListCompactModelHitsHitsItem;
+import com.vs.bcd.api.model.PostsListCompactModelHitsHitsItemSource;
+import com.vs.bcd.api.model.PostsListModel;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.CommentHistoryAdapter;
@@ -30,6 +34,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -148,71 +153,11 @@ public class PostsHistory extends Fragment implements SwipeRefreshLayout.OnRefre
                     nowLoading = false;
                 }
 
-                String query = "/post/_search";
-                String payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\""+ptORt+"\":{\"order\":\"desc\"}}],\"_source\":[\"bn\",\"bc\",\"q\",\"t\",\"rn\",\"rc\",\"a\",\"i\"],\"query\":{\"match\":{\"a\":\""+profileUsername+"\"}}}";
-
-                String url = "https://" + host + query;
-
-                TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
-                awsHeaders.put("host", host);
-
-                AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
-                        .regionName(region)
-                        .serviceName("es") // es - elastic search. use your service name
-                        .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
-                        .canonicalURI(query) //end point
-                        .queryParametes(null) //query parameters if any
-                        .awsHeaders(awsHeaders) //aws header parameters
-                        .payload(payload) // payload if any
-                        .debug() // turn on the debug mode
-                        .build();
-
-                HttpPost httpPost = new HttpPost(url);
-                StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
-                httpPost.setEntity(requestEntity);
-
-		        /* Get header calculated for request */
-                Map<String, String> header = aWSV4Auth.getHeaders();
-                for (Map.Entry<String, String> entrySet : header.entrySet()) {
-                    String key = entrySet.getKey();
-                    String value = entrySet.getValue();
-
-			    /* Attach header in your request */
-			    /* Simple get request */
-
-                    httpPost.addHeader(key, value);
-                }
-
-        /* Create object of CloseableHttpClient */
-                CloseableHttpClient httpClient = HttpClients.createDefault();
-
-		/* Response handler for after request execution */
-                ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
-
-                    public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-				/* Get status code */
-                        int status = response.getStatusLine().getStatusCode();
-                        if (status >= 200 && status < 300) {
-					/* Convert response to String */
-                            HttpEntity entity = response.getEntity();
-                            return entity != null ? EntityUtils.toString(entity) : null;
-                        } else {
-                            throw new ClientProtocolException("Unexpected response status: " + status);
-                        }
-                    }
-                };
+                PostsListCompactModel result = activity.getClient().postslistcompactGet(profileUsername, "pp", Integer.toString(fromIndex));
 
                 try {
-			/* Execute URL and attach after execution response handler */
-                    //long startTime = System.currentTimeMillis();
-                    String strResponse = httpClient.execute(httpPost, responseHandler);
-                    //long elapsedTime = System.currentTimeMillis() - startTime;
-                    //System.out.println("natTime: " + elapsedTime);
-
-                    JSONObject obj = new JSONObject(strResponse);
-                    JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
-                    //Log.d("idformat", hits.getJSONObject(0).getString("_id"));
-                    if(hits.length() == 0){
+                    List<PostsListCompactModelHitsHitsItem> hits = result.getHits().getHits();
+                    if(hits.size() == 0){
                         Log.d("loadmore", "end reached, disabling loadMore");
                         nowLoading = true;
                         activity.runOnUiThread(new Runnable() {
@@ -223,10 +168,10 @@ public class PostsHistory extends Fragment implements SwipeRefreshLayout.OnRefre
                         });
                         return;
                     }
-                    for(int i = 0; i < hits.length(); i++){
-                        JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
-                        String id = hits.getJSONObject(i).getString("_id");
-                        posts.add(new Post(item, id, true));
+                    for(PostsListCompactModelHitsHitsItem item : hits){
+                        PostsListCompactModelHitsHitsItemSource source = item.getSource();
+                        String id = item.getId();
+                        posts.add(new Post(source, id, profileUsername));
                         currPostsIndex++;
                     }
                     activity.runOnUiThread(new Runnable() {

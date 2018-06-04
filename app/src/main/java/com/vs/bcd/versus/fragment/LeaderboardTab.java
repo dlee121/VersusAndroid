@@ -16,38 +16,17 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.ListPreloader;
 import com.bumptech.glide.integration.recyclerview.RecyclerViewPreloader;
 import com.bumptech.glide.util.FixedPreloadSizeProvider;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
+import com.vs.bcd.api.model.LeaderboardModel;
+import com.vs.bcd.api.model.LeaderboardModelHitsHitsItem;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.LeaderboardAdapter;
-import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.LeaderboardEntry;
-import com.vs.bcd.versus.model.Post;
-import com.vs.bcd.versus.model.VSComment;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.TreeMap;
-
-import cz.msebera.android.httpclient.HttpEntity;
-import cz.msebera.android.httpclient.HttpResponse;
-import cz.msebera.android.httpclient.client.ClientProtocolException;
-import cz.msebera.android.httpclient.client.ResponseHandler;
-import cz.msebera.android.httpclient.client.methods.HttpPost;
-import cz.msebera.android.httpclient.entity.ContentType;
-import cz.msebera.android.httpclient.entity.StringEntity;
-import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
-import cz.msebera.android.httpclient.impl.client.HttpClients;
-import cz.msebera.android.httpclient.util.EntityUtils;
+import java.util.List;
 
 /**
  * Created by dlee on 8/6/17.
@@ -149,84 +128,23 @@ public class LeaderboardTab extends Fragment {
         }
     }
 
-    private void setUpLeaderboard(){
+    private void setUpLeaderboard() {
         leaders.clear();
         mLeaderboardAdapter.notifyDataSetChanged();
         lbProgressBar.setVisibility(View.VISIBLE);
 
         Runnable runnable = new Runnable() {
             public void run() {
-                String query = "/user/_search";
-                String payload;
-
-                payload = "{\"size\":100,\"sort\":[{\"in\":{\"order\":\"desc\"}}, {\"g\":{\"order\":\"desc\"}}, {\"s\":{\"order\":\"desc\"}}, {\"b\":{\"order\":\"desc\"}}, {\"@t\":{\"order\":\"desc\"}}],\"_source\":[\"b\",\"g\",\"in\",\"pi\",\"s\"],\"query\":{\"match_all\":{}}}";
-
-
-                String host = activity.getESHost();
-                String region = activity.getESRegion();
-                String url = "https://" + host + query;
-
-                TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
-                awsHeaders.put("host", host);
-
-                AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
-                        .regionName(region)
-                        .serviceName("es") // es - elastic search. use your service name
-                        .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
-                        .canonicalURI(query) //end point
-                        .queryParametes(null) //query parameters if any
-                        .awsHeaders(awsHeaders) //aws header parameters
-                        .payload(payload) // payload if any
-                        .debug() // turn on the debug mode
-                        .build();
-
-                HttpPost httpPost = new HttpPost(url);
-                StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
-                httpPost.setEntity(requestEntity);
-
-                /* Get header calculated for request */
-                Map<String, String> header = aWSV4Auth.getHeaders();
-                for (Map.Entry<String, String> entrySet : header.entrySet()) {
-                    String key = entrySet.getKey();
-                    String value = entrySet.getValue();
-
-                    /* Attach header in your request */
-                    /* Simple get request */
-
-                    httpPost.addHeader(key, value);
-                }
-
-                /* Create object of CloseableHttpClient */
-                CloseableHttpClient httpClient = HttpClients.createDefault();
-
-                /* Response handler for after request execution */
-                ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
-
-                    public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-                        /* Get status code */
-                        int status = response.getStatusLine().getStatusCode();
-                        if (status >= 200 && status < 300) {
-                            /* Convert response to String */
-                            HttpEntity entity = response.getEntity();
-                            return entity != null ? EntityUtils.toString(entity) : null;
-                        } else {
-                            throw new ClientProtocolException("Unexpected response status: " + status);
-                        }
-                    }
-                };
 
                 try {
                     /* Execute URL and attach after execution response handler */
 
-                    String strResponse = httpClient.execute(httpPost, responseHandler);
+                    LeaderboardModel result = activity.getClient().leaderboardGet("lb");
 
-                    JSONObject obj = new JSONObject(strResponse);
-                    JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
+                    List<LeaderboardModelHitsHitsItem> hits = result.getHits().getHits();
 
-                    for(int i = 0; i < hits.length(); i++){
-                        JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
-                        String id = hits.getJSONObject(i).getString("_id");
-                        leaders.add(new LeaderboardEntry(item, id));
+                    for (LeaderboardModelHitsHitsItem item : hits) {
+                        leaders.add(new LeaderboardEntry(item.getSource(), item.getId()));
                     }
 
                     activity.runOnUiThread(new Runnable() {
@@ -247,19 +165,6 @@ public class LeaderboardTab extends Fragment {
         mythread.start();
 
 
-    }
-
-    private String getUsernameHash(String usernameIn){
-        int usernameHash;
-        if(usernameIn.length() < 5){
-            usernameHash = usernameIn.hashCode();
-        }
-        else{
-            String hashIn = "" + usernameIn.charAt(0) + usernameIn.charAt(usernameIn.length() - 2) + usernameIn.charAt(1) + usernameIn.charAt(usernameIn.length() - 1);
-            usernameHash = hashIn.hashCode();
-        }
-
-        return Integer.toString(usernameHash);
     }
 
 }

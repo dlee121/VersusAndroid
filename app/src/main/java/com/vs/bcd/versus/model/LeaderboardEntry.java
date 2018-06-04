@@ -1,5 +1,7 @@
 package com.vs.bcd.versus.model;
 
+import com.vs.bcd.api.model.LeaderboardModelHitsHitsItemSource;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -29,7 +31,15 @@ public class LeaderboardEntry {
         influence = item.getInt("in");
         pi = item.getInt(("pi"));
         s = item.getInt("s");
+    }
 
+    public LeaderboardEntry(LeaderboardModelHitsHitsItemSource source, String id) throws JSONException{
+        username = id;
+        b = source.getB().intValue();
+        g = source.getG().intValue();
+        influence = source.getIn().intValue();
+        pi = source.getPi().intValue();
+        s = source.getS().intValue();
     }
 
     public String getUsername(){
