@@ -41,6 +41,11 @@ import com.vs.bcd.api.model.CGCModel;
 import com.vs.bcd.api.model.CGCModelResponsesItem;
 import com.vs.bcd.api.model.CGCModelResponsesItemHits;
 import com.vs.bcd.api.model.CGCModelResponsesItemHitsHitsItem;
+import com.vs.bcd.api.model.CommentModel;
+import com.vs.bcd.api.model.CommentsListModel;
+import com.vs.bcd.api.model.CommentsListModelHitsHitsItem;
+import com.vs.bcd.api.model.CommentsListModelHitsHitsItemSource;
+import com.vs.bcd.api.model.PostModel;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
@@ -2940,101 +2945,27 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             nowLoading = false;
         }
 
-        Log.d("commentloading", "from: " + Integer.toString(fromIndex));
-
-        String query = "/vscomment/_search";
-        String payload;
-
-        String sortBy, ascORdesc;
+        CommentsListModel result = null;
         switch (uORt){
             case "u": //sort by comment influence, and then by upvotes
-                payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\"ci\":{\"order\":\"desc\"}},{\"u\":{\"order\":\"desc\"}}],\"query\":{\"match\":{\"pr\":\""+prIn+"\"}}}";
-
+                result = activity.getClient().commentslistGet(postID, null, "rci", Integer.toString(fromIndex));
                 break;
             case "t":
-                sortBy = uORt;
-                ascORdesc = "desc";
-                payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\""+sortBy+"\":{\"order\":\""+ascORdesc+"\"}}],\"query\":{\"match\":{\"pr\":\""+prIn+"\"}}}";
+                result = activity.getClient().commentslistGet(postID, "desc", "rct", Integer.toString(fromIndex));
                 break;
             case "c":
-                sortBy = "t"; //c stands for chronological, but still uses the t parameter for time, just in ascending order instead of descending order as when uORt is t.
-                ascORdesc = "asc";
-                payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\""+sortBy+"\":{\"order\":\""+ascORdesc+"\"}}],\"query\":{\"match\":{\"pr\":\""+prIn+"\"}}}";
+                result = activity.getClient().commentslistGet(postID, "asc", "rct", Integer.toString(fromIndex));
                 break;
-
-            default:
-                sortBy = uORt;
-                ascORdesc = "desc";
-                payload = "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"sort\":[{\""+sortBy+"\":{\"order\":\""+ascORdesc+"\"}}],\"query\":{\"match\":{\"pr\":\""+prIn+"\"}}}";
-                break;
-
         }
-
-
-        String url = "https://" + host + query;
-
-        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
-        awsHeaders.put("host", host);
-
-        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
-                .regionName(region)
-                .serviceName("es") // es - elastic search. use your service name
-                .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
-                .canonicalURI(query) //end point
-                .queryParametes(null) //query parameters if any
-                .awsHeaders(awsHeaders) //aws header parameters
-                .payload(payload) // payload if any
-                .debug() // turn on the debug mode
-                .build();
-
-        HttpPost httpPost = new HttpPost(url);
-        StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
-        httpPost.setEntity(requestEntity);
-
-        /* Get header calculated for request */
-        Map<String, String> header = aWSV4Auth.getHeaders();
-        for (Map.Entry<String, String> entrySet : header.entrySet()) {
-            String key = entrySet.getKey();
-            String value = entrySet.getValue();
-
-            /* Attach header in your request */
-            /* Simple get request */
-
-            httpPost.addHeader(key, value);
+        if(result == null){
+            return;
         }
-
-        /* Create object of CloseableHttpClient */
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-
-        /* Response handler for after request execution */
-        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
-
-            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-                /* Get status code */
-                int status = response.getStatusLine().getStatusCode();
-                if (status >= 200 && status < 300) {
-                    /* Convert response to String */
-                    HttpEntity entity = response.getEntity();
-                    return entity != null ? EntityUtils.toString(entity) : null;
-                } else {
-                    throw new ClientProtocolException("Unexpected response status: " + status);
-                }
-            }
-        };
 
         try {
-            /* Execute URL and attach after execution response handler */
-            long startTime = System.currentTimeMillis();
 
-            String strResponse = httpClient.execute(httpPost, responseHandler);
+            List<CommentsListModelHitsHitsItem> hits = result.getHits().getHits();
 
-            long elapsedTime = System.currentTimeMillis() - startTime;
-            Log.d("httpElapsedTime", "root query elapsed time in milliseconds: " + elapsedTime);
-
-            JSONObject obj = new JSONObject(strResponse);
-            JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
-            //Log.d("idformat", hits.getJSONObject(0).getString("_id"));
-            if(hits.length() == 0){
+            if(hits.size() == 0){
                 nowLoading = true;
                 activity.runOnUiThread(new Runnable() {
                     @Override
@@ -3044,22 +2975,18 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 });
                 return;
             }
-            for(int i = 0; i < hits.length(); i++){
-                JSONObject item = hits.getJSONObject(i).getJSONObject("_source");
-                String id = hits.getJSONObject(i).getString("_id");
-                Log.d("winnertree", "winnerTreeRoots size: " + winnerTreeRoots.size());
+            for(CommentsListModelHitsHitsItem item : hits){
+
+                String id = item.getId();
+
                 if(!uORt.equals("u") || !winnerTreeRoots.contains(id)){
-                    results.add(new VSComment(item, id));
-                    Log.d("winnertree", "didn't skip for " + id);
-                }
-                else{
-                    Log.d("winnertree", "skipped for " + id);
+                    results.add(new VSComment(item.getSource(), id));
                 }
 
                 currCommentsIndex++;
             }
 
-            if(hits.length() < retrievalSize){
+            if(hits.size() < retrievalSize){
                 nowLoading = true; //TODO: do this? or let it load one more round?
             }
             //System.out.println("Response: " + strResponse);
@@ -3114,67 +3041,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     private VSComment getComment(String comment_id){
 
-        String query = "/vscomment/vscomment_type/"+comment_id;
-        String url = "https://" + host + query;
-
-        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
-        awsHeaders.put("host", host);
-
-        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
-                .regionName(region)
-                .serviceName("es") // es - elastic search. use your service name
-                .httpMethodName("GET") //GET, PUT, POST, DELETE, etc...
-                .canonicalURI(query) //end point
-                .queryParametes(null) //query parameters if any
-                .awsHeaders(awsHeaders) //aws header parameters
-                .debug() // turn on the debug mode
-                .build();
-
-        HttpGet httpGet = new HttpGet(url);
-
-        /* Get header calculated for request */
-        Map<String, String> header = aWSV4Auth.getHeaders();
-        for (Map.Entry<String, String> entrySet : header.entrySet()) {
-            String key = entrySet.getKey();
-            String value = entrySet.getValue();
-
-            /* Attach header in your request */
-            /* Simple get request */
-
-            httpGet.addHeader(key, value);
-        }
-
-        /* Create object of CloseableHttpClient */
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-
-        /* Response handler for after request execution */
-        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
-
-            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-                /* Get status code */
-                int status = response.getStatusLine().getStatusCode();
-                if (status >= 200 && status < 300) {
-                    /* Convert response to String */
-                    HttpEntity entity = response.getEntity();
-                    return entity != null ? EntityUtils.toString(entity) : null;
-                } else {
-                    throw new ClientProtocolException("Unexpected response status: " + status);
-                }
-            }
-        };
+        CommentModel result = activity.getClient().commentGet("c", comment_id);
 
         try {
-            /* Execute URL and attach after execution response handler */
-            long startTime = System.currentTimeMillis();
 
-            String strResponse = httpClient.execute(httpGet, responseHandler);
+            return new VSComment(result.getSource(), result.getId());
 
-            JSONObject obj = new JSONObject(strResponse);
-            JSONObject item = obj.getJSONObject("_source");
-            String id = obj.getString("_id");
-            return new VSComment(item, id);
-
-            //System.out.println("Response: " + strResponse);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -3185,113 +3057,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     private Post getPost(String post_id, final boolean writingPostVoteToDB){
 
-
-        Log.d("thefuckyoumean", "getPost started");
-
-        String query = "/post/post_type/"+post_id;
-        String url = "https://" + host + query;
-
-        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
-        awsHeaders.put("host", host);
-
-        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
-                .regionName(region)
-                .serviceName("es") // es - elastic search. use your service name
-                .httpMethodName("GET") //GET, PUT, POST, DELETE, etc...
-                .canonicalURI(query) //end point
-                .queryParametes(null) //query parameters if any
-                .awsHeaders(awsHeaders) //aws header parameters
-                .debug() // turn on the debug mode
-                .build();
-
-        HttpGet httpGet = new HttpGet(url);
-
-        /* Get header calculated for request */
-        Map<String, String> header = aWSV4Auth.getHeaders();
-        for (Map.Entry<String, String> entrySet : header.entrySet()) {
-            String key = entrySet.getKey();
-            String value = entrySet.getValue();
-
-            /* Attach header in your request */
-            /* Simple get request */
-
-            httpGet.addHeader(key, value);
-        }
-
-        /* Create object of CloseableHttpClient */
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-
-        /* Response handler for after request execution */
-        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
-
-            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-                /* Get status code */
-                int status = response.getStatusLine().getStatusCode();
-                if (status >= 200 && status < 300) {
-                    /* Convert response to String */
-                    HttpEntity entity = response.getEntity();
-                    return entity != null ? EntityUtils.toString(entity) : null;
-                } else {
-                    throw new ClientProtocolException("Unexpected response status: " + status);
-                }
-            }
-        };
+        PostModel result = activity.getClient().postGet("p", post_id);
 
         try {
 
-            Log.d("thefuckyoumean", "trying");
-            /* Execute URL and attach after execution response handler */
-            long startTime = System.currentTimeMillis();
+            return new Post(result.getSource(), result.getId());
 
-            String strResponse = httpClient.execute(httpGet, responseHandler);
-
-            JSONObject obj = new JSONObject(strResponse);
-            JSONObject item = obj.getJSONObject("_source");
-            String id = obj.getString("_id");
-            Post refreshedPost = new Post(item, id, false);
-
-            if(writingPostVoteToDB){
-                //Log.d("refreshCode", postRefreshCode);
-                switch (postRefreshCode){
-                    case "r":
-                        refreshedPost.incrementRedCount();
-                        break;
-                    case "b":
-                        refreshedPost.incrementBlackCount();
-                        break;
-                    case "rb":
-                        refreshedPost.incrementRedCount();
-                        refreshedPost.decrementBlackCount();
-                        break;
-                    case "br":
-                        refreshedPost.incrementBlackCount();
-                        refreshedPost.decrementRedCount();
-                        break;
-                }
-            }
-
-            Log.d("thefuckyoumean", "here now");
-
-            /*
-            if(post != null){
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        activity.applyPostRefreshToMyAdapter(refreshedPost, writingPostVoteToDB);
-                    }
-                });
-            }
-            */
-
-            if(post != null && (refreshedPost.getRedcount() != post.getRedcount() || refreshedPost.getBlackcount() != post.getBlackcount())){
-                postUpdated = true;
-            }
-
-            Log.d("thefuckyoumean", "serving up fresh entree");
-
-            return refreshedPost;
-
-            //System.out.println("Response: " + strResponse);
         } catch (Exception e) {
             e.printStackTrace();
         }
