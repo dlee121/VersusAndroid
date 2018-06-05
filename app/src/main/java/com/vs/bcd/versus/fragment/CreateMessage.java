@@ -80,7 +80,6 @@ public class CreateMessage extends Fragment {
     private LinearLayoutManager invitedUsersLLM, userSearchLLM;
     private String mUsername = "";
     private int mPhotoUrl = 0;
-    private String userMKey = "";
     private SimpleDateFormat df;
     private MainContainer activity;
     private FloatingActionButton fabNewMsg;
@@ -185,7 +184,6 @@ public class CreateMessage extends Fragment {
         mFirebaseAuth = FirebaseAuth.getInstance();
         mFirebaseUser = mFirebaseAuth.getCurrentUser(); //TODO: handle possible null object reference error
 
-        userMKey = activity.getUserMKey();
         mPhotoUrl = activity.getUserProfileImageVersion();
 
         thisFragment = this;

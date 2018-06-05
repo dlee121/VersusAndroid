@@ -20,6 +20,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
+import com.amazonaws.mobileconnectors.apigateway.ApiClientFactory;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.cognitoidentity.model.NotAuthorizedException;
@@ -51,29 +52,18 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GetTokenResult;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.vs.bcd.api.VersusAPIClient;
+import com.vs.bcd.api.model.AIModel;
+import com.vs.bcd.api.model.AIModelHitsHitsItem;
 import com.vs.bcd.versus.R;
-import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.User;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
-
-import cz.msebera.android.httpclient.HttpEntity;
-import cz.msebera.android.httpclient.HttpResponse;
-import cz.msebera.android.httpclient.client.ClientProtocolException;
-import cz.msebera.android.httpclient.client.ResponseHandler;
-import cz.msebera.android.httpclient.client.methods.HttpPost;
-import cz.msebera.android.httpclient.entity.ContentType;
-import cz.msebera.android.httpclient.entity.StringEntity;
-import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
-import cz.msebera.android.httpclient.impl.client.HttpClients;
-import cz.msebera.android.httpclient.util.EntityUtils;
 
 public class StartScreen extends AppCompatActivity {
 
@@ -98,6 +88,8 @@ public class StartScreen extends AppCompatActivity {
     private AmazonDynamoDBClient ddbClient;
     private DynamoDBMapper mapper = new DynamoDBMapper(ddbClient);
     private Toast mToast;
+    private ApiClientFactory factory;
+    private VersusAPIClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,6 +105,9 @@ public class StartScreen extends AppCompatActivity {
                 "us-east-1:88614505-c8df-4dce-abd8-79a0543852ff", // Identity Pool ID
                 Regions.US_EAST_1 // Region
         );
+
+        factory = new ApiClientFactory().credentialsProvider(credentialsProvider);
+        client = factory.build(VersusAPIClient.class);
 
         ddbClient = new AmazonDynamoDBClient(credentialsProvider);
         mapper = new DynamoDBMapper(ddbClient);
@@ -170,7 +165,7 @@ public class StartScreen extends AppCompatActivity {
                                     String name = object.getString("name");
                                     String fname = object.getString("first_name");
                                     String lname = object.getString("last_name");
-                                    final String authID = object.getString("id") + "&";
+                                    final String authID = object.getString("id") + "_";
                                     final String firstname, lastname;
                                     if(fname != null && !fname.isEmpty()){
                                         if(lname != null && !lname.isEmpty()){
@@ -497,70 +492,11 @@ public class StartScreen extends AppCompatActivity {
 
     private void logInOrSignUpUser(String authID, String firstname, String lastname){ //for facebook login and google login. Logs the user in if user is already registered with the app, otherwise it registers the user with the app
 
-        String query = "/user/_search";
-        String payload = "{\"size\":1,\"query\":{\"match\":{\"ai\":\""+authID+"\"}}}";
-
-
-        String url = "https://" + esHost + query;
-
-        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
-        awsHeaders.put("host", esHost);
-
-        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
-                .regionName(esRegion)
-                .serviceName("es") // es - elastic search. use your service name
-                .httpMethodName("POST") //GET, PUT, POST, DELETE, etc...
-                .canonicalURI(query) //end point
-                .queryParametes(null) //query parameters if any
-                .awsHeaders(awsHeaders) //aws header parameters
-                .payload(payload) // payload if any
-                .debug() // turn on the debug mode
-                .build();
-
-        HttpPost httpPost = new HttpPost(url);
-        StringEntity requestEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
-        httpPost.setEntity(requestEntity);
-
-        /* Get header calculated for request */
-        Map<String, String> header = aWSV4Auth.getHeaders();
-        for (Map.Entry<String, String> entrySet : header.entrySet()) {
-            String key = entrySet.getKey();
-            String value = entrySet.getValue();
-
-            /* Attach header in your request */
-            /* Simple get request */
-
-            httpPost.addHeader(key, value);
-        }
-
-        /* Create object of CloseableHttpClient */
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-
-        /* Response handler for after request execution */
-        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
-
-            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-                /* Get status code */
-                int status = response.getStatusLine().getStatusCode();
-                if (status >= 200 && status < 300) {
-                    /* Convert response to String */
-                    HttpEntity entity = response.getEntity();
-                    return entity != null ? EntityUtils.toString(entity) : null;
-                } else {
-                    throw new ClientProtocolException("Unexpected response status: " + status);
-                }
-            }
-        };
-
         try {
-            /* Execute URL and attach after execution response handler */
+            List<AIModelHitsHitsItem> hits = client.aiGet(authID).getHits().getHits();
 
-            String strResponse = httpClient.execute(httpPost, responseHandler);
 
-            JSONObject obj = new JSONObject(strResponse);
-            JSONArray hits = obj.getJSONObject("hits").getJSONArray("hits");
-            //Log.d("idformat", hits.getJSONObject(0).getString("_id"));
-            if(hits.length() == 0){
+            if(hits.size() == 0){
                 //this is a first time login, so register the user
                 //take user to username input & birthday input page to finish registration
                 //once the registration is complete,
@@ -576,15 +512,15 @@ public class StartScreen extends AppCompatActivity {
                 resetLoginButtonsUIOnly();
             }
             else{
-                JSONObject item = hits.getJSONObject(0);
+                AIModelHitsHitsItem item = hits.get(0);
                 //construct user object from the response item and sign in,
                 // creating session with SessionManager and navigating to MainContainer
-                final User user = new User(item.getJSONObject("_source"), item.getString("_id"));
+                final User user = new User(item.getSource(), item.getId());
                 Log.d("facebookLogin", "user exists");
                 //authenticate with firebase, then setLogins for cognito with firebase token, then create client session with SessionManager
 
                 AuthCredential credential;
-                if(authID.charAt(authID.length()-1) == '&'){ //we append facebook authIDs with an '&'
+                if(authID.charAt(authID.length()-1) == '_'){ //we append facebook authIDs with an '_'
                     credential = FacebookAuthProvider.getCredential(authToken);
                 }
                 else{

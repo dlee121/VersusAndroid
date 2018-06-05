@@ -165,7 +165,6 @@ public class MainContainer extends AppCompatActivity {
     private RelativeLayout vpContainer;
     private RelativeLayout.LayoutParams vpContainerLP;
     private MessageRoom messageRoom;
-    private String userMKey = "";
     private Button toolbarTextButton;
     private CreateMessage createMessageFragment;
     private HashMap<String, String> following, followers;
@@ -592,7 +591,6 @@ public class MainContainer extends AppCompatActivity {
         s3 = new AmazonS3Client(credentialsProvider);
 
         currUsername = sessionManager.getCurrentUsername();
-        userMKey = sessionManager.getMKey();
 
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
@@ -2471,10 +2469,6 @@ public class MainContainer extends AppCompatActivity {
 
     public void meClickTrue(){
         meClicked = true;
-    }
-
-    public String getUserMKey(){
-        return userMKey;
     }
 
     public void setUpAndOpenMessageRoom(final String rnum, final ArrayList<String> usersMap, final String roomTitle){

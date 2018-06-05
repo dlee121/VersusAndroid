@@ -233,7 +233,7 @@ public class AuthSignUp extends AppCompatActivity {
 
         final User newUser = new User(firstname, lastname, bday, username, authID);
         AuthCredential credential;
-        if(authID.charAt(authID.length()-1) == '&'){ //we append facebook authIDs with an '&'
+        if(authID.charAt(authID.length()-1) == '_'){ //we append facebook authIDs with an '_'
             credential = FacebookAuthProvider.getCredential(authToken);
         }
         else{

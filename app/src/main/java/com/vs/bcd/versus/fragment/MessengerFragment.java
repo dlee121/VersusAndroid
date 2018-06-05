@@ -117,7 +117,6 @@ public class MessengerFragment extends Fragment {
     private ProgressBar mProgressBar;
     private String mUsername = "";
     private int mPhotoUrl = 0;
-    private String userMKey = "";
     private MainContainer activity;
     private FloatingActionButton fabNewMsg;
     private ChildEventListener roomsListener;
@@ -325,7 +324,6 @@ public class MessengerFragment extends Fragment {
             }
         });
 
-        userMKey = ((MainContainer)getActivity()).getUserMKey();
         mPhotoUrl = activity.getUserProfileImageVersion();
 
         childViews = new ArrayList<>();

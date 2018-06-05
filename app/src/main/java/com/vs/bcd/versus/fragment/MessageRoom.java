@@ -120,7 +120,6 @@ public class MessageRoom extends Fragment {
     private EditText mMessageEditText;
     //private ImageView mAddMessageImageView;
     private String mUsername = "";
-    private String userMKey = "";
     private boolean firstMessage = false;
     private String roomNum = "";
     private ArrayList<String> newRoomInviteList;
@@ -168,29 +167,6 @@ public class MessageRoom extends Fragment {
         // Initialize Firebase Auth
         mFirebaseAuth = FirebaseAuth.getInstance();
         mFirebaseUser = mFirebaseAuth.getCurrentUser(); //TODO: handle possible null object reference error
-
-        userMKey = ((MainContainer)getActivity()).getUserMKey();
-        //mUsername = ((MainContainer)getActivity()).getUsername();
-        if(mFirebaseUser == null){
-            mFirebaseAuth.signInWithEmailAndPassword(userMKey + mUsername.replaceAll("[^A-Za-z0-9]", "v") + "@versusbcd.com", userMKey + "vsbcd121")
-                    .addOnCompleteListener(getActivity(), new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            if (!task.isSuccessful()) {
-                                Log.w("firebasechat", "sign in failed");
-                                Toast.makeText(getActivity(), "Authentication failed.", Toast.LENGTH_SHORT).show();
-
-                            } else {
-                                //TODO: photoURL should be a link to the user's profile picture stored in firebase. If no pic then should be blank, and in the UI if photoURL is blank then use default image in-app
-                                mFirebaseUser = mFirebaseAuth.getCurrentUser();
-                                //setUpMessenger();
-                            }
-                        }
-                    });
-        }
-        else {
-            //setUpMessenger();
-        }
 
         return rootView;
     }

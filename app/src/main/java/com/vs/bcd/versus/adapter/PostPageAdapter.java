@@ -837,20 +837,6 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
             topCardViewHolder.timestamp.setText(getTimeString(topCardObject.getTime()));
 
-            switch (topCardObject.getCurrentMedal()){
-                case 0:
-                    break; //no medal, default currentMedal value
-                case 1: //bronze
-                    topCardViewHolder.medalImage.setImageResource(R.drawable.bronzemedal);
-                    break;
-                case 2: //silver
-                    topCardViewHolder.medalImage.setImageResource(R.drawable.silvermedal);
-                    break;
-                case 3: //gold
-                    topCardViewHolder.medalImage.setImageResource(R.drawable.goldmedal);
-                    break;
-            }
-
             topCardViewHolder.content.setText(topCardObject.getContent());
             topCardViewHolder.content.post(new Runnable() {
                 @Override

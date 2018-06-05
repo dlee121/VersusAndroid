@@ -37,7 +37,6 @@ public class SessionManager {
     public static final String KEY_LASTNAME = "pref_lastname";
     public static final String KEY_PHONE = "pref_phone";
     public static final String KEY_USERNAME = "pref_username";
-    public static final String KEY_MKEY = "pref_mkey";
     public static final String KEY_PI = "pref_profileimage";
 
 
@@ -62,7 +61,6 @@ public class SessionManager {
         editor.putString(KEY_LASTNAME, user.getLastName());
         editor.putString(KEY_PHONE, user.getPhone());
         editor.putString(KEY_USERNAME, user.getUsername());
-        editor.putString(KEY_MKEY, user.getAuthID());
         editor.putInt(KEY_PI, user.getProfileImage());
         // commit changes
         editor.commit();
@@ -92,10 +90,6 @@ public class SessionManager {
 
     public String getCurrentUsername(){
         return pref.getString(KEY_USERNAME, null);  //TODO: null or "" for the default value (second param of getString)?
-    }
-
-    public String getMKey(){
-        return pref.getString(KEY_MKEY, null);
     }
 
     public int getProfileImage(){
