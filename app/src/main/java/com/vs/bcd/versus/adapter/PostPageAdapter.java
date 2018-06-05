@@ -36,38 +36,24 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
 import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.bumptech.glide.Glide;
-import com.loopj.android.http.HttpGet;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.fragment.PostPage;
-import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.GlideUrlCustom;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.SquareImageView;
 import com.vs.bcd.versus.model.UserAction;
 import com.vs.bcd.versus.model.VSComment;
 
-import org.json.JSONObject;
-
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
-import java.util.TreeMap;
 
-import cz.msebera.android.httpclient.HttpEntity;
-import cz.msebera.android.httpclient.HttpResponse;
-import cz.msebera.android.httpclient.client.ClientProtocolException;
-import cz.msebera.android.httpclient.client.ResponseHandler;
-import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
-import cz.msebera.android.httpclient.impl.client.HttpClients;
-import cz.msebera.android.httpclient.util.EntityUtils;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 
@@ -1708,65 +1694,11 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     }
 
     private int getProfileImgVersion(String username){
-        String host = activity.getESHost();
-        String region = activity.getESRegion();
-        String query = "/user/user_type/"+username;
-        String url = "https://" + host + query;
-
-        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
-        awsHeaders.put("host", host);
-
-        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
-                .regionName(region)
-                .serviceName("es") // es - elastic search. use your service name
-                .httpMethodName("GET") //GET, PUT, POST, DELETE, etc...
-                .canonicalURI(query) //end point
-                .queryParametes(null) //query parameters if any
-                .awsHeaders(awsHeaders) //aws header parameters
-                .debug() // turn on the debug mode
-                .build();
-
-        HttpGet httpGet = new HttpGet(url);
-
-		        /* Get header calculated for request */
-        Map<String, String> header = aWSV4Auth.getHeaders();
-        for (Map.Entry<String, String> entrySet : header.entrySet()) {
-            String key = entrySet.getKey();
-            String value = entrySet.getValue();
-
-			    /* Attach header in your request */
-			    /* Simple get request */
-
-            httpGet.addHeader(key, value);
-        }
-
-        /* Create object of CloseableHttpClient */
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-
-		/* Response handler for after request execution */
-        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
-
-            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-				/* Get status code */
-                int status = response.getStatusLine().getStatusCode();
-                if (status >= 200 && status < 300) {
-					/* Convert response to String */
-                    HttpEntity entity = response.getEntity();
-                    return entity != null ? EntityUtils.toString(entity) : null;
-                } else {
-                    throw new ClientProtocolException("Unexpected response status: " + status);
-                }
-            }
-        };
 
         try {
 			/* Execute URL and attach after execution response handler */
 
-            String strResponse = httpClient.execute(httpGet, responseHandler);
-
-            JSONObject obj = new JSONObject(strResponse);
-            JSONObject item = obj.getJSONObject("_source");
-            return item.getInt("pi");
+            return activity.getClient().pivsingleGet("pi", username).getPi().intValue();
 
             //System.out.println("Response: " + strResponse);
         } catch (Exception e) {

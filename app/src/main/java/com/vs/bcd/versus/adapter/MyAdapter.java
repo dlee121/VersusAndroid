@@ -26,18 +26,14 @@ import com.google.android.gms.ads.formats.NativeAppInstallAdView;
 import com.google.android.gms.ads.formats.NativeContentAd;
 import com.google.android.gms.ads.formats.NativeContentAdView;
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
-import com.loopj.android.http.HttpGet;
+import com.vs.bcd.api.model.PostModel;
 import com.vs.bcd.versus.activity.MainContainer;
-import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.GlideApp;
 import com.vs.bcd.versus.model.GlideUrlCustom;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.model.SquareImageView;
 
-import org.json.JSONObject;
-
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.util.Collections;
@@ -45,16 +41,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Map;
-import java.util.TreeMap;
-
-import cz.msebera.android.httpclient.HttpEntity;
-import cz.msebera.android.httpclient.HttpResponse;
-import cz.msebera.android.httpclient.client.ClientProtocolException;
-import cz.msebera.android.httpclient.client.ResponseHandler;
-import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
-import cz.msebera.android.httpclient.impl.client.HttpClients;
-import cz.msebera.android.httpclient.util.EntityUtils;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 
@@ -515,67 +501,12 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
     }
 
     private Post supplementCompactPost(String postID){
-        String host = activity.getESHost();
-        String query = "/post/post_type/"+postID;
-        String url = "https://" + host + query;
-
-        TreeMap<String, String> awsHeaders = new TreeMap<String, String>();
-        awsHeaders.put("host", host);
-
-        AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder("AKIAIYIOPLD3IUQY2U5A", "DFs84zylbBPjR/JrJcLBatXviJm26P6r/IJc6EOE")
-                .regionName(activity.getESRegion())
-                .serviceName("es") // es - elastic search. use your service name
-                .httpMethodName("GET") //GET, PUT, POST, DELETE, etc...
-                .canonicalURI(query) //end point
-                .queryParametes(null) //query parameters if any
-                .awsHeaders(awsHeaders) //aws header parameters
-                .debug() // turn on the debug mode
-                .build();
-
-        HttpGet httpGet = new HttpGet(url);
-
-		        /* Get header calculated for request */
-        Map<String, String> header = aWSV4Auth.getHeaders();
-        for (Map.Entry<String, String> entrySet : header.entrySet()) {
-            String key = entrySet.getKey();
-            String value = entrySet.getValue();
-
-			    /* Attach header in your request */
-			    /* Simple get request */
-
-            httpGet.addHeader(key, value);
-        }
-
-        /* Create object of CloseableHttpClient */
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-
-		/* Response handler for after request execution */
-        ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
-
-            public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
-				/* Get status code */
-                int status = response.getStatusLine().getStatusCode();
-                if (status >= 200 && status < 300) {
-					/* Convert response to String */
-                    HttpEntity entity = response.getEntity();
-                    return entity != null ? EntityUtils.toString(entity) : null;
-                } else {
-                    throw new ClientProtocolException("Unexpected response status: " + status);
-                }
-            }
-        };
+        PostModel result = activity.getClient().postGet("p", postID);
 
         try {
-			/* Execute URL and attach after execution response handler */
 
-            String strResponse = httpClient.execute(httpGet, responseHandler);
+            return new Post(result.getSource(), result.getId());
 
-            JSONObject obj = new JSONObject(strResponse);
-            JSONObject item = obj.getJSONObject("_source");
-            String id = obj.getString("_id");
-            return new Post(item, id, false);
-
-            //System.out.println("Response: " + strResponse);
         } catch (Exception e) {
             e.printStackTrace();
         }
