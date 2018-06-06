@@ -3,7 +3,9 @@ package com.vs.bcd.versus.model;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 import com.google.android.gms.ads.formats.NativeAppInstallAd;
 import com.google.android.gms.ads.formats.NativeContentAd;
+import com.vs.bcd.api.model.CommentPutModel;
 import com.vs.bcd.api.model.PostModelSource;
+import com.vs.bcd.api.model.PostPutModel;
 import com.vs.bcd.api.model.PostsListCompactModelHitsHitsItemSource;
 import com.vs.bcd.api.model.PostsListModelHitsHitsItemSource;
 
@@ -379,14 +381,37 @@ public class Post {
     }
 
     public void copyPostInfo(Post src){
-        post_id = src.getPost_id();
+        question = src.getQuestion();
+        author = src.getAuthor();
+        time = src.getTime();
+        redname = src.getRedname();
         redcount = src.getRedcount();
+        blackname  = src.getBlackname();
         blackcount = src.getBlackcount();
         category = src.getCategory();
+        post_id = src.getPost_id();
         redimg = src.getRedimg();
         blackimg = src.getBlackimg();
         pt = src.getPt();
         ps = src.getPs();
+    }
+
+    public PostPutModel getPutModel(){
+        PostPutModel putModel = new PostPutModel();
+        putModel.setQ(question);
+        putModel.setA(author);
+        putModel.setT(time);
+        putModel.setRn(redname);
+        putModel.setRc(BigDecimal.ZERO);
+        putModel.setBn(blackname);
+        putModel.setBc(BigDecimal.ZERO);
+        putModel.setC(BigDecimal.valueOf(category));
+        putModel.setRi(BigDecimal.valueOf(redimg));
+        putModel.setBi(BigDecimal.valueOf(blackimg));
+        putModel.setPt(BigDecimal.ZERO);
+        putModel.setPs(ps);
+
+        return putModel;
     }
 
 }

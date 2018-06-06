@@ -6,11 +6,13 @@ import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 import com.vs.bcd.api.model.CGCModelResponsesItemHitsHitsItemSource;
 import com.vs.bcd.api.model.CommentModel;
 import com.vs.bcd.api.model.CommentModelSource;
+import com.vs.bcd.api.model.CommentPutModel;
 import com.vs.bcd.api.model.CommentsListModelHitsHitsItemSource;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -381,6 +383,23 @@ public class VSComment {
     }
     public int votesCount(){
         return upvotes + downvotes;
+    }
+
+    public CommentPutModel getPutModel(){
+        CommentPutModel putModel = new CommentPutModel();
+
+        putModel.setPr(parent_id);
+        putModel.setPt(post_id);
+        putModel.setT(time);
+        putModel.setA(author);
+        putModel.setCt(content);
+        putModel.setM(BigDecimal.ZERO);
+        putModel.setU(BigDecimal.ZERO);
+        putModel.setD(BigDecimal.ZERO);
+        putModel.setCi(BigDecimal.ZERO);
+        putModel.setR(root);
+
+        return putModel;
     }
 
 

@@ -324,7 +324,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                         }
                                     }
 
-                                    activity.getMapper().save(vsc);
+                                    //activity.getMapper().save(vsc);
+                                    activity.getClient().commentputPost(vsc.getPutModel(), vsc.getComment_id(), "put", "vscomment");
 
                                     //send appropriate notification
                                     if(replyingTo.getLayoutParams().height == 0){ //if root comment
