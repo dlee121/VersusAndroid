@@ -73,16 +73,11 @@ public class PostsHistory extends Fragment implements SwipeRefreshLayout.OnRefre
     SwipeRefreshLayout mSwipeRefreshLayout;
     private String profileUsername = "";
 
-    private String host, region;
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.posts_history, container, false);
-
-        host = activity.getESHost();
-        region = activity.getESRegion();
 
         posts = new ArrayList<>();
 

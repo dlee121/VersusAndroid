@@ -87,8 +87,6 @@ public class Tab3Categories extends Fragment implements SwipeRefreshLayout.OnRef
 
     private int currPostsIndex = 0;
 
-    private String host, region;
-
     private HashMap<String, Integer> profileImgVersions = new HashMap<>();
 
 
@@ -108,12 +106,6 @@ public class Tab3Categories extends Fragment implements SwipeRefreshLayout.OnRef
         categoriesRV.setAdapter(mCategoriesAdapter);
 
         categoryPostsList = rootView.findViewById(R.id.category_posts_list);
-
-
-
-
-        host = mHostActivity.getESHost();
-        region = mHostActivity.getESRegion();
 
         posts = new ArrayList<>();
 

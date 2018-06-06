@@ -55,15 +55,12 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
     private List<NotificationItem> nItems;
     private SparseIntArray mostRecentTimeValue = null;
     private NotificationsTab notificationsTab;
-    private String host, region;
     private Toast mToast;
 
     public NotificationsAdapter(List<NotificationItem> nItems, NotificationsTab notificationsTab, MainContainer activity) {
         this.nItems = nItems;
         this.activity = activity;
         this.notificationsTab = notificationsTab;
-        host = activity.getESHost();
-        region = activity.getESRegion();
     }
 
     public void setMostRecentTimeValue(SparseIntArray mostRecentTimeValue){

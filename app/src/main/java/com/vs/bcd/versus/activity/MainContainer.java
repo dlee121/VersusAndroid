@@ -114,6 +114,8 @@ import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.fragment.CreatePost;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.fragment.SearchPage;
+import com.vs.bcd.versus.model.User;
+import com.vs.bcd.versus.model.UserAction;
 import com.vs.bcd.versus.model.ViewPagerCustomDuration;
 
 import java.net.URISyntaxException;
@@ -210,9 +212,6 @@ public class MainContainer extends AppCompatActivity {
     private LinearLayout badgeContainer;
     private NotificationsTab notificationsTab;
 
-    private String esHost = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com";
-    private String esRegion = "us-east-1";
-
     //for incrementing votecount in local posts list when user casts a fresh vote
     private int voteUpdateTargetIndex = 0;
     private String voteUpdateTargetID = "";
@@ -226,6 +225,8 @@ public class MainContainer extends AppCompatActivity {
 
     private ApiClientFactory factory;
     private VersusAPIClient client;
+
+    private HashMap<String, UserAction> localUserActionMap;
 
     private BroadcastReceiver myReceiver = new BroadcastReceiver() {
         @Override
@@ -1459,6 +1460,13 @@ public class MainContainer extends AppCompatActivity {
         NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         nMgr.cancelAll();
 
+        if(localUserActionMap == null){
+            localUserActionMap = new HashMap<>();
+        }
+        else{
+            localUserActionMap.clear();
+        }
+
     }
 
     @Override
@@ -2594,13 +2602,6 @@ public class MainContainer extends AppCompatActivity {
         return mFirebaseDatabaseReference;
     }
 
-    public String getESHost(){
-        return esHost;
-    }
-    public String getESRegion(){
-        return esRegion;
-    }
-
     //for bucket == versus.pictures
     public URL getImgURI(Post post, int lORr) throws URISyntaxException{
         //lORr == 0 means left, lORr == 1 means right
@@ -3134,9 +3135,26 @@ public class MainContainer extends AppCompatActivity {
             });
         }
 
+    }
 
+    //called by PostPage.writeActionsToDB, before actualy write to db
+    public void putLocalUserAction(String postID, UserAction userAction){
+        if(localUserActionMap == null){
+            localUserActionMap = new HashMap<>();
+        }
+        localUserActionMap.put(postID, userAction);
+    }
 
-
+    //called by PostPage's setContent, childOrGrandchildHistoryItemClicked, and rootCommentHistoryItemClicked
+    //and those functions would get UserAction object from db IF AND ONLY IF this returns null
+    public UserAction getLocalUserAction(String postID){
+        if(localUserActionMap == null){
+            localUserActionMap = new HashMap<>();
+            return null;
+        }
+        else{
+            return localUserActionMap.get(postID);
+        }
     }
 
 }

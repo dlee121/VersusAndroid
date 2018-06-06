@@ -72,6 +72,12 @@ public class UserAction {
         this.actionRecord = actionRecord;
     }
 
-
+    public String toString(){
+        StringBuilder stringBuilder = new StringBuilder();
+        for(Map.Entry action : actionRecord.entrySet()){
+            stringBuilder.append(action.getKey() + ":"+action.getValue()+", ");
+        }
+        return stringBuilder.toString();
+    }
 
 }

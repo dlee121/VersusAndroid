@@ -114,8 +114,6 @@ public class ProfileTab extends Fragment {
 
     private ImageView fghIconView;
 
-    private String host, region;
-
     private int profileImgVersion = 0;
     private String influence = "";
     private String gCount = "";
@@ -132,9 +130,6 @@ public class ProfileTab extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.profile, container, false);
-
-        host = activity.getESHost();
-        region = activity.getESRegion();
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.

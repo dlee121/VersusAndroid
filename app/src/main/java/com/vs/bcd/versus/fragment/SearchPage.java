@@ -49,17 +49,12 @@ public class SearchPage extends Fragment {
     private int loadThreshold = 2;
     private boolean nowLoading = false;
 
-    private String host, region;
-
     private HashMap<String, Integer> profileImgVersions = new HashMap<>();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.search_page, container, false);
-
-        host = activity.getESHost();
-        region = activity.getESRegion();
 
         postSearchResults = new ArrayList<>();
 

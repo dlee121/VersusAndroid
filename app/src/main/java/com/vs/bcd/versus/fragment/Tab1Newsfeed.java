@@ -61,8 +61,6 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
 
     private int currPostsIndex = 0;
 
-    private String host, region;
-
     private HashMap<String, Integer> profileImgVersions = new HashMap<>();
 
     @Override
@@ -70,9 +68,6 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.tab1newsfeed, container, false);
         //mHostActivity.setToolbarTitleTextForTabs("Newsfeed");
-
-        host = mHostActivity.getESHost();
-        region = mHostActivity.getESRegion();
 
         posts = new ArrayList<>();
 

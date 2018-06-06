@@ -140,7 +140,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private int retrievalSize = 30;
 
     private DatabaseReference mFirebaseDatabaseReference;
-    private String host, region;
 
     private int pageLevel = 0;
     private int topCardSortType = POPULAR;
@@ -166,7 +165,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private HashMap<String, Integer> medalWinnersList = new HashMap<>();
 
     private double commentPSI = 3.0; //ps increment per comment
-    private String postRefreshCode = ""; //r == increment red, b == increment blue, rb == increment red, decrement blue, br == increment blue, decrement red
+    private String postRefreshCode = ""; //r == increment red, b == increment blue, rb == increment red, decrement blue, br == increment blue, decrement red, n == none (default/reset value)
 
     private PostPage thisFragment;
 
@@ -180,14 +179,13 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     private HashSet<String> winnerTreeRoots = new HashSet<>();
 
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.post_page, container, false);
         layoutInflater = inflater;
 
-        host = activity.getESHost();
-        region = activity.getESRegion();
         thisFragment = this;
 
         imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -613,6 +611,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         else{
                             post.copyPostInfo(getPost(postID, writingPostVoteToDB));
                         }
+
+                        Log.d("votesie", "Red: "+post.getRedcount()+", Blue: "+post.getBlackcount());
+
                         postTopic = post.getQuestion();
                         postX = post.getRedname();
                         postY = post.getBlackname();
@@ -655,7 +656,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         });
                     }
 
-                    writeActionsToDB();
+                    //writeActionsToDB();
 
                     switch (sortType){
                         case POPULAR:
@@ -1751,11 +1752,16 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             mSwipeRefreshLayout.setRefreshing(true);
         }
 
+        //postRefreshCode = "n";
+        userAction = activity.getLocalUserAction(postID);
+
         Runnable runnable = new Runnable() {
             public void run() {
+
+
                 if(userAction == null || !userAction.getPostID().equals(postID)){
                     userAction = activity.getMapper().load(UserAction.class, sessionManager.getCurrentUsername(), postID);   //TODO: catch exception for this query
-                    //Log.d("DB", "download attempt for UserAction");
+                    Log.d("uncleben", "download attempt for UserAction");
                 }
 
                 if(userAction == null){
@@ -1880,7 +1886,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         sortType = POPULAR;
 
-        String tempParentID = topCardContent.getParent_id();
+        String tempParentID;
+        if(topCardContent != null){
+            tempParentID = topCardContent.getParent_id();
+        }
+        else{
+            tempParentID = postID;
+        }
+
 
         if(tempParentID.equals(postID)){
             pageCommentInput.setHint("Join the discussion!");
@@ -1991,7 +2004,13 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     //TODO:this is where we do user action synchronization I believe it would be called
     //Try to use this function for all action synchronization updates, because we do some stuff to keep track of synchronization
     public void writeActionsToDB(){
+        Log.d("uncleben", userAction.getActionRecord().toString());
+
+
         if(userAction != null) {
+            //postRefreshCode = "n";
+            activity.putLocalUserAction(postID, userAction);
+
             Runnable runnable = new Runnable() {
                 public void run() {
                     boolean updateDB = false;
@@ -3045,8 +3064,33 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         PostModel result = activity.getClient().postGet("p", post_id);
 
         try {
+            Post refreshedPost = new Post(result.getSource(), result.getId());
 
-            return new Post(result.getSource(), result.getId());
+            if(writingPostVoteToDB){
+
+                switch (postRefreshCode){
+                    case "r":
+                        refreshedPost.incrementRedCount();
+                        break;
+                    case "b":
+                        refreshedPost.incrementBlackCount();
+                        break;
+                    case "rb":
+                        refreshedPost.incrementRedCount();
+                        refreshedPost.decrementBlackCount();
+                        break;
+                    case "br":
+                        refreshedPost.incrementBlackCount();
+                        refreshedPost.decrementRedCount();
+                        break;
+                }
+            }
+
+            if(post != null && (refreshedPost.getRedcount() != post.getRedcount() || refreshedPost.getBlackcount() != post.getBlackcount())){
+                postUpdated = true;
+            }
+
+            return refreshedPost;
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -3387,6 +3431,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 //parentCache.clear();
 
                 initialLoadInProgress = true;
+                //postRefreshCode = "n";
+                userAction = activity.getLocalUserAction(postID);
 
                 if(userAction == null || !userAction.getPostID().equals(postID)){
                     userAction = activity.getMapper().load(UserAction.class, sessionManager.getCurrentUsername(), postID);   //TODO: catch exception for this query
@@ -3508,6 +3554,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 //parentCache.clear();
 
                 initialLoadInProgress = true;
+                //postRefreshCode = "n";
+                userAction = activity.getLocalUserAction(postID);
 
                 if(userAction == null || !userAction.getPostID().equals(postID)){
                     userAction = activity.getMapper().load(UserAction.class, sessionManager.getCurrentUsername(), postID);   //TODO: catch exception for this query
