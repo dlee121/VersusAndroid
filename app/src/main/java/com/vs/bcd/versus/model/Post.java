@@ -379,6 +379,7 @@ public class Post {
     }
 
     public void copyPostInfo(Post src){
+        post_id = src.getPost_id();
         redcount = src.getRedcount();
         blackcount = src.getBlackcount();
         category = src.getCategory();

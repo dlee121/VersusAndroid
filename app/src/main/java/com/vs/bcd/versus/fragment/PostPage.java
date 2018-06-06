@@ -1385,7 +1385,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     // so use it for all PostPage set up cases where we query by upvotes
     private void commentsQuery(final String rootParentID, final String uORt){
         Log.d("gtstbt", "cq called twice?");
-
+        //Log.d("backpresstopost", "pageLevel: " + pageLevel);
         if(pageLevel != 2) { //"g" denotes grandchild-only query for level 2
             final ArrayList<VSComment> rootComments = new ArrayList<>();
             final ArrayList<VSComment> childComments = new ArrayList<>();
@@ -1552,7 +1552,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         public void run() {
 
                             applyUserActions(masterList);
-
+                            //Log.d("backpresstopost", "rootParentID: " +rootParentID+", postID: "+postID);
                             //Make sure to do this after applyUserActions because applyUserActions doesn't expect post object in the list
                             if (rootParentID.equals(postID)) {
                                 //vsComments.add(0, post);
@@ -1891,6 +1891,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             tempParentID = topCardContent.getParent_id();
         }
         else{
+            Log.d("backpresstopost", "so this happens");
             tempParentID = postID;
         }
 
@@ -2004,8 +2005,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     //TODO:this is where we do user action synchronization I believe it would be called
     //Try to use this function for all action synchronization updates, because we do some stuff to keep track of synchronization
     public void writeActionsToDB(){
-        Log.d("uncleben", userAction.getActionRecord().toString());
-
 
         if(userAction != null) {
             //postRefreshCode = "n";
