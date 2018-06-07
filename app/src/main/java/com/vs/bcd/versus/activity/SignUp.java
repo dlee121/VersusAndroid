@@ -300,7 +300,6 @@ public class SignUp extends AppCompatActivity {
                                                     client.userputPost(userPutModel, newUser.getUsername(), "put", "user");
 
                                                 }catch (NotAuthorizedException e){
-                                                    Log.d("catchacth", "hoyths");
                                                     thisActivity.runOnUiThread(new Runnable() {
                                                         @Override
                                                         public void run() {
