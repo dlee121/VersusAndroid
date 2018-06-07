@@ -41,6 +41,8 @@ import com.vs.bcd.api.model.CGCModel;
 import com.vs.bcd.api.model.CGCModelResponsesItem;
 import com.vs.bcd.api.model.CGCModelResponsesItemHits;
 import com.vs.bcd.api.model.CGCModelResponsesItemHitsHitsItem;
+import com.vs.bcd.api.model.CommentEditModel;
+import com.vs.bcd.api.model.CommentEditModelDoc;
 import com.vs.bcd.api.model.CommentModel;
 import com.vs.bcd.api.model.CommentsListModel;
 import com.vs.bcd.api.model.CommentsListModelHitsHitsItem;
@@ -267,21 +269,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     }
 
                                     //update comment content through ddb update request
-                                    HashMap<String, AttributeValue> keyMap = new HashMap<>();
-                                    keyMap.put("i", new AttributeValue().withS(editTarget.getComment_id()));
 
-                                    HashMap<String, AttributeValueUpdate> updates = new HashMap<>();
-
-                                    AttributeValueUpdate ct = new AttributeValueUpdate()
-                                            .withValue(new AttributeValue().withS(input))
-                                            .withAction(AttributeAction.PUT);
-                                    updates.put("ct", ct);
-
-                                    UpdateItemRequest request = new UpdateItemRequest()
-                                            .withTableName("vscomment")
-                                            .withKey(keyMap)
-                                            .withAttributeUpdates(updates);
-                                    activity.getDDBClient().updateItem(request);
+                                    CommentEditModel commentEditModel = new CommentEditModel();
+                                    CommentEditModelDoc commentEditModelDoc = new CommentEditModelDoc();
+                                    commentEditModelDoc.setCt(input);
+                                    commentEditModel.setDoc(commentEditModelDoc);
+                                    activity.getClient().commenteditPost(commentEditModel, "editc", editTarget.getComment_id());
 
                                     activity.runOnUiThread(new Runnable() {
                                         @Override
@@ -1725,6 +1718,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         pageCommentInput.setHint("Join the discussion!");
         this.post = post;
         postID = post.getPost_id();
+        Log.d("clickedpostid", postID);
 
         if(freshlyVotedComments != null && !(freshlyVotedCommentsListPostID.equals(postID))){ //only clearing if this case is true prevents upvotes/downvotes counter error if user votes on a comment, immediately exits and then re-enters the post
             freshlyVotedComments.clear();
@@ -3383,6 +3377,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     public void childOrGrandchildHistoryItemClicked(final VSComment clickedComment, final boolean fromProfile, final String key){
+        Log.d("clickedcommentid", clickedComment.getComment_id());
         freshlyVotedComments.clear();
         pageLevel  = 2;
         clearList();
@@ -3506,6 +3501,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     public void rootCommentHistoryItemClicked(final VSComment clickedRootComment, final boolean fromProfile, final String key){
+        Log.d("clickedcommentid", clickedRootComment.getComment_id());
         freshlyVotedComments.clear();
         clearList();
         if(PPAdapter != null) {

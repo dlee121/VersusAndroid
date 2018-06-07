@@ -1519,25 +1519,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 //sets author of the comment to "deleted"
                 final VSComment commentToEdit = ((VSComment) masterList.get(index));
 
-                HashMap<String, AttributeValue> keyMap = new HashMap<>();
-                keyMap.put("i", new AttributeValue().withS(commentToEdit.getComment_id()));
-                HashMap<String, AttributeValueUpdate> updates = new HashMap<>();
-
-                AttributeValueUpdate newA = new AttributeValueUpdate()
-                        .withValue(new AttributeValue().withS("deleted"))
-                        .withAction(AttributeAction.PUT);
-                updates.put("a", newA);
-
-                AttributeValueUpdate newM = new AttributeValueUpdate()
-                        .withValue(new AttributeValue().withN(Integer.toString(0)))
-                        .withAction(AttributeAction.PUT);
-                updates.put("m", newM);
-
-                UpdateItemRequest request = new UpdateItemRequest()
-                        .withTableName("vscomment")
-                        .withKey(keyMap)
-                        .withAttributeUpdates(updates);
-                activity.getDDBClient().updateItem(request);
+                activity.getClient().deleteGet("cd", commentToEdit.getComment_id());
 
                 if(activity.getMyAdapterFragInt() == 8){ //from Notifications
                     String key = activity.getClickedNotificationKey();

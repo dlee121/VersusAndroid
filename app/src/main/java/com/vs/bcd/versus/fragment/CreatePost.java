@@ -40,6 +40,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,6 +55,8 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
+import com.vs.bcd.api.model.PostEditModel;
+import com.vs.bcd.api.model.PostEditModelDoc;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.model.GlideUrlCustom;
 import com.vs.bcd.versus.model.SessionManager;
@@ -310,27 +313,14 @@ public class CreatePost extends Fragment {
                     boolean postEdited = false;
                     boolean waitForImageUpload = false;
 
-                    HashMap<String, AttributeValue> keyMap = new HashMap<>();
-                    keyMap.put("i", new AttributeValue().withS(postToEdit.getPost_id()));
-
-                    HashMap<String, AttributeValueUpdate> updates = new HashMap<>();
-
                     if(postToEdit.getCategory() != (currentCategorySelection)){
                         postEdited = true;
-                        AttributeValueUpdate c = new AttributeValueUpdate()
-                                .withValue(new AttributeValue().withN(Integer.toString(currentCategorySelection)))
-                                .withAction(AttributeAction.PUT);
-                        updates.put("c", c);
                         postToEdit.setCategory(currentCategorySelection);
                     }
                     if(leftImgDeleted){
                         int editVersion = postToEdit.getRedimg()/10;
                         int newImg = editVersion * 10 + DEFAULT;
                         postEdited = true;
-                        AttributeValueUpdate ri = new AttributeValueUpdate()
-                                .withValue(new AttributeValue().withN(Integer.toString(newImg)))
-                                .withAction(AttributeAction.PUT);
-                        updates.put("ri", ri);
                         postToEdit.setRedimg(newImg);
 
                         final String objectKey;
@@ -355,10 +345,6 @@ public class CreatePost extends Fragment {
                         waitForImageUpload = true;
                         postEdited = true;
                         int newRedimg = (postToEdit.getRedimg()/10 + 1) * 10 + S3;
-                        AttributeValueUpdate ri = new AttributeValueUpdate()
-                                .withValue(new AttributeValue().withN(Integer.toString(newRedimg)))
-                                .withAction(AttributeAction.PUT);
-                        updates.put("ri", ri);
                         postToEdit.setRedimg(newRedimg);
 
                         final String objectKey;
@@ -383,10 +369,6 @@ public class CreatePost extends Fragment {
                         int editVersion = postToEdit.getBlackimg()/10;
                         int newImg = editVersion * 10 + DEFAULT;
                         postEdited = true;
-                        AttributeValueUpdate bi = new AttributeValueUpdate()
-                                .withValue(new AttributeValue().withN(Integer.toString(newImg)))
-                                .withAction(AttributeAction.PUT);
-                        updates.put("bi", bi);
                         postToEdit.setBlackimg(newImg);
 
                         final String objectKey;
@@ -411,10 +393,6 @@ public class CreatePost extends Fragment {
                         waitForImageUpload = true;
                         postEdited = true;
                         int newBlackimg = (postToEdit.getBlackimg()/10 + 1) * 10 + S3;
-                        AttributeValueUpdate bi = new AttributeValueUpdate()
-                                .withValue(new AttributeValue().withN(Integer.toString(newBlackimg)))
-                                .withAction(AttributeAction.PUT);
-                        updates.put("bi", bi);
                         postToEdit.setBlackimg(newBlackimg);
 
                         final String objectKey;
@@ -448,11 +426,14 @@ public class CreatePost extends Fragment {
                     }
 
                     if(postEdited){
-                        UpdateItemRequest request = new UpdateItemRequest()
-                                .withTableName("post")
-                                .withKey(keyMap)
-                                .withAttributeUpdates(updates);
-                        activity.getDDBClient().updateItem(request);
+                        PostEditModel postEditModel = new PostEditModel();
+                        PostEditModelDoc postEditModelDoc = new PostEditModelDoc();
+                        postEditModelDoc.setBi(BigDecimal.valueOf(postToEdit.getBlackimg()));
+                        postEditModelDoc.setC(BigDecimal.valueOf(postToEdit.getCategory()));
+                        postEditModelDoc.setRi(BigDecimal.valueOf(postToEdit.getRedimg()));
+                        postEditModel.setDoc(postEditModelDoc);
+
+                        activity.getClient().posteditPost(postEditModel, "editp", postToEdit.getPost_id());
 
                         if(!waitForImageUpload){
                             activity.runOnUiThread(new Runnable() {

@@ -2368,7 +2368,7 @@ public class MainContainer extends AppCompatActivity {
                 }
 
                 if(postPage.isRootLevel() && postPage.getCurrentCommentCount() == 0){
-                    mapper.delete(postToDelete);
+                    client.deleteGet("del", postToDelete.getPost_id());
                 }
                 else{
                     HashMap<String, AttributeValue> keyMap = new HashMap<>();
