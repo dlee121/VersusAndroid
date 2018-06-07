@@ -18,6 +18,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
+import com.amazonaws.mobileconnectors.apigateway.ApiClientFactory;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.cognitoidentity.model.NotAuthorizedException;
@@ -38,6 +39,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GetTokenResult;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.vs.bcd.api.VersusAPIClient;
+import com.vs.bcd.api.model.UserPutModel;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.fragment.AuthBirthdayInput;
 import com.vs.bcd.versus.fragment.AuthUsernameInput;
@@ -48,6 +51,7 @@ import com.vs.bcd.versus.model.ViewPagerCustomDuration;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.User;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -81,6 +85,8 @@ public class AuthSignUp extends AppCompatActivity {
     private String authID = " ";
     private String authToken = " ";
     private Toast mToast;
+    private ApiClientFactory factory;
+    private VersusAPIClient client;
 
     @Override
     public void onBackPressed(){
@@ -262,7 +268,24 @@ public class AuthSignUp extends AppCompatActivity {
                                             public void run() {
                                                 try{
                                                     credentialsProvider.refresh();
-                                                    mapper.save(newUser);
+
+                                                    factory = new ApiClientFactory().credentialsProvider(credentialsProvider);
+                                                    client = factory.build(VersusAPIClient.class);
+
+                                                    UserPutModel userPutModel = new UserPutModel();
+                                                    userPutModel.setAi(newUser.getAuthID());
+                                                    userPutModel.setB(BigDecimal.ZERO);
+                                                    userPutModel.setBd(newUser.getBday());
+                                                    userPutModel.setEm(newUser.getEmail());
+                                                    userPutModel.setFn(newUser.getFirstName());
+                                                    userPutModel.setG(BigDecimal.ZERO);
+                                                    userPutModel.setIn(BigDecimal.ZERO);
+                                                    userPutModel.setLn(newUser.getLastName());
+                                                    userPutModel.setPh(newUser.getPhone());
+                                                    userPutModel.setPi(BigDecimal.valueOf(newUser.getProfileImage()));
+                                                    userPutModel.setS(BigDecimal.ZERO);
+
+                                                    client.userputPost(userPutModel, newUser.getUsername(), "put", "user");
                                                 }catch (NotAuthorizedException e){
                                                     thisActivity.runOnUiThread(new Runnable() {
                                                         @Override
