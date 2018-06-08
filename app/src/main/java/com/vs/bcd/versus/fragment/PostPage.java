@@ -334,25 +334,15 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                             mFirebaseDatabaseReference.child(subjectAuthorPath).child(activity.getUsername()).setValue(System.currentTimeMillis()/1000);
                                         }
                                     }
-                                    else if(trueReplyTarget != null && !trueReplyTarget.getAuthor().equals("deleted") && !trueReplyTarget.getAuthor().equals(activity.getUsername())){ //reply to a comment
+                                    else if(trueReplyTarget != null && !trueReplyTarget.getAuthor().equals("deleted") && !trueReplyTarget.getAuthor().equals(activity.getUsername())) { //reply to a comment
                                         String payloadContent = sanitizeContentForURL(trueReplyTarget.getContent());
                                         String subjectAuthorPath = getUsernameHash(trueReplyTarget.getAuthor()) + "/" + trueReplyTarget.getAuthor() + "/n/c/"
                                                 + trueReplyTarget.getComment_id() + ":" + payloadContent;
-                                        mFirebaseDatabaseReference.child(subjectAuthorPath).child(activity.getUsername()).setValue(System.currentTimeMillis()/1000);
+                                        mFirebaseDatabaseReference.child(subjectAuthorPath).child(activity.getUsername()).setValue(System.currentTimeMillis() / 1000);
                                     }
-
-
-                                    HashMap<String, AttributeValue> keyMap = new HashMap<>();
-                                    keyMap.put("i", new AttributeValue().withS(postID));   //sort key
-
-                                    HashMap<String, AttributeValueUpdate> updates = new HashMap<>();
 
                                     //update pt and increment ps
                                     int currPt = (int)((System.currentTimeMillis()/1000)/60);
-                                    AttributeValueUpdate ptu = new AttributeValueUpdate()
-                                            .withValue(new AttributeValue().withN(Integer.toString(currPt)))
-                                            .withAction(AttributeAction.PUT);
-                                    updates.put("pt", ptu);
 
                                     int timeDiff;
                                     if(post == null){
@@ -366,16 +356,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     }
 
                                     double psIncrement = commentPSI/timeDiff;
-                                    AttributeValueUpdate psu = new AttributeValueUpdate()
-                                            .withValue(new AttributeValue().withN(Double.toString(psIncrement)))
-                                            .withAction(AttributeAction.ADD);
-                                    updates.put("ps", psu);
 
-                                    UpdateItemRequest request = new UpdateItemRequest()
-                                            .withTableName("post")
-                                            .withKey(keyMap)
-                                            .withAttributeUpdates(updates);
-                                    activity.getDDBClient().updateItem(request);
+                                    activity.getClient().vGet(Integer.toString(currPt), post.getPost_id(), Double.toString(psIncrement), "v", "cm");
+
 
                                     activity.runOnUiThread(new Runnable() {
                                         @Override
@@ -2028,7 +2011,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                                     if(!(author.equals("deleted"))){
                                         //increment author's influence
-                                        activity.getClient().vGet(null, entry.getKey(), null, "ui", "1");
+                                        activity.getClient().vGet(null, author, null, "ui", "1");
 
                                         //send TYPE_U notification
                                         sendCommentUpvoteNotification(tempNode.getNodeContent());
@@ -2053,7 +2036,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     }
 
                                     if(incrementInfluence && !(author.equals("deleted"))){ //as long as downvotes are less than 10*upvotes, we increase user's influence
-                                        activity.getClient().vGet(null, entry.getKey(), null, "ui", "1");
+                                        activity.getClient().vGet(null, author, null, "ui", "1");
                                     }
 
                                     //update activityHistoryMap
