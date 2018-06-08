@@ -408,7 +408,7 @@ public class Post {
         putModel.setC(BigDecimal.valueOf(category));
         putModel.setRi(BigDecimal.valueOf(redimg));
         putModel.setBi(BigDecimal.valueOf(blackimg));
-        putModel.setPt(BigDecimal.ZERO);
+        putModel.setPt(BigDecimal.valueOf(pt));
         putModel.setPs(ps);
 
         return putModel;
