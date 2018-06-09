@@ -17,6 +17,7 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.amazonaws.mobileconnectors.apigateway.ApiClientException;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.AuthSignUp;
 import com.vs.bcd.versus.activity.MainContainer;
@@ -65,6 +66,9 @@ public class AuthUsernameInput extends Fragment {
         editText.addTextChangedListener(new FormValidator(editText) {
             @Override
             public void validate(TextView textView, String text) {
+                nextButton.setBackgroundColor(Color.rgb(238, 238, 238));
+                nextButton.setEnabled(false);
+                validated = false;
                 usernameLength = text.trim().length();
                 if(usernameLength > 0){
                     char[] chars = text.trim().toCharArray();
@@ -114,11 +118,13 @@ public class AuthUsernameInput extends Fragment {
             @Override
             public void onClick(View v) {
                 //Log.d("nextbuttonnext", "clicked");
-                InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
-                activity.setU(editText.getText().toString().trim());
+                if(validated){
+                    InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
+                    activity.setU(editText.getText().toString().trim());
 
-                activity.signUpUser();
+                    activity.signUpUser();
+                }
             }
         });
 
@@ -189,6 +195,15 @@ public class AuthUsernameInput extends Fragment {
 
 
     private void checkUsername(final String username, final int thisVersion) { //TODO: do this using Elasticsearch instead (so first we need to set up API gateway for that)
+        if(username.equals("deleted")){
+            hideProgressBar();
+            etWarning.setTextColor(ContextCompat.getColor(activity,R.color.noticeRed));
+            etWarning.setText(username + " is already taken!");
+            nextButton.setBackgroundColor(Color.rgb(238, 238, 238));
+            nextButton.setEnabled(false);
+            validated = false;
+            return;
+        }
 
         AsyncTask<String, String, String> _Task = new AsyncTask<String, String, String>() {
 
@@ -207,23 +222,8 @@ public class AuthUsernameInput extends Fragment {
 
                         //TODO:show progressbar for and "checking..." etWarning text for username checking
                         if(!ignoreAsync && thisVersion >= usernameVersion){
-                            if(activity.getMapper().load(User.class, username) == null){    //if query returns null, it means username doesn't exist in db and is therefore available
-                                activity.runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        if(!ignoreAsync && thisVersion >= usernameVersion){
-                                            hideProgressBar();
-                                            etWarning.setTextColor(Color.GRAY);
-                                            etWarning.setText("Username available");
-                                            nextButton.setEnabled(true);
-                                            validated = true;
-                                            nextButton.setBackgroundColor(ContextCompat.getColor(activity,R.color.vsRed));
-                                        }
-                                    }
-                                });
-                            }
-
-                            else {
+                            try{
+                                activity.getClient().userHead("uc", username);
                                 activity.runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
@@ -237,6 +237,32 @@ public class AuthUsernameInput extends Fragment {
                                         }
                                     }
                                 });
+
+                            }
+                            catch(ApiClientException e){
+                                if(e.getStatusCode() == 404){ //404 means username doesn't exist in ES yet, which means it's available for new user
+                                    activity.runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            if(!ignoreAsync && thisVersion >= usernameVersion){
+                                                hideProgressBar();
+                                                etWarning.setTextColor(Color.GRAY);
+                                                etWarning.setText("Username available");
+                                                nextButton.setEnabled(true);
+                                                validated = true;
+                                                nextButton.setBackgroundColor(ContextCompat.getColor(activity,R.color.vsRed));
+                                            }
+                                        }
+                                    });
+
+                                }
+                                else if(e.getStatusCode() == 403){ //if this bug occurs, retry the query
+                                    //clear cached credentials, set up credentials again, refresh, then retry
+
+                                }
+                            }
+                            catch(Exception e){
+                                Log.d("heyheyheyya", "da fuck");
                             }
                         }
 

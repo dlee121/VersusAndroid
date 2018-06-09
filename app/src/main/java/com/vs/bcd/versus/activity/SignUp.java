@@ -104,6 +104,9 @@ public class SignUp extends AppCompatActivity {
                 Regions.US_EAST_1 // Region
         );
 
+        factory = new ApiClientFactory().credentialsProvider(credentialsProvider);
+        client = factory.build(VersusAPIClient.class);
+
         mFirebaseAuth = FirebaseAuth.getInstance();
 
         AmazonDynamoDBClient ddbClient = new AmazonDynamoDBClient(credentialsProvider);
@@ -226,6 +229,10 @@ public class SignUp extends AppCompatActivity {
 
     public ViewPagerCustomDuration getViewPager(){
         return mViewPager;
+    }
+
+    public VersusAPIClient getClient(){
+        return client;
     }
 
     public void setTwo(String firsh, String sec){

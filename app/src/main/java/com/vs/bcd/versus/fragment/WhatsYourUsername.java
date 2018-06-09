@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,9 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.amazonaws.mobileconnectors.apigateway.ApiClientException;
+import com.amazonaws.mobileconnectors.apigateway.ApiClientFactory;
+import com.vs.bcd.api.VersusAPIClient;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.SignUp;
 import com.vs.bcd.versus.model.FormValidator;
@@ -39,7 +43,6 @@ public class WhatsYourUsername extends Fragment {
     private boolean ignoreAsync = true;
     private boolean validated = false;
 
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -62,6 +65,9 @@ public class WhatsYourUsername extends Fragment {
         editText.addTextChangedListener(new FormValidator(editText) {
             @Override
             public void validate(TextView textView, String text) {
+                nextButton.setBackgroundColor(Color.rgb(238, 238, 238));
+                nextButton.setEnabled(false);
+                validated = false;
                 usernameLength = text.trim().length();
                 if(usernameLength > 0){
                     char[] chars = text.trim().toCharArray();
@@ -110,8 +116,10 @@ public class WhatsYourUsername extends Fragment {
         nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                activity.setFo(editText.getText().toString().trim());
-                activity.getViewPager().setCurrentItem(3);
+                if(validated) {
+                    activity.setFo(editText.getText().toString().trim());
+                    activity.getViewPager().setCurrentItem(3);
+                }
             }
         });
         hideProgressBar();
@@ -152,11 +160,6 @@ public class WhatsYourUsername extends Fragment {
     }
 
 
-
-
-
-
-
     private void checkUsername(final String username, final int thisVersion) { //TODO: do this using Elasticsearch instead (so first we need to set up API gateway for that)
         if(username.equals("deleted")){
             hideProgressBar();
@@ -185,23 +188,8 @@ public class WhatsYourUsername extends Fragment {
 
                         //TODO:show progressbar for and "checking..." etWarning text for username checking
                         if(!ignoreAsync && thisVersion >= usernameVersion){
-                            if(activity.getMapper().load(User.class, username) == null){    //if query returns null, it means username doesn't exist in db and is therefore available
-                                activity.runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        if(!ignoreAsync && thisVersion >= usernameVersion){
-                                            hideProgressBar();
-                                            etWarning.setTextColor(Color.GRAY);
-                                            etWarning.setText("Username available");
-                                            nextButton.setEnabled(true);
-                                            validated = true;
-                                            nextButton.setBackgroundColor(ContextCompat.getColor(activity,R.color.vsRed));
-                                        }
-                                    }
-                                });
-                            }
-
-                            else {
+                            try{
+                                activity.getClient().userHead("uc", username);
                                 activity.runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
@@ -215,6 +203,32 @@ public class WhatsYourUsername extends Fragment {
                                         }
                                     }
                                 });
+
+                            }
+                            catch(ApiClientException e){
+                                if(e.getStatusCode() == 404){ //404 means username doesn't exist in ES yet, which means it's available for new user
+                                    activity.runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            if(!ignoreAsync && thisVersion >= usernameVersion){
+                                                hideProgressBar();
+                                                etWarning.setTextColor(Color.GRAY);
+                                                etWarning.setText("Username available");
+                                                nextButton.setEnabled(true);
+                                                validated = true;
+                                                nextButton.setBackgroundColor(ContextCompat.getColor(activity,R.color.vsRed));
+                                            }
+                                        }
+                                    });
+
+                                }
+                                else if(e.getStatusCode() == 403){ //if this bug occurs, retry the query
+                                    //clear cached credentials, set up credentials again, refresh, then retry
+
+                                }
+                            }
+                            catch(Exception e){
+                                Log.d("heyheyheyya", "da fuck");
                             }
                         }
 
