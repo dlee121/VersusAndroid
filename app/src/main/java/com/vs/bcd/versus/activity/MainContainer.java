@@ -46,7 +46,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.apigateway.ApiClientFactory;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
@@ -588,7 +587,6 @@ public class MainContainer extends AppCompatActivity {
         registerReceiver(myReceiver, new IntentFilter(MyFirebaseMessagingService.INTENT_FILTER));
 
         ddbClient = new AmazonDynamoDBClient(credentialsProvider);
-        mapper = new DynamoDBMapper(ddbClient);
         s3 = new AmazonS3Client(credentialsProvider);
 
         currUsername = sessionManager.getCurrentUsername();
@@ -1693,9 +1691,6 @@ public class MainContainer extends AppCompatActivity {
         return mainActivityFragRef;
     }
 
-    public DynamoDBMapper getMapper(){
-        return mapper;
-    }
     public AmazonS3 getS3Client(){
         return s3;
     }
@@ -2368,30 +2363,10 @@ public class MainContainer extends AppCompatActivity {
                 }
 
                 if(postPage.isRootLevel() && postPage.getCurrentCommentCount() == 0){
-                    client.deleteGet("del", postToDelete.getPost_id());
+                    client.deleteGet("del", postToDelete.getPost_id()); //post full delete
                 }
                 else{
-                    HashMap<String, AttributeValue> keyMap = new HashMap<>();
-                    keyMap.put("i", new AttributeValue().withS(postToDelete.getPost_id()));
-                    HashMap<String, AttributeValueUpdate> updates = new HashMap<>();
-                    AttributeValueUpdate newA = new AttributeValueUpdate()
-                            .withValue(new AttributeValue().withS("deleted"))
-                            .withAction(AttributeAction.PUT);
-                    updates.put("a", newA);
-                    AttributeValueUpdate newRI = new AttributeValueUpdate()
-                            .withValue(new AttributeValue().withN(Integer.toString(0)))
-                            .withAction(AttributeAction.PUT);
-                    updates.put("ri", newRI);
-                    AttributeValueUpdate newBI = new AttributeValueUpdate()
-                            .withValue(new AttributeValue().withN(Integer.toString(0)))
-                            .withAction(AttributeAction.PUT);
-                    updates.put("bi", newBI);
-
-                    UpdateItemRequest request = new UpdateItemRequest()
-                            .withTableName("post")
-                            .withKey(keyMap)
-                            .withAttributeUpdates(updates);
-                    ddbClient.updateItem(request);
+                    client.deleteGet("ppd", postToDelete.getPost_id()); //post partial delete
                 }
                 //move out to previous page (Me(if from history)/Home/Search/Trending/Category)
                 //delete the deleted post from the ArrayList in appropriate fragment, decrement currPostsIndex by 1, and then notifyDataSetChanged

@@ -28,15 +28,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
-import com.amazonaws.services.dynamodbv2.model.AttributeAction;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
-import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
-
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.loopj.android.http.HttpGet;
 import com.vs.bcd.api.model.CGCModel;
 import com.vs.bcd.api.model.CGCModelResponsesItem;
 import com.vs.bcd.api.model.CGCModelResponsesItemHits;
@@ -111,7 +104,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private int origRedCount, origBlackCount;
     private String lastSubmittedVote = "none";
     private int retrievalLimit = 25;
-    private Map<String,AttributeValue> lastEvaluatedKey;
     private PostPage thisPage;
     private boolean exitLoop = false;
     private Button topcardSortTypeSelector;

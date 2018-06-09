@@ -1,22 +1,12 @@
 package com.vs.bcd.versus.model;
 
-import android.icu.text.AlphabeticIndex;
-import android.os.Parcel;
-import android.os.Parcelable;
-
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 import com.vs.bcd.api.model.RecordPutModel;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.UUID;
-
-
 
 /**
  * Created by dlee on 7/14/17.
