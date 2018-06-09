@@ -48,6 +48,7 @@ import com.vs.bcd.api.model.CommentsListModel;
 import com.vs.bcd.api.model.CommentsListModelHitsHitsItem;
 import com.vs.bcd.api.model.CommentsListModelHitsHitsItemSource;
 import com.vs.bcd.api.model.PostModel;
+import com.vs.bcd.api.model.RecordPutModel;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
@@ -1731,20 +1732,36 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
 
         //postRefreshCode = "n";
-        userAction = activity.getLocalUserAction(postID);
+        userAction = activity.getLocalUserAction(activity.getUsername()+postID);
+        if(userAction == null){
+            Log.d("localuseraction", "local user action not found");
+        }
+        else{
+
+            Log.d("localuseraction", userAction.getActionRecord().entrySet().toString());
+        }
 
         Runnable runnable = new Runnable() {
             public void run() {
 
 
+                RecordPutModel recordGetModel = null;
                 if(userAction == null || !userAction.getPostID(activity.getUsername().length()).equals(postID)){
-                    userAction = activity.getMapper().load(UserAction.class, activity.getUsername()+postID);   //TODO: catch exception for this query
-                    Log.d("uncleben", "download attempt for UserAction");
+                    try{
+                        recordGetModel = activity.getClient().recordGet("rcg", activity.getUsername()+postID);
+                    }
+                    catch(Exception e){
+                        recordGetModel = null;
+                    }
                 }
 
-                if(userAction == null){
-                    userAction = new UserAction(sessionManager.getCurrentUsername(), postID);
+                if(recordGetModel != null){
+                    userAction = new UserAction(recordGetModel, activity.getUsername()+postID);
                 }
+                else if(userAction == null){
+                    userAction = new UserAction(activity.getUsername(), postID);
+                }
+
                 lastSubmittedVote = userAction.getVotedSide();
                 actionMap = userAction.getActionRecord();
                 deepCopyToActionHistoryMap();
@@ -1986,7 +2003,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         if(userAction != null) {
             //postRefreshCode = "n";
-            activity.putLocalUserAction(postID, userAction);
+            activity.putLocalUserAction(activity.getUsername()+postID, userAction);
 
             Runnable runnable = new Runnable() {
                 public void run() {
@@ -2172,7 +2189,10 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                     if (updateDB) { //user made comment action(s) OR voted for a side in the post
                         Log.d("updateDB", "db updated");
-                        activity.getMapper().save(userAction, new DynamoDBMapperConfig(DynamoDBMapperConfig.SaveBehavior.CLOBBER));
+                        //activity.getMapper().save(userAction, new DynamoDBMapperConfig(DynamoDBMapperConfig.SaveBehavior.CLOBBER));
+
+                        activity.getClient().recordPost(userAction.getRecordPutModel(), "rcp", userAction.getI());
+
 
                         //Log.d("actionMapDB", "actionMap submitted");
                         //TODO: the below line to deep copy action history is currently commented out because this code currently only executes on PostPage exit. However, once we need to write UserAction to DB while user is still inside PostPage, then we should uncomment the line below to keep actionHistoryMap up to date with current version of actionMap in the DB that has just been updated by the line above.
@@ -3261,16 +3281,25 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                 initialLoadInProgress = true;
                 //postRefreshCode = "n";
-                userAction = activity.getLocalUserAction(postID);
+                userAction = activity.getLocalUserAction(activity.getUsername()+postID);
 
+                RecordPutModel recordGetModel = null;
                 if(userAction == null || !userAction.getPostID(activity.getUsername().length()).equals(postID)){
-                    userAction = activity.getMapper().load(UserAction.class, activity.getUsername()+postID);   //TODO: catch exception for this query
-                    //Log.d("DB", "download attempt for UserAction");
+                    try{
+                        recordGetModel = activity.getClient().recordGet("rcg", activity.getUsername()+postID);
+                    }
+                    catch(Exception e){
+                        recordGetModel = null;
+                    }
                 }
 
-                if(userAction == null){
-                    userAction = new UserAction(sessionManager.getCurrentUsername(), postID);
+                if(recordGetModel != null){
+                    userAction = new UserAction(recordGetModel, activity.getUsername()+postID);
                 }
+                else if(userAction == null){
+                    userAction = new UserAction(activity.getUsername(), postID);
+                }
+
                 lastSubmittedVote = userAction.getVotedSide();
                 actionMap = userAction.getActionRecord();
                 deepCopyToActionHistoryMap();
@@ -3385,16 +3414,25 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                 initialLoadInProgress = true;
                 //postRefreshCode = "n";
-                userAction = activity.getLocalUserAction(postID);
+                userAction = activity.getLocalUserAction(activity.getUsername()+postID);
 
+                RecordPutModel recordGetModel = null;
                 if(userAction == null || !userAction.getPostID(activity.getUsername().length()).equals(postID)){
-                    userAction = activity.getMapper().load(UserAction.class, activity.getUsername()+postID);   //TODO: catch exception for this query
-                    //Log.d("DB", "download attempt for UserAction");
+                    try{
+                        recordGetModel = activity.getClient().recordGet("rcg", activity.getUsername()+postID);
+                    }
+                    catch(Exception e){
+                        recordGetModel = null;
+                    }
                 }
 
-                if(userAction == null){
-                    userAction = new UserAction(sessionManager.getCurrentUsername(), postID);
+                if(recordGetModel != null){
+                    userAction = new UserAction(recordGetModel, activity.getUsername()+postID);
                 }
+                else if(userAction == null){
+                    userAction = new UserAction(activity.getUsername(), postID);
+                }
+
                 lastSubmittedVote = userAction.getVotedSide();
                 actionMap = userAction.getActionRecord();
                 deepCopyToActionHistoryMap();

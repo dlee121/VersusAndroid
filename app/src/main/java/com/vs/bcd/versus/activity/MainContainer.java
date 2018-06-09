@@ -3138,22 +3138,22 @@ public class MainContainer extends AppCompatActivity {
     }
 
     //called by PostPage.writeActionsToDB, before actualy write to db
-    public void putLocalUserAction(String postID, UserAction userAction){
+    public void putLocalUserAction(String recordID, UserAction userAction){
         if(localUserActionMap == null){
             localUserActionMap = new HashMap<>();
         }
-        localUserActionMap.put(postID, userAction);
+        localUserActionMap.put(recordID, userAction);
     }
 
     //called by PostPage's setContent, childOrGrandchildHistoryItemClicked, and rootCommentHistoryItemClicked
     //and those functions would get UserAction object from db IF AND ONLY IF this returns null
-    public UserAction getLocalUserAction(String postID){
+    public UserAction getLocalUserAction(String recordID){
         if(localUserActionMap == null){
             localUserActionMap = new HashMap<>();
             return null;
         }
         else{
-            return localUserActionMap.get(postID);
+            return localUserActionMap.get(recordID);
         }
     }
 

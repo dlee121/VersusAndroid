@@ -1,9 +1,11 @@
 package com.vs.bcd.versus.model;
 
+import android.icu.text.AlphabeticIndex;
 import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
+import com.vs.bcd.api.model.RecordPutModel;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -65,6 +67,52 @@ public class UserAction {
     }
     public void setActionRecord(Map<String, String> actionRecord) {
         this.actionRecord = actionRecord;
+    }
+
+    public RecordPutModel getRecordPutModel(){
+        RecordPutModel recordPutModel = new RecordPutModel();
+
+        List<String> DList = new ArrayList<>();
+        List<String> NList = new ArrayList<>();
+        List<String> UList = new ArrayList<>();
+
+        for(Map.Entry<String, String> entry : actionRecord.entrySet()){
+            switch (entry.getValue()){
+                case "U":
+                    UList.add(entry.getKey());
+                    break;
+                case "D":
+                    DList.add(entry.getKey());
+                    break;
+                case "N":
+                    NList.add(entry.getKey());
+                    break;
+            }
+
+        }
+
+        recordPutModel.setD(DList);
+        recordPutModel.setU(UList);
+        recordPutModel.setN(NList);
+        recordPutModel.setV(votedSide);
+
+        return recordPutModel;
+
+    }
+
+    public UserAction(RecordPutModel recordPutModel, String i){
+        this.i = i;
+        votedSide = recordPutModel.getV();
+        actionRecord = new HashMap<>();
+        for(String commentID : recordPutModel.getD()){
+            actionRecord.put(commentID, "D");
+        }
+        for(String commentID : recordPutModel.getN()){
+            actionRecord.put(commentID, "N");
+        }
+        for(String commentID : recordPutModel.getU()){
+            actionRecord.put(commentID, "U");
+        }
     }
 
 }
