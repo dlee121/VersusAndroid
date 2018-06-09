@@ -23,8 +23,7 @@ import java.util.UUID;
 @DynamoDBTable(tableName = "useraction")
 public class UserAction {
 
-    private String userID;
-    private String postID;
+    private String i; //username+postID, and since we know the username length we can extract username and postID from i
     private String votedSide = "none";  //"none", "RED", "BLK".
     private Map<String, String> actionRecord;    //Key = comment_id, Value = String value, N for novote, U for upvote, D for downvote.
 
@@ -34,29 +33,25 @@ public class UserAction {
     }
 
     public UserAction(String userID, String postID){
-        this.userID = userID;
-        this.postID = postID;
+        i = userID+postID;
         votedSide = "none";
         actionRecord = new HashMap<>();
     }
 
-    @DynamoDBHashKey(attributeName = "user_id")
-    public String getUserID() {
-        return userID;
+    @DynamoDBHashKey(attributeName = "i")
+    public String getI() {
+        return i;
     }
-    public void setUserID(String userID) {
-        this.userID = userID;
-    }
-
-    @DynamoDBRangeKey(attributeName = "post_id")
-    public String getPostID() {
-        return postID;
-    }
-    public void setPostID(String postID) {
-        this.postID = postID;
+    public void setI(String i) {
+        this.i = i;
     }
 
-    @DynamoDBAttribute(attributeName = "voted_side")
+    @DynamoDBIgnore
+    public String getPostID(int usernameLegnth) {
+        return i.substring(usernameLegnth, i.length());
+    }
+
+    @DynamoDBAttribute(attributeName = "vs")
     public String getVotedSide() {
         return votedSide;
     }
@@ -64,7 +59,7 @@ public class UserAction {
         this.votedSide = votedSide;
     }
 
-    @DynamoDBAttribute(attributeName = "action_record")
+    @DynamoDBAttribute(attributeName = "ar")
     public Map<String, String> getActionRecord() {
         return actionRecord;
     }

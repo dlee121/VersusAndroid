@@ -2,6 +2,7 @@ package com.vs.bcd.versus.model;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 import com.vs.bcd.api.model.AIModelHitsHitsItemSource;
+import com.vs.bcd.api.model.UserGetModel;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -170,6 +171,20 @@ public class User {
     }
 
     public User(AIModelHitsHitsItemSource source, String id){
+        username = id;
+        firstName = source.getFn();
+        lastName = source.getLn();
+        bday = source.getBd();
+        email = source.getEm();
+        phone = source.getPh();
+        profileImage = source.getPi().intValue();
+        authID = "";
+        g = 0;
+        s = 0;
+        b = 0;
+    }
+
+    public User(UserGetModel source, String id){
         username = id;
         firstName = source.getFn();
         lastName = source.getLn();

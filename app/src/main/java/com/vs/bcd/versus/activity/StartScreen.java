@@ -422,7 +422,7 @@ public class StartScreen extends AppCompatActivity {
                                                         public void run() {
                                                             try{
                                                                 credentialsProvider.refresh();
-                                                                final User user = mapper.load(User.class, usernameIn); //TODO: replace with ES user GET
+                                                                final User user = new User(client.userGet("getu", usernameIn), usernameIn);
 
                                                                 thisActivity.runOnUiThread(new Runnable() {
                                                                     @Override

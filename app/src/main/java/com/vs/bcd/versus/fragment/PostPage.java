@@ -1737,8 +1737,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             public void run() {
 
 
-                if(userAction == null || !userAction.getPostID().equals(postID)){
-                    userAction = activity.getMapper().load(UserAction.class, sessionManager.getCurrentUsername(), postID);   //TODO: catch exception for this query
+                if(userAction == null || !userAction.getPostID(activity.getUsername().length()).equals(postID)){
+                    userAction = activity.getMapper().load(UserAction.class, activity.getUsername()+postID);   //TODO: catch exception for this query
                     Log.d("uncleben", "download attempt for UserAction");
                 }
 
@@ -3263,8 +3263,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 //postRefreshCode = "n";
                 userAction = activity.getLocalUserAction(postID);
 
-                if(userAction == null || !userAction.getPostID().equals(postID)){
-                    userAction = activity.getMapper().load(UserAction.class, sessionManager.getCurrentUsername(), postID);   //TODO: catch exception for this query
+                if(userAction == null || !userAction.getPostID(activity.getUsername().length()).equals(postID)){
+                    userAction = activity.getMapper().load(UserAction.class, activity.getUsername()+postID);   //TODO: catch exception for this query
                     //Log.d("DB", "download attempt for UserAction");
                 }
 
@@ -3387,8 +3387,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 //postRefreshCode = "n";
                 userAction = activity.getLocalUserAction(postID);
 
-                if(userAction == null || !userAction.getPostID().equals(postID)){
-                    userAction = activity.getMapper().load(UserAction.class, sessionManager.getCurrentUsername(), postID);   //TODO: catch exception for this query
+                if(userAction == null || !userAction.getPostID(activity.getUsername().length()).equals(postID)){
+                    userAction = activity.getMapper().load(UserAction.class, activity.getUsername()+postID);   //TODO: catch exception for this query
                     //Log.d("DB", "download attempt for UserAction");
                 }
 
