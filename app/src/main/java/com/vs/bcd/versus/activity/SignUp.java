@@ -318,20 +318,22 @@ public class SignUp extends AppCompatActivity {
                                                         }
                                                     });
 
-                                                }catch (NotAuthorizedException e){
+                                                }catch (Exception e){
+                                                    credentialsProvider.clear();
+                                                    credentialsProvider = new CognitoCachingCredentialsProvider(
+                                                            getApplicationContext(),
+                                                            "us-east-1:88614505-c8df-4dce-abd8-79a0543852ff", // Identity Pool ID
+                                                            Regions.US_EAST_1 // Region
+                                                    );
+                                                    credentialsProvider.refresh();
+                                                    ypfrag.displayProgressBar(false);
                                                     thisActivity.runOnUiThread(new Runnable() {
                                                         @Override
                                                         public void run() {
-                                                            sessionManager.logoutUser();
-                                                            credentialsProvider.clear();
-                                                            credentialsProvider = new CognitoCachingCredentialsProvider(
-                                                                    getApplicationContext(),
-                                                                    "us-east-1:88614505-c8df-4dce-abd8-79a0543852ff", // Identity Pool ID
-                                                                    Regions.US_EAST_1 // Region
-                                                            );
-                                                            LoginManager.getInstance().logOut();
-                                                            GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build(); //google logout
-                                                            GoogleSignIn.getClient(thisActivity, gso).signOut();
+
+                                                            //LoginManager.getInstance().logOut();
+                                                            //GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build(); //google logout
+                                                            //GoogleSignIn.getClient(thisActivity, gso).signOut();
                                                             if(mToast != null){
                                                                 mToast.cancel();
                                                             }
@@ -396,6 +398,12 @@ public class SignUp extends AppCompatActivity {
 
         factory = new ApiClientFactory().credentialsProvider(credentialsProvider);
         client = factory.build(VersusAPIClient.class);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(SignUp.this, "Something went wrong. Please try again", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
 

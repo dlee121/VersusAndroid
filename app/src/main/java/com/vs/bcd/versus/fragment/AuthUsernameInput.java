@@ -258,6 +258,12 @@ public class AuthUsernameInput extends Fragment {
                                 }
                                 else {
                                     //clear cached credentials, set up credentials again, refresh, then retry
+
+                                    etWarning.setText("");
+                                    nextButton.setBackgroundColor(Color.rgb(238, 238, 238));
+                                    nextButton.setEnabled(false);
+                                    validated = false;
+
                                     activity.handleUnauthException();
                                 }
                             }

@@ -3060,6 +3060,9 @@ public class MainContainer extends AppCompatActivity {
                                             credentialsProvider.refresh();
                                             credentialsProvider.getCredentials();
                                             setUpAPI();
+                                            mViewPager.setCurrentItem(0);
+                                            mainActivityFragRef.getViewPager().setCurrentItem(0);
+                                            mainActivityFragRef.getTab1().initialQuery();
                                         }
                                         catch (Exception e){
                                             sessionLogOut();
@@ -3087,6 +3090,9 @@ public class MainContainer extends AppCompatActivity {
                                     credentialsProvider.refresh();
                                     credentialsProvider.getCredentials();
                                     setUpAPI();
+                                    mViewPager.setCurrentItem(0);
+                                    mainActivityFragRef.getViewPager().setCurrentItem(0);
+                                    mainActivityFragRef.getTab1().initialQuery();
                                 }
                                 catch (Exception e){
                                     sessionLogOut();

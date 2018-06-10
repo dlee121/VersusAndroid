@@ -245,7 +245,7 @@ public class AuthSignUp extends AppCompatActivity {
         wyun.displayProgressBar(true);
 
         final User newUser = new User(firstname, lastname, bday, username, authID);
-        AuthCredential credential;
+        final AuthCredential credential;
         if(authID.charAt(authID.length()-1) == '_'){ //we append facebook authIDs with an '_'
             credential = FacebookAuthProvider.getCredential(authToken);
         }
@@ -293,7 +293,7 @@ public class AuthSignUp extends AppCompatActivity {
                                                     userPutModel.setS(BigDecimal.ZERO);
 
                                                     client.userputPost(userPutModel, newUser.getUsername(), "put", "user");
-                                                }catch (NotAuthorizedException e){
+                                                }catch (Exception e){
                                                     thisActivity.runOnUiThread(new Runnable() {
                                                         @Override
                                                         public void run() {
@@ -304,6 +304,7 @@ public class AuthSignUp extends AppCompatActivity {
                                                                     "us-east-1:88614505-c8df-4dce-abd8-79a0543852ff", // Identity Pool ID
                                                                     Regions.US_EAST_1 // Region
                                                             );
+                                                            credentialsProvider.refresh();
                                                             LoginManager.getInstance().logOut();
                                                             GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build(); //google logout
                                                             GoogleSignIn.getClient(thisActivity, gso).signOut();
@@ -384,6 +385,12 @@ public class AuthSignUp extends AppCompatActivity {
 
         factory = new ApiClientFactory().credentialsProvider(credentialsProvider);
         client = factory.build(VersusAPIClient.class);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(AuthSignUp.this, "Something went wrong. Please try again", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
 }
