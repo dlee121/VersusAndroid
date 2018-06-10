@@ -199,13 +199,15 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                             }
 
                             //add username to parameter string, then at loop finish we do multiget of those users and create hashmap of username:profileImgVersion
-                            if(i == 0){
-                                strBuilder.append("\""+source.getA()+"\"");
+                            if(!source.getA().equals("deleted")){
+                                if(i == 0){
+                                    strBuilder.append("\""+source.getA()+"\"");
+                                }
+                                else{
+                                    strBuilder.append(",\""+source.getA()+"\"");
+                                }
+                                i++;
                             }
-                            else{
-                                strBuilder.append(",\""+source.getA()+"\"");
-                            }
-                            i++;
                         }
 
                         if(strBuilder.length() > 0){

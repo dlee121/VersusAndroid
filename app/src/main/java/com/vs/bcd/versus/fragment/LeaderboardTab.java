@@ -135,7 +135,7 @@ public class LeaderboardTab extends Fragment {
 
         Runnable runnable = new Runnable() {
             public void run() {
-
+                Log.d("leaderboardhere", "hear");
                 LeaderboardModel result = activity.getClient().leaderboardGet("lb");
 
                 List<LeaderboardModelHitsHitsItem> hits = result.getHits().getHits();

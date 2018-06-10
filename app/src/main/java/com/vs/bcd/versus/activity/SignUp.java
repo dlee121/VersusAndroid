@@ -47,7 +47,10 @@ import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.User;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 
@@ -303,6 +306,8 @@ public class SignUp extends AppCompatActivity {
                                                     userPutModel.setPh(newUser.getPhone());
                                                     userPutModel.setPi(BigDecimal.valueOf(newUser.getProfileImage()));
                                                     userPutModel.setS(BigDecimal.ZERO);
+                                                    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
+                                                    userPutModel.setT(df.format(new Date()));
 
                                                     client.userputPost(userPutModel, newUser.getUsername(), "put", "user");
 

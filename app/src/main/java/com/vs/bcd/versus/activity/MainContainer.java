@@ -224,6 +224,9 @@ public class MainContainer extends AppCompatActivity {
     private ApiClientFactory factory;
     private VersusAPIClient client;
 
+    private String currentAuthToken = "";
+    private boolean gettingFreshToken = false;
+
     private HashMap<String, UserAction> localUserActionMap;
 
     private BroadcastReceiver myReceiver = new BroadcastReceiver() {
@@ -452,11 +455,11 @@ public class MainContainer extends AppCompatActivity {
         boolean getFreshCredentials = true;
         if(extras != null){
             String oitk = extras.getString("oitk");
+            currentAuthToken = oitk;
             if(oitk != null && !oitk.isEmpty()){
                 Map<String, String> logins = new HashMap<>();
                 logins.put("securetoken.google.com/bcd-versus", oitk);
                 credentialsProvider.setLogins(logins);
-                Log.d("ontheway", "otw");
 
                 getFreshCredentials = false;
 
@@ -496,6 +499,7 @@ public class MainContainer extends AppCompatActivity {
                     @Override
                     public void onSuccess(GetTokenResult getTokenResult) {
                         String token = getTokenResult.getToken();
+                        currentAuthToken = token;
                         JWT jwt = new JWT(token);
                         Log.d("exptime", ""+jwt.getExpiresAt().getTime());
                         if(jwt.getExpiresAt().getTime() - 300000 < System.currentTimeMillis()){ //token close to expiration, so refresh it
@@ -505,7 +509,8 @@ public class MainContainer extends AppCompatActivity {
                                 @Override
                                 public void onSuccess(GetTokenResult getTokenResult) {
                                     Map<String, String> logins = new HashMap<>();
-                                    logins.put("securetoken.google.com/bcd-versus", getTokenResult.getToken());
+                                    currentAuthToken = getTokenResult.getToken();
+                                    logins.put("securetoken.google.com/bcd-versus", currentAuthToken);
                                     credentialsProvider.setLogins(logins);
 
                                     Runnable runnable = new Runnable() {
@@ -538,7 +543,13 @@ public class MainContainer extends AppCompatActivity {
                             }).addOnFailureListener(new OnFailureListener() {
                                 @Override
                                 public void onFailure(@NonNull Exception e) {
-                                    //TODO: retry auth? tell user there was a network issue, please check your connection?
+                                    sessionLogOut();
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Toast.makeText(thisActivity, "Something went wrong. Please log back in.", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
                                 }
                             });
                         }
@@ -578,7 +589,22 @@ public class MainContainer extends AppCompatActivity {
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        //TODO: retry auth? tell user there was a network issue, please check your connection?
+                        sessionLogOut();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(thisActivity, "Something went wrong. Please log back in.", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                });
+            }
+            else{
+                sessionLogOut();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(thisActivity, "Something went wrong. Please log back in.", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -2358,10 +2384,10 @@ public class MainContainer extends AppCompatActivity {
                 }
 
                 if(postPage.isRootLevel() && postPage.getCurrentCommentCount() == 0){
-                    client.deleteGet("del", postToDelete.getPost_id()); //post full delete
+                    getClient().deleteGet("del", postToDelete.getPost_id()); //post full delete
                 }
                 else{
-                    client.deleteGet("ppd", postToDelete.getPost_id()); //post partial delete
+                    getClient().deleteGet("ppd", postToDelete.getPost_id()); //post partial delete
                 }
                 //move out to previous page (Me(if from history)/Home/Search/Trending/Category)
                 //delete the deleted post from the ArrayList in appropriate fragment, decrement currPostsIndex by 1, and then notifyDataSetChanged
@@ -2517,6 +2543,69 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public VersusAPIClient getClient(){
+        gettingFreshToken = false;
+        JWT jwt = new JWT(currentAuthToken);
+        if(jwt.getExpiresAt().getTime() - 300000 < System.currentTimeMillis()){ //token close to expiration, so refresh it
+            //refresh token, set up api, then return client
+            final FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+            gettingFreshToken = true;
+            if(firebaseUser != null){
+
+                firebaseUser.getIdToken(true).addOnSuccessListener(new OnSuccessListener<GetTokenResult>() {
+                    @Override
+                    public void onSuccess(GetTokenResult getTokenResult) {
+                        Map<String, String> logins = new HashMap<>();
+                        currentAuthToken = getTokenResult.getToken();
+                        logins.put("securetoken.google.com/bcd-versus", currentAuthToken);
+                        credentialsProvider.setLogins(logins);
+
+                        try{
+                            credentialsProvider.refresh();
+                            credentialsProvider.getCredentials();
+                            setUpAPI();
+                            gettingFreshToken = false;
+                        }
+                        catch (NotAuthorizedException e){
+                            handleNotAuthorizedException();
+                        }
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        sessionLogOut();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(thisActivity, "Something went wrong. Please log back in.", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                });
+
+                long currentTime = System.currentTimeMillis();
+                long waitTill = currentTime + 8000;
+                while(gettingFreshToken && System.currentTimeMillis() < waitTill){
+
+                }
+                gettingFreshToken = false;
+                return client;
+            }
+            else{
+                gettingFreshToken = false;
+                sessionLogOut();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(thisActivity, "Something went wrong. Please log back in.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        }
+        else{
+            gettingFreshToken = false;
+            return client;
+        }
+        gettingFreshToken = false;
         return client;
     }
 

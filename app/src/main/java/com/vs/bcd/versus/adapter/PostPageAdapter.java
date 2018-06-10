@@ -269,15 +269,17 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 }
 
                 commentViewHolder.author.setText(currentComment.getAuthor());
-                if(!currentComment.getAuthor().equals("deleted")){
-                    commentViewHolder.author.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
+
+                commentViewHolder.author.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if(!currentComment.getAuthor().equals("deleted")){
+                            Log.d("commentauthorclicked", authorName);
                             activity.goToProfile(authorName, true);
                             activity.setProfileBackDestination(3);
                         }
-                    });
-                }
+                    }
+                });
 
 
                 commentViewHolder.overflowMenu.setOnClickListener(new View.OnClickListener() {
@@ -802,15 +804,16 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
             topCardViewHolder.author.setText(topCardObject.getAuthor());
             final String authorName = topCardObject.getAuthor();
-            if(!authorName.equals("deleted")){
-                topCardViewHolder.author.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
+            topCardViewHolder.author.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(!authorName.equals("deleted")){
+                        //Log.d("commentauthorclicked", authorName);
                         activity.goToProfile(authorName, true);
                         activity.setProfileBackDestination(3);
                     }
-                });
-            }
+                }
+            });
 
             topCardViewHolder.overflowMenu.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -1676,15 +1679,16 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     }
 
     private int getProfileImgVersion(String username){
+        if(!username.equals("deleted")){
+            try {
+                /* Execute URL and attach after execution response handler */
 
-        try {
-			/* Execute URL and attach after execution response handler */
+                return activity.getClient().pivsingleGet("pi", username).getPi().intValue();
 
-            return activity.getClient().pivsingleGet("pi", username).getPi().intValue();
-
-            //System.out.println("Response: " + strResponse);
-        } catch (Exception e) {
-            activity.handleNotAuthorizedException();
+                //System.out.println("Response: " + strResponse);
+            } catch (Exception e) {
+                activity.handleNotAuthorizedException();
+            }
         }
 
         //if the ES GET fails, then return old topCardContent
