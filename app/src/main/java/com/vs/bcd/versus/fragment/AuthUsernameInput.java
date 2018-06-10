@@ -256,9 +256,9 @@ public class AuthUsernameInput extends Fragment {
                                     });
 
                                 }
-                                else if(e.getStatusCode() == 403){ //if this bug occurs, retry the query
+                                else {
                                     //clear cached credentials, set up credentials again, refresh, then retry
-
+                                    activity.handleUnauthException();
                                 }
                             }
                             catch(Exception e){

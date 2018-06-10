@@ -28,6 +28,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.amazonaws.mobileconnectors.apigateway.ApiClientException;
+import com.amazonaws.services.cognitoidentity.model.NotAuthorizedException;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.vs.bcd.api.model.CGCModel;
@@ -557,8 +559,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         Runnable runnable = new Runnable() {
             public void run() {
-                try{
-                    /*
+                /*
                     long end = System.currentTimeMillis() + 8*1000; // 8 seconds * 1000 ms/sec
 
                     while(!dbWriteComplete && System.currentTimeMillis() < end){
@@ -573,79 +574,73 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     }
                     */
 
-                    //update post card if atRootLevel, else update top card
-                    if(atRootLevel){
-                        if(post == null){
-                            post = getPost(postID, writingPostVoteToDB);
-                        }
-                        else{
-                            post.copyPostInfo(getPost(postID, writingPostVoteToDB));
-                        }
+                //update post card if atRootLevel, else update top card
+                if(atRootLevel){
+                    if(post == null){
+                        post = getPost(postID, writingPostVoteToDB);
+                    }
+                    else{
+                        post.copyPostInfo(getPost(postID, writingPostVoteToDB));
+                    }
 
-                        Log.d("votesie", "Red: "+post.getRedcount()+", Blue: "+post.getBlackcount());
+                    Log.d("votesie", "Red: "+post.getRedcount()+", Blue: "+post.getBlackcount());
 
-                        postTopic = post.getQuestion();
-                        postX = post.getRedname();
-                        postY = post.getBlackname();
-                        origRedCount = post.getRedcount();
-                        origBlackCount = post.getBlackcount();
+                    postTopic = post.getQuestion();
+                    postX = post.getRedname();
+                    postY = post.getBlackname();
+                    origRedCount = post.getRedcount();
+                    origBlackCount = post.getBlackcount();
                         /*
                         redIncrementedLast = false;
                         blackIncrementedLast = false;
                         */
+                }
+                else{
+                    final VSComment updatedTopCardContent = getComment(topCardContent.getComment_id());
+
+                    if(nodeMap.get(topCardContent.getComment_id()) == null){
+                        nodeMap.put(updatedTopCardContent.getComment_id(), new VSCNode(updatedTopCardContent));
                     }
                     else{
-                        final VSComment updatedTopCardContent = getComment(topCardContent.getComment_id());
+                        nodeMap.get(topCardContent.getComment_id()).setNodeContent(updatedTopCardContent);
+                    }
 
-                        if(nodeMap.get(topCardContent.getComment_id()) == null){
-                            nodeMap.put(updatedTopCardContent.getComment_id(), new VSCNode(updatedTopCardContent));
-                        }
-                        else{
-                            nodeMap.get(topCardContent.getComment_id()).setNodeContent(updatedTopCardContent);
-                        }
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            String actionEntry = actionMap.get(updatedTopCardContent.getComment_id());
+                            if(actionEntry != null){
+                                switch (actionEntry){
+                                    case "U":
+                                        updatedTopCardContent.initialSetUservote(UPVOTE);
+                                        break;
 
-                        activity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                String actionEntry = actionMap.get(updatedTopCardContent.getComment_id());
-                                if(actionEntry != null){
-                                    switch (actionEntry){
-                                        case "U":
-                                            updatedTopCardContent.initialSetUservote(UPVOTE);
-                                            break;
-
-                                        case "D":
-                                            updatedTopCardContent.initialSetUservote(DOWNVOTE);
-                                            break;
-                                        //we ignore case "N" because uservote is 0 by default so we don't need to set it here
-                                    }
+                                    case "D":
+                                        updatedTopCardContent.initialSetUservote(DOWNVOTE);
+                                        break;
+                                    //we ignore case "N" because uservote is 0 by default so we don't need to set it here
                                 }
-                                parentCache.put(updatedTopCardContent.getComment_id(), updatedTopCardContent);
-                                setUpTopCard(parentCache.get(updatedTopCardContent.getComment_id()));
                             }
-                        });
-                    }
+                            parentCache.put(updatedTopCardContent.getComment_id(), updatedTopCardContent);
+                            setUpTopCard(parentCache.get(updatedTopCardContent.getComment_id()));
+                        }
+                    });
+                }
 
-                    //writeActionsToDB();
+                //writeActionsToDB();
 
-                    switch (sortType){
-                        case POPULAR:
-                            refreshCommentUpvotesQuery();
-                            break;
-                        case MOST_RECENT:
-                            refreshCommentTimestampQuery();
-                            break;
-                        case CHRONOLOGICAL:
-                            refreshCommentChronologicalQuery();
-                            break;
-                        default:
-                            break;
-                    }
-
-
-                }catch (Exception e){
-                    e.printStackTrace();
-
+                switch (sortType){
+                    case POPULAR:
+                        refreshCommentUpvotesQuery();
+                        break;
+                    case MOST_RECENT:
+                        refreshCommentTimestampQuery();
+                        break;
+                    case CHRONOLOGICAL:
+                        refreshCommentChronologicalQuery();
+                        break;
+                    default:
+                        break;
                 }
 
             }
@@ -1741,8 +1736,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 if(userAction == null || !userAction.getPostID(activity.getUsername().length()).equals(postID)){
                     try{
                         recordGetModel = activity.getClient().recordGet("rcg", activity.getUsername()+postID);
-                    }
-                    catch(Exception e){
+                    }catch(Exception e){
                         recordGetModel = null;
                     }
                 }
@@ -2628,70 +2622,68 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         //Log.d("gcomments", "loading more g comments");
         Runnable runnable = new Runnable() {
             public void run() {
-                try{
+                long thisThreadID = Thread.currentThread().getId();
 
-                    long thisThreadID = Thread.currentThread().getId();
+                final List<Object> masterList = new ArrayList<>();
 
-                    final List<Object> masterList = new ArrayList<>();
+                final ArrayList<VSComment> grootComments = new ArrayList<>();
 
-                    final ArrayList<VSComment> grootComments = new ArrayList<>();
+                String queryParentID = topCardContent.getComment_id();
 
-                    String queryParentID = topCardContent.getComment_id();
+                getRootComments(currCommentsIndex, grootComments, queryParentID, uORt);
 
-                    getRootComments(currCommentsIndex, grootComments, queryParentID, uORt);
-
-                    VSCNode prevNode = null;
-                    if(!grootComments.isEmpty()){
-                        //set up nodeMap with root comments
-                        for(int i = 0; i < grootComments.size(); i++){
-                            if(thisThreadID != queryThreadID){
-                                Log.d("wow", "broke out of old query thread");
-                                nowLoading = false;
-                                return;
-                            }
-                            VSCNode cNode = new VSCNode(grootComments.get(i));
-                            final String commentID = cNode.getCommentID();
-
-                            Log.d("wow", "child query, parentID to query: " + commentID);
-
-
-                            cNode.setNestedLevel(0);
-
-                            if(prevNode != null){
-                                prevNode.setTailSibling(cNode);
-                                cNode.setHeadSibling(prevNode);
-                            }
-
-                            nodeMap.put(commentID, cNode);
-                            prevNode = cNode;
-                        }
-
-                    }
-                    else{
-                        nowLoading = true; //no more loading until refresh
-                        activity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                mSwipeRefreshLayout.setRefreshing(false);
-                            }
-                        });
-                        return;
-                    }
-
-                    //set up comments list
-                    VSCNode temp;
-                    for(int i = 0; i<grootComments.size(); i++){
+                VSCNode prevNode = null;
+                if(!grootComments.isEmpty()){
+                    //set up nodeMap with root comments
+                    for(int i = 0; i < grootComments.size(); i++){
                         if(thisThreadID != queryThreadID){
                             Log.d("wow", "broke out of old query thread");
                             nowLoading = false;
                             return;
                         }
+                        VSCNode cNode = new VSCNode(grootComments.get(i));
+                        final String commentID = cNode.getCommentID();
 
-                        temp = nodeMap.get(grootComments.get(i).getComment_id());
-                        if(temp != null){
-                            setCommentList(temp, masterList);
+                        Log.d("wow", "child query, parentID to query: " + commentID);
+
+
+                        cNode.setNestedLevel(0);
+
+                        if(prevNode != null){
+                            prevNode.setTailSibling(cNode);
+                            cNode.setHeadSibling(prevNode);
                         }
+
+                        nodeMap.put(commentID, cNode);
+                        prevNode = cNode;
                     }
+
+                }
+                else{
+                    nowLoading = true; //no more loading until refresh
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mSwipeRefreshLayout.setRefreshing(false);
+                        }
+                    });
+                    return;
+                }
+
+                //set up comments list
+                VSCNode temp;
+                for(int i = 0; i<grootComments.size(); i++){
+                    if(thisThreadID != queryThreadID){
+                        Log.d("wow", "broke out of old query thread");
+                        nowLoading = false;
+                        return;
+                    }
+
+                    temp = nodeMap.get(grootComments.get(i).getComment_id());
+                    if(temp != null){
+                        setCommentList(temp, masterList);
+                    }
+                }
 
                     /*
                     if(!grootComments.isEmpty()){
@@ -2702,24 +2694,19 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     }
                     */
 
-                    //run UI updates on UI Thread
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
+                //run UI updates on UI Thread
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
 
-                            applyUserActions(masterList);
+                        applyUserActions(masterList);
 
-                            ((PostPageAdapter)RV.getAdapter()).appendToList(masterList);
+                        ((PostPageAdapter)RV.getAdapter()).appendToList(masterList);
 
-                            mSwipeRefreshLayout.setRefreshing(false);
+                        mSwipeRefreshLayout.setRefreshing(false);
 
-                        }
-                    });
-
-                }catch (Throwable t){
-                    Log.d("commentloading", t.getLocalizedMessage());
-
-                }
+                    }
+                });
 
             }
         };

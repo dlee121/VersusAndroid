@@ -1684,7 +1684,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
             //System.out.println("Response: " + strResponse);
         } catch (Exception e) {
-            e.printStackTrace();
+            activity.handleNotAuthorizedException();
         }
 
         //if the ES GET fails, then return old topCardContent

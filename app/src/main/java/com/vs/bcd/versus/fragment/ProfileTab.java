@@ -544,21 +544,7 @@ public class ProfileTab extends Fragment {
 
                     //update attribute "pi", which is profile image version
                     //update comment content through ddb update request
-                    HashMap<String, AttributeValue> keyMap = new HashMap<>();
-                    keyMap.put("i", new AttributeValue().withS(activity.getUsername()));
-
-                    HashMap<String, AttributeValueUpdate> updates = new HashMap<>();
-
-                    AttributeValueUpdate pi = new AttributeValueUpdate()
-                            .withValue(new AttributeValue().withN("1"))
-                            .withAction(AttributeAction.ADD);
-                    updates.put("pi", pi);
-
-                    UpdateItemRequest request = new UpdateItemRequest()
-                            .withTableName("user")
-                            .withKey(keyMap)
-                            .withAttributeUpdates(updates);
-                    activity.getDDBClient().updateItem(request);
+                    activity.getClient().userputGet("prof", profileUsername);
 
                     /*
                     //run UI updates on UI Thread
@@ -633,9 +619,10 @@ public class ProfileTab extends Fragment {
 
     private void getUserInfluence(){ //used in loadProfileImage to grab logged-in user's influence from ES
 
+        ProfileInfoModel result = activity.getClient().profileinfoGet("im", profileUsername);
+
         try {
             /* Execute URL and attach after execution response handler */
-            ProfileInfoModel result = activity.getClient().profileinfoGet("im", profileUsername);
 
             ProfileInfoModelSource source = result.getSource();
             influence = Integer.toString(source.getIn().intValue()) + " influence";
@@ -672,31 +659,26 @@ public class ProfileTab extends Fragment {
             {
                 //if (NetworkAvailablity.checkNetworkStatus(MyActivity.this))
                 //{
-                try {
 
-                    if(profileUsername.equals(activity.getUsername())){
-                        profileImgVersion = activity.getUserProfileImageVersion();
-                        //grab the influence from ES
-                        getUserInfluence();
-                    }
-                    else{
-                        //grab both influence and profileImgVersion from ES
-                        getProfileImgVersionAndInfluece(username);
-                    }
-
-                    activity.addToCentralProfileImgVersionMap(username, profileImgVersion);
-
-                    if(profileImgVersion == 0){
-                        imageURL = null;
-                    }
-                    else{
-                        imageURL = activity.getProfileImgUrl(username, profileImgVersion);
-                    }
-
-                } catch (Exception e) {
-                    // writing error to Log
-                    e.printStackTrace();
+                if(profileUsername.equals(activity.getUsername())){
+                    profileImgVersion = activity.getUserProfileImageVersion();
+                    //grab the influence from ES
+                    getUserInfluence();
                 }
+                else{
+                    //grab both influence and profileImgVersion from ES
+                    getProfileImgVersionAndInfluece(username);
+                }
+
+                activity.addToCentralProfileImgVersionMap(username, profileImgVersion);
+
+                if(profileImgVersion == 0){
+                    imageURL = null;
+                }
+                else{
+                    imageURL = activity.getProfileImgUrl(username, profileImgVersion);
+                }
+
                 return null;
             }
             @Override
@@ -727,8 +709,9 @@ public class ProfileTab extends Fragment {
 
     private void getProfileImgVersionAndInfluece(String username){
 
+        ProfileInfoModel result = activity.getClient().profileinfoGet("pim", username);
+
         try {
-            ProfileInfoModel result = activity.getClient().profileinfoGet("pim", username);
             ProfileInfoModelSource source = result.getSource();
             influence = Integer.toString(source.getIn().intValue()) + " influence";
             profileImgVersion = source.getPi().intValue();

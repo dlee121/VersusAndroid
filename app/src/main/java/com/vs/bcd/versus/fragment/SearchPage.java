@@ -169,12 +169,13 @@ public class SearchPage extends Fragment {
                     return;
                 }
 
-                try {
-                    if(postSearchResults == null){
-                        postSearchResults = new ArrayList<>();
-                    }
+                if(postSearchResults == null){
+                    postSearchResults = new ArrayList<>();
+                }
 
-                    PostsListCompactModel results = activity.getClient().postslistcompactGet(searchTerm,"sp", Integer.toString(fromIndex));
+                PostsListCompactModel results = activity.getClient().postslistcompactGet(searchTerm,"sp", Integer.toString(fromIndex));
+
+                try {
 
                     if(results != null){
                         List<PostsListCompactModelHitsHitsItem> hits = results.getHits().getHits();
@@ -260,18 +261,13 @@ public class SearchPage extends Fragment {
     //TODO: also implement request cancelling where cancel() is called on the Request, in case user exists search before current search completes, so as to not trigger handler unnecessarily, although it may not matter and may actually work better that way to not cancel...think about that too, not cancelling.
 
     private void getProfileImgVersions(String payload){
-        try {
-            PIVModel pivResult = activity.getClient().pivGet("pis", payload);
+        PIVModel pivResult = activity.getClient().pivGet("pis", payload);
 
-            List<PIVModelDocsItem> pivList = pivResult.getDocs();
-            if(pivList != null && !pivList.isEmpty()){
-                for(PIVModelDocsItem item : pivList){
-                    profileImgVersions.put(item.getId(), item.getSource().getPi().intValue());
-                }
+        List<PIVModelDocsItem> pivList = pivResult.getDocs();
+        if(pivList != null && !pivList.isEmpty()){
+            for(PIVModelDocsItem item : pivList){
+                profileImgVersions.put(item.getId(), item.getSource().getPi().intValue());
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
 
     }

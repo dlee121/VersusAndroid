@@ -1221,27 +1221,22 @@ public class CreateMessage extends Fragment {
     }
 
     private void getProfileImgVersions(String payload){
-        try {
-            PIVModel pivResult = activity.getClient().pivGet("pis", payload);
+        PIVModel pivResult = activity.getClient().pivGet("pis", payload);
 
-            List<PIVModelDocsItem> pivList = pivResult.getDocs();
-            if(pivList != null && !pivList.isEmpty()){
-                for(PIVModelDocsItem item : pivList){
-                    profileImgVersions.put(item.getId(), item.getSource().getPi().intValue());
+        List<PIVModelDocsItem> pivList = pivResult.getDocs();
+        if(pivList != null && !pivList.isEmpty()){
+            for(PIVModelDocsItem item : pivList){
+                profileImgVersions.put(item.getId(), item.getSource().getPi().intValue());
+            }
+        }
+
+        if(contactsListAdapter != null){
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    contactsListAdapter.notifyDataSetChanged();
                 }
-            }
-
-            if(contactsListAdapter != null){
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        contactsListAdapter.notifyDataSetChanged();
-                    }
-                });
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+            });
         }
 
     }

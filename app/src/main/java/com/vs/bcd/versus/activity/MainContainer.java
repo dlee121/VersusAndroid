@@ -106,6 +106,7 @@ import com.vs.bcd.versus.fragment.Tab2Trending;
 import com.vs.bcd.versus.fragment.Tab3Categories;
 import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.model.GlideUrlCustom;
+import com.vs.bcd.versus.model.GlobalExceptionHandler;
 import com.vs.bcd.versus.model.MessageObject;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.RoomObject;
@@ -135,8 +136,6 @@ public class MainContainer extends AppCompatActivity {
      * {@link FragmentStatePagerAdapter} derivative
      */
     private SectionsPagerAdapter mSectionsPagerAdapter;
-    private AmazonDynamoDBClient ddbClient;
-    private DynamoDBMapper mapper;
     private ImageButton toolbarButtonLeft;
     private ImageButton toolbarButtonRight;
     private TextView titleTxtView;
@@ -437,6 +436,7 @@ public class MainContainer extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        new GlobalExceptionHandler(MainContainer.this);
         setContentView(R.layout.activity_main_container);
         thisActivity = this;
         sessionManager = new SessionManager(this);
@@ -586,7 +586,6 @@ public class MainContainer extends AppCompatActivity {
 
         registerReceiver(myReceiver, new IntentFilter(MyFirebaseMessagingService.INTENT_FILTER));
 
-        ddbClient = new AmazonDynamoDBClient(credentialsProvider);
         s3 = new AmazonS3Client(credentialsProvider);
 
         currUsername = sessionManager.getCurrentUsername();
@@ -1786,10 +1785,6 @@ public class MainContainer extends AppCompatActivity {
         if(xBmp != null && yBmp != null){
             Log.d("BMPs set", "BMPs set");
         }
-    }
-
-    public AmazonDynamoDBClient getDDBClient(){
-        return ddbClient;
     }
 
     public boolean hasXBMP(){
@@ -3037,6 +3032,7 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public void handleNotAuthorizedException(){
+
         final FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         if(firebaseUser == null){
             sessionLogOut();

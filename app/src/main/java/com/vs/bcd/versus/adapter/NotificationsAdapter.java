@@ -276,7 +276,7 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
             return new Post(result.getSource(), result.getId());
 
         } catch (Exception e) {
-            e.printStackTrace();
+            activity.handleNotAuthorizedException();
         }
 
         //if the ES GET fails, then return old topCardContent
@@ -294,7 +294,7 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
             return new VSComment(result.getSource(), result.getId());
 
         } catch (Exception e) {
-            e.printStackTrace();
+            activity.handleNotAuthorizedException();
         }
 
         return null;

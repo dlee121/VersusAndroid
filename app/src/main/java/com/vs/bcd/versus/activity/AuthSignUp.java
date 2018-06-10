@@ -372,7 +372,18 @@ public class AuthSignUp extends AppCompatActivity {
         }
     }
 
-    public DynamoDBMapper getMapper(){
-        return mapper;
+    public void handleUnauthException(){
+        credentialsProvider.clear();
+        // Initialize the Amazon Cognito credentials provider
+        credentialsProvider = new CognitoCachingCredentialsProvider(
+                getApplicationContext(),
+                "us-east-1:88614505-c8df-4dce-abd8-79a0543852ff", // Identity Pool ID
+                Regions.US_EAST_1 // Region
+        );
+        credentialsProvider.refresh();
+
+        factory = new ApiClientFactory().credentialsProvider(credentialsProvider);
+        client = factory.build(VersusAPIClient.class);
     }
+
 }

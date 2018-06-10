@@ -18,6 +18,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.amazonaws.mobileconnectors.apigateway.ApiClientException;
 import com.bumptech.glide.ListPreloader;
 import com.bumptech.glide.RequestBuilder;
 import com.google.android.gms.ads.formats.NativeAd;
@@ -508,7 +509,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
             return new Post(result.getSource(), result.getId());
 
         } catch (Exception e) {
-            e.printStackTrace();
+            activity.handleNotAuthorizedException();
         }
 
         //if the ES GET fails, then return old topCardContent

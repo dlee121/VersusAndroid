@@ -310,37 +310,34 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
         }
         else{
 
-            try {
-                PostInfoModel obj = activity.getClient().postinfoGet("pinf", payload);
-                //JSONObject item = obj.getJSONObject("_source");
-                PostInfo postInfo = new PostInfo();
+            PostInfoModel obj = activity.getClient().postinfoGet("pinf", payload);
+            //JSONObject item = obj.getJSONObject("_source");
+            PostInfo postInfo = new PostInfo();
 
-                String id = null;
-                String rn = null;
-                String bn = null;
-                try{
-                    id = payload;
-                    rn = obj.getRn();
-                    bn = obj.getBn();
-                }catch (Exception e){
-                    if(id != null){
-                        Log.d("skipNullPost", "skipped in CH: " + id);
-                        problemPosts.add(id); //trigger a function that deletes this post and its comments
-                        deleteProblemPostAndComments();
-                    }
-                    e.printStackTrace();
+            String id = null;
+            String rn = null;
+            String bn = null;
+            try{
+                id = payload;
+                rn = obj.getRn();
+                bn = obj.getBn();
+            }catch (Exception e){
+                if(id != null){
+                    Log.d("skipNullPost", "skipped in CH: " + id);
+                    problemPosts.add(id); //trigger a function that deletes this post and its comments
+                    deleteProblemPostAndComments();
                 }
-                if(id != null && rn != null && bn != null){
-                    postInfo.setRB(rn, bn);
-                    //there's only one comment in the comments array, add the post info to the fromIndex-th index of the comments array
-                    comments.get(fromIndex).setR(postInfo.getR()).setB(postInfo.getB());
-                    postInfoMap.put(payload, postInfo);
-                }
-
-                //System.out.println("Response: " + strResponse);
-            } catch (Exception e) {
                 e.printStackTrace();
             }
+            if(id != null && rn != null && bn != null){
+                postInfo.setRB(rn, bn);
+                //there's only one comment in the comments array, add the post info to the fromIndex-th index of the comments array
+                comments.get(fromIndex).setR(postInfo.getR()).setB(postInfo.getB());
+                postInfoMap.put(payload, postInfo);
+            }
+
+            //System.out.println("Response: " + strResponse);
+
         }
     }
 

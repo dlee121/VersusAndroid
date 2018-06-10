@@ -337,26 +337,21 @@ public class FollowersAndFollowings extends Fragment {
     }
 
     private void getProfileImgVersions(String payload){
-        try {
-            PIVModel pivResult = activity.getClient().pivGet("pis", payload);
+        PIVModel pivResult = activity.getClient().pivGet("pis", payload);
 
-            List<PIVModelDocsItem> pivList = pivResult.getDocs();
-            if(pivList != null && !pivList.isEmpty()){
-                for(PIVModelDocsItem item : pivList){
-                    profileImgVersions.put(item.getId(), item.getSource().getPi().intValue());
+        List<PIVModelDocsItem> pivList = pivResult.getDocs();
+        if(pivList != null && !pivList.isEmpty()){
+            for(PIVModelDocsItem item : pivList){
+                profileImgVersions.put(item.getId(), item.getSource().getPi().intValue());
+            }
+        }
+        if(usersAdapter != null){
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    usersAdapter.notifyDataSetChanged();
                 }
-            }
-            if(usersAdapter != null){
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        usersAdapter.notifyDataSetChanged();
-                    }
-                });
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+            });
         }
 
     }

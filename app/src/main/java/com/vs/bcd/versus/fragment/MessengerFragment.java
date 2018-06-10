@@ -1676,16 +1676,15 @@ public class MessengerFragment extends Fragment {
 
     private void getProfileImgVersions(String payload){
 
-        try {
-            PIVModel pivResult = activity.getClient().pivGet("pis", payload);
+        PIVModel pivResult = activity.getClient().pivGet("pis", payload);
 
-            List<PIVModelDocsItem> pivList = pivResult.getDocs();
-            if(pivList != null && !pivList.isEmpty()){
-                for(PIVModelDocsItem item : pivList){
-                    profileImgVersions.put(item.getId(), item.getSource().getPi().intValue());
-                }
+        List<PIVModelDocsItem> pivList = pivResult.getDocs();
+        if(pivList != null && !pivList.isEmpty()){
+            for(PIVModelDocsItem item : pivList){
+                profileImgVersions.put(item.getId(), item.getSource().getPi().intValue());
             }
-            if(!profileImgVersions.isEmpty() && mFirebaseAdapter != null){
+        }
+        if(!profileImgVersions.isEmpty() && mFirebaseAdapter != null){
                 /*
                 activity.runOnUiThread(new Runnable() {
                     @Override
@@ -1694,10 +1693,6 @@ public class MessengerFragment extends Fragment {
                     }
                 });
                 */
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
 
     }

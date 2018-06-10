@@ -184,88 +184,77 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
         Runnable runnable = new Runnable() {
             public void run() {
 
-                try {
-                    /* Execute URL and attach after execution response handler */
-                    if(posts == null){
-                        posts = new ArrayList<>();
-                        myAdapter = new MyAdapter(posts, mHostActivity, profileImgVersions, 0);
-                        recyclerView.setAdapter(myAdapter);
-                    }
+                /* Execute URL and attach after execution response handler */
+                if(posts == null){
+                    posts = new ArrayList<>();
+                    myAdapter = new MyAdapter(posts, mHostActivity, profileImgVersions, 0);
+                    recyclerView.setAdapter(myAdapter);
+                }
 
 
-                    PostsListModel results = mHostActivity.getClient().postslistGet(null, null, "nw", Integer.toString(fromIndex));
-                    if(results != null){
-                        List<PostsListModelHitsHitsItem> hits = results.getHits().getHits();
-                        if(hits != null && !hits.isEmpty()){
-                            int i = 0;
-                            StringBuilder strBuilder = new StringBuilder((56*hits.size()) - 1);
-                            for(PostsListModelHitsHitsItem item : hits){
-                                PostsListModelHitsHitsItemSource source = item.getSource();
-                                String id = item.getId();
-                                posts.add(new Post(source, id));
-                                currPostsIndex++;
+                PostsListModel results = mHostActivity.getClient().postslistGet(null, null, "nw", Integer.toString(fromIndex));
 
-                                if(currPostsIndex%adFrequency == 0){
-                                    Post adSkeleton = new Post();
-                                    NativeAd nextAd = mHostActivity.getNextAd();
-                                    if(nextAd != null){
-                                        Log.d("adscheck", "ads loaded");
-                                        if(nextAd instanceof NativeAppInstallAd){
-                                            adSkeleton.setCategory(NATIVE_APP_INSTALL_AD);
-                                            adSkeleton.setNAI((NativeAppInstallAd) nextAd);
-                                            posts.add(adSkeleton);
-                                            adCount++;
-                                        }
-                                        else if(nextAd instanceof NativeContentAd){
-                                            adSkeleton.setCategory(NATIVE_CONTENT_AD);
-                                            adSkeleton.setNC((NativeContentAd) nextAd);
-                                            posts.add(adSkeleton);
-                                            adCount++;
-                                        }
+                if(results != null){
+                    List<PostsListModelHitsHitsItem> hits = results.getHits().getHits();
+                    if(hits != null && !hits.isEmpty()){
+                        int i = 0;
+                        StringBuilder strBuilder = new StringBuilder((56*hits.size()) - 1);
+                        for(PostsListModelHitsHitsItem item : hits){
+                            PostsListModelHitsHitsItemSource source = item.getSource();
+                            String id = item.getId();
+                            posts.add(new Post(source, id));
+                            currPostsIndex++;
+
+                            if(currPostsIndex%adFrequency == 0){
+                                Post adSkeleton = new Post();
+                                NativeAd nextAd = mHostActivity.getNextAd();
+                                if(nextAd != null){
+                                    Log.d("adscheck", "ads loaded");
+                                    if(nextAd instanceof NativeAppInstallAd){
+                                        adSkeleton.setCategory(NATIVE_APP_INSTALL_AD);
+                                        adSkeleton.setNAI((NativeAppInstallAd) nextAd);
+                                        posts.add(adSkeleton);
+                                        adCount++;
                                     }
-                                    else{
-                                        Log.d("adscheck", "ads not loaded");
+                                    else if(nextAd instanceof NativeContentAd){
+                                        adSkeleton.setCategory(NATIVE_CONTENT_AD);
+                                        adSkeleton.setNC((NativeContentAd) nextAd);
+                                        posts.add(adSkeleton);
+                                        adCount++;
                                     }
-                                }
-
-                                //add username to parameter string, then at loop finish we do multiget of those users and create hashmap of username:profileImgVersion
-                                if(i == 0){
-                                    strBuilder.append("\""+source.getA()+"\"");
                                 }
                                 else{
-                                    strBuilder.append(",\""+source.getA()+"\"");
+                                    Log.d("adscheck", "ads not loaded");
                                 }
-                                i++;
                             }
 
-                            if(strBuilder.length() > 0){
-                                String payload = "{\"ids\":["+strBuilder.toString()+"]}";
-                                getProfileImgVersions(payload);
+                            //add username to parameter string, then at loop finish we do multiget of those users and create hashmap of username:profileImgVersion
+                            if(i == 0){
+                                strBuilder.append("\""+source.getA()+"\"");
                             }
+                            else{
+                                strBuilder.append(",\""+source.getA()+"\"");
+                            }
+                            i++;
+                        }
 
-                            mHostActivity.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    mSwipeRefreshLayout.setRefreshing(false);
-                                    if(nowLoading){
-                                        nowLoading = false;
-                                    }
-                                    if(posts != null && !posts.isEmpty()){
-                                        myAdapter.notifyDataSetChanged();
-                                    }
-                                }
-                            });
+                        if(strBuilder.length() > 0){
+                            String payload = "{\"ids\":["+strBuilder.toString()+"]}";
+                            getProfileImgVersions(payload);
                         }
-                        else{
-                            mHostActivity.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Log.d("loadmore", "end reached, disabling loadMore");
-                                    nowLoading = true;
-                                    mSwipeRefreshLayout.setRefreshing(false);
+
+                        mHostActivity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                mSwipeRefreshLayout.setRefreshing(false);
+                                if(nowLoading){
+                                    nowLoading = false;
                                 }
-                            });
-                        }
+                                if(posts != null && !posts.isEmpty()){
+                                    myAdapter.notifyDataSetChanged();
+                                }
+                            }
+                        });
                     }
                     else{
                         mHostActivity.runOnUiThread(new Runnable() {
@@ -277,12 +266,19 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                             }
                         });
                     }
-
-                    //System.out.println("Response: " + strResponse);
-                } catch (Exception e) {
-                    e.printStackTrace();
+                }
+                else{
+                    mHostActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Log.d("loadmore", "end reached, disabling loadMore");
+                            nowLoading = true;
+                            mSwipeRefreshLayout.setRefreshing(false);
+                        }
+                    });
                 }
 
+                //System.out.println("Response: " + strResponse);
 
             }
         };
@@ -306,18 +302,13 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
 
 
     private void getProfileImgVersions(String payload){
-        try {
-            PIVModel pivResult = mHostActivity.getClient().pivGet("pis", payload);
+        PIVModel pivResult = mHostActivity.getClient().pivGet("pis", payload);
 
-            List<PIVModelDocsItem> pivList = pivResult.getDocs();
-            if(pivList != null && !pivList.isEmpty()){
-                for(PIVModelDocsItem item : pivList){
-                    profileImgVersions.put(item.getId(), item.getSource().getPi().intValue());
-                }
+        List<PIVModelDocsItem> pivList = pivResult.getDocs();
+        if(pivList != null && !pivList.isEmpty()){
+            for(PIVModelDocsItem item : pivList){
+                profileImgVersions.put(item.getId(), item.getSource().getPi().intValue());
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 

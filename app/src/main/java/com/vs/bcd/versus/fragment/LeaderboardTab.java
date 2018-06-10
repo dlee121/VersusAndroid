@@ -136,29 +136,29 @@ public class LeaderboardTab extends Fragment {
         Runnable runnable = new Runnable() {
             public void run() {
 
+                LeaderboardModel result = activity.getClient().leaderboardGet("lb");
+
+                List<LeaderboardModelHitsHitsItem> hits = result.getHits().getHits();
+
                 try {
                     /* Execute URL and attach after execution response handler */
-
-                    LeaderboardModel result = activity.getClient().leaderboardGet("lb");
-
-                    List<LeaderboardModelHitsHitsItem> hits = result.getHits().getHits();
-
                     for (LeaderboardModelHitsHitsItem item : hits) {
                         leaders.add(new LeaderboardEntry(item.getSource(), item.getId()));
                     }
-
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            lbProgressBar.setVisibility(View.GONE);
-                            mLeaderboardAdapter.notifyDataSetChanged();
-                        }
-                    });
-
                     //System.out.println("Response: " + strResponse);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        lbProgressBar.setVisibility(View.GONE);
+                        mLeaderboardAdapter.notifyDataSetChanged();
+                    }
+                });
+
+
             }
         };
         Thread mythread = new Thread(runnable);

@@ -199,26 +199,21 @@ public class GroupMembersPage extends Fragment {
     }
 
     private void getProfileImgVersions(String payload){
-        try {
-            PIVModel pivResult = activity.getClient().pivGet("pis", payload);
+        PIVModel pivResult = activity.getClient().pivGet("pis", payload);
 
-            List<PIVModelDocsItem> pivList = pivResult.getDocs();
-            if(pivList != null && !pivList.isEmpty()){
-                for(PIVModelDocsItem item : pivList){
-                    profileImgVersions.put(item.getId(), item.getSource().getPi().intValue());
+        List<PIVModelDocsItem> pivList = pivResult.getDocs();
+        if(pivList != null && !pivList.isEmpty()){
+            for(PIVModelDocsItem item : pivList){
+                profileImgVersions.put(item.getId(), item.getSource().getPi().intValue());
+            }
+        }
+        if(groupMembersAdapter != null){
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    groupMembersAdapter.notifyDataSetChanged();
                 }
-            }
-            if(groupMembersAdapter != null){
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        groupMembersAdapter.notifyDataSetChanged();
-                    }
-                });
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+            });
         }
 
     }
