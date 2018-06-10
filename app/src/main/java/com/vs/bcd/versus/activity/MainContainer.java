@@ -2540,6 +2540,9 @@ public class MainContainer extends AppCompatActivity {
     private void setUpAPI(){
         factory = new ApiClientFactory().credentialsProvider(credentialsProvider);
         client = factory.build(VersusAPIClient.class);
+        //TODO: set up s3 with the new credential
+        s3 = new AmazonS3Client(credentialsProvider); //so we initialize it here as well as in onCreate().
+                                                    // is the duplication necessary? or is it sufficient to initialize it here
     }
 
     public VersusAPIClient getClient(){
@@ -2560,10 +2563,16 @@ public class MainContainer extends AppCompatActivity {
                         credentialsProvider.setLogins(logins);
 
                         try{
-                            credentialsProvider.refresh();
-                            credentialsProvider.getCredentials();
-                            setUpAPI();
-                            gettingFreshToken = false;
+                            Runnable runnable = new Runnable() {
+                                public void run() {
+                                    credentialsProvider.refresh();
+                                    credentialsProvider.getCredentials();
+                                    setUpAPI();
+                                    gettingFreshToken = false;
+                                }
+                            };
+                            Thread mythread = new Thread(runnable);
+                            mythread.start();
                         }
                         catch (NotAuthorizedException e){
                             handleNotAuthorizedException();
