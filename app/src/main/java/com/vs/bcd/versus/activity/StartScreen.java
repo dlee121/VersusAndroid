@@ -20,6 +20,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
+import com.amazonaws.mobileconnectors.apigateway.ApiClientException;
 import com.amazonaws.mobileconnectors.apigateway.ApiClientFactory;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Regions;
@@ -439,6 +440,8 @@ public class StartScreen extends AppCompatActivity {
                                                                     }
                                                                 });
                                                             }catch (NotAuthorizedException e){
+                                                                refreshUnauthCredentials();
+
                                                                 thisActivity.runOnUiThread(new Runnable() {
                                                                     @Override
                                                                     public void run() {
@@ -493,7 +496,7 @@ public class StartScreen extends AppCompatActivity {
     private void logInOrSignUpUser(String authID, String firstname, String lastname){ //for facebook login and google login. Logs the user in if user is already registered with the app, otherwise it registers the user with the app
 
         try {
-            List<AIModelHitsHitsItem> hits = client.aiGet(authID).getHits().getHits();
+            List<AIModelHitsHitsItem> hits = client.aiGet(authID).getHits().getHits(); //unauth accessible function
 
 
             if(hits.size() == 0){
@@ -618,10 +621,23 @@ public class StartScreen extends AppCompatActivity {
                         });
 
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            //TODO: remove progress bar, pop a toast saying something went wrong, try again or check network connection
+        } catch(Exception e){
+            //refresh Unauth credentials
+            refreshUnauthCredentials();
+
         }
+    }
+
+    private void refreshUnauthCredentials(){
+        credentialsProvider.clear();
+        credentialsProvider = new CognitoCachingCredentialsProvider(
+                getApplicationContext(),
+                "us-east-1:88614505-c8df-4dce-abd8-79a0543852ff", // Identity Pool ID
+                Regions.US_EAST_1 // Region
+        );
+        credentialsProvider.refresh();
+        factory = new ApiClientFactory().credentialsProvider(credentialsProvider);
+        client = factory.build(VersusAPIClient.class);
     }
 
     private void resetLoginButtons(){
