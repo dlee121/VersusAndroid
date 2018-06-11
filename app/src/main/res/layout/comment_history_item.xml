@@ -14,25 +14,13 @@
         android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/usercomment_history"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
-            android:layout_marginTop="2dp"
-            android:ellipsize="end"
-            android:maxLines="2"
-            android:textColor="#FF000000"
-            android:text="comment content up to two lines two lines two lines like like like this. extra gets ellipsized like this!!!"
-            android:textSize="12sp" />
-
-        <TextView
             android:id="@+id/red_chi"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
-            android:layout_below="@id/usercomment_history"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:text="red"
             android:textStyle="bold"
             android:textSize="12sp" />
@@ -41,8 +29,8 @@
             android:id="@+id/v_chi"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="4dp"
-            android:layout_below="@id/usercomment_history"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="2dp"
             android:layout_toEndOf="@id/red_chi"
             android:text="v"
             android:textColor="@color/vsBlue"
@@ -52,8 +40,8 @@
             android:id="@+id/s_chi"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginRight="4dp"
-            android:layout_below="@id/usercomment_history"
+            android:layout_marginEnd="4dp"
+            android:layout_marginTop="2dp"
             android:layout_toEndOf="@id/v_chi"
             android:text="s"
             android:textColor="@color/vsRed"
@@ -64,44 +52,54 @@
             android:id="@+id/blue_chi"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginRight="8dp"
-            android:layout_below="@id/usercomment_history"
+            android:layout_marginEnd="8dp"
+            android:layout_marginTop="2dp"
             android:layout_toEndOf="@id/s_chi"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:text="blue"
             android:textStyle="bold"
             android:textSize="12sp" />
 
         <TextView
-            android:id="@+id/time_chi"
+            android:id="@+id/usercomment_history"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
+            android:layout_below="@id/red_chi"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="#FF000000"
+            android:text="comment content up to two lines two lines two lines like like like this. extra gets ellipsized like this!!!"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/guide"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
             android:layout_below="@id/usercomment_history"
-            android:layout_marginLeft="4dp"
             android:layout_marginTop="2dp"
-            android:text="2m"
+            android:text=""
             android:textSize="10sp" />
 
         <ImageView
-            android:id="@+id/blueheart"
+            android:id="@+id/medal_chi"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBottom="@id/time_chi"
-            android:layout_alignTop="@id/time_chi"
-            android:layout_toStartOf="@id/time_chi"
-            android:layout_marginBottom="1dp"
-            android:layout_marginTop="-1dp"
-            android:layout_marginLeft="-3dp"
-            app:srcCompat="@drawable/ic_heart_broken_highlighted" />
+            android:layout_alignBottom="@id/guide"
+            android:layout_alignTop="@id/guide"
+            android:layout_marginStart="8dp"
+            android:layout_alignParentStart="true"/>
 
         <TextView
-            android:id="@+id/downvotes_chi"
+            android:id="@+id/upvotes_chi"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="4dp"
             android:layout_marginTop="2dp"
             android:layout_below="@id/usercomment_history"
-            android:layout_toStartOf="@id/blueheart"
+            android:layout_toEndOf="@id/medal_chi"
             android:text="18"
             android:textAlignment="center"
             android:textSize="10sp" />
@@ -110,33 +108,52 @@
             android:id="@+id/redheart"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBottom="@id/time_chi"
-            android:layout_alignTop="@id/time_chi"
-            android:layout_toStartOf="@id/downvotes_chi"
+            android:layout_alignBottom="@id/guide"
+            android:layout_alignTop="@id/guide"
+            android:layout_toEndOf="@id/upvotes_chi"
             android:layout_marginBottom="1dp"
             android:layout_marginTop="-1dp"
             android:layout_marginLeft="-3dp"
             app:srcCompat="@drawable/ic_heart_highlighted" />
 
         <TextView
-            android:id="@+id/upvotes_chi"
+            android:id="@+id/downvotes_chi"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="4dp"
             android:layout_marginTop="2dp"
             android:layout_below="@id/usercomment_history"
-            android:layout_toStartOf="@id/redheart"
+            android:layout_toEndOf="@id/redheart"
             android:text="18"
             android:textAlignment="center"
             android:textSize="10sp" />
 
         <ImageView
-            android:id="@+id/medal_chi"
+            android:id="@+id/blueheart"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignBottom="@id/time_chi"
             android:layout_alignTop="@id/time_chi"
-            android:layout_toStartOf="@id/upvotes_chi" />
+            android:layout_toEndOf="@id/downvotes_chi"
+            android:layout_marginBottom="1dp"
+            android:layout_marginTop="-1dp"
+            android:layout_marginLeft="-3dp"
+            app:srcCompat="@drawable/ic_heart_broken_highlighted" />
+
+        <TextView
+            android:id="@+id/time_chi"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/blueheart"
+            android:layout_below="@id/usercomment_history"
+            android:layout_marginLeft="4dp"
+            android:layout_marginTop="2dp"
+            android:text="2m"
+            android:textSize="10sp" />
+
+
+
+
 
 
 

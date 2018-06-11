@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -60,7 +61,9 @@ public class CommentHistoryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
         if(!commentsHistory.skipThisComment(itemComment.getPost_id())){
             commentHistoryViewHolder.redTv.setText(itemComment.getR());
+
             commentHistoryViewHolder.blueTv.setText(itemComment.getB());
+
             commentHistoryViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -118,15 +121,19 @@ public class CommentHistoryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
         switch (itemComment.getTopmedal()){
             case 0:
                 commentHistoryViewHolder.medalView.setImageResource(android.R.color.transparent);
+                ((RelativeLayout.LayoutParams)commentHistoryViewHolder.medalView.getLayoutParams()).leftMargin = activity.getResources().getDimensionPixelSize(R.dimen.chi_heart_margin);
                 break; //no medal, default currentMedal value
             case 1: //bronze
                 commentHistoryViewHolder.medalView.setImageResource(R.drawable.ic_bronze_medal);
+                ((RelativeLayout.LayoutParams)commentHistoryViewHolder.medalView.getLayoutParams()).leftMargin = activity.getResources().getDimensionPixelSize(R.dimen.chi_medal_margin);
                 break;
             case 2: //silver
                 commentHistoryViewHolder.medalView.setImageResource(R.drawable.ic_silver_medal);
+                ((RelativeLayout.LayoutParams)commentHistoryViewHolder.medalView.getLayoutParams()).leftMargin = activity.getResources().getDimensionPixelSize(R.dimen.chi_medal_margin);
                 break;
             case 3: //gold
                 commentHistoryViewHolder.medalView.setImageResource(R.drawable.ic_gold_medal);
+                ((RelativeLayout.LayoutParams)commentHistoryViewHolder.medalView.getLayoutParams()).leftMargin = activity.getResources().getDimensionPixelSize(R.dimen.chi_medal_margin);
                 break;
         }
 

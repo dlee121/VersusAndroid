@@ -25,5 +25,7 @@
     <dimen name="vcpc_titles">14sp</dimen>
     <dimen name="profile_img_general">112dp</dimen>
     <dimen name="sort_header">18sp</dimen>
+    <dimen name="chi_medal_margin">2dp</dimen>
+    <dimen name="chi_heart_margin">8dp</dimen>
 
 </resources>
