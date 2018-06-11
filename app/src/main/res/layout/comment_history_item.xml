@@ -144,9 +144,9 @@
             android:id="@+id/time_chi"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toEndOf="@id/blueheart"
+            android:layout_alignParentEnd="true"
             android:layout_below="@id/usercomment_history"
-            android:layout_marginLeft="4dp"
+            android:layout_marginEnd="8dp"
             android:layout_marginTop="2dp"
             android:text="2m"
             android:textSize="10sp" />
