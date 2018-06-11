@@ -1222,17 +1222,6 @@ public class CreateMessage extends Fragment {
     }
 
     private void getProfileImgVersions(String payload){
-        VersusAPIClient client = activity.getClient();
-        int retryCount = 3;
-        while(client == null && retryCount > 0){
-
-
-
-        }
-        if(client == null){
-            return;
-        }
-
 
         PIVModel pivResult = activity.getClient().pivGet("pis", payload);
 
