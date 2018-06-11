@@ -36,6 +36,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import com.vs.bcd.api.VersusAPIClient;
 import com.vs.bcd.api.model.PIVModel;
 import com.vs.bcd.api.model.PIVModelDocsItem;
 import com.vs.bcd.versus.R;
@@ -1221,6 +1222,18 @@ public class CreateMessage extends Fragment {
     }
 
     private void getProfileImgVersions(String payload){
+        VersusAPIClient client = activity.getClient();
+        int retryCount = 3;
+        while(client == null && retryCount > 0){
+
+
+
+        }
+        if(client == null){
+            return;
+        }
+
+
         PIVModel pivResult = activity.getClient().pivGet("pis", payload);
 
         List<PIVModelDocsItem> pivList = pivResult.getDocs();

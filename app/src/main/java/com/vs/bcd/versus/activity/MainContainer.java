@@ -2546,6 +2546,12 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public VersusAPIClient getClient(){
+        long timeNow = System.currentTimeMillis();
+        long waitUntil = timeNow + 8000; //max wait time is 8 seconds. If api doesn't get initialized after that, fuck it, crash the app and start over
+        while(client == null && System.currentTimeMillis() < waitUntil){
+            //waits while client is getting initialized, this prevents crashes that can occur when fragments call the api before its initialization
+        }
+
         gettingFreshToken = false;
         JWT jwt = new JWT(currentAuthToken);
         if(jwt.getExpiresAt().getTime() - 300000 < System.currentTimeMillis()){ //token close to expiration, so refresh it
@@ -2575,12 +2581,14 @@ public class MainContainer extends AppCompatActivity {
                             mythread.start();
                         }
                         catch (NotAuthorizedException e){
+                            gettingFreshToken = false;
                             handleNotAuthorizedException();
                         }
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
+                        gettingFreshToken = false;
                         sessionLogOut();
                         runOnUiThread(new Runnable() {
                             @Override
