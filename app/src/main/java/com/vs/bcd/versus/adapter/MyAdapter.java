@@ -417,8 +417,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
             if(fragmentInt == 1){ //Search item, so show author
                 final String authorName = compactPost.getAuthor();
                 compactViewHolder.author.setText(authorName);
-                compactViewHolder.timeTop.setText(getFormattedTime(compactPost.getTime()));
-                compactViewHolder.time.setText("");
+                compactViewHolder.time.setText(getFormattedTime(compactPost.getTime()));
 
                 compactViewHolder.author.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -591,7 +590,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
     }
 
     private class CompactViewHolder extends RecyclerView.ViewHolder{
-        private TextView author, question, votecount, rname, bname, time, timeTop;
+        private TextView author, question, votecount, rname, bname, time;
         private RelativeLayout authorContainer;
         private CircleImageView circView;
 
@@ -600,7 +599,6 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
             authorContainer = view.findViewById(R.id.cc_author_container);
             circView = authorContainer.findViewById(R.id.profile_image_cc);
             author = authorContainer.findViewById(R.id.cc_author_tv);
-            timeTop = authorContainer.findViewById(R.id.time_cc);
             question = view.findViewById(R.id.question_vc);
             votecount = view.findViewById(R.id.votes_vc);
             rname = view.findViewById(R.id.red_vc);
