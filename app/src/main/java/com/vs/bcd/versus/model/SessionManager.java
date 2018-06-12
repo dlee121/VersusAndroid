@@ -38,6 +38,7 @@ public class SessionManager {
     public static final String KEY_PHONE = "pref_phone";
     public static final String KEY_USERNAME = "pref_username";
     public static final String KEY_PI = "pref_profileimage";
+    public static final String KEY_IS_NATIVE = "pref_is_native"; //marks if the user logged in using native login or Facebook/Google
 
 
     // Constructor
@@ -50,7 +51,7 @@ public class SessionManager {
     /**
      * Create login session
      * */
-    public void createLoginSession(User user){
+    public void createLoginSession(User user, boolean isNative){
         // Storing login value as TRUE
         editor.putBoolean(IS_LOGIN, true);
 
@@ -62,6 +63,7 @@ public class SessionManager {
         editor.putString(KEY_PHONE, user.getPhone());
         editor.putString(KEY_USERNAME, user.getUsername());
         editor.putInt(KEY_PI, user.getProfileImage());
+        editor.putBoolean(KEY_IS_NATIVE, isNative);
         // commit changes
         editor.commit();
     }
@@ -86,6 +88,10 @@ public class SessionManager {
             _context.startActivity(i);
         }
 
+    }
+
+    public boolean isNative(){
+        return pref.getBoolean(KEY_IS_NATIVE, false);
     }
 
     public String getCurrentUsername(){

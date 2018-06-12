@@ -314,7 +314,7 @@ public class SignUp extends AppCompatActivity {
                                                     thisActivity.runOnUiThread(new Runnable() {
                                                         @Override
                                                         public void run() {
-                                                            sessionManager.createLoginSession(newUser);
+                                                            sessionManager.createLoginSession(newUser, true);
                                                             Intent intent = new Intent(thisActivity, MainContainer.class);
                                                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);   //clears back stack for navigation
                                                             intent.putExtra("oitk", getTokenResult.getToken());

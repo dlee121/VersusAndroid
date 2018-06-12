@@ -429,7 +429,7 @@ public class StartScreen extends AppCompatActivity {
                                                                     @Override
                                                                     public void run() {
                                                                         SessionManager sessionManager = new SessionManager(thisActivity);
-                                                                        sessionManager.createLoginSession(user);    //store login session data in Shared Preferences
+                                                                        sessionManager.createLoginSession(user, true);    //store login session data in Shared Preferences
 
                                                                         Intent intent = new Intent(thisActivity, MainContainer.class);
                                                                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -556,7 +556,7 @@ public class StartScreen extends AppCompatActivity {
                                                                 @Override
                                                                 public void run() {
                                                                     SessionManager sessionManager = new SessionManager(thisActivity);
-                                                                    sessionManager.createLoginSession(user);
+                                                                    sessionManager.createLoginSession(user, false);
                                                                     Intent intent = new Intent(thisActivity, MainContainer.class);
                                                                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);   //clears back stack for navigation
                                                                     intent.putExtra("oitk", getTokenResult.getToken());

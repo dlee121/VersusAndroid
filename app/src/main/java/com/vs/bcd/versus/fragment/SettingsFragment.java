@@ -1,5 +1,6 @@
 package com.vs.bcd.versus.fragment;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -33,6 +34,7 @@ public class SettingsFragment extends Fragment {
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
     private SettingsAdapter mSettingsAdapter;
+    private MainContainer activity;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -42,9 +44,9 @@ public class SettingsFragment extends Fragment {
         settingObjects = new ArrayList<>();
         setUpSettings();
 
-        RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.settings_rv);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        mSettingsAdapter = new SettingsAdapter(settingObjects, getActivity());
+        RecyclerView recyclerView = rootView.findViewById(R.id.settings_rv);
+        recyclerView.setLayoutManager(new LinearLayoutManager(activity));
+        mSettingsAdapter = new SettingsAdapter(settingObjects, activity);
         recyclerView.setAdapter(mSettingsAdapter);
 
         childViews = new ArrayList<>();
@@ -56,6 +58,12 @@ public class SettingsFragment extends Fragment {
 
         disableChildViews();
         return rootView;
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        activity = (MainContainer) context;
     }
 
 
@@ -90,7 +98,9 @@ public class SettingsFragment extends Fragment {
 
     private void setUpSettings(){
         settingObjects.add(new SettingObject("Log Out"));
-        //settingObjects.add(new SettingObject("Add 10 Posts")); //TODO: must delete this when dev is done lol
+        if(activity.isUserNative()){
+            settingObjects.add(new SettingObject("Set Password Reset Email"));
+        }
     }
 
 }
