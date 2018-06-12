@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.support.media.ExifInterface;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -106,6 +107,8 @@ public class CreatePost extends Fragment {
     private boolean rightImgEdited = false;
     private boolean rightImgDeleted = false;
     private Post postToEdit;
+
+    private boolean permissionFlag = false;
 
     private int imagesAdded = 0; //0 = none, 1 = left, 2 = right, 3 = both.
 
@@ -725,6 +728,7 @@ public class CreatePost extends Fragment {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        permissionFlag = false;
         if (resultCode == Activity.RESULT_OK) {
             Uri imageUri = getPickImageResultUri(data);
 
@@ -732,12 +736,17 @@ public class CreatePost extends Fragment {
             // but we don't know if we need to for the URI so the simplest is to try open the stream and see if we get error.
             boolean requirePermissions = false;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                    getContext().checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED &&
-                    isUriRequiresPermissions(imageUri)) {
+                    getContext().checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ) {
+
 
                 // request permissions and handle the result in onRequestPermissionsResult()
                 requirePermissions = true;
                 mCropImageUri = imageUri;
+
+                if(!shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE)){
+                    permissionFlag = true;
+                }
+
                 requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
             }
 
@@ -856,8 +865,18 @@ public class CreatePost extends Fragment {
             }
 
 
-        } else {
-            Toast.makeText(getActivity(), "Required permissions are not granted", Toast.LENGTH_LONG).show();
+        } else if(permissionFlag && Build.VERSION.SDK_INT >= 23 && !shouldShowRequestPermissionRationale(permissions[0])){
+            Toast.makeText(getActivity(), "Permission to read external storage was denied. Please enable it in the settings.", Toast.LENGTH_LONG).show();
+            Intent i = new Intent();
+            i.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            i.addCategory(Intent.CATEGORY_DEFAULT);
+            i.setData(Uri.parse("package:" + activity.getPackageName()));
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            i.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+            i.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+            activity.startActivity(i);
+        } else{
+            Toast.makeText(getActivity(), "Required permission was not granted.", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -1003,6 +1022,8 @@ public class CreatePost extends Fragment {
         hideLeftClearButton();
         hideRightClearButton();
         activity.getPostPage().clearList();
+
+        permissionFlag = false;
     }
 
     public void setCatSelection(String catName, int catSelection){

@@ -423,6 +423,7 @@ public class NotificationsTab extends Fragment {
                                 itemUpdateCount.put(hashKey, updateCount + 1);
                                 mostRecentTimeValue.put(hashKey, (int)timeValue);
                                 mNotificationsAdapter.notifyItemInserted(notificationItems.size()-1);
+                                checkAndSetTopButton();
                                 if(!fragmentVisible){
                                     activity.setNotificationBadge(true);
                                 }
@@ -545,6 +546,7 @@ public class NotificationsTab extends Fragment {
                                 itemUpdateCount.put(TYPE_F, updateCount + 1);
                                 mostRecentTimeValue.put(TYPE_F, (int)timeValue);
                                 mNotificationsAdapter.notifyItemInserted(notificationItems.size()-1);
+                                checkAndSetTopButton();
                                 if(!fragmentVisible){
                                     activity.setNotificationBadge(true);
                                 }
@@ -665,6 +667,7 @@ public class NotificationsTab extends Fragment {
                         itemUpdateCount.put(hashKey, updateCount + 1);
                         mostRecentTimeValue.put(hashKey, (int)timeValue);
                         mNotificationsAdapter.notifyItemInserted(notificationItems.size()-1);
+                        checkAndSetTopButton();
                         if(!fragmentVisible){
                             activity.setNotificationBadge(true);
                         }
@@ -775,6 +778,7 @@ public class NotificationsTab extends Fragment {
                                 itemUpdateCount.put(hashKey, updateCount + 1);
                                 mostRecentTimeValue.put(hashKey, (int)timeValue);
                                 mNotificationsAdapter.notifyItemInserted(notificationItems.size()-1);
+                                checkAndSetTopButton();
                                 if(!fragmentVisible){
                                     activity.setNotificationBadge(true);
                                 }
@@ -896,6 +900,7 @@ public class NotificationsTab extends Fragment {
                                     itemUpdateCount.put(hashKey, updateCount + 1);
                                     mostRecentTimeValue.put(hashKey, (int)timeValue);
                                     mNotificationsAdapter.notifyItemInserted(notificationItems.size()-1);
+                                    checkAndSetTopButton();
                                     if(!fragmentVisible){
                                         activity.setNotificationBadge(true);
                                     }
@@ -1012,6 +1017,7 @@ public class NotificationsTab extends Fragment {
                                     itemUpdateCount.put(hashKey, updateCount + 1);
                                     mostRecentTimeValue.put(hashKey, (int)timeValue);
                                     mNotificationsAdapter.notifyItemInserted(notificationItems.size()-1);
+                                    checkAndSetTopButton();
                                     if(!fragmentVisible){
                                         activity.setNotificationBadge(true);
                                     }
@@ -1150,7 +1156,7 @@ public class NotificationsTab extends Fragment {
         newNotificationsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mLayoutManager.scrollToPosition(mLayoutManager.getItemCount() - 1);
+                mLayoutManager.scrollToPosition(mLayoutManager.getItemCount() - 1); //TODO: change to smooth scroll
             }
         });
 
@@ -1225,7 +1231,7 @@ public class NotificationsTab extends Fragment {
             childViews.get(i).setLayoutParams(LPStore.get(i));
         }
         if(topUnread){
-            showNNB();
+            checkAndSetTopButton();
         }
     }
 
@@ -1258,6 +1264,9 @@ public class NotificationsTab extends Fragment {
         if (mLayoutManager != null) {
             if (mLayoutManager.findLastVisibleItemPosition() < mLayoutManager.getItemCount() - 1) {
                 showNNB();
+            }
+            else{
+                hideNNB();
             }
         }
     }
@@ -1310,7 +1319,7 @@ public class NotificationsTab extends Fragment {
                         if(!fragmentVisible){
                             activity.setNotificationBadge(true);
                         }
-                        showNNB(); //TODO: confirm this works
+                        checkAndSetTopButton(); //TODO: confirm this works
                     }
                 }
             }
