@@ -33,9 +33,6 @@ public class SessionManager {
     //make these public to access from outside
     public static final String KEY_BDAY = "pref_birthday";
     public static final String KEY_EMAIL = "pref_email";
-    public static final String KEY_FIRSTNAME = "pref_firstname";
-    public static final String KEY_LASTNAME = "pref_lastname";
-    public static final String KEY_PHONE = "pref_phone";
     public static final String KEY_USERNAME = "pref_username";
     public static final String KEY_PI = "pref_profileimage";
     public static final String KEY_IS_NATIVE = "pref_is_native"; //marks if the user logged in using native login or Facebook/Google
@@ -58,9 +55,6 @@ public class SessionManager {
         //store these in shared pref
         editor.putString(KEY_BDAY, user.getBday());
         editor.putString(KEY_EMAIL, user.getEmail());
-        editor.putString(KEY_FIRSTNAME, user.getFirstName());
-        editor.putString(KEY_LASTNAME, user.getLastName());
-        editor.putString(KEY_PHONE, user.getPhone());
         editor.putString(KEY_USERNAME, user.getUsername());
         editor.putInt(KEY_PI, user.getProfileImage());
         editor.putBoolean(KEY_IS_NATIVE, isNative);
@@ -117,24 +111,6 @@ public class SessionManager {
 
     public String getBday(){
         return pref.getString(KEY_BDAY, null);
-    }
-
-    /**
-     * Get stored session data
-     * */
-    public HashMap<String, String> getUserDetails(){
-        HashMap<String, String> user = new HashMap<String, String>();
-
-        //birthday, email, firstname, lastname, password, phone, username
-        user.put(KEY_BDAY, pref.getString(KEY_BDAY, null));
-        user.put(KEY_EMAIL, pref.getString(KEY_EMAIL, null));
-        user.put(KEY_FIRSTNAME, pref.getString(KEY_FIRSTNAME, null));
-        user.put(KEY_LASTNAME, pref.getString(KEY_LASTNAME, null));
-        user.put(KEY_PHONE, pref.getString(KEY_PHONE, null));
-        user.put(KEY_USERNAME, pref.getString(KEY_USERNAME, null));
-
-        // return user
-        return user;
     }
 
     /**

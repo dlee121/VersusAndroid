@@ -179,37 +179,11 @@ public class StartScreen extends AppCompatActivity {
                                 Log.v("facebookLogin", response.toString());
 
                                 try{
-                                    String name = object.getString("name");
-                                    String fname = object.getString("first_name");
-                                    String lname = object.getString("last_name");
                                     final String authID = object.getString("id") + "_";
-                                    final String firstname, lastname;
-                                    if(fname != null && !fname.isEmpty()){
-                                        if(lname != null && !lname.isEmpty()){
-                                            firstname = fname;
-                                            lastname = lname;
-                                        }
-                                        else{
-                                            firstname = fname;
-                                            lastname = " "; //TODO: once we move on from ddb, this can be empty string instead of a space character
-                                        }
-                                    }
-                                    else if(lname != null && !lname.isEmpty()){
-                                        firstname = " ";
-                                        lastname = lname;
-                                    }
-                                    else if(name != null && !name.isEmpty()){
-                                        firstname = name;
-                                        lastname = " ";
-                                    }
-                                    else{
-                                        firstname = "N/A";
-                                        lastname = " ";
-                                    }
 
                                     Runnable runnable = new Runnable() {
                                         public void run() {
-                                            logInOrSignUpUser(authID, firstname, lastname);
+                                            logInOrSignUpUser(authID);
                                         }
                                     };
                                     Thread mythread = new Thread(runnable);
@@ -221,9 +195,9 @@ public class StartScreen extends AppCompatActivity {
 
                             }
                         });
-                Bundle parameters = new Bundle();
-                parameters.putString("fields", "first_name,last_name,name");
-                request.setParameters(parameters);
+                //Bundle parameters = new Bundle();
+                //parameters.putString("fields", "first_name,last_name,name");
+                //request.setParameters(parameters);
                 request.executeAsync();
 
                 Log.d("facebookLogin", "login success.");
@@ -301,27 +275,13 @@ public class StartScreen extends AppCompatActivity {
     private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
         try {
 
-            final String firstname, lastname;
             final GoogleSignInAccount account = completedTask.getResult(ApiException.class);
 
             authToken = account.getIdToken();
 
-            if(account.getGivenName() == null || account.getGivenName().isEmpty()){
-                firstname = " ";
-            }
-            else{
-                firstname = account.getGivenName();
-            }
-            if(account.getFamilyName() == null || account.getFamilyName().isEmpty()) {
-                lastname = " ";
-            }
-            else{
-                lastname = account.getFamilyName();
-            }
-
             Runnable runnable = new Runnable() {
                 public void run() {
-                    logInOrSignUpUser(account.getId(), firstname, lastname);
+                    logInOrSignUpUser(account.getId());
                 }
             };
             Thread mythread = new Thread(runnable);
@@ -557,7 +517,7 @@ public class StartScreen extends AppCompatActivity {
     }
 
 
-    private void logInOrSignUpUser(String authID, String firstname, String lastname){ //for facebook login and google login. Logs the user in if user is already registered with the app, otherwise it registers the user with the app
+    private void logInOrSignUpUser(String authID){ //for facebook login and google login. Logs the user in if user is already registered with the app, otherwise it registers the user with the app
 
         try {
             List<AIModelHitsHitsItem> hits = client.aiGet(authID).getHits().getHits(); //unauth accessible function
@@ -570,8 +530,6 @@ public class StartScreen extends AppCompatActivity {
                 //authenticate with firebase, then setLogins for cognito with firebase token, then create client session with SessionManager
 
                 Intent intent = new Intent(this, AuthSignUp.class);
-                intent.putExtra("firstname", firstname);
-                intent.putExtra("lastname", lastname);
                 intent.putExtra("authid", authID);
                 intent.putExtra("token", authToken);
                 startActivity(intent);

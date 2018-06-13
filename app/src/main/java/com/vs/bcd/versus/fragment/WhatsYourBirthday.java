@@ -16,12 +16,10 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.vs.bcd.versus.R;
-import com.vs.bcd.versus.activity.AuthSignUp;
 import com.vs.bcd.versus.activity.SignUp;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 
 public class WhatsYourBirthday extends Fragment {
 
@@ -106,8 +104,8 @@ public class WhatsYourBirthday extends Fragment {
                     InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
                     imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0);
                     String bday = Integer.toString(month) + "-" + Integer.toString(day) + "-" + Integer.toString(year);
-                    activity.setThr(bday);
-                    activity.getViewPager().setCurrentItem(2);
+                    activity.setBday(bday);
+                    activity.getViewPager().setCurrentItem(1);
                 }
                 else{
                     if(mToast != null){
@@ -123,7 +121,6 @@ public class WhatsYourBirthday extends Fragment {
 
         nextButton.setBackgroundColor(Color.rgb(238, 238, 238));
         nextButton.setEnabled(false);
-        disableChildViews();
 
         return rootView;
     }

@@ -15,29 +15,11 @@ import org.json.JSONObject;
 @DynamoDBTable(tableName = "user")
 public class User {
 
-    private String firstName, lastName, bday, username;
+    private String bday, username;
     private String email = "0"; //default value, since dynamodb doesn't want empty strings either email or phone may be unspecified by user
-    private String phone = "0";
     private String authID; //pw for messenger auth
     private int profileImage; //profile image storage url
     private int influence, g, s, b; //influece and medal count
-
-
-    @DynamoDBAttribute(attributeName = "fn")
-    public String getFirstName() {
-        return firstName;
-    }
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    @DynamoDBAttribute(attributeName = "ln")
-    public String getLastName() {
-        return lastName;
-    }
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
 
     @DynamoDBAttribute(attributeName = "bd")
     public String getBday() {
@@ -61,14 +43,6 @@ public class User {
     }
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    @DynamoDBAttribute(attributeName = "ph")
-    public String getPhone() {
-        return phone;
-    }
-    public void setPhone(String phone) {
-        this.phone = phone;
     }
 
     @DynamoDBAttribute(attributeName = "ai")
@@ -126,13 +100,10 @@ public class User {
 
     }
 
-    public User(String input){
+    public User(String bday, String username){
 
-        String[] userData = input.split("/");
-        firstName = userData[0];
-        lastName = userData[1];
-        bday = userData[2];
-        username = userData[3];
+        this.bday = bday;
+        this.username = username;
         authID = "0"; //TODO: once we've moved on from ddb usage, this can be blank string (make sure ES can handle empty strings), but 0 for now since ddb doesn't accept empty string
         profileImage = 0; //default value meaning use a default in-app profile image
         influence = 0;
@@ -142,9 +113,7 @@ public class User {
     }
 
     //for signing up user from facebook login and google login
-    public User(String firstName, String lastName, String bday, String username, String authID){
-        this.firstName = firstName;
-        this.lastName = lastName;
+    public User(String bday, String username, String authID){
         this.bday = bday;
         this.username = username;
         this.authID = authID;
@@ -157,11 +126,8 @@ public class User {
 
     public User(JSONObject item, String username) throws JSONException {
         this.username = username;
-        firstName = item.getString("fn");
-        lastName = item.getString("ln");
         bday = item.getString("bd");
         email = item.getString("em");
-        phone = item.getString("ph");
         authID = item.getString("ai");
         profileImage = item.getInt("pi");
         influence = item.getInt("in");
@@ -172,11 +138,8 @@ public class User {
 
     public User(AIModelHitsHitsItemSource source, String id){
         username = id;
-        firstName = source.getFn();
-        lastName = source.getLn();
         bday = source.getBd();
         email = source.getEm();
-        phone = source.getPh();
         profileImage = source.getPi().intValue();
         authID = "";
         g = 0;
@@ -186,11 +149,8 @@ public class User {
 
     public User(UserGetModel source, String id){
         username = id;
-        firstName = source.getFn();
-        lastName = source.getLn();
         bday = source.getBd();
         email = source.getEm();
-        phone = source.getPh();
         profileImage = source.getPi().intValue();
         authID = "";
         g = 0;

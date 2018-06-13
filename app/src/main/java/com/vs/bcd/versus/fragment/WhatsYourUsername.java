@@ -1,6 +1,5 @@
 package com.vs.bcd.versus.fragment;
 
-import android.content.Context;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -10,7 +9,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -18,12 +16,9 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.amazonaws.mobileconnectors.apigateway.ApiClientException;
-import com.amazonaws.mobileconnectors.apigateway.ApiClientFactory;
-import com.vs.bcd.api.VersusAPIClient;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.SignUp;
 import com.vs.bcd.versus.model.FormValidator;
-import com.vs.bcd.versus.model.User;
 
 import java.util.ArrayList;
 
@@ -117,8 +112,8 @@ public class WhatsYourUsername extends Fragment {
             @Override
             public void onClick(View v) {
                 if(validated) {
-                    activity.setFo(editText.getText().toString().trim());
-                    activity.getViewPager().setCurrentItem(3);
+                    activity.setUsername(editText.getText().toString().trim());
+                    activity.getViewPager().setCurrentItem(2);
                 }
             }
         });

@@ -83,8 +83,6 @@ public class AuthSignUp extends AppCompatActivity {
     private AuthUsernameInput wyun;
     private FirebaseAuth mFirebaseAuth;
     private CognitoCachingCredentialsProvider credentialsProvider;
-    private String firstname = " ";
-    private String lastname = " ";
     private String authID = " ";
     private String authToken = " ";
     private Toast mToast;
@@ -124,8 +122,6 @@ public class AuthSignUp extends AppCompatActivity {
 
         Bundle extras = getIntent().getExtras();
         if(extras != null) {
-            firstname = extras.getString("firstname");
-            lastname = extras.getString("lastname");
             authID = extras.getString("authid");
             authToken = extras.getString("token");
         }
@@ -247,7 +243,7 @@ public class AuthSignUp extends AppCompatActivity {
 
         wyun.displayProgressBar(true);
 
-        final User newUser = new User(firstname, lastname, bday, username, authID);
+        final User newUser = new User(bday, username, authID);
         final AuthCredential credential;
         if(authID.charAt(authID.length()-1) == '_'){ //we append facebook authIDs with an '_'
             credential = FacebookAuthProvider.getCredential(authToken);
@@ -287,11 +283,8 @@ public class AuthSignUp extends AppCompatActivity {
                                                     userPutModel.setB(BigDecimal.ZERO);
                                                     userPutModel.setBd(newUser.getBday());
                                                     userPutModel.setEm(newUser.getEmail());
-                                                    userPutModel.setFn(newUser.getFirstName());
                                                     userPutModel.setG(BigDecimal.ZERO);
                                                     userPutModel.setIn(BigDecimal.ZERO);
-                                                    userPutModel.setLn(newUser.getLastName());
-                                                    userPutModel.setPh(newUser.getPhone());
                                                     userPutModel.setPi(BigDecimal.valueOf(newUser.getProfileImage()));
                                                     userPutModel.setS(BigDecimal.ZERO);
                                                     SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());

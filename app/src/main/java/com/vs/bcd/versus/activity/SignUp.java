@@ -11,7 +11,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -19,14 +18,7 @@ import android.widget.Toast;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.apigateway.ApiClientFactory;
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Regions;
-import com.amazonaws.services.cognitoidentity.model.NotAuthorizedException;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
-import com.facebook.login.LoginManager;
-import com.google.android.gms.auth.api.Auth;
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -39,7 +31,6 @@ import com.vs.bcd.api.VersusAPIClient;
 import com.vs.bcd.api.model.UserPutModel;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.fragment.WhatsYourBirthday;
-import com.vs.bcd.versus.fragment.WhatsYourName;
 import com.vs.bcd.versus.fragment.WhatsYourPassword;
 import com.vs.bcd.versus.fragment.WhatsYourUsername;
 import com.vs.bcd.versus.model.ViewPagerCustomDuration;
@@ -71,11 +62,9 @@ public class SignUp extends AppCompatActivity {
      */
     private ViewPagerCustomDuration mViewPager;
     private WhatsYourPassword ypfrag;
-    private String first, second, third, fourth, biebs;
-    private DynamoDBMapper mapper;
+    private String bdayIn, usernameIn, biebs;
     private SessionManager sessionManager;
     private SignUp thisActivity;
-    private WhatsYourName wyn;
     private WhatsYourBirthday wyb;
     private WhatsYourUsername wyun;
     private FirebaseAuth mFirebaseAuth;
@@ -112,10 +101,7 @@ public class SignUp extends AppCompatActivity {
 
         mFirebaseAuth = FirebaseAuth.getInstance();
 
-        AmazonDynamoDBClient ddbClient = new AmazonDynamoDBClient(credentialsProvider);
-        mapper = new DynamoDBMapper(ddbClient);
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar1);
+        Toolbar toolbar = findViewById(R.id.toolbar1);
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
@@ -130,10 +116,10 @@ public class SignUp extends AppCompatActivity {
 
 
         // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPagerCustomDuration) findViewById(R.id.containersup);
+        mViewPager = findViewById(R.id.containersup);
         mViewPager.setScrollDurationFactor(1);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        mViewPager.setOffscreenPageLimit(4);
+        mViewPager.setOffscreenPageLimit(3);
         mViewPager.setPageTransformer(false, new FadePageTransformer());
 
         mViewPager.setCurrentItem(0);
@@ -153,14 +139,10 @@ public class SignUp extends AppCompatActivity {
                     return super.onOptionsItemSelected(item);
                 case 1:
                     mViewPager.setCurrentItem(0);
-                    wyn.enableChildViews();
+                    wyb.enableChildViews();
                     return true;
                 case 2:
                     mViewPager.setCurrentItem(1);
-                    wyb.enableChildViews();
-                    return true;
-                case 3:
-                    mViewPager.setCurrentItem(2);
                     wyun.enableChildViews();
                     return true;
                 default:
@@ -192,15 +174,12 @@ public class SignUp extends AppCompatActivity {
             //Return current tabs
             switch (position) {
                 case 0:
-                    wyn = new WhatsYourName();
-                    return wyn;
-                case 1:
                     wyb = new WhatsYourBirthday();
                     return wyb;
-                case 2:
+                case 1:
                     wyun = new WhatsYourUsername();
                     return wyun;
-                case 3:
+                case 2:
                     ypfrag = new WhatsYourPassword();
                     return ypfrag;
                 default:
@@ -211,19 +190,17 @@ public class SignUp extends AppCompatActivity {
         @Override
         public int getCount() {
             // Show 4 total pages.
-            return 4;
+            return 3;
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "What's Your Name?";
-                case 1:
                     return "When's Your Birthday?";
-                case 2:
+                case 1:
                     return "Choose a Username";
-                case 3:
+                case 2:
                     return "Choose a Password";
             }
             return null;
@@ -238,25 +215,16 @@ public class SignUp extends AppCompatActivity {
         return client;
     }
 
-    public void setTwo(String firsh, String sec){
-        first = firsh;
-        second = sec;
+    public void setBday(String thur){
+        bdayIn = thur;
     }
 
-    public void setThr(String thur){
-        third = thur;
-    }
-
-    public void setFo(String fo){
-        fourth = fo;
+    public void setUsername(String fo){
+        usernameIn = fo;
     }
 
     public void setBiebs(String biebs){
         this.biebs = biebs;
-    }
-
-    public String getUserString(){
-        return first + "/" + second + "/" + third + "/" + fourth;
     }
 
     public void signUpUser(){
@@ -268,7 +236,7 @@ public class SignUp extends AppCompatActivity {
 
 
 
-        final User newUser = new User(getUserString()); //TODO: don't hold password in user object anymore. In fact, don't hold it anywhere.
+        final User newUser = new User(bdayIn, usernameIn); //TODO: don't hold password in user object anymore. In fact, don't hold it anywhere.
 
         mFirebaseAuth.createUserWithEmailAndPassword(newUser.getUsername() + "@versusbcd.com", biebs)
                 .addOnCompleteListener(thisActivity, new OnCompleteListener<AuthResult>() {
@@ -299,11 +267,8 @@ public class SignUp extends AppCompatActivity {
                                                     userPutModel.setB(BigDecimal.ZERO);
                                                     userPutModel.setBd(newUser.getBday());
                                                     userPutModel.setEm(newUser.getEmail());
-                                                    userPutModel.setFn(newUser.getFirstName());
                                                     userPutModel.setG(BigDecimal.ZERO);
                                                     userPutModel.setIn(BigDecimal.ZERO);
-                                                    userPutModel.setLn(newUser.getLastName());
-                                                    userPutModel.setPh(newUser.getPhone());
                                                     userPutModel.setPi(BigDecimal.valueOf(newUser.getProfileImage()));
                                                     userPutModel.setS(BigDecimal.ZERO);
                                                     SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
