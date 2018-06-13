@@ -29,6 +29,5 @@
     <dimen name="chi_heart_margin">8dp</dimen>
     <dimen name="eight">8dp</dimen>
     <dimen name="four">4dp</dimen>
-    <dimen name="email_dialog_title">8sp</dimen>
 
 </resources>

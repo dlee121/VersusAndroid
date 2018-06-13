@@ -1,22 +1,33 @@
 package com.vs.bcd.versus.activity;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputEditText;
+import android.support.design.widget.TextInputLayout;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.InputType;
 import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
@@ -58,6 +69,7 @@ import com.vs.bcd.api.model.AIModel;
 import com.vs.bcd.api.model.AIModelHitsHitsItem;
 import com.vs.bcd.api.model.EmailGetModel;
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.model.FormValidator;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.User;
 
@@ -66,6 +78,8 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class StartScreen extends AppCompatActivity {
 
@@ -92,6 +106,7 @@ public class StartScreen extends AppCompatActivity {
     private Toast mToast;
     private ApiClientFactory factory;
     private VersusAPIClient client;
+    private Button passwordResetButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -250,6 +265,14 @@ public class StartScreen extends AppCompatActivity {
         //check if facebook user logged in first, and also clear other providers including Cognito
         resetLoginButtons();
 
+        passwordResetButton = findViewById(R.id.password_reset);
+        passwordResetButton.setPaintFlags(passwordResetButton.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+        passwordResetButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                handlePasswordReset();
+            }
+        });
 
     }
 
@@ -705,6 +728,182 @@ public class StartScreen extends AppCompatActivity {
         googleProgressbar.setVisibility(View.INVISIBLE);
 
         displayLoginProgressbar(false);
+    }
+
+    private void handlePasswordReset(){
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(thisActivity);
+        //builder.setTitle("Set Up Email for Account Recovery");
+
+        LinearLayout layout = new LinearLayout(thisActivity);
+        layout.setOrientation(LinearLayout.VERTICAL);
+
+        TextView titleView = new TextView(thisActivity);
+        titleView.setText("Send a Password Reset Email");
+        int eightDP = thisActivity.getResources().getDimensionPixelSize(R.dimen.eight);
+        int fourDP = thisActivity.getResources().getDimensionPixelSize(R.dimen.four);
+        titleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 19);
+        titleView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+        LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        tlp.setMargins(0, eightDP, 0, 0);
+        titleView.setLayoutParams(tlp);
+        layout.addView(titleView);
+
+        // Set up the input
+        final EditText usernameInput = new EditText(thisActivity);
+        usernameInput.setBackground(ContextCompat.getDrawable(thisActivity, R.drawable.edit_text_smooth_boy));
+        usernameInput.setTextColor(Color.parseColor("#000000"));
+        usernameInput.setHint("Enter your username");
+        usernameInput.setSingleLine();
+        usernameInput.setImeOptions(EditorInfo.IME_ACTION_NEXT);
+
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, eightDP*6);
+        lp.setMargins(fourDP, eightDP, fourDP, 0);
+        usernameInput.setLayoutParams(lp);
+        layout.addView(usernameInput); // Another add method
+
+        // Set up the input
+        final EditText input = new EditText(thisActivity);
+        input.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+        input.setBackground(ContextCompat.getDrawable(thisActivity, R.drawable.edit_text_smooth_boy));
+        input.setTextColor(Color.parseColor("#000000"));
+        input.setHint("Enter your email");
+
+        LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, eightDP*6);
+        lp2.setMargins(fourDP, eightDP, fourDP, 0);
+        input.setLayoutParams(lp2);
+        layout.addView(input); // Another add method
+
+        builder.setView(layout);
+
+        // Set up the buttons
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //we set it up below, to override default click handler that automatically closes dialog on click
+            }
+        });
+
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        final AlertDialog alertDialog = builder.show();
+        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+
+                if(mToast != null){
+                    mToast.cancel();
+                }
+                mToast = Toast.makeText(thisActivity, "Sending email...", Toast.LENGTH_LONG);
+                mToast.show();
+
+                final String address = input.getText().toString().trim();
+
+                Runnable runnable = new Runnable() {
+                    public void run() {
+                        try{
+                            EmailGetModel emailGetModel = client.getemailGet("gem", usernameInput.getText().toString().trim());
+
+                            if(emailGetModel != null && emailGetModel.getEm().equals(address)){
+                                mFirebaseAuth.sendPasswordResetEmail(address).addOnCompleteListener(thisActivity, new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        thisActivity.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                alertDialog.dismiss();
+                                                if(mToast != null){
+                                                    mToast.cancel();
+                                                }
+                                                mToast = Toast.makeText(thisActivity, "Password reset link sent!", Toast.LENGTH_LONG);
+                                                mToast.show();
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                            else{
+                                //Username or Email is invalid
+                                thisActivity.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if(mToast != null){
+                                            mToast.cancel();
+                                        }
+                                        mToast = Toast.makeText(thisActivity, "Username or email is invalid.", Toast.LENGTH_LONG);
+                                        mToast.show();
+                                        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+                                    }
+                                });
+                            }
+
+
+                        }catch (NotAuthorizedException e){
+                            thisActivity.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+
+                                    if(mToast != null){
+                                        mToast.cancel();
+                                    }
+                                    mToast = Toast.makeText(thisActivity, "Something went wrong. Please check your network connection and try again.", Toast.LENGTH_SHORT);
+                                    mToast.show();
+
+                                    alertDialog.dismiss();
+                                }
+                            });
+                            refreshUnauthCredentials();
+
+                        }catch(ApiClientException e){
+                            thisActivity.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if(mToast != null){
+                                        mToast.cancel();
+                                    }
+                                    mToast = Toast.makeText(thisActivity, "Username or email is invalid.", Toast.LENGTH_SHORT);
+                                    mToast.show();
+                                    alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+                                }
+                            });
+                        }
+
+                    }
+                };
+                Thread mythread = new Thread(runnable);
+                mythread.start();
+
+            }
+        });
+
+        final Button positive = alertDialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        positive.setEnabled(false);
+
+
+        input.addTextChangedListener(new FormValidator(input) {
+            @Override
+            public void validate(TextView textView, String text) {
+                positive.setEnabled(false);
+                if(text.trim().length() > 0 && isEmailValid(text) && !text.substring(text.indexOf('@')).equals("@versusbcd.com")){
+                    positive.setEnabled(true);
+                }
+            }
+        });
+
+
+    }
+
+    private boolean isEmailValid(String email) {
+        String expression = "^[\\w\\.-]+@([\\w\\-]+\\.)+[A-Z]{2,4}$";
+        Pattern pattern = Pattern.compile(expression, Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(email);
+        return matcher.matches();
     }
 
 }

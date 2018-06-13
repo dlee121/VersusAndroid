@@ -123,9 +123,20 @@
             android:textColor="@color/vsRed"
             android:textSize="30sp"
             android:textStyle="bold" />
+        <Button
+            android:id="@+id/password_reset"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:textAllCaps="false"
+            android:background="@null"
+            android:textColor="@color/vsRed"
+            android:text="Forgot your password?"/>
 
 
     </LinearLayout>
+
+
 
     <ImageView
         android:layout_width="wrap_content"
