@@ -90,6 +90,14 @@ public class SessionManager {
 
     }
 
+    public String getEmail(){
+        return pref.getString(KEY_EMAIL, "0");
+    }
+    public void setEmail(String email){
+        editor.putString(KEY_EMAIL, email);
+        editor.apply();
+    }
+
     public boolean isNative(){
         return pref.getBoolean(KEY_IS_NATIVE, false);
     }

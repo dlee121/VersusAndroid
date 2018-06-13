@@ -3244,4 +3244,12 @@ public class MainContainer extends AppCompatActivity {
         return sessionManager.isNative();
     }
 
+    public String getUserEmail(){
+        return sessionManager.getEmail();
+    }
+
+    public void setUserEmail(String email){
+        sessionManager.setEmail(email);
+    }
+
 }

@@ -56,6 +56,7 @@ import com.google.firebase.auth.GoogleAuthProvider;
 import com.vs.bcd.api.VersusAPIClient;
 import com.vs.bcd.api.model.AIModel;
 import com.vs.bcd.api.model.AIModelHitsHitsItem;
+import com.vs.bcd.api.model.EmailGetModel;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.User;
@@ -397,98 +398,138 @@ public class StartScreen extends AppCompatActivity {
             displayLoginProgressbar(true);
 
             final String usernameIn = usernameET.getText().toString();
+            Log.d("sdlfij", "1");
 
-            //TODO: form validation here
-            try{
-                mFirebaseAuth.signInWithEmailAndPassword(usernameIn + "@versusbcd.com", pwET.getText().toString())
-                        .addOnCompleteListener(StartScreen.this, new OnCompleteListener<AuthResult>() {
+            Runnable runnable = new Runnable() {
+                public void run() {
+                    String loginEmail = usernameIn + "@versusbcd.com";
+                    try{
+                        EmailGetModel emailGetModel = client.getemailGet("gem", usernameIn);
+                        if(emailGetModel != null && emailGetModel.getEm() != null && !emailGetModel.getEm().equals("0")){
+                            loginEmail = emailGetModel.getEm();
+                        }
+                        Log.d("sdlfij", "2");
+
+                    }catch (NotAuthorizedException e){
+                        refreshUnauthCredentials();
+
+                        thisActivity.runOnUiThread(new Runnable() {
                             @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                if (task.isSuccessful()) {
-                                    Log.d("authsuccess", "aye success");
-                                    FirebaseUser firebaseUser= mFirebaseAuth.getCurrentUser();
+                            public void run() {
+                                resetLoginButtons();
+                                if(mToast != null){
+                                    mToast.cancel();
+                                }
+                                mToast = Toast.makeText(thisActivity, "Something went wrong. Please try again.", Toast.LENGTH_SHORT);
+                                mToast.show();
+                            }
+                        });
+                    }
 
-                                    if(firebaseUser != null){
+                    try{
+                        Log.d("sdlfij", "3");
+                        mFirebaseAuth.signInWithEmailAndPassword(loginEmail, pwET.getText().toString())
+                                .addOnCompleteListener(StartScreen.this, new OnCompleteListener<AuthResult>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<AuthResult> task) {
+                                        if (task.isSuccessful()) {
+                                            Log.d("authsuccess", "aye success");
+                                            FirebaseUser firebaseUser= mFirebaseAuth.getCurrentUser();
 
-                                        firebaseUser.getIdToken(true).addOnSuccessListener(new OnSuccessListener<GetTokenResult>() {
-                                            @Override
-                                            public void onSuccess(GetTokenResult getTokenResult) {
-                                                Map<String, String> logins = new HashMap<>();
-                                                final String token = getTokenResult.getToken();
-                                                logins.put("securetoken.google.com/bcd-versus", token);
-                                                credentialsProvider.setLogins(logins);
+                                            if(firebaseUser != null){
 
+                                                firebaseUser.getIdToken(true).addOnSuccessListener(new OnSuccessListener<GetTokenResult>() {
+                                                    @Override
+                                                    public void onSuccess(GetTokenResult getTokenResult) {
+                                                        Map<String, String> logins = new HashMap<>();
+                                                        final String token = getTokenResult.getToken();
+                                                        logins.put("securetoken.google.com/bcd-versus", token);
+                                                        credentialsProvider.setLogins(logins);
 
-                                                    Runnable runnable = new Runnable() {
-                                                        public void run() {
-                                                            try{
-                                                                credentialsProvider.refresh();
-                                                                final User user = new User(client.userGet("getu", usernameIn), usernameIn);
+                                                        Runnable runnable = new Runnable() {
+                                                            public void run() {
 
-                                                                thisActivity.runOnUiThread(new Runnable() {
-                                                                    @Override
-                                                                    public void run() {
-                                                                        SessionManager sessionManager = new SessionManager(thisActivity);
-                                                                        sessionManager.createLoginSession(user, true);    //store login session data in Shared Preferences
+                                                                try{
+                                                                    credentialsProvider.refresh();
+                                                                    final User user = new User(client.userGet("getu", usernameIn), usernameIn);
 
-                                                                        Intent intent = new Intent(thisActivity, MainContainer.class);
-                                                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                                                        intent.putExtra("oitk", token);
-                                                                        loginThreadRunning = false;
-                                                                        startActivity(intent);  //go on to the next activity, MainContainer
-                                                                        overridePendingTransition(0, 0);
-                                                                    }
-                                                                });
-                                                            }catch (NotAuthorizedException e){
-                                                                refreshUnauthCredentials();
+                                                                    thisActivity.runOnUiThread(new Runnable() {
+                                                                        @Override
+                                                                        public void run() {
+                                                                            SessionManager sessionManager = new SessionManager(thisActivity);
+                                                                            sessionManager.createLoginSession(user, true);    //store login session data in Shared Preferences
 
-                                                                thisActivity.runOnUiThread(new Runnable() {
-                                                                    @Override
-                                                                    public void run() {
-                                                                        resetLoginButtons();
-                                                                        if(mToast != null){
-                                                                            mToast.cancel();
+                                                                            Intent intent = new Intent(thisActivity, MainContainer.class);
+                                                                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                                                            intent.putExtra("oitk", token);
+                                                                            loginThreadRunning = false;
+                                                                            startActivity(intent);  //go on to the next activity, MainContainer
+                                                                            overridePendingTransition(0, 0);
                                                                         }
-                                                                        mToast = Toast.makeText(thisActivity, "Something went wrong. Please try again.", Toast.LENGTH_SHORT);
-                                                                    }
-                                                                });
+                                                                    });
+                                                                }catch (NotAuthorizedException e){
+                                                                    refreshUnauthCredentials();
+
+                                                                    thisActivity.runOnUiThread(new Runnable() {
+                                                                        @Override
+                                                                        public void run() {
+                                                                            resetLoginButtons();
+                                                                            if(mToast != null){
+                                                                                mToast.cancel();
+                                                                            }
+                                                                            mToast = Toast.makeText(thisActivity, "Something went wrong. Please try again.", Toast.LENGTH_SHORT);
+                                                                            mToast.show();
+                                                                        }
+                                                                    });
+                                                                }
+
+
                                                             }
-
-                                                        }
-                                                    };
-                                                    Thread mythread = new Thread(runnable);
-                                                    mythread.start();
+                                                        };
+                                                        Thread mythread = new Thread(runnable);
+                                                        mythread.start();
 
 
+                                                    }
+                                                }).addOnFailureListener(new OnFailureListener() {
+                                                    @Override
+                                                    public void onFailure(@NonNull Exception e) {
+                                                        displayLoginProgressbar(false);
+                                                        loginThreadRunning = false;
+                                                        Toast.makeText(thisActivity, "There was a problem logging in. Please check your network connection and try again.", Toast.LENGTH_SHORT).show();
+                                                    }
+                                                });
                                             }
-                                        }).addOnFailureListener(new OnFailureListener() {
-                                            @Override
-                                            public void onFailure(@NonNull Exception e) {
+                                            else{
                                                 displayLoginProgressbar(false);
                                                 loginThreadRunning = false;
                                                 Toast.makeText(thisActivity, "There was a problem logging in. Please check your network connection and try again.", Toast.LENGTH_SHORT).show();
                                             }
-                                        });
+                                        }
+                                        else {
+                                            displayLoginProgressbar(false);
+                                            loginThreadRunning = false;
+                                            Toast.makeText(StartScreen.this, "Check your username or password", Toast.LENGTH_SHORT).show();
+                                        }
                                     }
-                                    else{
-                                        displayLoginProgressbar(false);
-                                        loginThreadRunning = false;
-                                        Toast.makeText(thisActivity, "There was a problem logging in. Please check your network connection and try again.", Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-                                else {
-                                    displayLoginProgressbar(false);
-                                    loginThreadRunning = false;
-                                    Toast.makeText(StartScreen.this, "Check your username or password", Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        });
-            }catch (Exception e){
-                displayLoginProgressbar(false);
-                loginThreadRunning = false;
-                Toast.makeText(StartScreen.this, "Check your username or password", Toast.LENGTH_SHORT).show();
-                e.printStackTrace();
-            }
+                                });
+                    }catch (Exception e){
+                        displayLoginProgressbar(false);
+                        loginThreadRunning = false;
+                        Toast.makeText(StartScreen.this, "Check your username or password", Toast.LENGTH_SHORT).show();
+                        e.printStackTrace();
+                    }
+
+
+
+
+                }
+            };
+            Thread mythread = new Thread(runnable);
+            mythread.start();
+
+            //TODO: form validation here
+
         }
     }
 

@@ -389,7 +389,7 @@ public class ProfileTab extends Fragment {
             showProfileImgButtons();
 
         } else {
-            Toast.makeText(getActivity(), "Required permissions are not granted", Toast.LENGTH_LONG).show();
+            Toast.makeText(activity, "Required permissions are not granted", Toast.LENGTH_LONG).show();
         }
     }
 

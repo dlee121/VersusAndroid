@@ -99,7 +99,7 @@ public class SettingsFragment extends Fragment {
     private void setUpSettings(){
         settingObjects.add(new SettingObject("Log Out"));
         if(activity.isUserNative()){
-            settingObjects.add(new SettingObject("Set Password Reset Email"));
+            settingObjects.add(new SettingObject("Set Up Email for Account Recovery"));
         }
     }
 
