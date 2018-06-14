@@ -52,7 +52,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
     SwipeRefreshLayout mSwipeRefreshLayout;
 
     private int loadThreshold = 8;
-    private int adFrequency = 18; //place native ad after every 18 posts
+    private int adFrequency = 12; //place native ad after every 18 posts
     private int adCount = 0;
     private int retrievalSize = 16;
 
