@@ -27,6 +27,7 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GetTokenResult;
+import com.google.firebase.database.FirebaseDatabase;
 import com.vs.bcd.api.VersusAPIClient;
 import com.vs.bcd.api.model.UserPutModel;
 import com.vs.bcd.versus.R;
@@ -276,6 +277,9 @@ public class SignUp extends AppCompatActivity {
 
                                                     client.userputPost(userPutModel, newUser.getUsername(), "put", "user");
 
+                                                    String userNotificationPath = getUsernameHash(newUser.getUsername()) + "/" + newUser.getUsername() + "/n/em/";
+                                                    FirebaseDatabase.getInstance().getReference().child(userNotificationPath).setValue(true);
+
                                                     thisActivity.runOnUiThread(new Runnable() {
                                                         @Override
                                                         public void run() {
@@ -374,6 +378,19 @@ public class SignUp extends AppCompatActivity {
                 Toast.makeText(SignUp.this, "Something went wrong. Please try again", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private String getUsernameHash(String input){
+        int usernameHash;
+        if(input.length() < 5){
+            usernameHash = input.hashCode();
+        }
+        else{
+            String hashIn = "" + input.charAt(0) + input.charAt(input.length() - 2) + input.charAt(1) + input.charAt(input.length() - 1);
+            usernameHash = hashIn.hashCode();
+        }
+
+        return Integer.toString(usernameHash);
     }
 
 

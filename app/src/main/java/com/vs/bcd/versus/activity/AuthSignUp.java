@@ -21,10 +21,7 @@ import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.apigateway.ApiClientFactory;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Regions;
-import com.amazonaws.services.cognitoidentity.model.NotAuthorizedException;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
-import com.auth0.android.jwt.JWT;
-import com.facebook.AccessToken;
 import com.facebook.login.LoginManager;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -44,9 +41,6 @@ import com.vs.bcd.api.model.UserPutModel;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.fragment.AuthBirthdayInput;
 import com.vs.bcd.versus.fragment.AuthUsernameInput;
-import com.vs.bcd.versus.fragment.WhatsYourBirthday;
-import com.vs.bcd.versus.fragment.WhatsYourPassword;
-import com.vs.bcd.versus.fragment.WhatsYourUsername;
 import com.vs.bcd.versus.model.ViewPagerCustomDuration;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.User;
@@ -291,6 +285,19 @@ public class AuthSignUp extends AppCompatActivity {
                                                     userPutModel.setT(df.format(new Date()));
 
                                                     client.userputPost(userPutModel, newUser.getUsername(), "put", "user");
+
+                                                    thisActivity.runOnUiThread(new Runnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            sessionManager.createLoginSession(newUser, false);
+                                                            Intent intent = new Intent(thisActivity, MainContainer.class);
+                                                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);   //clears back stack for navigation
+                                                            intent.putExtra("oitk", getTokenResult.getToken());
+                                                            startActivity(intent);
+                                                            overridePendingTransition(0, 0);
+                                                        }
+                                                    });
+
                                                 }catch (Exception e){
                                                     thisActivity.runOnUiThread(new Runnable() {
                                                         @Override
@@ -314,18 +321,6 @@ public class AuthSignUp extends AppCompatActivity {
                                                         }
                                                     });
                                                 }
-
-                                                thisActivity.runOnUiThread(new Runnable() {
-                                                    @Override
-                                                    public void run() {
-                                                        sessionManager.createLoginSession(newUser, false);
-                                                        Intent intent = new Intent(thisActivity, MainContainer.class);
-                                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);   //clears back stack for navigation
-                                                        intent.putExtra("oitk", getTokenResult.getToken());
-                                                        startActivity(intent);
-                                                        overridePendingTransition(0, 0);
-                                                    }
-                                                });
                                             }
                                         };
                                         Thread mythread = new Thread(runnable);

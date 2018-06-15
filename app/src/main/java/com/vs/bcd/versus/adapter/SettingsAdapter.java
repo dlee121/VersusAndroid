@@ -2,6 +2,7 @@ package com.vs.bcd.versus.adapter;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -179,8 +180,10 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                                     if(mToast != null){
                                         mToast.cancel();
                                     }
-                                    mToast = Toast.makeText(activity, "Setting up account recovery...", Toast.LENGTH_SHORT);
-                                    mToast.show();
+
+                                    final ProgressDialog progressDialog = new ProgressDialog(activity);
+                                    progressDialog.setTitle("Setting up account recovery");
+                                    progressDialog.show();
 
                                     String currEmail = activity.getUserEmail();
                                     if(currEmail.equals("0")){
@@ -213,11 +216,12 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                                                                                     activity.runOnUiThread(new Runnable() {
                                                                                         @Override
                                                                                         public void run() {
+                                                                                            progressDialog.dismiss();
                                                                                             alertDialog.dismiss();
                                                                                             if(mToast != null){
                                                                                                 mToast.cancel();
                                                                                             }
-                                                                                            mToast = Toast.makeText(activity, "Account recovery was set up successfully!.", Toast.LENGTH_SHORT);
+                                                                                            mToast = Toast.makeText(activity, "Account recovery was set up successfully!", Toast.LENGTH_SHORT);
                                                                                             mToast.show();
                                                                                         }
                                                                                     });
@@ -234,6 +238,7 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                                                                                             mToast = Toast.makeText(activity, "Something went wrong. Please check your network connection and try again.", Toast.LENGTH_SHORT);
                                                                                             mToast.show();
 
+                                                                                            progressDialog.dismiss();
                                                                                             alertDialog.dismiss();
 
                                                                                             activity.handleNotAuthorizedException();
@@ -248,6 +253,7 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                                                                         mythread.start();
                                                                     }
                                                                     else{
+                                                                        progressDialog.dismiss();
                                                                         if(mToast != null){
                                                                             mToast.cancel();
                                                                         }
@@ -259,6 +265,7 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                                                             });
                                                         }
                                                         else{
+                                                            progressDialog.dismiss();
                                                             if(mToast != null){
                                                                 mToast.cancel();
                                                             }
@@ -268,7 +275,7 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                                                         }
                                                     }
                                                     else {
-
+                                                        progressDialog.dismiss();
                                                         if(mToast != null){
                                                             mToast.cancel();
                                                         }

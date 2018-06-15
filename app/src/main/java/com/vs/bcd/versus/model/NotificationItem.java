@@ -19,6 +19,7 @@ public class NotificationItem {
     private final int TYPE_R = 3; //new post root comment notification
     private final int TYPE_F = 4; //new follower notification
     private final int TYPE_M = 5; //new medal notification
+    private final int TYPE_EM = 6; //for password reset email setup notification
 
     private String body;
     private int type;
@@ -35,6 +36,14 @@ public class NotificationItem {
         this.timestamp = timestamp;
         this.key = key;
     }
+
+    public NotificationItem(String body, int type, long timestamp){
+        this.body = body;
+        this.type = type;
+        this.timestamp = timestamp;
+        this.key = "";
+    }
+
 
     public NotificationItem(String body, int type, long timestamp, String key){
         this.body = body;
@@ -207,6 +216,8 @@ public class NotificationItem {
                 return (payload + Integer.toString(TYPE_U)).hashCode();
             case TYPE_V:
                 return (payload + Integer.toString(TYPE_V)).hashCode();
+            case TYPE_EM:
+                return TYPE_EM;
             default:
                 return 0;
         }
@@ -228,6 +239,8 @@ public class NotificationItem {
                     return (payload + Integer.toString(TYPE_U)).hashCode() == obj.hashCode();
                 case TYPE_V:
                     return (payload + Integer.toString(TYPE_V)).hashCode() == obj.hashCode();
+                case TYPE_EM:
+                    return TYPE_EM == obj.hashCode();
                 default:
                     return body.equals(((NotificationItem)obj).getBody());
             }

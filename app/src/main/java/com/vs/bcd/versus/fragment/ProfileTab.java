@@ -39,6 +39,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.amazonaws.mobileconnectors.apigateway.ApiClientException;
+import com.amazonaws.services.cognitoidentity.model.NotAuthorizedException;
 import com.amazonaws.services.dynamodbv2.model.AttributeAction;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
@@ -619,17 +621,23 @@ public class ProfileTab extends Fragment {
 
     private void getUserInfluence(){ //used in loadProfileImage to grab logged-in user's influence from ES
 
-        ProfileInfoModel result = activity.getClient().profileinfoGet("im", profileUsername);
-
         try {
             /* Execute URL and attach after execution response handler */
+            ProfileInfoModel result = activity.getClient().profileinfoGet("im", profileUsername);
 
             ProfileInfoModelSource source = result.getSource();
             influence = Integer.toString(source.getIn().intValue()) + " influence";
             gCount = Integer.toString(source.getG().intValue());
             sCount = Integer.toString(source.getS().intValue());
             bCount = Integer.toString(source.getB().intValue());
-            //System.out.println("Response: " + strResponse);
+            
+        } catch (ApiClientException | NotAuthorizedException e){
+            activity.handleNotAuthorizedException();
+            influence = "";
+            gCount = "";
+            sCount = "";
+            bCount = "";
+            e.printStackTrace();
         } catch (Exception e) {
             influence = "";
             gCount = "";

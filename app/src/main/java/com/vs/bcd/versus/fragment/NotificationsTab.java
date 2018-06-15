@@ -1,5 +1,6 @@
 package com.vs.bcd.versus.fragment;
 
+import android.accounts.Account;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -29,6 +30,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -45,6 +47,7 @@ public class NotificationsTab extends Fragment {
     private final int TYPE_R = 3; //new post root comment notification
     private final int TYPE_F = 4; //new follower notification
     private final int TYPE_M = 5; //new medal notification
+    private final int TYPE_EM = 6; //for password reset email setup notification
 
     private View rootView;
     private ArrayList<NotificationItem> notificationItems;
@@ -366,6 +369,14 @@ public class NotificationsTab extends Fragment {
                             });
                         }
 
+                        break;
+
+                    case "em":
+                        String payloadContent = "Click here to add an email address for account recovery in case you forget your password.\nYou can also add or change it later in Settings (located at the top right of Me page).";
+                        notificationItems.add(new NotificationItem(payloadContent, TYPE_EM, System.currentTimeMillis()/1000));
+                        if(typeChildCount.decrementAndGet() == 0){
+                            finalizeList();
+                        }
                         break;
                 }
 
@@ -1359,6 +1370,9 @@ public class NotificationsTab extends Fragment {
                 break;
             case TYPE_V:
                 mFirebaseDatabaseReference.child(vPath+"/"+removedItem.getKey()).removeValue();
+                break;
+            case TYPE_EM:
+                mFirebaseDatabaseReference.child(userNotificationsPath + "em/").removeValue();
                 break;
         }
 
