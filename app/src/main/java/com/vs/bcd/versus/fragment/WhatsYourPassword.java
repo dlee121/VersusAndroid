@@ -6,6 +6,11 @@ import android.os.Bundle;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextPaint;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -40,6 +45,7 @@ public class WhatsYourPassword extends Fragment {
     private EditText perkyText;
     private boolean validated = false;
     private boolean firstRound = true;
+    private TextView pwLegalTV;
 
 
 
@@ -121,6 +127,52 @@ public class WhatsYourPassword extends Fragment {
                 activity.signUpUser();
             }
         });
+
+        pwLegalTV = rootView.findViewById(R.id.pw_legal);
+        SpannableString ss = new SpannableString("By signing up, you agree to our Terms and Conditions, Privacy Policy, and EULA.");
+        ss.setSpan(new ClickableSpan() {
+            @Override
+            public void onClick(View textView) {
+                // show toast here
+            }
+            @Override
+            public void updateDrawState(TextPaint ds) {
+                super.updateDrawState(ds);
+                ds.setUnderlineText(true);
+                ds.setColor(ContextCompat.getColor(activity, R.color.vsBlue));
+
+            }
+        }, 32, 52, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        ss.setSpan(new ClickableSpan() {
+            @Override
+            public void onClick(View textView) {
+                // show toast here
+            }
+            @Override
+            public void updateDrawState(TextPaint ds) {
+                super.updateDrawState(ds);
+                ds.setUnderlineText(true);
+                ds.setColor(ContextCompat.getColor(activity, R.color.vsBlue));
+
+            }
+        }, 54, 68, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        ss.setSpan(new ClickableSpan() {
+            @Override
+            public void onClick(View textView) {
+                // show toast here
+            }
+            @Override
+            public void updateDrawState(TextPaint ds) {
+                super.updateDrawState(ds);
+                ds.setUnderlineText(true);
+                ds.setColor(ContextCompat.getColor(activity, R.color.vsBlue));
+
+            }
+        }, 74, 79, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        pwLegalTV.setText(ss);
+        pwLegalTV.setMovementMethod(LinkMovementMethod.getInstance());
+        pwLegalTV.setHighlightColor(Color.TRANSPARENT);
+
 
         disableChildViews();
 

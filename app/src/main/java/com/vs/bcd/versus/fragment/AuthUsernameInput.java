@@ -6,6 +6,11 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextPaint;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -43,6 +48,7 @@ public class AuthUsernameInput extends Fragment {
     private boolean ignoreAsync = true;
     private boolean validated = false;
     private ProgressBar wyunPB;
+    private TextView auLegalTV;
 
 
     @Override
@@ -129,6 +135,53 @@ public class AuthUsernameInput extends Fragment {
         });
 
         wyunPB = rootView.findViewById(R.id.wyun_pb);
+
+        auLegalTV = rootView.findViewById(R.id.au_legal);
+        auLegalTV.setVisibility(View.VISIBLE);
+
+        SpannableString ss = new SpannableString("By signing up, you agree to our Terms and Conditions, Privacy Policy, and EULA.");
+        ss.setSpan(new ClickableSpan() {
+            @Override
+            public void onClick(View textView) {
+                // show toast here
+            }
+            @Override
+            public void updateDrawState(TextPaint ds) {
+                super.updateDrawState(ds);
+                ds.setUnderlineText(true);
+                ds.setColor(ContextCompat.getColor(activity, R.color.vsBlue));
+
+            }
+        }, 32, 52, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        ss.setSpan(new ClickableSpan() {
+            @Override
+            public void onClick(View textView) {
+                // show toast here
+            }
+            @Override
+            public void updateDrawState(TextPaint ds) {
+                super.updateDrawState(ds);
+                ds.setUnderlineText(true);
+                ds.setColor(ContextCompat.getColor(activity, R.color.vsBlue));
+
+            }
+        }, 54, 68, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        ss.setSpan(new ClickableSpan() {
+            @Override
+            public void onClick(View textView) {
+                // show toast here
+            }
+            @Override
+            public void updateDrawState(TextPaint ds) {
+                super.updateDrawState(ds);
+                ds.setUnderlineText(true);
+                ds.setColor(ContextCompat.getColor(activity, R.color.vsBlue));
+
+            }
+        }, 74, 79, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        auLegalTV.setText(ss);
+        auLegalTV.setMovementMethod(LinkMovementMethod.getInstance());
+        auLegalTV.setHighlightColor(Color.TRANSPARENT);
 
         hideProgressBar();
         disableChildViews();

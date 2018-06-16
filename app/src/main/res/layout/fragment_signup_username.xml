@@ -66,5 +66,14 @@
         android:layout_alignTop="@id/wyunbutton"
         android:layout_alignBottom="@id/wyunbutton"/>
 
+    <TextView
+        android:id="@+id/au_legal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:layout_marginBottom="4dp"
+        android:visibility="gone"
+        android:layout_above="@id/wyunbutton"/>
+
 
 </RelativeLayout>
