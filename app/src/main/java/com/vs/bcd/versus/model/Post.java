@@ -46,33 +46,6 @@ public class Post {
     private NativeAppInstallAd NAI; //TODO: rename to AppInstallAd and rename relevant functions accordingly
     private NativeContentAd NC;     //TODO: rename to ContentAd and rename relevant functions accordingly
 
-
-    /***
-     * constants representing CATEGORIES
-     */
-    public static int AUTOMOBILES = 0;
-    public static int CARTOON = 1;
-    public static int CELEB = 2;
-    public static int CULTURE = 3;
-    public static int EDUCATION = 4;
-    public static int ELECTRONICS = 5;
-    public static int FASHION = 6;
-    public static int FINANCE = 7;
-    public static int FOOD = 8;
-    public static int GAMES = 9;
-    public static int MORALITY = 10;
-    public static int MOVIES = 11;
-    public static int MUSIC = 12;
-    public static int POLITICS = 13;
-    public static int RANDOM = 14;
-    public static int RELIGION = 15;
-    public static int SCIENCE = 16;
-    public static int SEX = 17;
-    public static int SOCIAL = 18;
-    public static int SPORTS = 19;
-    public static int TECHNOLOGY = 20;
-    public static int WEAPONS = 21;
-
     private SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
 
 
@@ -114,14 +87,12 @@ public class Post {
             case 16:
                 return "Science";
             case 17:
-                return "Sex/Porn";
-            case 18:
                 return "Social Issues";
-            case 19:
+            case 18:
                 return "Sports";
-            case 20:
+            case 19:
                 return "Technology";
-            case 21:
+            case 20:
                 return "Weapons";
             case 42069:
                 return "NATIVE APP INSTALL AD";

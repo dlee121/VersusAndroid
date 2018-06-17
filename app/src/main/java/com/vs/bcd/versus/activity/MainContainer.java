@@ -1882,11 +1882,10 @@ public class MainContainer extends AppCompatActivity {
         categories.add(new CategoryObject("Random", R.drawable.random, 14));
         categories.add(new CategoryObject("Religion", R.drawable.religion, 15));
         categories.add(new CategoryObject("Science", R.drawable.science, 16));
-        categories.add(new CategoryObject("Sex/Porn", R.drawable.sex_porn, 17));
-        categories.add(new CategoryObject("Social Issues", R.drawable.social_issues, 18));
-        categories.add(new CategoryObject("Sports", R.drawable.sports, 19));
-        categories.add(new CategoryObject("Technology", R.drawable.technology, 20));
-        categories.add(new CategoryObject("Weapons", R.drawable.weapons_icon, 21));
+        categories.add(new CategoryObject("Social Issues", R.drawable.social_issues, 17));
+        categories.add(new CategoryObject("Sports", R.drawable.sports, 18));
+        categories.add(new CategoryObject("Technology", R.drawable.technology, 19));
+        categories.add(new CategoryObject("Weapons", R.drawable.weapons_icon, 20));
     }
 
     //disables click events in PostPage when ListPopupWindow is open
