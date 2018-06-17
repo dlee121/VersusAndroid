@@ -1,7 +1,11 @@
 package com.vs.bcd.versus.fragment;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.Fragment;
@@ -12,15 +16,18 @@ import android.text.TextPaint;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.vs.bcd.versus.R;
@@ -112,11 +119,11 @@ public class WhatsYourPassword extends Fragment {
         });
         signupButton = (Button)rootView.findViewById(R.id.signupsubmit);
         signupPB = (ProgressBar)rootView.findViewById(R.id.signuppb);
-
+        final InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
         signupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+
                 try{
                     imm.hideSoftInputFromWindow(signupButton.getWindowToken(), 0);
                 }
@@ -133,7 +140,14 @@ public class WhatsYourPassword extends Fragment {
         ss.setSpan(new ClickableSpan() {
             @Override
             public void onClick(View textView) {
-                // show toast here
+                try{
+                    imm.hideSoftInputFromWindow(signupButton.getWindowToken(), 0);
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.versusdaily.com/terms-and-conditions"));
+                startActivity(browserIntent);
             }
             @Override
             public void updateDrawState(TextPaint ds) {
@@ -146,7 +160,14 @@ public class WhatsYourPassword extends Fragment {
         ss.setSpan(new ClickableSpan() {
             @Override
             public void onClick(View textView) {
-                // show toast here
+                try{
+                    imm.hideSoftInputFromWindow(signupButton.getWindowToken(), 0);
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.versusdaily.com/privacy-policy"));
+                startActivity(browserIntent);
             }
             @Override
             public void updateDrawState(TextPaint ds) {
@@ -159,7 +180,14 @@ public class WhatsYourPassword extends Fragment {
         ss.setSpan(new ClickableSpan() {
             @Override
             public void onClick(View textView) {
-                // show toast here
+                try{
+                    imm.hideSoftInputFromWindow(signupButton.getWindowToken(), 0);
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.versusdaily.com/eula"));
+                startActivity(browserIntent);
             }
             @Override
             public void updateDrawState(TextPaint ds) {

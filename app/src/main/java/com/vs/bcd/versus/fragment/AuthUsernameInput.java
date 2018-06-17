@@ -1,7 +1,9 @@
 package com.vs.bcd.versus.fragment;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -119,13 +121,13 @@ public class AuthUsernameInput extends Fragment {
         });
 
         nextButton = rootView.findViewById(R.id.wyunbutton);
+        final InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
 
         nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //Log.d("nextbuttonnext", "clicked");
                 if(validated){
-                    InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
                     activity.setU(editText.getText().toString().trim());
 
@@ -143,7 +145,14 @@ public class AuthUsernameInput extends Fragment {
         ss.setSpan(new ClickableSpan() {
             @Override
             public void onClick(View textView) {
-                // show toast here
+                try{
+                    imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.versusdaily.com/terms-and-conditions"));
+                startActivity(browserIntent);
             }
             @Override
             public void updateDrawState(TextPaint ds) {
@@ -156,7 +165,14 @@ public class AuthUsernameInput extends Fragment {
         ss.setSpan(new ClickableSpan() {
             @Override
             public void onClick(View textView) {
-                // show toast here
+                try{
+                    imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.versusdaily.com/privacy-policy"));
+                startActivity(browserIntent);
             }
             @Override
             public void updateDrawState(TextPaint ds) {
@@ -169,7 +185,14 @@ public class AuthUsernameInput extends Fragment {
         ss.setSpan(new ClickableSpan() {
             @Override
             public void onClick(View textView) {
-                // show toast here
+                try{
+                    imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.versusdaily.com/eula"));
+                startActivity(browserIntent);
             }
             @Override
             public void updateDrawState(TextPaint ds) {
