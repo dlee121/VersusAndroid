@@ -36,6 +36,7 @@ public class SelectCategory extends Fragment {
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
     private CategoriesAdapter mCategoriesAdapter;
+    private MainContainer activity;
     //private EditText categoryFilterET;
 
     @Override
@@ -44,35 +45,12 @@ public class SelectCategory extends Fragment {
         rootView = inflater.inflate(R.layout.category_selection_createpost_frag, container, false);
 
         categories = new ArrayList<>();
-        ((MainContainer)getActivity()).setUpCategoriesList(categories);
+        activity.setUpCategoriesList(categories);
 
-        RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.category_selection_rvcp);
+        RecyclerView recyclerView = rootView.findViewById(R.id.category_selection_rvcp);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mCategoriesAdapter = new CategoriesAdapter(recyclerView, categories, getActivity(), 0);
         recyclerView.setAdapter(mCategoriesAdapter);
-        /*
-        categoryFilterET = (EditText)rootView.findViewById(R.id.cat_selection_filterbox);
-        categoryFilterET.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-                // TODO Auto-generated method stub
-            }
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-                // TODO Auto-generated method stub
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                filter(s.toString());
-                //you can use runnable postDelayed like 500 ms to delay search text
-            }
-        });
-        */
-
 
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();
@@ -83,6 +61,12 @@ public class SelectCategory extends Fragment {
 
         disableChildViews();
         return rootView;
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        activity = (MainContainer)context;
     }
 
 
@@ -114,18 +98,5 @@ public class SelectCategory extends Fragment {
             childViews.get(i).setLayoutParams(new RelativeLayout.LayoutParams(0,0));
         }
     }
-    /*
-    void filter(String text){
-        List<CategoryObject> temp = new ArrayList<>();
-        for(CategoryObject co: categories){
-            if(co.getCategoryName().toLowerCase().contains(text.toLowerCase())){
-                temp.add(co);
-            }
-        }
-        //update recyclerview
-        mCategoriesAdapter.updateList(temp);
-        Log.d("Categories", "still has same " + Integer.toString(categories.size()) + "items");
-    }
-    */
 
 }
