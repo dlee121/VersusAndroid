@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
 /**
  * Created by dlee on 8/6/17.
@@ -78,14 +79,17 @@ public class Tab3Categories extends Fragment implements SwipeRefreshLayout.OnRef
     private final int POPULAR = 1;
 
     private int loadThreshold = 8;
-    private int adFrequency = 8; //place native ad after every 8 posts
     private int adCount = 0;
     private int retrievalSize = 16;
+    private int randomNumberMin = 10;
+    private int randomNumberMax = 15;
 
     private int NATIVE_APP_INSTALL_AD = 42069;
     private int NATIVE_CONTENT_AD = 69420;
 
     private int currPostsIndex = 0;
+    private Random randomNumber = new Random();
+    private int nextAdIndex = randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
 
     private HashMap<String, Integer> profileImgVersions = new HashMap<>();
 
@@ -193,13 +197,6 @@ public class Tab3Categories extends Fragment implements SwipeRefreshLayout.OnRef
         });
 
 
-
-
-
-
-
-
-
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();
         for (int i = 0; i<((ViewGroup)rootView).getChildCount(); i++){
@@ -283,6 +280,7 @@ public class Tab3Categories extends Fragment implements SwipeRefreshLayout.OnRef
     @Override
     public void onRefresh() {
         clearPosts();
+        nextAdIndex = randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
         switch (sortType){
             case MOST_RECENT:
                 categoryTimeESQuery(0);
@@ -362,9 +360,10 @@ public class Tab3Categories extends Fragment implements SwipeRefreshLayout.OnRef
                             posts.add(new Post(source, id));
                             currPostsIndex++;
 
-                            if(currPostsIndex%adFrequency == 0){
+                            if(currPostsIndex == nextAdIndex){
                                 Post adSkeleton = new Post();
                                 NativeAd nextAd = mHostActivity.getNextAd();
+                                nextAdIndex = currPostsIndex + randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
                                 if(nextAd != null){
                                     Log.d("adscheck", "ads loaded");
                                     if(nextAd instanceof NativeAppInstallAd){
@@ -473,9 +472,10 @@ public class Tab3Categories extends Fragment implements SwipeRefreshLayout.OnRef
                             posts.add(new Post(source, id));
                             currPostsIndex++;
 
-                            if(currPostsIndex%adFrequency == 0){
+                            if(currPostsIndex == nextAdIndex){
                                 Post adSkeleton = new Post();
                                 NativeAd nextAd = mHostActivity.getNextAd();
+                                nextAdIndex = currPostsIndex + randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
                                 if(nextAd != null){
                                     Log.d("adscheck", "ads loaded");
                                     if(nextAd instanceof NativeAppInstallAd){

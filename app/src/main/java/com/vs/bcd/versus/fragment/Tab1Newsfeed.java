@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.ListPreloader;
@@ -55,11 +56,15 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
     private int adFrequency = 8; //place native ad after every 8 posts
     private int adCount = 0;
     private int retrievalSize = 16;
+    private int randomNumberMin = 10;
+    private int randomNumberMax = 15;
 
     private int NATIVE_APP_INSTALL_AD = 42069;
     private int NATIVE_CONTENT_AD = 69420;
 
     private int currPostsIndex = 0;
+    private Random randomNumber = new Random();
+    private int nextAdIndex = randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
 
     private HashMap<String, Integer> profileImgVersions = new HashMap<>();
 
@@ -147,6 +152,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
     public void onRefresh() {
         // Fetching data from server
         adCount = 0;
+        nextAdIndex = randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
         Log.d("Refresh", "Now Refreshing");
 
         posts.clear();
@@ -197,6 +203,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
 
                 if(results != null){
                     List<PostsListModelHitsHitsItem> hits = results.getHits().getHits();
+
                     if(hits != null && !hits.isEmpty()){
                         int i = 0;
                         StringBuilder strBuilder = new StringBuilder((56*hits.size()) - 1);
@@ -206,9 +213,10 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                             posts.add(new Post(source, id));
                             currPostsIndex++;
 
-                            if(currPostsIndex%adFrequency == 0){
+                            if(currPostsIndex == nextAdIndex){
                                 Post adSkeleton = new Post();
                                 NativeAd nextAd = mHostActivity.getNextAd();
+                                nextAdIndex = currPostsIndex + randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
                                 if(nextAd != null){
                                     Log.d("adscheck", "ads loaded");
                                     if(nextAd instanceof NativeAppInstallAd){
