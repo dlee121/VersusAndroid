@@ -1167,7 +1167,7 @@ public class NotificationsTab extends Fragment {
         newNotificationsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mLayoutManager.scrollToPosition(mLayoutManager.getItemCount() - 1); //TODO: change to smooth scroll
+                recyclerView.smoothScrollToPosition(mLayoutManager.getItemCount() - 1);
             }
         });
 
