@@ -78,7 +78,7 @@ public class Tab3Categories extends Fragment implements SwipeRefreshLayout.OnRef
     private final int POPULAR = 1;
 
     private int loadThreshold = 8;
-    private int adFrequency = 12; //place native ad after every 18 posts
+    private int adFrequency = 8; //place native ad after every 8 posts
     private int adCount = 0;
     private int retrievalSize = 16;
 

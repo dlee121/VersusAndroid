@@ -126,6 +126,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class MainContainer extends AppCompatActivity {
@@ -220,6 +221,7 @@ public class MainContainer extends AppCompatActivity {
     private String clickedNotificationKey = "";
     private boolean fromRItem = true;
     private AtomicBoolean runInitialNewsfeedQuery = new AtomicBoolean(false);
+    private AtomicInteger initialThreeLoaded = new AtomicInteger(0);
 
     private ApiClientFactory factory;
     private VersusAPIClient client;
@@ -228,6 +230,7 @@ public class MainContainer extends AppCompatActivity {
     private boolean gettingFreshToken = false;
 
     private HashMap<String, UserAction> localUserActionMap;
+    private boolean adLoaded = false;
 
     private BroadcastReceiver myReceiver = new BroadcastReceiver() {
         @Override
@@ -433,7 +436,11 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public boolean getAndSetRINQ(){
-        return runInitialNewsfeedQuery.getAndSet(true);
+        return runInitialNewsfeedQuery.getAndSet(true) && adLoaded;
+    }
+
+    public int getAndIncrementInitial3(){
+        return initialThreeLoaded.getAndIncrement();
     }
 
     @Override
@@ -474,7 +481,7 @@ public class MainContainer extends AppCompatActivity {
                             handleNotAuthorizedException();
                         }
                         Log.d("mainattach", "credentials refreshed");
-                        if(runInitialNewsfeedQuery.getAndSet(true)){
+                        if(initialThreeLoaded.getAndIncrement() == 2){
                             if(mainActivityFragRef != null && mainActivityFragRef.getTab1() != null){
                                 thisActivity.runOnUiThread(new Runnable() {
                                     @Override
@@ -524,7 +531,7 @@ public class MainContainer extends AppCompatActivity {
                                                 handleNotAuthorizedException();
                                             }
                                             Log.d("mainattach", "credentials refreshed");
-                                            if(runInitialNewsfeedQuery.getAndSet(true)){
+                                            if(initialThreeLoaded.getAndIncrement() == 2){
                                                 if(mainActivityFragRef != null && mainActivityFragRef.getTab1() != null){
                                                     thisActivity.runOnUiThread(new Runnable() {
                                                         @Override
@@ -569,7 +576,7 @@ public class MainContainer extends AppCompatActivity {
                                         handleNotAuthorizedException();
                                     }
                                     Log.d("mainattach", "credentials refreshed");
-                                    if(runInitialNewsfeedQuery.getAndSet(true)){
+                                    if(initialThreeLoaded.getAndIncrement() == 2){
                                         if(mainActivityFragRef != null && mainActivityFragRef.getTab1() != null){
                                             thisActivity.runOnUiThread(new Runnable() {
                                                 @Override
@@ -618,9 +625,9 @@ public class MainContainer extends AppCompatActivity {
 
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
+        adLoaded = false;
         nativeAds = new ArrayList<>();
         MobileAds.initialize(this, "ca-app-pub-3940256099942544/2247696110"); //TODO: this loads test ads. Replace the app_id_string with our adMob account app_id_string to get real ads.
-        loadNativeAds();
 
         final int usernameHash;
         if(currUsername.length() < 5){
@@ -1453,6 +1460,16 @@ public class MainContainer extends AppCompatActivity {
         super.onResume();
         FirebaseMessaging.getInstance().subscribeToTopic(currUsername); //subscribe to user topic for messenger push notification
 
+        if(nativeAds != null){
+            if(nativeAds.size() < 3){
+                loadNativeAds();
+            }
+        }
+        else{
+            nativeAds = new ArrayList<>();
+            loadNativeAds();
+        }
+
         if(getIntent() != null && getIntent().getExtras() != null && getIntent().getExtras().get("type") != null){
             String intentType = getIntent().getExtras().get("type").toString();
             getIntent().removeExtra("type");
@@ -1489,6 +1506,8 @@ public class MainContainer extends AppCompatActivity {
         else{
             localUserActionMap.clear();
         }
+
+
 
     }
 
@@ -2312,7 +2331,7 @@ public class MainContainer extends AppCompatActivity {
 
                 }
                 else{
-                    //for now there's only one option for whe not author of the post, Report
+                    //for now there's only one option for when not author of the post, Report
                     DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -2626,17 +2645,31 @@ public class MainContainer extends AppCompatActivity {
     }
 
     private void loadNativeAds(){
+        Log.d("loadingads", "loading native ads");
+
         AdLoader adLoader = new AdLoader.Builder(this, "ca-app-pub-3940256099942544/2247696110")
                 .forAppInstallAd(new OnAppInstallAdLoadedListener() {
                     @Override
                     public void onAppInstallAdLoaded(NativeAppInstallAd appInstallAd) {
                         nativeAds.add(appInstallAd);
+                        if(!adLoaded){
+                            adLoaded = true;
+                            if(initialThreeLoaded.getAndIncrement() == 2){
+                                mainActivityFragRef.getTab1().initialQuery();
+                            }
+                        }
                     }
                 })
                 .forContentAd(new OnContentAdLoadedListener() {
                     @Override
                     public void onContentAdLoaded(NativeContentAd contentAd) {
                         nativeAds.add(contentAd);
+                        if(!adLoaded){
+                            adLoaded = true;
+                            if(initialThreeLoaded.getAndIncrement() == 2){
+                                mainActivityFragRef.getTab1().initialQuery();
+                            }
+                        }
                     }
                 })
                 .withAdListener(new AdListener() {
@@ -2657,12 +2690,14 @@ public class MainContainer extends AppCompatActivity {
     }
 
     public NativeAd getNextAd(){
+        Log.d("loadingads", "get next ad");
         if(nativeAds == null || nativeAds.isEmpty()){
             return null; //TODO: I hear returning null is not the best design pattern, so let's see if we can refactor this.
         } else {
             NativeAd nextAd = nativeAds.get(0);
             nativeAds.remove(0);
-            if(nativeAds.isEmpty()){
+            if(nativeAds.size() < 2){
+                Log.d("loadingads", "loading more ads");
                 loadNativeAds();
             }
             return nextAd;

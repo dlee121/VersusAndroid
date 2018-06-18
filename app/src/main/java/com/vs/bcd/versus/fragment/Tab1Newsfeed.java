@@ -52,7 +52,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
     SwipeRefreshLayout mSwipeRefreshLayout;
 
     private int loadThreshold = 8;
-    private int adFrequency = 12; //place native ad after every 18 posts
+    private int adFrequency = 8; //place native ad after every 8 posts
     private int adCount = 0;
     private int retrievalSize = 16;
 
@@ -110,9 +110,10 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
         // SwipeRefreshLayout
         mSwipeRefreshLayout = rootView.findViewById(R.id.swipe_container_tab1);
         mSwipeRefreshLayout.setOnRefreshListener(this);
+        mSwipeRefreshLayout.setRefreshing(true);
 
         Log.d("mainattach", "frag query line");
-        if(mHostActivity.getAndSetRINQ()){
+        if(mHostActivity.getAndIncrementInitial3() == 2){
             initialQuery();
         }
 
