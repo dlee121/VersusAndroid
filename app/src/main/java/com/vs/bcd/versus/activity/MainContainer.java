@@ -48,14 +48,8 @@ import android.widget.Toast;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.apigateway.ApiClientFactory;
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.cognitoidentity.model.NotAuthorizedException;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
-import com.amazonaws.services.dynamodbv2.model.AttributeAction;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
-import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
@@ -114,7 +108,6 @@ import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.fragment.CreatePost;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.fragment.SearchPage;
-import com.vs.bcd.versus.model.User;
 import com.vs.bcd.versus.model.UserAction;
 import com.vs.bcd.versus.model.ViewPagerCustomDuration;
 
@@ -231,6 +224,8 @@ public class MainContainer extends AppCompatActivity {
 
     private HashMap<String, UserAction> localUserActionMap;
     private boolean adLoaded = false;
+    private int loadedAdsCount;
+    private int adsRetrievalSize = 6;
 
     private BroadcastReceiver myReceiver = new BroadcastReceiver() {
         @Override
@@ -433,10 +428,6 @@ public class MainContainer extends AppCompatActivity {
                     break;
             }
         }
-    }
-
-    public boolean getAndSetRINQ(){
-        return runInitialNewsfeedQuery.getAndSet(true) && adLoaded;
     }
 
     public int getAndIncrementInitial3(){
@@ -1459,9 +1450,9 @@ public class MainContainer extends AppCompatActivity {
         Log.d("ORDER", "MainContainer onResume called");
         super.onResume();
         FirebaseMessaging.getInstance().subscribeToTopic(currUsername); //subscribe to user topic for messenger push notification
-
+        loadedAdsCount = adsRetrievalSize;
         if(nativeAds != null){
-            if(nativeAds.size() < 3){
+            if(nativeAds.size() < 2){
                 loadNativeAds();
             }
         }
@@ -2646,7 +2637,10 @@ public class MainContainer extends AppCompatActivity {
 
     private void loadNativeAds(){
         Log.d("loadingads", "loading native ads");
-
+        if(loadedAdsCount < adsRetrievalSize){
+            return;
+        }
+        loadedAdsCount = 0;
         AdLoader adLoader = new AdLoader.Builder(this, "ca-app-pub-3940256099942544/2247696110")
                 .forAppInstallAd(new OnAppInstallAdLoadedListener() {
                     @Override
@@ -2674,9 +2668,16 @@ public class MainContainer extends AppCompatActivity {
                 })
                 .withAdListener(new AdListener() {
                     @Override
+                    public void onAdLoaded(){
+                        loadedAdsCount++;
+                        Log.d("adloaded", "adloaded");
+                    }
+
+                    @Override
                     public void onAdFailedToLoad(int errorCode) {
                         // Handle the failure by logging, altering the UI, and so on.
                         //TODO: handle ad loading failure event
+                        loadedAdsCount++; //still count as a ad download event
                     }
                 })
                 .withNativeAdOptions(new NativeAdOptions.Builder()
@@ -2686,13 +2687,18 @@ public class MainContainer extends AppCompatActivity {
                         .build())
                 .build();
 
-        adLoader.loadAds(new AdRequest.Builder().build(), 5); //TODO: use keywords on the AdRequest.Builder to get targeted ads. for now, it's location based generic ads I believe.
+        adLoader.loadAds(new AdRequest.Builder().build(), adsRetrievalSize); //TODO: use keywords on the AdRequest.Builder to get targeted ads. for now, it's location based generic ads I believe.
     }
 
     public NativeAd getNextAd(){
         Log.d("loadingads", "get next ad");
-        if(nativeAds == null || nativeAds.isEmpty()){
-            return null; //TODO: I hear returning null is not the best design pattern, so let's see if we can refactor this.
+        if(nativeAds == null){
+            nativeAds = new ArrayList<>();
+        }
+
+        if(nativeAds.isEmpty()){
+            loadNativeAds();
+            return null;
         } else {
             NativeAd nextAd = nativeAds.get(0);
             nativeAds.remove(0);
