@@ -118,7 +118,11 @@ public class CreateMessage extends Fragment {
 
         df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
 
-        userSearchET = (EditText) rootView.findViewById(R.id.user_search_edittext);
+        hList = new HashSet<>();
+        followers = new HashSet<>();
+        following = new HashSet<>();
+
+        userSearchET = rootView.findViewById(R.id.user_search_edittext);
         userSearchET.addTextChangedListener(new TextWatcher() {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -231,6 +235,16 @@ public class CreateMessage extends Fragment {
             }
 
             userSearchRV.setAdapter(contactsListAdapter);
+        }
+
+        if(hList == null){
+            hList = new HashSet<>();
+        }
+        if(followers == null){
+            followers = new HashSet<>();
+        }
+        if(following == null){
+            following = new HashSet<>();
         }
 
         addHListener();
@@ -816,8 +830,6 @@ public class CreateMessage extends Fragment {
 
     private void addFollowingListener(){
 
-        following = new HashSet<>();
-
         followingListener = mFirebaseDatabaseReference.child(FOLLOWING_CHILD).addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String prevChildKey) {
@@ -887,9 +899,6 @@ public class CreateMessage extends Fragment {
     }
 
     private void addFollowerListener(){
-
-        followers = new HashSet<>();  //temp empty list
-        //followers = new ArrayList<>(***get realtime instance of followers list in firebase***);
 
         followerListener = mFirebaseDatabaseReference.child(FOLLOWERS_CHILD).addChildEventListener(new ChildEventListener() {
             @Override
@@ -1098,7 +1107,6 @@ public class CreateMessage extends Fragment {
 
     //HListener listenes to list "h" in firebase, which is a list of users with whom the user has a two-way relationship (following and follower)
     private void addHListener(){
-        hList = new HashSet<>();  //temp empty list
 
         hListener = mFirebaseDatabaseReference.child(H_CHILD).addChildEventListener(new ChildEventListener() {
             @Override
