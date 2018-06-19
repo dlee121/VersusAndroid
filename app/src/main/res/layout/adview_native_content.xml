@@ -34,7 +34,7 @@
                 android:layout_marginTop="8dp"
                 android:clickable="true"
                 android:focusable="true"
-                android:src="@drawable/vs_shadow_w_tag"
+                android:src="@drawable/default_profile"
                 android:layout_marginStart="8dp"
                 android:layout_alignParentStart="true"/>
 
@@ -86,8 +86,7 @@
                 android:layout_height="160dp"
                 android:gravity="center"
                 android:layout_below="@+id/nc_body_view"
-                android:layout_centerHorizontal="true"
-                android:src="@drawable/vs_centered_w_tag"/>
+                android:layout_centerHorizontal="true"/>
 
             <View
                 android:id="@+id/nc_horizdivider2"

@@ -52,17 +52,6 @@ public class WhatsYourBirthday extends Fragment {
         datePicker.init(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH), new DatePicker.OnDateChangedListener(){
             @Override
             public void onDateChanged(DatePicker datePicker, int year, int month, int dayOfMonth){
-                Log.d("called", "yeah");
-                if(year == calendar.get(Calendar.YEAR)){
-                    if(month == calendar.get(Calendar.MONTH)){
-                        if(dayOfMonth > calendar.get(Calendar.DAY_OF_MONTH)){
-                            datePicker.updateDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
-                        }
-                    }
-                    else if(month > calendar.get(Calendar.MONTH)){
-                        datePicker.updateDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), dayOfMonth);
-                    }
-                }
                 if(year > calendar.get(Calendar.YEAR)){
                     datePicker.updateDate(calendar.get(Calendar.YEAR), month, dayOfMonth);
                 }
