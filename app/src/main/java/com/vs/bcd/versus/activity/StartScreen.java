@@ -381,7 +381,6 @@ public class StartScreen extends AppCompatActivity {
             displayLoginProgressbar(true);
 
             final String usernameIn = usernameET.getText().toString();
-            Log.d("sdlfij", "1");
 
             Runnable runnable = new Runnable() {
                 public void run() {
@@ -391,7 +390,6 @@ public class StartScreen extends AppCompatActivity {
                         if(emailGetModel != null && emailGetModel.getEm() != null && !emailGetModel.getEm().equals("0")){
                             loginEmail = emailGetModel.getEm();
                         }
-                        Log.d("sdlfij", "2");
 
                     }catch (NotAuthorizedException e){
                         refreshUnauthCredentials();
@@ -407,10 +405,18 @@ public class StartScreen extends AppCompatActivity {
                                 mToast.show();
                             }
                         });
+                    }catch (Exception e){
+                        thisActivity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                displayLoginProgressbar(false);
+                                loginThreadRunning = false;
+                                Toast.makeText(StartScreen.this, "Check your username or password", Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
-
+                    Log.d("loginpowers", "papaw");
                     try{
-                        Log.d("sdlfij", "3");
                         mFirebaseAuth.signInWithEmailAndPassword(loginEmail, pwET.getText().toString())
                                 .addOnCompleteListener(StartScreen.this, new OnCompleteListener<AuthResult>() {
                                     @Override
@@ -452,6 +458,7 @@ public class StartScreen extends AppCompatActivity {
                                                                     });
                                                                 }catch (NotAuthorizedException e){
                                                                     refreshUnauthCredentials();
+                                                                    Log.d("loginpowers", "check");
 
                                                                     thisActivity.runOnUiThread(new Runnable() {
                                                                         @Override
@@ -497,10 +504,14 @@ public class StartScreen extends AppCompatActivity {
                                     }
                                 });
                     }catch (Exception e){
-                        displayLoginProgressbar(false);
-                        loginThreadRunning = false;
-                        Toast.makeText(StartScreen.this, "Check your username or password", Toast.LENGTH_SHORT).show();
-                        e.printStackTrace();
+                        thisActivity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                displayLoginProgressbar(false);
+                                loginThreadRunning = false;
+                                Toast.makeText(StartScreen.this, "Check your username or password", Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
 
 
