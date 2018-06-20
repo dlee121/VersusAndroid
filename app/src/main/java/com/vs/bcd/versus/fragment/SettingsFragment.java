@@ -101,6 +101,7 @@ public class SettingsFragment extends Fragment {
         if(activity.isUserNative()){
             settingObjects.add(new SettingObject("Set Up Email for Account Recovery"));
         }
+        settingObjects.add(new SettingObject("About"));
     }
 
 }
