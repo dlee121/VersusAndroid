@@ -227,6 +227,8 @@ public class MainContainer extends AppCompatActivity {
     private int loadedAdsCount;
     private int adsRetrievalSize = 6;
 
+    private String admobID = "ca-app-pub-3940256099942544/2247696110"; //TODO: change to actual adMob ID
+
     private BroadcastReceiver myReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -618,7 +620,7 @@ public class MainContainer extends AppCompatActivity {
 
         adLoaded = false;
         nativeAds = new ArrayList<>();
-        MobileAds.initialize(this, "ca-app-pub-3940256099942544/2247696110"); //TODO: this loads test ads. Replace the app_id_string with our adMob account app_id_string to get real ads.
+        MobileAds.initialize(this, admobID); //TODO: this loads test ads. Replace the app_id_string with our adMob account app_id_string to get real ads.
 
         final int usernameHash;
         if(currUsername.length() < 5){
@@ -2641,7 +2643,7 @@ public class MainContainer extends AppCompatActivity {
             return;
         }
         loadedAdsCount = 0;
-        AdLoader adLoader = new AdLoader.Builder(this, "ca-app-pub-3940256099942544/2247696110")
+        AdLoader adLoader = new AdLoader.Builder(this, admobID)
                 .forAppInstallAd(new OnAppInstallAdLoadedListener() {
                     @Override
                     public void onAppInstallAdLoaded(NativeAppInstallAd appInstallAd) {
