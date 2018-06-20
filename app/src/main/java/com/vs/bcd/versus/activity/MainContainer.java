@@ -2679,14 +2679,11 @@ public class MainContainer extends AppCompatActivity {
         }
 
         if(nativeAds.isEmpty()){
-            if(initialAdLoaded){
-                loadNativeAds();
-            }
             return null;
         } else {
             NativeAd nextAd = nativeAds.get(0);
             nativeAds.remove(0);
-            if(nativeAds.size() < 2 && initialAdLoaded){
+            if(nativeAds.size() == 1 && initialAdLoaded){
                 loadNativeAds();
             }
             return nextAd;
