@@ -113,13 +113,13 @@ import com.vs.bcd.versus.model.ViewPagerCustomDuration;
 
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class MainContainer extends AppCompatActivity {
@@ -149,23 +149,16 @@ public class MainContainer extends AppCompatActivity {
     private boolean fromCategoryFragment = false;
     private String currentCFTitle = "";
     private AHBottomNavigation bottomNavigation;
-    private int userTimecode = -1;
     private boolean meClicked = false;
     private ProfileTab profileTab;
-    private int profileTabParent = 0;   //default parent is MainActivity, here parent just refers to previous page before the profile page was opened
     private String currUsername = null;
-    private String beforeProfileTitle = "";
     private RelativeLayout.LayoutParams toolbarButtonRightLP, bottomNavLP, toolbarTextButtonLP;
     private RelativeLayout vpContainer;
     private RelativeLayout.LayoutParams vpContainerLP;
     private MessageRoom messageRoom;
     private Button toolbarTextButton;
     private CreateMessage createMessageFragment;
-    private HashMap<String, String> following, followers;
     private String userPath = "";
-    private String FOLLOWERS_CHILD, FOLLOWING_CHILD;
-    private boolean initialFollowingLoaded = false;
-    private String fcmToken = "";
     private boolean goToMainActivityOnResume = false;
     private int myAdapterFragInt = 0;
     private String postParentProfileUsername; //this could be a Stack instead of String to address nested profile-post-profile-post-etc case, for now we only keep immediate postParentProfile
@@ -173,7 +166,6 @@ public class MainContainer extends AppCompatActivity {
     private DatabaseReference mFirebaseDatabaseReference;
     private ArrayList<NativeAd> nativeAds;
     private InputMethodManager imm;
-    private String cftitle = "";
     private ProgressBar toolbarProgressbar;
     private RelativeLayout clickCover;
     private ListPopupWindow listPopupWindow;
@@ -191,7 +183,6 @@ public class MainContainer extends AppCompatActivity {
     private boolean inviteMode = false;
     private HashSet<String> inviteNumberCodeUpdateList = new HashSet<>();
     private boolean backToMessageRoom = false;
-    private boolean showMessageRoomOverflowMenu = true;
     private boolean enableTitleClick = false;
     private int profileBackDestination = 0;
     private boolean enableTitleEdit = false;
@@ -213,21 +204,21 @@ public class MainContainer extends AppCompatActivity {
     private FloatingActionButton createPostFAB;
     private String clickedNotificationKey = "";
     private boolean fromRItem = true;
-    private AtomicBoolean runInitialNewsfeedQuery = new AtomicBoolean(false);
-    private AtomicInteger initialThreeLoaded = new AtomicInteger(0);
 
-    private ApiClientFactory factory;
     private VersusAPIClient client;
 
     private String currentAuthToken = "";
     private boolean gettingFreshToken = false;
 
     private HashMap<String, UserAction> localUserActionMap;
-    private boolean adLoaded = false;
-    private int loadedAdsCount;
-    private int adsRetrievalSize = 6;
+    private boolean initialAdLoaded = false;
+    private boolean awsCredentialsSet;
 
     private String admobID = "ca-app-pub-3940256099942544/2247696110"; //TODO: change to actual adMob ID
+
+    private AdLoader adLoader;
+    private Date bday;
+
 
     private BroadcastReceiver myReceiver = new BroadcastReceiver() {
         @Override
@@ -432,8 +423,8 @@ public class MainContainer extends AppCompatActivity {
         }
     }
 
-    public int getAndIncrementInitial3(){
-        return initialThreeLoaded.getAndIncrement();
+    public boolean readyForInitialQuery(){
+        return awsCredentialsSet && initialAdLoaded;
     }
 
     @Override
@@ -443,8 +434,66 @@ public class MainContainer extends AppCompatActivity {
         setContentView(R.layout.activity_main_container);
         thisActivity = this;
         sessionManager = new SessionManager(this);
-        // Initialize the Amazon Cognito credentials provider
+        DateFormat sdf = new SimpleDateFormat("M-d-yyyy");
+        try{
+            bday = sdf.parse(sessionManager.getBday());
+        }catch(Exception e){
+            bday = null;
+        }
 
+        awsCredentialsSet = false;
+        initialAdLoaded = false;
+        nativeAds = new ArrayList<>();
+        MobileAds.initialize(this, admobID);
+        adLoader = new AdLoader.Builder(this, admobID)
+                .forAppInstallAd(new OnAppInstallAdLoadedListener() {
+                    @Override
+                    public void onAppInstallAdLoaded(NativeAppInstallAd appInstallAd) {
+                        nativeAds.add(appInstallAd);
+                        if(!initialAdLoaded){
+                            initialAdLoaded = true;
+                            Log.d("initialQuery", "initialAdLoaded = true");
+                            if(awsCredentialsSet && mainActivityFragRef != null && mainActivityFragRef.getTab1() != null) {
+                                mainActivityFragRef.getTab1().initialQuery();
+                            }
+                        }
+                    }
+                })
+                .forContentAd(new OnContentAdLoadedListener() {
+                    @Override
+                    public void onContentAdLoaded(NativeContentAd contentAd) {
+                        nativeAds.add(contentAd);
+                        if(!initialAdLoaded){
+                            initialAdLoaded = true;
+                            Log.d("initialQuery", "initialAdLoaded = true");
+                            if(awsCredentialsSet && mainActivityFragRef != null && mainActivityFragRef.getTab1() != null) {
+                                mainActivityFragRef.getTab1().initialQuery();
+                            }
+                        }
+                    }
+                })
+                .withAdListener(new AdListener() {
+                    @Override
+                    public void onAdFailedToLoad(int errorCode) {
+                        if(!initialAdLoaded){
+                            initialAdLoaded = true;
+                            Log.d("initialQuery", "initialAdLoaded = true, on fail");
+                            if(awsCredentialsSet && mainActivityFragRef != null && mainActivityFragRef.getTab1() != null) {
+                                mainActivityFragRef.getTab1().initialQuery();
+                            }
+                        }
+                    }
+                })
+                .withNativeAdOptions(new NativeAdOptions.Builder()
+                        // Methods in the NativeAdOptions.Builder class can be
+                        // used here to specify individual options settings.
+                        .setImageOrientation(NativeAdOptions.ORIENTATION_LANDSCAPE)
+                        .build())
+                .build();
+
+        loadNativeAds();
+
+        // Initialize the Amazon Cognito credentials provider
         credentialsProvider = new CognitoCachingCredentialsProvider(
                 getApplicationContext(),
                 "us-east-1:88614505-c8df-4dce-abd8-79a0543852ff", // Identity Pool ID
@@ -474,7 +523,9 @@ public class MainContainer extends AppCompatActivity {
                             handleNotAuthorizedException();
                         }
                         Log.d("mainattach", "credentials refreshed");
-                        if(initialThreeLoaded.getAndIncrement() == 2){
+                        awsCredentialsSet = true;
+                        Log.d("initialQuery", "awsCredentialsSet = true");
+                        if(initialAdLoaded){
                             if(mainActivityFragRef != null && mainActivityFragRef.getTab1() != null){
                                 thisActivity.runOnUiThread(new Runnable() {
                                     @Override
@@ -524,7 +575,9 @@ public class MainContainer extends AppCompatActivity {
                                                 handleNotAuthorizedException();
                                             }
                                             Log.d("mainattach", "credentials refreshed");
-                                            if(initialThreeLoaded.getAndIncrement() == 2){
+                                            awsCredentialsSet = true;
+                                            Log.d("initialQuery", "awsCredentialsSet = true");
+                                            if(initialAdLoaded){
                                                 if(mainActivityFragRef != null && mainActivityFragRef.getTab1() != null){
                                                     thisActivity.runOnUiThread(new Runnable() {
                                                         @Override
@@ -569,7 +622,9 @@ public class MainContainer extends AppCompatActivity {
                                         handleNotAuthorizedException();
                                     }
                                     Log.d("mainattach", "credentials refreshed");
-                                    if(initialThreeLoaded.getAndIncrement() == 2){
+                                    awsCredentialsSet = true;
+                                    Log.d("initialQuery", "awsCredentialsSet = true");
+                                    if(initialAdLoaded){
                                         if(mainActivityFragRef != null && mainActivityFragRef.getTab1() != null){
                                             thisActivity.runOnUiThread(new Runnable() {
                                                 @Override
@@ -618,10 +673,6 @@ public class MainContainer extends AppCompatActivity {
 
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
-        adLoaded = false;
-        nativeAds = new ArrayList<>();
-        MobileAds.initialize(this, admobID); //TODO: this loads test ads. Replace the app_id_string with our adMob account app_id_string to get real ads.
-
         final int usernameHash;
         if(currUsername.length() < 5){
             usernameHash = currUsername.hashCode();
@@ -632,8 +683,6 @@ public class MainContainer extends AppCompatActivity {
         }
 
         userPath = Integer.toString(usernameHash) + "/" + sessionManager.getCurrentUsername();
-        FOLLOWERS_CHILD = userPath + "/f";
-        FOLLOWING_CHILD = userPath + "/g";
 
         //soft input (keyboard) settings
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
@@ -1452,16 +1501,7 @@ public class MainContainer extends AppCompatActivity {
         Log.d("ORDER", "MainContainer onResume called");
         super.onResume();
         FirebaseMessaging.getInstance().subscribeToTopic(currUsername); //subscribe to user topic for messenger push notification
-        loadedAdsCount = adsRetrievalSize;
-        if(nativeAds != null){
-            if(nativeAds.size() < 2){
-                loadNativeAds();
-            }
-        }
-        else{
-            nativeAds = new ArrayList<>();
-            loadNativeAds();
-        }
+
 
         if(getIntent() != null && getIntent().getExtras() != null && getIntent().getExtras().get("type") != null){
             String intentType = getIntent().getExtras().get("type").toString();
@@ -1592,15 +1632,6 @@ public class MainContainer extends AppCompatActivity {
     }
     public void setLeftSearchButton(){
         toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
-    }
-
-    public void setToolbarTitleForCF(String titleForCF){
-        cftitle = titleForCF;
-        titleTxtView.setText(titleForCF);
-    }
-
-    public ImageButton getToolbarButtonLeft(){
-        return toolbarButtonLeft;
     }
 
     @Override
@@ -2540,20 +2571,10 @@ public class MainContainer extends AppCompatActivity {
         return userPath + "/";
     }
 
-    public String getBday(){
-        return sessionManager.getBday();
-    }
-
-    public boolean isInMessageRoom(){
-        return mViewPager.getCurrentItem() == 11;
-    }
-
     private void setUpAPI(){
-        factory = new ApiClientFactory().credentialsProvider(credentialsProvider);
+        ApiClientFactory factory = new ApiClientFactory().credentialsProvider(credentialsProvider);
         client = factory.build(VersusAPIClient.class);
-        //TODO: set up s3 with the new credential
-        s3 = new AmazonS3Client(credentialsProvider); //so we initialize it here as well as in onCreate().
-                                                    // is the duplication necessary? or is it sufficient to initialize it here
+        s3 = new AmazonS3Client(credentialsProvider); //in addition to initial initialization, this is also for renewing credentials on s3
     }
 
     public VersusAPIClient getClient(){
@@ -2638,74 +2659,34 @@ public class MainContainer extends AppCompatActivity {
     }
 
     private void loadNativeAds(){
-        Log.d("loadingads", "loading native ads");
-        if(loadedAdsCount < adsRetrievalSize){
+        Log.d("initialQuery", "loadNativeAds called");
+        if(adLoader.isLoading()){
             return;
         }
-        loadedAdsCount = 0;
-        AdLoader adLoader = new AdLoader.Builder(this, admobID)
-                .forAppInstallAd(new OnAppInstallAdLoadedListener() {
-                    @Override
-                    public void onAppInstallAdLoaded(NativeAppInstallAd appInstallAd) {
-                        nativeAds.add(appInstallAd);
-                        if(!adLoaded){
-                            adLoaded = true;
-                            if(initialThreeLoaded.getAndIncrement() == 2){
-                                mainActivityFragRef.getTab1().initialQuery();
-                            }
-                        }
-                    }
-                })
-                .forContentAd(new OnContentAdLoadedListener() {
-                    @Override
-                    public void onContentAdLoaded(NativeContentAd contentAd) {
-                        nativeAds.add(contentAd);
-                        if(!adLoaded){
-                            adLoaded = true;
-                            if(initialThreeLoaded.getAndIncrement() == 2){
-                                mainActivityFragRef.getTab1().initialQuery();
-                            }
-                        }
-                    }
-                })
-                .withAdListener(new AdListener() {
-                    @Override
-                    public void onAdLoaded(){
-                        loadedAdsCount++;
-                        Log.d("adloaded", "adloaded");
-                    }
-
-                    @Override
-                    public void onAdFailedToLoad(int errorCode) {
-                        // Handle the failure by logging, altering the UI, and so on.
-                        //TODO: handle ad loading failure event
-                        loadedAdsCount++; //still count as a ad download event
-                    }
-                })
-                .withNativeAdOptions(new NativeAdOptions.Builder()
-                        // Methods in the NativeAdOptions.Builder class can be
-                        // used here to specify individual options settings.
-                        .setImageOrientation(NativeAdOptions.ORIENTATION_LANDSCAPE)
-                        .build())
-                .build();
-
-        adLoader.loadAds(new AdRequest.Builder().build(), adsRetrievalSize); //TODO: use keywords on the AdRequest.Builder to get targeted ads. for now, it's location based generic ads I believe.
+        Log.d("initialQuery", "executing loadNativeAds");
+        int retrievalCount = 5;
+        if(bday == null){
+            adLoader.loadAds(new AdRequest.Builder().build(), retrievalCount);
+        }
+        else{
+            adLoader.loadAds(new AdRequest.Builder().setBirthday(bday).build(), retrievalCount);
+        }
     }
 
     public NativeAd getNextAd(){
-        Log.d("loadingads", "get next ad");
         if(nativeAds == null){
             nativeAds = new ArrayList<>();
         }
 
         if(nativeAds.isEmpty()){
-            loadNativeAds();
+            if(initialAdLoaded){
+                loadNativeAds();
+            }
             return null;
         } else {
             NativeAd nextAd = nativeAds.get(0);
             nativeAds.remove(0);
-            if(nativeAds.size() < 2){
-                Log.d("loadingads", "loading more ads");
+            if(nativeAds.size() < 2 && initialAdLoaded){
                 loadNativeAds();
             }
             return nextAd;
