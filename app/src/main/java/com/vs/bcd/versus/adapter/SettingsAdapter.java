@@ -8,6 +8,7 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -21,6 +22,7 @@ import android.text.Spanned;
 import android.text.TextPaint;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
+import android.text.style.StyleSpan;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -392,6 +394,26 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 }
             });
 
+            TextView faq = v.findViewById(R.id.about_faq);
+            SpannableString faqss = new SpannableString("FAQ");
+            faqss.setSpan(new ClickableSpan() {
+                @Override
+                public void onClick(View textView) {
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.versusdaily.com/faq"));
+                    startActivity(browserIntent);
+                }
+                @Override
+                public void updateDrawState(TextPaint ds) {
+                    super.updateDrawState(ds);
+                    ds.setUnderlineText(true);
+                    ds.setColor(ContextCompat.getColor(getActivity(), R.color.vsBlue));
+
+                }
+            }, 0, 3, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+            faq.setText(faqss);
+            faq.setMovementMethod(LinkMovementMethod.getInstance());
+            faq.setHighlightColor(Color.TRANSPARENT);
+
             TextView aboutTV1 = v.findViewById(R.id.about_tv1);
 
             SpannableString ss = new SpannableString("Terms and Conditions\nPrivacy Policy\nEULA");
@@ -443,7 +465,7 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             aboutTV1.setHighlightColor(Color.TRANSPARENT);
 
             TextView aboutTV2 = v.findViewById(R.id.about_tv2);
-            String secondString = "Acknowledgements:\n\t\tCircleImageView,\n\t\tGlide \n\n"+
+            String secondString = "Acknowledgements:\n\t\tCircleImageView,\n\t\tGlide \n"+
                     "\t\tIcons from the following authors:\n"+
                     "\t\t\t\tGregor Cresna,\n"+
                     "\t\t\t\tFreepik,\n"+
@@ -458,6 +480,10 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     "\t\t\t\tGoogle Material Design,\n"+
                     "\t\t\t\tAnd custom icons from Andrew Cho, Aryaman Kochar, Francisca Caviedes, Teddy DeMask, Nikki Mantis, and Alexia Jackson.";
             SpannableString ss2 = new SpannableString(secondString);
+            ss2.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), 0, 16, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+            ss2.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), secondString.indexOf("Icons"), secondString.indexOf("authors")+7, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+            ss2.setSpan(new StyleSpan(Typeface.ITALIC), secondString.indexOf("And custom icons from"), secondString.length()-1, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+
             ss2.setSpan(new ClickableSpan() {
                 @Override
                 public void onClick(View textView) {
