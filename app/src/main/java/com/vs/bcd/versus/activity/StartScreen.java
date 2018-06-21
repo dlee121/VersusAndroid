@@ -33,10 +33,8 @@ import android.widget.Toast;
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.apigateway.ApiClientException;
 import com.amazonaws.mobileconnectors.apigateway.ApiClientFactory;
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.cognitoidentity.model.NotAuthorizedException;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
@@ -88,8 +86,6 @@ public class StartScreen extends AppCompatActivity {
 
     private CallbackManager callbackManager;
     private LoginButton facebookLoginButton;
-    private String esHost = "search-versus-7754bycdilrdvubgqik6i6o7c4.us-east-1.es.amazonaws.com"; //TODO: eventually we'll be using API gateway at which point we'll remove ES domain info from client side.
-    private String esRegion = "us-east-1";
     private String authToken;
     private FirebaseAuth mFirebaseAuth;
     private CognitoCachingCredentialsProvider credentialsProvider;
@@ -101,8 +97,6 @@ public class StartScreen extends AppCompatActivity {
     private int RC_SIGN_IN = 58;
     private EditText usernameET, pwET;
     private boolean loginThreadRunning = false;
-    private AmazonDynamoDBClient ddbClient;
-    private DynamoDBMapper mapper = new DynamoDBMapper(ddbClient);
     private Toast mToast;
     private ApiClientFactory factory;
     private VersusAPIClient client;
@@ -125,9 +119,6 @@ public class StartScreen extends AppCompatActivity {
 
         factory = new ApiClientFactory().credentialsProvider(credentialsProvider);
         client = factory.build(VersusAPIClient.class);
-
-        ddbClient = new AmazonDynamoDBClient(credentialsProvider);
-        mapper = new DynamoDBMapper(ddbClient);
 
         mFirebaseAuth = FirebaseAuth.getInstance();
 
@@ -690,13 +681,19 @@ public class StartScreen extends AppCompatActivity {
     }
 
     private void resetLoginButtonsUIOnly(){
-        facebookLoginButton.setVisibility(View.VISIBLE);
-        facebookProgressbar.setVisibility(View.INVISIBLE);
+        thisActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                facebookLoginButton.setVisibility(View.VISIBLE);
+                facebookProgressbar.setVisibility(View.INVISIBLE);
 
-        googleLoginButton.setVisibility(View.VISIBLE);
-        googleProgressbar.setVisibility(View.INVISIBLE);
+                googleLoginButton.setVisibility(View.VISIBLE);
+                googleProgressbar.setVisibility(View.INVISIBLE);
 
-        displayLoginProgressbar(false);
+                displayLoginProgressbar(false);
+            }
+        });
+
     }
 
     private void handlePasswordReset(){
