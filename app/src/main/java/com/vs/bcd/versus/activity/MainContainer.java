@@ -7,8 +7,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.NetworkOnMainThreadException;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -26,6 +28,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -81,6 +84,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.vs.bcd.api.VersusAPIClient;
 import com.vs.bcd.versus.adapter.ArrayAdapterWithIcon;
 import com.vs.bcd.versus.adapter.MyFirebaseMessagingService;
@@ -99,6 +103,7 @@ import com.vs.bcd.versus.fragment.Tab1Newsfeed;
 import com.vs.bcd.versus.fragment.Tab2Trending;
 import com.vs.bcd.versus.fragment.Tab3Categories;
 import com.vs.bcd.versus.model.CategoryObject;
+import com.vs.bcd.versus.model.ForceUpdateChecker;
 import com.vs.bcd.versus.model.GlideUrlCustom;
 import com.vs.bcd.versus.model.GlobalExceptionHandler;
 import com.vs.bcd.versus.model.MessageObject;
@@ -122,7 +127,7 @@ import java.util.HashSet;
 import java.util.Map;
 
 
-public class MainContainer extends AppCompatActivity {
+public class MainContainer extends AppCompatActivity implements ForceUpdateChecker.OnUpdateNeededListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -430,6 +435,30 @@ public class MainContainer extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ForceUpdateChecker.with(this).onUpdateNeeded(this).check();
+
+        final FirebaseRemoteConfig firebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
+
+        // set in-app defaults
+        Map<String, Object> remoteConfigDefaults = new HashMap();
+        remoteConfigDefaults.put(ForceUpdateChecker.KEY_UPDATE_REQUIRED, false);
+        remoteConfigDefaults.put(ForceUpdateChecker.KEY_CURRENT_VERSION, "1.0.0");
+        remoteConfigDefaults.put(ForceUpdateChecker.KEY_UPDATE_URL,
+                "https://play.google.com/store/apps/details?id=com.sembozdemir.renstagram");
+
+        firebaseRemoteConfig.setDefaults(remoteConfigDefaults);
+        firebaseRemoteConfig.fetch(60) // fetch every minutes
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Log.d("remoteConfigFetch", "remote config is fetched.");
+                            firebaseRemoteConfig.activateFetched();
+                        }
+                    }
+                });
+
+
         new GlobalExceptionHandler(MainContainer.this);
         setContentView(R.layout.activity_main_container);
         thisActivity = this;
@@ -1306,6 +1335,7 @@ public class MainContainer extends AppCompatActivity {
                         showMessengerButton();
                         hideToolbarTextButton();
                         enableBottomTabs();
+                        titleTxtView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 21);
                         titleTxtView.setText(lastSetTitle);
                         bottomNavigation.setCurrentItem(0, false);
                         showToolbarButtonLeft();
@@ -1327,6 +1357,7 @@ public class MainContainer extends AppCompatActivity {
                         showToolbarButtonLeft();
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         disableBottomTabs();
+                        titleTxtView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 21);
                         titleTxtView.setText("Search");
                         profileBackDestination = 1;
                         hideTitleRightButton();
@@ -1336,6 +1367,7 @@ public class MainContainer extends AppCompatActivity {
                     case 2: //CreatePost
                         showMessegerButtonBadge(false);
                         hideToolbarButtonRight();
+                        titleTxtView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 21);
                         showToolbarTextButton("POST");
                         disableBottomTabs();
                         showToolbarButtonLeft();
@@ -1357,6 +1389,7 @@ public class MainContainer extends AppCompatActivity {
 
                     case 4: //messenger
                         showMessegerButtonBadge(false);
+                        titleTxtView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 21);
                         titleTxtView.setText("Messenger");
                         showMessengerSearchButton();
                         hideToolbarTextButton();
@@ -1369,6 +1402,7 @@ public class MainContainer extends AppCompatActivity {
 
                     case 5: //SelectCategory
                         //disableBottomTabs(); //accessed from CreatePost which already disables bottom tabs
+                        titleTxtView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 21);
                         toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         break;
 
@@ -1376,6 +1410,7 @@ public class MainContainer extends AppCompatActivity {
                         hideToolbarButtonRight();
                         hideToolbarTextButton();
                         showToolbarButtonLeft();
+                        titleTxtView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 21);
                         setLeftChevron();
                         hideTitleRightButton();
                         disableBottomTabs();
@@ -1386,6 +1421,7 @@ public class MainContainer extends AppCompatActivity {
                         showMessengerButton();
                         hideToolbarTextButton();
                         hideToolbarButtonLeft();
+                        titleTxtView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 21);
                         titleTxtView.setText("Leaderboard");
                         bottomNavigation.setCurrentItem(1, false);
                         profileBackDestination = 7;
@@ -1399,6 +1435,7 @@ public class MainContainer extends AppCompatActivity {
                         hideToolbarTextButton();
                         enableBottomTabs(); //because we might make notifications not bottom tab, putting this here just in case
                         hideToolbarButtonLeft();
+                        titleTxtView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 21);
                         titleTxtView.setText("Notifications");
                         bottomNavigation.setCurrentItem(3, false);
                         hideTitleRightButton();
@@ -1427,6 +1464,7 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 10: //SettingsFragment
+                        titleTxtView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 21);
                         titleTxtView.setText("Settings");
                         showMessegerButtonBadge(false);
                         hideToolbarButtonRight();
@@ -1441,6 +1479,7 @@ public class MainContainer extends AppCompatActivity {
                         //hideToolbarButtonRight();
                         showMessegerButtonBadge(false);
                         hideToolbarTextButton();
+                        titleTxtView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
                         //showOverflowMenu();
                         disableBottomTabs();
                         showToolbarButtonLeft();
@@ -1458,6 +1497,7 @@ public class MainContainer extends AppCompatActivity {
                     case 12: //CreateMessage
                         showMessegerButtonBadge(false);
                         hideToolbarButtonRight();
+                        titleTxtView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 21);
                         showToolbarTextButton("OK");
                         disableBottomTabs();
                         showToolbarButtonLeft();
@@ -1466,6 +1506,7 @@ public class MainContainer extends AppCompatActivity {
                         break;
 
                     case 13: //Group Members Page
+                        titleTxtView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
                         showMessegerButtonBadge(false);
                         hideToolbarButtonRight();
                         if(messageRoom.isRoomAdmin()){
@@ -1494,6 +1535,33 @@ public class MainContainer extends AppCompatActivity {
 
         //Log.d("USER_INFO", sessionManager.getUserDetails().get(SessionManager.KEY_USERNAME));
         Log.d("ORDER", "MainContainer OnCreate finished");
+    }
+
+    @Override
+    public void onUpdateNeeded(final String updateUrl) {
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("New version available")
+                .setMessage("Please, update app to new version to continue reposting.")
+                .setPositiveButton("Update",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                redirectStore(updateUrl);
+                            }
+                        }).setNegativeButton("No, thanks",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                finish();
+                            }
+                        }).create();
+        dialog.show();
+    }
+
+    private void redirectStore(String updateUrl) {
+        final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(updateUrl));
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
     }
 
     @Override
@@ -2054,7 +2122,7 @@ public class MainContainer extends AppCompatActivity {
         showMessegerButtonBadge(false);
         toolbarButtonRight.setEnabled(true);
         toolbarButtonRight.setLayoutParams(toolbarButtonRightLP);
-        toolbarButtonRight.setImageResource(R.drawable.ic_search_white);
+        toolbarButtonRight.setImageResource(android.R.color.transparent); //TODO: once we implement messenger search, we'll set it to setImageResource(R.drawable.ic_search_white)
     }
 
     private void showMessengerButton(){

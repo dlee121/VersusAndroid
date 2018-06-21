@@ -95,15 +95,16 @@
             android:maxLines="2"
             android:ellipsize="end"
             android:drawableRight="@drawable/ic_right_chevron"
-            android:textSize="21dp" />
+            android:textSize="21sp" />
 
         <EditText
             android:id="@+id/title_edit_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="@style/TextAppearance.AppCompat.Widget.ActionBar.Title"
-            android:textColor="@android:color/white"
+            android:textColor="@android:color/black"
             android:maxLength="55"
+            android:textSize="17sp"
             android:visibility="gone"/>
 
     </LinearLayout>

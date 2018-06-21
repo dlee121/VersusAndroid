@@ -108,7 +108,6 @@ public class MessengerFragment extends Fragment {
     private ArrayList<ViewGroup.LayoutParams> LPStore;
 
     // Firebase instance variables
-    private FirebaseAuth mFirebaseAuth;
     private DatabaseReference mFirebaseDatabaseReference;
     private CustomFirebaseRecyclerAdapter<RoomObject, RoomViewHolder> mFirebaseAdapter;
     private FirebaseAnalytics mFirebaseAnalytics;
@@ -119,31 +118,24 @@ public class MessengerFragment extends Fragment {
     private int mPhotoUrl = 0;
     private MainContainer activity;
     private FloatingActionButton fabNewMsg;
-    private ChildEventListener roomsListener;
-    //private HashMap<String, RNumAndUList> rNameToRNumAndUListMap;
     private TextView emptyListTV;
     private Query query;
-    private int retrievalSize = 12;
+    private int retrievalSize = 30;
     private int initialRetrievalSize = retrievalSize * 2; //has to be integer multiple of retrievalSize for current code for loadMore to work //TODO: increase this
-    private int loadThreshold = 3;
     private boolean nowLoading = false;
     private boolean firstOnBindVieHolderCall = false;
     private int previousAdapterItemCount = 0;
-    private int previousAdapterScrollPosition = 0;
     private int totalRoomCount = Integer.MAX_VALUE;
     private HashMap<String, Integer> profileImgVersions = new HashMap<>();
     private boolean setPreloader = true;
     private Drawable defaultProfileImage, defaultGroupImage;
     private MessengerFragment thisFragment;
-    private Rect rect;
-    private Toast mToast;
     private ListPopupWindow listPopupWindow;
     private HashSet<String> blockList = new HashSet<>();
     private HashSet<String > blockedfromList = new HashSet<>();
     private HashSet<String> muteList = new HashSet<>();
     private HashSet<String> unreadRooms = new HashSet<>();
     private String clickedRoomNum = "";
-    private HashSet<String> ignoreThisRemoval = new HashSet<>();
     private boolean initialUnreadListLoaded = false;
     private boolean initialMuteListLoaded = false;
     private boolean fragIsVisible = false;
