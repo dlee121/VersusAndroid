@@ -435,30 +435,6 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ForceUpdateChecker.with(this).onUpdateNeeded(this).check();
-
-        final FirebaseRemoteConfig firebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
-
-        // set in-app defaults
-        Map<String, Object> remoteConfigDefaults = new HashMap();
-        remoteConfigDefaults.put(ForceUpdateChecker.KEY_UPDATE_REQUIRED, false);
-        remoteConfigDefaults.put(ForceUpdateChecker.KEY_CURRENT_VERSION, "1.0.0");
-        remoteConfigDefaults.put(ForceUpdateChecker.KEY_UPDATE_URL,
-                "https://play.google.com/store/apps/details?id=com.sembozdemir.renstagram");
-
-        firebaseRemoteConfig.setDefaults(remoteConfigDefaults);
-        firebaseRemoteConfig.fetch(60) // fetch every minutes
-                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()) {
-                            Log.d("remoteConfigFetch", "remote config is fetched.");
-                            firebaseRemoteConfig.activateFetched();
-                        }
-                    }
-                });
-
-
         new GlobalExceptionHandler(MainContainer.this);
         setContentView(R.layout.activity_main_container);
         thisActivity = this;
@@ -1568,9 +1544,36 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
     protected void onResume(){
         Log.d("ORDER", "MainContainer onResume called");
         super.onResume();
+        final FirebaseRemoteConfig firebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
+
+        // set in-app defaults
+        Map<String, Object> remoteConfigDefaults = new HashMap();
+        String result = "";
+        try {
+            result = getPackageManager()
+                    .getPackageInfo(getPackageName(), 0)
+                    .versionName;
+            result = result.replaceAll("[a-zA-Z]|-", "");
+        } catch (PackageManager.NameNotFoundException e) {
+        }
+        remoteConfigDefaults.put(ForceUpdateChecker.KEY_CURRENT_VERSION, result);
+        remoteConfigDefaults.put(ForceUpdateChecker.KEY_UPDATE_REQUIRED, false);
+        remoteConfigDefaults.put(ForceUpdateChecker.KEY_UPDATE_URL, "https://versusdaily.com/");
+
+        firebaseRemoteConfig.setDefaults(remoteConfigDefaults);
+        firebaseRemoteConfig.fetch(3600)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Log.d("remoteConfigFetch", "remote config is fetched.");
+                            firebaseRemoteConfig.activateFetched();
+                        }
+                    }
+                });
+        ForceUpdateChecker.with(this).onUpdateNeeded(this).check();
+
         FirebaseMessaging.getInstance().subscribeToTopic(currUsername); //subscribe to user topic for messenger push notification
-
-
         if(getIntent() != null && getIntent().getExtras() != null && getIntent().getExtras().get("type") != null){
             String intentType = getIntent().getExtras().get("type").toString();
             getIntent().removeExtra("type");
