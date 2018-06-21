@@ -74,10 +74,10 @@ public class AuthBirthdayInput extends Fragment {
                 Log.d("bdaycalendar", "current month: "+Calendar.getInstance().get(Calendar.MONTH));
                 int yearDiff = today.get(Calendar.YEAR) - year;
                 boolean ageRequirementMet = false;
-                if(yearDiff > 13){
+                if(yearDiff > 16){
                     ageRequirementMet = true;
                 }
-                else if(yearDiff == 13){
+                else if(yearDiff == 16){
                     int monthDiff = today.get(Calendar.MONTH) + 1 - month;
                     if(monthDiff > 0){
                         ageRequirementMet = true;
@@ -100,7 +100,7 @@ public class AuthBirthdayInput extends Fragment {
                     if(mToast != null){
                         mToast.cancel();
                     }
-                    mToast = Toast.makeText(activity, "You must be at least 13 years old", Toast.LENGTH_SHORT);
+                    mToast = Toast.makeText(activity, "You must be at least 16 years old", Toast.LENGTH_SHORT);
                     mToast.show();
                 }
 
