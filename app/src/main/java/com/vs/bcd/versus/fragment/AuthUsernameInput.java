@@ -141,7 +141,7 @@ public class AuthUsernameInput extends Fragment {
         auLegalTV = rootView.findViewById(R.id.au_legal);
         auLegalTV.setVisibility(View.VISIBLE);
 
-        SpannableString ss = new SpannableString("By signing up, you agree to our Terms and Conditions, Privacy Policy, and EULA.");
+        SpannableString ss = new SpannableString("By signing up, you agree to our Terms and Policies.");
         ss.setSpan(new ClickableSpan() {
             @Override
             public void onClick(View textView) {
@@ -161,47 +161,8 @@ public class AuthUsernameInput extends Fragment {
                 ds.setColor(ContextCompat.getColor(activity, R.color.vsBlue));
 
             }
-        }, 32, 52, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        ss.setSpan(new ClickableSpan() {
-            @Override
-            public void onClick(View textView) {
-                try{
-                    imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
-                }
-                catch (Exception e){
-                    e.printStackTrace();
-                }
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.versusdaily.com/privacy-policy"));
-                startActivity(browserIntent);
-            }
-            @Override
-            public void updateDrawState(TextPaint ds) {
-                super.updateDrawState(ds);
-                ds.setUnderlineText(true);
-                ds.setColor(ContextCompat.getColor(activity, R.color.vsBlue));
+        }, 32, 50, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
 
-            }
-        }, 54, 68, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        ss.setSpan(new ClickableSpan() {
-            @Override
-            public void onClick(View textView) {
-                try{
-                    imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
-                }
-                catch (Exception e){
-                    e.printStackTrace();
-                }
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.versusdaily.com/eula"));
-                startActivity(browserIntent);
-            }
-            @Override
-            public void updateDrawState(TextPaint ds) {
-                super.updateDrawState(ds);
-                ds.setUnderlineText(true);
-                ds.setColor(ContextCompat.getColor(activity, R.color.vsBlue));
-
-            }
-        }, 74, 79, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         auLegalTV.setText(ss);
         auLegalTV.setMovementMethod(LinkMovementMethod.getInstance());
         auLegalTV.setHighlightColor(Color.TRANSPARENT);
