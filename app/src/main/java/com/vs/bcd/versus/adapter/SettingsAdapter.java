@@ -416,11 +416,11 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
             TextView aboutTV1 = v.findViewById(R.id.about_tv1);
 
-            SpannableString ss = new SpannableString("Terms and Conditions\nPrivacy Policy\nEULA");
+            SpannableString ss = new SpannableString("Terms and Policies");
             ss.setSpan(new ClickableSpan() {
                 @Override
                 public void onClick(View textView) {
-                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.versusdaily.com/terms-and-conditions"));
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.versusdaily.com/terms-and-policies"));
                     startActivity(browserIntent);
                 }
                 @Override
@@ -430,35 +430,7 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     ds.setColor(ContextCompat.getColor(getActivity(), R.color.vsBlue));
 
                 }
-            }, 0, 20, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
-            ss.setSpan(new ClickableSpan() {
-                @Override
-                public void onClick(View textView) {
-                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.versusdaily.com/privacy-policy"));
-                    startActivity(browserIntent);
-                }
-                @Override
-                public void updateDrawState(TextPaint ds) {
-                    super.updateDrawState(ds);
-                    ds.setUnderlineText(true);
-                    ds.setColor(ContextCompat.getColor(getActivity(), R.color.vsBlue));
-
-                }
-            }, 21, 35, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
-            ss.setSpan(new ClickableSpan() {
-                @Override
-                public void onClick(View textView) {
-                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.versusdaily.com/eula"));
-                    startActivity(browserIntent);
-                }
-                @Override
-                public void updateDrawState(TextPaint ds) {
-                    super.updateDrawState(ds);
-                    ds.setUnderlineText(true);
-                    ds.setColor(ContextCompat.getColor(getActivity(), R.color.vsBlue));
-
-                }
-            }, 36, 40, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+            }, 0, 18, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
 
             aboutTV1.setText(ss);
             aboutTV1.setMovementMethod(LinkMovementMethod.getInstance());

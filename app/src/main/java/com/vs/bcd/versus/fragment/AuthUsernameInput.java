@@ -151,7 +151,7 @@ public class AuthUsernameInput extends Fragment {
                 catch (Exception e){
                     e.printStackTrace();
                 }
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.versusdaily.com/terms-and-conditions"));
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.versusdaily.com/terms-and-policies"));
                 startActivity(browserIntent);
             }
             @Override

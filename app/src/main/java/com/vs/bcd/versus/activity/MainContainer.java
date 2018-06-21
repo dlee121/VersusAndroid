@@ -447,6 +447,9 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
         }
 
         awsCredentialsSet = false;
+
+
+        /*
         initialAdLoaded = false;
         nativeAds = new ArrayList<>();
         MobileAds.initialize(this, admobID);
@@ -497,6 +500,8 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                 .build();
 
         loadNativeAds();
+        */
+        initialAdLoaded = true;//TODO: delete this once we reinstate native ads, in addtion to uncommenting the loader code block above
 
         // Initialize the Amazon Cognito credentials provider
         credentialsProvider = new CognitoCachingCredentialsProvider(
@@ -2730,6 +2735,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
     }
 
     private void loadNativeAds(){
+        /*
         Log.d("initialQuery", "loadNativeAds called");
         if(adLoader.isLoading()){
             return;
@@ -2742,9 +2748,12 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
         else{
             adLoader.loadAds(new AdRequest.Builder().setBirthday(bday).build(), retrievalCount);
         }
+        */
     }
 
     public NativeAd getNextAd(){
+        return null; //TODO: until we get ads set up, this keeps the app running smoothly
+        /*
         if(nativeAds == null){
             nativeAds = new ArrayList<>();
         }
@@ -2759,6 +2768,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
             }
             return nextAd;
         }
+        */
     }
 
     public Post getCurrentPost(){
