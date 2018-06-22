@@ -1903,6 +1903,13 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         commentsQuery(tempParentID, "u");
     }
 
+    public void clearMasterListStack(){
+        pageLevel = 0;
+        if(masterListStack != null){
+            masterListStack.clear();
+        }
+    }
+
     public boolean isRootLevel(){
         return atRootLevel;
     }

@@ -311,6 +311,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                         }
                         xBmp = null;
                         yBmp = null;
+                        postPage.clearMasterListStack();
                     }
                     break;
 
@@ -865,6 +866,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                                                 }
                                                 xBmp = null;
                                                 yBmp = null;
+                                                postPage.clearMasterListStack();
                                             }
 
                                             if(clickCoverUp){

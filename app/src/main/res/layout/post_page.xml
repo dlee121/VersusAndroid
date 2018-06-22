@@ -47,6 +47,7 @@
             android:layout_alignParentStart="true"
             android:layout_toStartOf="@id/send_button_placeholder"
             android:textSize="14sp"
+            android:inputType="textCapSentences"
             android:hint="Join the discussion!"/>
 
         <LinearLayout
