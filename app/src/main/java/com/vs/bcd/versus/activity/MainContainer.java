@@ -1565,7 +1565,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
         }
         remoteConfigDefaults.put(ForceUpdateChecker.KEY_CURRENT_VERSION, result);
         remoteConfigDefaults.put(ForceUpdateChecker.KEY_UPDATE_REQUIRED, false);
-        remoteConfigDefaults.put(ForceUpdateChecker.KEY_UPDATE_URL, "https://versusdaily.com/");
+        remoteConfigDefaults.put(ForceUpdateChecker.KEY_UPDATE_URL, "http://play.google.com/store/apps/details?id=com.vs.bcd.versus");
 
         firebaseRemoteConfig.setDefaults(remoteConfigDefaults);
         firebaseRemoteConfig.fetch(3600)
