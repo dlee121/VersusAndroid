@@ -267,7 +267,6 @@ public class SignUp extends AppCompatActivity {
                                                     userPutModel.setAi(newUser.getAuthID());
                                                     userPutModel.setB(BigDecimal.ZERO);
                                                     userPutModel.setBd(newUser.getBday());
-                                                    userPutModel.setCi(newUser.getCi());
                                                     userPutModel.setEm(newUser.getEmail());
                                                     userPutModel.setG(BigDecimal.ZERO);
                                                     userPutModel.setIn(BigDecimal.ZERO);
