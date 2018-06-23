@@ -362,9 +362,14 @@ public class StartScreen extends AppCompatActivity {
             return;
         }
         resetLoginButtons();
+        try{
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow( getCurrentFocus().getWindowToken(), 0);
 
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow( getCurrentFocus().getWindowToken(), 0);
+        }catch (Exception e){
+
+        }
+
         //TODO: better way to prevent multiple login submission from tapping the button rapidly multiple times?
 
         if(!loginThreadRunning){
@@ -375,7 +380,7 @@ public class StartScreen extends AppCompatActivity {
 
             Runnable runnable = new Runnable() {
                 public void run() {
-                    String loginEmail = usernameIn + "@versusbcd.com";
+                    String loginEmail = usernameIn.toLowerCase() + "@versusbcd.com";
                     try{
                         EmailGetModel emailGetModel = client.getemailGet("gem", usernameIn);
                         if(emailGetModel != null && emailGetModel.getEm() != null && !emailGetModel.getEm().equals("0")){

@@ -20,6 +20,7 @@ public class User {
     private String authID; //pw for messenger auth
     private int profileImage; //profile image storage url
     private int influence, g, s, b; //influece and medal count
+    private String ci = "";
 
     @DynamoDBAttribute(attributeName = "bd")
     public String getBday() {
@@ -110,6 +111,7 @@ public class User {
         g = 0;
         s = 0;
         b = 0;
+        ci = username.toLowerCase();
     }
 
     //for signing up user from facebook login and google login
@@ -122,6 +124,7 @@ public class User {
         g = 0;
         s = 0;
         b = 0;
+        ci = username.toLowerCase();
     }
 
     public User(JSONObject item, String username) throws JSONException {
@@ -134,6 +137,7 @@ public class User {
         g = item.getInt("g");
         s = item.getInt("s");
         b = item.getInt("b");
+        ci = username.toLowerCase();
     }
 
     public User(AIModelHitsHitsItemSource source, String id){
@@ -145,6 +149,7 @@ public class User {
         g = 0;
         s = 0;
         b = 0;
+        ci = username.toLowerCase();
     }
 
     public User(UserGetModel source, String id){
@@ -156,6 +161,11 @@ public class User {
         g = 0;
         s = 0;
         b = 0;
+        ci = username.toLowerCase();
+    }
+
+    public String getCi(){
+        return username.toLowerCase();
     }
 
 }

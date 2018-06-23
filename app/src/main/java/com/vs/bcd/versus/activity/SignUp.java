@@ -239,7 +239,7 @@ public class SignUp extends AppCompatActivity {
 
         final User newUser = new User(bdayIn, usernameIn); //TODO: don't hold password in user object anymore. In fact, don't hold it anywhere.
 
-        mFirebaseAuth.createUserWithEmailAndPassword(newUser.getUsername() + "@versusbcd.com", biebs)
+        mFirebaseAuth.createUserWithEmailAndPassword(newUser.getUsername().toLowerCase() + "@versusbcd.com", biebs)
                 .addOnCompleteListener(thisActivity, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
@@ -267,6 +267,7 @@ public class SignUp extends AppCompatActivity {
                                                     userPutModel.setAi(newUser.getAuthID());
                                                     userPutModel.setB(BigDecimal.ZERO);
                                                     userPutModel.setBd(newUser.getBday());
+                                                    userPutModel.setCi(newUser.getCi());
                                                     userPutModel.setEm(newUser.getEmail());
                                                     userPutModel.setG(BigDecimal.ZERO);
                                                     userPutModel.setIn(BigDecimal.ZERO);

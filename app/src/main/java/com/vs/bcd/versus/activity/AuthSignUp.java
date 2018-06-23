@@ -19,9 +19,7 @@ import android.widget.Toast;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.apigateway.ApiClientFactory;
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Regions;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.facebook.login.LoginManager;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -70,7 +68,6 @@ public class AuthSignUp extends AppCompatActivity {
      */
     private ViewPagerCustomDuration mViewPager;
     private String bday, username;
-    private DynamoDBMapper mapper;
     private SessionManager sessionManager;
     private AuthSignUp thisActivity;
     private AuthBirthdayInput wyb;
@@ -110,9 +107,6 @@ public class AuthSignUp extends AppCompatActivity {
         client = factory.build(VersusAPIClient.class);
 
         mFirebaseAuth = FirebaseAuth.getInstance();
-
-        AmazonDynamoDBClient ddbClient = new AmazonDynamoDBClient(credentialsProvider);
-        mapper = new DynamoDBMapper(ddbClient);
 
         Bundle extras = getIntent().getExtras();
         if(extras != null) {
@@ -276,6 +270,7 @@ public class AuthSignUp extends AppCompatActivity {
                                                     userPutModel.setAi(newUser.getAuthID());
                                                     userPutModel.setB(BigDecimal.ZERO);
                                                     userPutModel.setBd(newUser.getBday());
+                                                    userPutModel.setCi(newUser.getCi());
                                                     userPutModel.setEm(newUser.getEmail());
                                                     userPutModel.setG(BigDecimal.ZERO);
                                                     userPutModel.setIn(BigDecimal.ZERO);
