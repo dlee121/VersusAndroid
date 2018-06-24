@@ -147,8 +147,9 @@ public class User {
         b = 0;
     }
 
-    public User(UserGetModel source, String id){
-        username = id;
+    public User(UserGetModel source){
+        //username = id;
+        username = source.getCs();
         bday = source.getBd();
         email = source.getEm();
         profileImage = source.getPi().intValue();
@@ -156,6 +157,10 @@ public class User {
         g = 0;
         s = 0;
         b = 0;
+    }
+
+    public String getCi(){
+        return username.toLowerCase();
     }
 
 

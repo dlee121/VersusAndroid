@@ -260,7 +260,7 @@ public class AuthUsernameInput extends Fragment {
                         //TODO:show progressbar for and "checking..." etWarning text for username checking
                         if(!ignoreAsync && thisVersion >= usernameVersion){
                             try{
-                                activity.getClient().userHead("uc", username);
+                                activity.getClient().userHead("uc", username.toLowerCase());
                                 activity.runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {

@@ -290,7 +290,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
 
     private void getProfileImgVersions(String payload){
 
-        PIVModel pivResult = mHostActivity.getClient().pivGet("pis", payload);
+        PIVModel pivResult = mHostActivity.getClient().pivGet("pis", payload.toLowerCase());
 
         List<PIVModelDocsItem> pivList = pivResult.getDocs();
         if(pivList != null && !pivList.isEmpty()){

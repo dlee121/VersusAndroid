@@ -140,14 +140,8 @@ public class LeaderboardTab extends Fragment {
 
                 List<LeaderboardModelHitsHitsItem> hits = result.getHits().getHits();
 
-                try {
-                    /* Execute URL and attach after execution response handler */
-                    for (LeaderboardModelHitsHitsItem item : hits) {
-                        leaders.add(new LeaderboardEntry(item.getSource(), item.getId()));
-                    }
-                    //System.out.println("Response: " + strResponse);
-                } catch (Exception e) {
-                    e.printStackTrace();
+                for (LeaderboardModelHitsHitsItem item : hits) {
+                    leaders.add(new LeaderboardEntry(item.getSource()));
                 }
 
                 activity.runOnUiThread(new Runnable() {

@@ -1,5 +1,7 @@
 package com.vs.bcd.versus.model;
 
+import android.util.Log;
+
 import com.amazonaws.mobileconnectors.apigateway.ApiClientException;
 import com.amazonaws.services.cognitoidentity.model.NotAuthorizedException;
 import com.vs.bcd.versus.activity.MainContainer;

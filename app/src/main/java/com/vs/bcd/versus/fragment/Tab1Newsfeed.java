@@ -131,6 +131,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
         Log.d("initialQuery", "initialQuery called");
         if(viewSetForInitialQuery){
             newsfeedESQuery(0);
+            Log.d("initialQuery", "initialQuery executed");
         }
     }
 
@@ -251,7 +252,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                         }
 
                         if(strBuilder.length() > 0){
-                            String payload = "{\"ids\":["+strBuilder.toString()+"]}";
+                            String payload = "{\"ids\":["+strBuilder.toString().toLowerCase()+"]}";
                             getProfileImgVersions(payload);
                         }
 

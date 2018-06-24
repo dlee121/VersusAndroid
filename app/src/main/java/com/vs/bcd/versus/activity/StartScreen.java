@@ -66,6 +66,7 @@ import com.vs.bcd.api.VersusAPIClient;
 import com.vs.bcd.api.model.AIModel;
 import com.vs.bcd.api.model.AIModelHitsHitsItem;
 import com.vs.bcd.api.model.EmailGetModel;
+import com.vs.bcd.api.model.UserGetModel;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.model.FormValidator;
 import com.vs.bcd.versus.model.SessionManager;
@@ -376,20 +377,20 @@ public class StartScreen extends AppCompatActivity {
             loginThreadRunning = true;
             displayLoginProgressbar(true);
 
-            final String usernameIn = usernameET.getText().toString();
+            final String usernameIn = usernameET.getText().toString().toLowerCase();
 
             Runnable runnable = new Runnable() {
                 public void run() {
-                    String loginEmail = usernameIn.toLowerCase() + "@versusbcd.com";
+                    String loginEmail = usernameIn + "@versusbcd.com";
                     try{
-                        EmailGetModel emailGetModel = client.getemailGet("gem", usernameIn);
-                        if(emailGetModel != null && emailGetModel.getEm() != null && !emailGetModel.getEm().equals("0")){
-                            loginEmail = emailGetModel.getEm();
+                        String email = client.getemailGet("gem", usernameIn).getEm();
+                        if(email != null && !email.equals("0")){
+                            loginEmail = email;
                         }
+
 
                     }catch (NotAuthorizedException e){
                         refreshUnauthCredentials();
-
                         thisActivity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -402,6 +403,7 @@ public class StartScreen extends AppCompatActivity {
                             }
                         });
                     }catch (Exception e){
+
                         thisActivity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -411,6 +413,7 @@ public class StartScreen extends AppCompatActivity {
                             }
                         });
                     }
+
                     Log.d("loginpowers", "papaw");
                     try{
                         mFirebaseAuth.signInWithEmailAndPassword(loginEmail, pwET.getText().toString())
@@ -436,14 +439,18 @@ public class StartScreen extends AppCompatActivity {
 
                                                                 try{
                                                                     credentialsProvider.refresh();
-                                                                    final User user = new User(client.userGet("getu", usernameIn), usernameIn);
+                                                                    UserGetModel userGetModel = client.userGet("getu", usernameIn);
+                                                                    final User user = new User(userGetModel);
 
                                                                     thisActivity.runOnUiThread(new Runnable() {
                                                                         @Override
                                                                         public void run() {
-                                                                            SessionManager sessionManager = new SessionManager(thisActivity);
-                                                                            sessionManager.createLoginSession(user, true);    //store login session data in Shared Preferences
+                                                                            Log.d("yoyoyosdfj", "sdfsdffd");
 
+                                                                            SessionManager sessionManager = new SessionManager(thisActivity);
+                                                                            Log.d("yoyoyosdfj", "sdfsdffd2");
+                                                                            sessionManager.createLoginSession(user, true);    //store login session data in Shared Preferences
+                                                                            Log.d("yoyoyosdfj", "sdfsdffd3");
                                                                             Intent intent = new Intent(thisActivity, MainContainer.class);
                                                                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                                                             intent.putExtra("oitk", token);
@@ -455,6 +462,19 @@ public class StartScreen extends AppCompatActivity {
                                                                 }catch (NotAuthorizedException e){
                                                                     refreshUnauthCredentials();
                                                                     Log.d("loginpowers", "check");
+
+                                                                    thisActivity.runOnUiThread(new Runnable() {
+                                                                        @Override
+                                                                        public void run() {
+                                                                            resetLoginButtons();
+                                                                            if(mToast != null){
+                                                                                mToast.cancel();
+                                                                            }
+                                                                            mToast = Toast.makeText(thisActivity, "Something went wrong. Please try again.", Toast.LENGTH_SHORT);
+                                                                            mToast.show();
+                                                                        }
+                                                                    });
+                                                                }catch (Exception e){
 
                                                                     thisActivity.runOnUiThread(new Runnable() {
                                                                         @Override
@@ -495,7 +515,7 @@ public class StartScreen extends AppCompatActivity {
                                         else {
                                             displayLoginProgressbar(false);
                                             loginThreadRunning = false;
-                                            Toast.makeText(StartScreen.this, "Check your username or password", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(StartScreen.this, "Check your username or password1", Toast.LENGTH_SHORT).show();
                                         }
                                     }
                                 });
@@ -505,7 +525,7 @@ public class StartScreen extends AppCompatActivity {
                             public void run() {
                                 displayLoginProgressbar(false);
                                 loginThreadRunning = false;
-                                Toast.makeText(StartScreen.this, "Check your username or password", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(StartScreen.this, "Check your username or password2", Toast.LENGTH_SHORT).show();
                             }
                         });
                     }
@@ -779,7 +799,7 @@ public class StartScreen extends AppCompatActivity {
                 Runnable runnable = new Runnable() {
                     public void run() {
                         try{
-                            EmailGetModel emailGetModel = client.getemailGet("gem", usernameInput.getText().toString().trim());
+                            EmailGetModel emailGetModel = client.getemailGet("gem", usernameInput.getText().toString().trim().toLowerCase());
 
                             if(emailGetModel != null && emailGetModel.getEm().equals(address)){
                                 mFirebaseAuth.sendPasswordResetEmail(address).addOnCompleteListener(thisActivity, new OnCompleteListener<Void>() {

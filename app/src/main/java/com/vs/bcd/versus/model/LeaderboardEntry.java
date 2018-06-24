@@ -33,8 +33,8 @@ public class LeaderboardEntry {
         s = item.getInt("s");
     }
 
-    public LeaderboardEntry(LeaderboardModelHitsHitsItemSource source, String id) throws JSONException{
-        username = id;
+    public LeaderboardEntry(LeaderboardModelHitsHitsItemSource source){
+        username = source.getCs();
         b = source.getB().intValue();
         g = source.getG().intValue();
         influence = source.getIn().intValue();

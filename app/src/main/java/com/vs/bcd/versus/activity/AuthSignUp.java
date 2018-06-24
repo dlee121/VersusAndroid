@@ -111,6 +111,7 @@ public class AuthSignUp extends AppCompatActivity {
         Bundle extras = getIntent().getExtras();
         if(extras != null) {
             authID = extras.getString("authid");
+            Log.d("fblogincreate", authID);
             authToken = extras.getString("token");
         }
 
@@ -230,7 +231,7 @@ public class AuthSignUp extends AppCompatActivity {
     public void signUpUser(){
 
         wyun.displayProgressBar(true);
-
+        Log.d("suauthid", authID);
         final User newUser = new User(bday, username, authID);
         final AuthCredential credential;
         if(authID.charAt(authID.length()-1) == '_'){ //we append facebook authIDs with an '_'
@@ -270,6 +271,7 @@ public class AuthSignUp extends AppCompatActivity {
                                                     userPutModel.setAi(newUser.getAuthID());
                                                     userPutModel.setB(BigDecimal.ZERO);
                                                     userPutModel.setBd(newUser.getBday());
+                                                    userPutModel.setCs(newUser.getUsername());
                                                     userPutModel.setEm(newUser.getEmail());
                                                     userPutModel.setG(BigDecimal.ZERO);
                                                     userPutModel.setIn(BigDecimal.ZERO);
@@ -278,7 +280,7 @@ public class AuthSignUp extends AppCompatActivity {
                                                     SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
                                                     userPutModel.setT(df.format(new Date()));
 
-                                                    client.userputPost(userPutModel, newUser.getUsername(), "put", "user");
+                                                    client.userputPost(userPutModel, newUser.getUsername().toLowerCase(), "put", "user");
 
                                                     thisActivity.runOnUiThread(new Runnable() {
                                                         @Override

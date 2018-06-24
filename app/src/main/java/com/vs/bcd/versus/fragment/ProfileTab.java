@@ -623,7 +623,7 @@ public class ProfileTab extends Fragment {
 
         try {
             /* Execute URL and attach after execution response handler */
-            ProfileInfoModel result = activity.getClient().profileinfoGet("im", profileUsername);
+            ProfileInfoModel result = activity.getClient().profileinfoGet("im", profileUsername.toLowerCase());
 
             ProfileInfoModelSource source = result.getSource();
             influence = Integer.toString(source.getIn().intValue()) + " influence";
@@ -632,6 +632,7 @@ public class ProfileTab extends Fragment {
             bCount = Integer.toString(source.getB().intValue());
             
         } catch (ApiClientException | NotAuthorizedException e){
+            Log.d("fsjseiljs","fosijfoesf");
             activity.handleNotAuthorizedException();
             influence = "";
             gCount = "";
@@ -717,7 +718,7 @@ public class ProfileTab extends Fragment {
 
     private void getProfileImgVersionAndInfluece(String username){
 
-        ProfileInfoModel result = activity.getClient().profileinfoGet("pim", username);
+        ProfileInfoModel result = activity.getClient().profileinfoGet("pim", username.toLowerCase());
 
         try {
             ProfileInfoModelSource source = result.getSource();

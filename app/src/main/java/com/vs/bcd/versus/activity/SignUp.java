@@ -239,7 +239,7 @@ public class SignUp extends AppCompatActivity {
 
         final User newUser = new User(bdayIn, usernameIn); //TODO: don't hold password in user object anymore. In fact, don't hold it anywhere.
 
-        mFirebaseAuth.createUserWithEmailAndPassword(newUser.getUsername().toLowerCase() + "@versusbcd.com", biebs)
+        mFirebaseAuth.createUserWithEmailAndPassword(newUser.getUsername() + "@versusbcd.com", biebs)
                 .addOnCompleteListener(thisActivity, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
@@ -267,6 +267,7 @@ public class SignUp extends AppCompatActivity {
                                                     userPutModel.setAi(newUser.getAuthID());
                                                     userPutModel.setB(BigDecimal.ZERO);
                                                     userPutModel.setBd(newUser.getBday());
+                                                    userPutModel.setCs(newUser.getUsername());
                                                     userPutModel.setEm(newUser.getEmail());
                                                     userPutModel.setG(BigDecimal.ZERO);
                                                     userPutModel.setIn(BigDecimal.ZERO);
@@ -275,7 +276,7 @@ public class SignUp extends AppCompatActivity {
                                                     SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
                                                     userPutModel.setT(df.format(new Date()));
 
-                                                    client.userputPost(userPutModel, newUser.getUsername(), "put", "user");
+                                                    client.userputPost(userPutModel, newUser.getUsername().toLowerCase(), "put", "user");
 
                                                     String userNotificationPath = getUsernameHash(newUser.getUsername()) + "/" + newUser.getUsername() + "/n/em/";
                                                     FirebaseDatabase.getInstance().getReference().child(userNotificationPath).setValue(true);
@@ -300,7 +301,8 @@ public class SignUp extends AppCompatActivity {
                                                             Regions.US_EAST_1 // Region
                                                     );
                                                     credentialsProvider.refresh();
-                                                    ypfrag.displayProgressBar(false);
+
+
                                                     thisActivity.runOnUiThread(new Runnable() {
                                                         @Override
                                                         public void run() {
@@ -313,6 +315,7 @@ public class SignUp extends AppCompatActivity {
                                                             }
                                                             mToast = Toast.makeText(thisActivity, "Something went wrong. Please try again.", Toast.LENGTH_SHORT);
                                                             mToast.show();
+                                                            ypfrag.displayProgressBar(false);
                                                         }
                                                     });
                                                 }
