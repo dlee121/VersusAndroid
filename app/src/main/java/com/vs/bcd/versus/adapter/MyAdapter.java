@@ -261,7 +261,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
                 }
 
             }catch (Throwable t){
-                Log.d("postloading", t.getMessage());
+                //Log.d("postloading", t.toString());
 
             }
 
