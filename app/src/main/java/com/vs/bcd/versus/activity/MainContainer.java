@@ -1885,12 +1885,12 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
     }
 
     public void addToCentralProfileImgVersionMap(String username, int imageVersion){
-        profileImgVersions.put(username, imageVersion);
+        profileImgVersions.put(username.toLowerCase(), imageVersion);
     }
 
     public int getProfileImageVersion(String username){
         if(profileImgVersions != null){
-            Integer imgVersion = profileImgVersions.get(username);
+            Integer imgVersion = profileImgVersions.get(username.toLowerCase());
             if(imgVersion != null){
                 return imgVersion;
             }

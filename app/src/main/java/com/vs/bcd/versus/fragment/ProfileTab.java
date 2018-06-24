@@ -669,6 +669,7 @@ public class ProfileTab extends Fragment {
                 //if (NetworkAvailablity.checkNetworkStatus(MyActivity.this))
                 //{
 
+
                 if(profileUsername.equals(activity.getUsername())){
                     profileImgVersion = activity.getUserProfileImageVersion();
                     //grab the influence from ES

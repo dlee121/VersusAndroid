@@ -231,12 +231,14 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
 
 
             try{
-                Log.d("postloading",post.getQuestion());
+
                 int profileImg = profileImgVersions.get(authorName.toLowerCase()).intValue();
                 if(profileImg == 0){
+                    Log.d("postloading",authorName+profileImg);
                     GlideApp.with(activity).load(defaultProfileImage).into(txtImgViewHolder.circView);
                 }
                 else{
+                    Log.d("postloading",authorName+profileImg);
                     GlideApp.with(activity).load(activity.getProfileImgUrl(authorName, profileImg)).into(txtImgViewHolder.circView);
                 }
 
@@ -259,6 +261,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
                 }
 
             }catch (Throwable t){
+                Log.d("postloading", t.getMessage());
 
             }
 
@@ -325,7 +328,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
 
 
             try{
-                int profileImg = profileImgVersions.get(authorName).intValue();
+                int profileImg = profileImgVersions.get(authorName.toLowerCase()).intValue();
                 if(profileImg == 0){
                     GlideApp.with(activity).load(defaultProfileImage).into(txtOnlyViewHolder.circView);
                 }
@@ -439,7 +442,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
                 });
 
                 try{
-                    int profileImg = profileImgVersions.get(compactPost.getAuthor()).intValue();
+                    int profileImg = profileImgVersions.get(authorName.toLowerCase()).intValue();
                     if(profileImg == 0){
                         GlideApp.with(activity).load(defaultProfileImage).into(compactViewHolder.circView);
                     }
@@ -816,17 +819,17 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
             int profileImg;
             switch (fragmentInt) {
                 case 1:
-                    profileImg = profileImgVersions.get(post.getAuthor()).intValue();
+                    profileImg = profileImgVersions.get(post.getAuthor().toLowerCase()).intValue();
                     if (profileImg == 0) {
                         return null;
                     }
-                    return GlideApp.with(activity).load(activity.getProfileImgUrl(post.getAuthor(), profileImgVersions.get(post.getAuthor()).intValue()));
+                    return GlideApp.with(activity).load(activity.getProfileImgUrl(post.getAuthor(), profileImg = profileImgVersions.get(post.getAuthor().toLowerCase()).intValue()));
 
                 case 9:
                     return null;
 
                 default:
-                    profileImg = profileImgVersions.get(post.getAuthor()).intValue();
+                    profileImg = profileImgVersions.get(post.getAuthor().toLowerCase()).intValue();
                     if (profileImg == 0) {
                         if (post.getRedimg() % 10 == S3) {
                             if (post.getBlackimg() % 10 == S3) {

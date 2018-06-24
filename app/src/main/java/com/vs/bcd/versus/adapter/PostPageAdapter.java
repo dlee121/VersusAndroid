@@ -1636,10 +1636,10 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         profileImgVersion = activity.getUserProfileImageVersion();
                     }
                     else{
-                        profileImgVersion = activity.getProfileImageVersion(username);
+                        profileImgVersion = activity.getProfileImageVersion(username.toLowerCase());
                         if(profileImgVersion == -1){
-                            profileImgVersion = getProfileImgVersion(username);
-                            activity.addToCentralProfileImgVersionMap(username, profileImgVersion);
+                            profileImgVersion = getProfileImgVersion(username.toLowerCase());
+                            activity.addToCentralProfileImgVersionMap(username.toLowerCase(), profileImgVersion);
                         }
                     }
 
