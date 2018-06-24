@@ -473,7 +473,7 @@ public class MessengerFragment extends Fragment {
                                                             viewHolder.blockIcon.getLayoutParams().width = 0;
                                                         }
 
-                                                        int profileImg = profileImgVersions.get(username).intValue();
+                                                        int profileImg = profileImgVersions.get(username.toLowerCase()).intValue();
 
                                                         if(profileImg == 0){
                                                             GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
@@ -550,11 +550,11 @@ public class MessengerFragment extends Fragment {
                                             if (username.equals(mUsername)) {
                                                 username = roomObject.getUsers().get(1);
                                             }
-                                            profileImg = profileImgVersions.get(username).intValue();
+                                            profileImg = profileImgVersions.get(username.toLowerCase()).intValue();
                                             if (profileImg == 0) {
                                                 return null;
                                             }
-                                            return GlideApp.with(activity).load(activity.getProfileImgUrl(username, profileImgVersions.get(username).intValue()));
+                                            return GlideApp.with(activity).load(activity.getProfileImgUrl(username, profileImgVersions.get(username.toLowerCase()).intValue()));
 
                                         } catch (Throwable t) {
 
@@ -713,7 +713,7 @@ public class MessengerFragment extends Fragment {
                                                                 viewHolder.blockIcon.getLayoutParams().width = 0;
                                                             }
 
-                                                            int profileImg = profileImgVersions.get(username).intValue();
+                                                            int profileImg = profileImgVersions.get(username.toLowerCase()).intValue();
 
                                                             if (profileImg == 0) {
                                                                 GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
@@ -786,11 +786,11 @@ public class MessengerFragment extends Fragment {
                                                 if (username.equals(mUsername)) {
                                                     username = roomObject.getUsers().get(1);
                                                 }
-                                                profileImg = profileImgVersions.get(username).intValue();
+                                                profileImg = profileImgVersions.get(username.toLowerCase()).intValue();
                                                 if (profileImg == 0) {
                                                     return null;
                                                 }
-                                                return GlideApp.with(activity).load(activity.getProfileImgUrl(username, profileImgVersions.get(username).intValue()));
+                                                return GlideApp.with(activity).load(activity.getProfileImgUrl(username, profileImgVersions.get(username.toLowerCase()).intValue()));
 
                                             } catch (Throwable t) {
 
@@ -1019,7 +1019,7 @@ public class MessengerFragment extends Fragment {
                                                             viewHolder.blockIcon.getLayoutParams().width = 0;
                                                         }
 
-                                                        int profileImg = profileImgVersions.get(username).intValue();
+                                                        int profileImg = profileImgVersions.get(username.toLowerCase()).intValue();
 
                                                         if (profileImg == 0) {
                                                             GlideApp.with(activity).load(defaultProfileImage).into(viewHolder.circView);
@@ -1094,11 +1094,11 @@ public class MessengerFragment extends Fragment {
                                             if (username.equals(mUsername)) {
                                                 username = roomObject.getUsers().get(1);
                                             }
-                                            profileImg = profileImgVersions.get(username).intValue();
+                                            profileImg = profileImgVersions.get(username.toLowerCase()).intValue();
                                             if (profileImg == 0) {
                                                 return null;
                                             }
-                                            return GlideApp.with(activity).load(activity.getProfileImgUrl(username, profileImgVersions.get(username).intValue()));
+                                            return GlideApp.with(activity).load(activity.getProfileImgUrl(username, profileImgVersions.get(username.toLowerCase()).intValue()));
 
                                         } catch (Throwable t) {
 

@@ -55,7 +55,7 @@ public class GroupMembersAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         groupMemberViewHolder.memberName.setText(memberUsername);
 
         try{
-            Integer profileImg = profileImgVersions.get(memberUsername);
+            Integer profileImg = profileImgVersions.get(memberUsername.toLowerCase());
             if(profileImg != null && profileImg.intValue() != 0){
                 GlideApp.with(activity).load(activity.getProfileImgUrl(memberUsername, profileImg)).override(profileImgDimension, profileImgDimension).into(groupMemberViewHolder.memberProfileImg);
             }
@@ -132,11 +132,11 @@ public class GroupMembersAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     public RequestBuilder getPreloadRequestBuilder(String username) {
         try{
             int profileImg;
-            profileImg = profileImgVersions.get(username).intValue();
+            profileImg = profileImgVersions.get(username.toLowerCase()).intValue();
             if(profileImg == 0){
                 return null;
             }
-            return GlideApp.with(activity).load( activity.getProfileImgUrl(username, profileImgVersions.get(username).intValue()) ).override(profileImgDimension, profileImgDimension);
+            return GlideApp.with(activity).load( activity.getProfileImgUrl(username, profileImgVersions.get(username.toLowerCase()).intValue()) ).override(profileImgDimension, profileImgDimension);
 
         }
         catch (Throwable t){

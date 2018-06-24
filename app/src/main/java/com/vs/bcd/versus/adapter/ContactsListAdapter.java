@@ -179,7 +179,7 @@ public class ContactsListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         }
 
         try{
-            Integer profileImg = profileImgVersions.get(contactUsername);
+            Integer profileImg = profileImgVersions.get(contactUsername.toLowerCase());
             if(profileImg != null && profileImg.intValue() != 0){
                 GlideApp.with(activity).load(activity.getProfileImgUrl(contactUsername, profileImg)).override(profileImgDimension, profileImgDimension).into(userSearchViewHolder.contactProfileImg);
             }
@@ -243,11 +243,11 @@ public class ContactsListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     public RequestBuilder getPreloadRequestBuilder(String username) {
         try{
             int profileImg;
-            profileImg = profileImgVersions.get(username).intValue();
+            profileImg = profileImgVersions.get(username.toLowerCase()).intValue();
             if(profileImg == 0){
                 return null;
             }
-            return GlideApp.with(activity).load( activity.getProfileImgUrl(username, profileImgVersions.get(username).intValue()) ).override(profileImgDimension, profileImgDimension);
+            return GlideApp.with(activity).load( activity.getProfileImgUrl(username, profileImgVersions.get(username.toLowerCase()).intValue()) ).override(profileImgDimension, profileImgDimension);
 
         }
         catch (Throwable t){

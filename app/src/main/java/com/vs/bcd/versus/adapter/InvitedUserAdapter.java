@@ -58,7 +58,7 @@ public class InvitedUserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         invitedUserViewHolder.invitedUsername.setText(invitedUsername);
 
         try{
-            Integer profileImg = profileImgVersions.get(invitedUsername);
+            Integer profileImg = profileImgVersions.get(invitedUsername.toLowerCase());
             if(profileImg != null && profileImg.intValue() != 0){
                 GlideApp.with(activity).load(activity.getProfileImgUrl(invitedUsername, profileImg)).override(profileImgDimension, profileImgDimension).into(invitedUserViewHolder.invitedUserPhoto);
             }
