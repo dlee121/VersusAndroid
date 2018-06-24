@@ -463,7 +463,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                             initialAdLoaded = true;
                             Log.d("initialQuery", "initialAdLoaded = true");
                             if(awsCredentialsSet && mainActivityFragRef != null && mainActivityFragRef.getTab1() != null) {
-                                mainActivityFragRef.getTab1().initialQuery();
+                                mainActivityFragRef.getTab2().initialQuery();
                             }
                         }
                     }
@@ -476,7 +476,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                             initialAdLoaded = true;
                             Log.d("initialQuery", "initialAdLoaded = true");
                             if(awsCredentialsSet && mainActivityFragRef != null && mainActivityFragRef.getTab1() != null) {
-                                mainActivityFragRef.getTab1().initialQuery();
+                                mainActivityFragRef.getTab2().initialQuery();
                             }
                         }
                     }
@@ -488,7 +488,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                             initialAdLoaded = true;
                             Log.d("initialQuery", "initialAdLoaded = true, on fail");
                             if(awsCredentialsSet && mainActivityFragRef != null && mainActivityFragRef.getTab1() != null) {
-                                mainActivityFragRef.getTab1().initialQuery();
+                                mainActivityFragRef.getTab2().initialQuery();
                             }
                         }
                     }
@@ -541,7 +541,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                                 thisActivity.runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        mainActivityFragRef.getTab1().initialQuery();
+                                        mainActivityFragRef.getTab2().initialQuery();
                                     }
                                 });
                             }
@@ -593,7 +593,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                                                     thisActivity.runOnUiThread(new Runnable() {
                                                         @Override
                                                         public void run() {
-                                                            mainActivityFragRef.getTab1().initialQuery();
+                                                            mainActivityFragRef.getTab2().initialQuery();
                                                         }
                                                     });
                                                 }
@@ -640,7 +640,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                                             thisActivity.runOnUiThread(new Runnable() {
                                                 @Override
                                                 public void run() {
-                                                    mainActivityFragRef.getTab1().initialQuery();
+                                                    mainActivityFragRef.getTab2().initialQuery();
                                                 }
                                             });
                                         }
@@ -3271,7 +3271,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                                             setUpAPI();
                                             mViewPager.setCurrentItem(0);
                                             mainActivityFragRef.getViewPager().setCurrentItem(0);
-                                            mainActivityFragRef.getTab1().initialQuery();
+                                            mainActivityFragRef.getTab2().initialQuery();
                                         }
                                         catch (Exception e){
                                             sessionLogOut();
@@ -3301,7 +3301,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                                     setUpAPI();
                                     mViewPager.setCurrentItem(0);
                                     mainActivityFragRef.getViewPager().setCurrentItem(0);
-                                    mainActivityFragRef.getTab1().initialQuery();
+                                    mainActivityFragRef.getTab2().initialQuery();
                                 }
                                 catch (Exception e){
                                     sessionLogOut();
