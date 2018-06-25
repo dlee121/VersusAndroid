@@ -515,7 +515,7 @@ public class StartScreen extends AppCompatActivity {
                                         else {
                                             displayLoginProgressbar(false);
                                             loginThreadRunning = false;
-                                            Toast.makeText(StartScreen.this, "Check your username or password1", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(StartScreen.this, "Check your username or password", Toast.LENGTH_SHORT).show();
                                         }
                                     }
                                 });
@@ -525,7 +525,7 @@ public class StartScreen extends AppCompatActivity {
                             public void run() {
                                 displayLoginProgressbar(false);
                                 loginThreadRunning = false;
-                                Toast.makeText(StartScreen.this, "Check your username or password2", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(StartScreen.this, "Check your username or password", Toast.LENGTH_SHORT).show();
                             }
                         });
                     }
