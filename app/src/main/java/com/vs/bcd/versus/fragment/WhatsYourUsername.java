@@ -64,6 +64,7 @@ public class WhatsYourUsername extends Fragment {
                 nextButton.setEnabled(false);
                 validated = false;
                 usernameLength = text.trim().length();
+                usernameVersion++;
                 if(usernameLength > 0){
                     char[] chars = text.trim().toCharArray();
                     boolean invalidCharacterPresent = false;
@@ -86,7 +87,7 @@ public class WhatsYourUsername extends Fragment {
                         etWarning.setTextColor(Color.GRAY);
                         etWarning.setText("Checking username...");
                         showProgressBar();
-                        checkUsername(text.trim(), ++usernameVersion);
+                        checkUsername(text.trim(), usernameVersion);
                     }
                 }
                 else{

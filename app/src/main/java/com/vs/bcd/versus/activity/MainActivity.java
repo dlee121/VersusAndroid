@@ -85,7 +85,7 @@ public class MainActivity extends Fragment {
                         mainContainer.setToolbarTitleTextForTabs("Trending");
                         //enableCPFab();
                         Log.d("matab", "tab1Newsfeed selected");
-                        if(!tab2.postsLoaded()){
+                        if(tab2 != null && !tab2.postsLoaded()){
                             tab2.trendingESQuery(0);
                         }
                         //mainContainer.setLeftSearchButton();
@@ -137,6 +137,8 @@ public class MainActivity extends Fragment {
             childViews.add(((ViewGroup)rootView).getChildAt(i));
             LPStore.add(childViews.get(i).getLayoutParams());
         }
+
+        mViewPager.setCurrentItem(1);
 
         return rootView;
 

@@ -117,7 +117,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
         mSwipeRefreshLayout.setOnRefreshListener(this);
 
 
-        mHostActivity.getMainFrag().getViewPager().setCurrentItem(1);
+        //mHostActivity.getMainFrag().getViewPager().setCurrentItem(1);
 
         viewSetForInitialQuery = true;
         Log.d("initialQuery", "viewSetForInitialQuery = true");
