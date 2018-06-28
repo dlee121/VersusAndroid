@@ -2580,7 +2580,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
 
     public void sessionLogOut(){
         clearProfileAndFFStack();
-        FirebaseMessaging.getInstance().unsubscribeFromTopic(currUsername); //unsubscribe from user topic for messenger push notification
+        FirebaseMessaging.getInstance().unsubscribeFromTopic(sessionManager.getCurrentUsername()); //unsubscribe from user topic for messenger push notification
         FirebaseAuth.getInstance().signOut();
         credentialsProvider.clear();
         sessionManager.logoutUser();

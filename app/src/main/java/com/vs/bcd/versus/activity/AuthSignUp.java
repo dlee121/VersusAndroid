@@ -111,7 +111,7 @@ public class AuthSignUp extends AppCompatActivity {
         Bundle extras = getIntent().getExtras();
         if(extras != null) {
             authID = extras.getString("authid");
-            Log.d("fblogincreate", authID);
+            //Log.d("fblogincreate", authID);
             authToken = extras.getString("token");
         }
 
