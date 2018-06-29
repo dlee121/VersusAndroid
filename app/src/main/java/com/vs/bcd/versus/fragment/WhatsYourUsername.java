@@ -72,7 +72,7 @@ public class WhatsYourUsername extends Fragment {
                     for (int i = 0; i < chars.length; i++) {
                         char c = chars[i];
                         //check if the character is alphanumeric
-                        if (!Character.isLetterOrDigit(c)) {
+                        if (!isLetterOrDigit(c)) {
                             if(c != '-' && c != '_' && c != '~' && c != '%'){
                                 invalidCharacterPresent = true;
                             }
@@ -122,6 +122,12 @@ public class WhatsYourUsername extends Fragment {
         disableChildViews();
 
         return rootView;
+    }
+
+    private boolean isLetterOrDigit(char c) {
+        return (c >= 'a' && c <= 'z') ||
+                (c >= 'A' && c <= 'Z') ||
+                (c >= '0' && c <= '9');
     }
 
     @Override

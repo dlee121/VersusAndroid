@@ -62,8 +62,8 @@ public class AuthUsernameInput extends Fragment {
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();
 
-        for (int i = 0; i<((ViewGroup)rootView).getChildCount(); i++){
-            childViews.add(((ViewGroup)rootView).getChildAt(i));
+        for (int i = 0; i < ((ViewGroup) rootView).getChildCount(); i++) {
+            childViews.add(((ViewGroup) rootView).getChildAt(i));
             LPStore.add(childViews.get(i).getLayoutParams());
         }
 
@@ -79,39 +79,36 @@ public class AuthUsernameInput extends Fragment {
                 validated = false;
                 usernameLength = text.trim().length();
                 usernameVersion++;
-                if(usernameLength > 0){
+                if (usernameLength > 0) {
                     char[] chars = text.trim().toCharArray();
                     boolean invalidCharacterPresent = false;
                     //iterate over characters
                     for (int i = 0; i < chars.length; i++) {
                         char c = chars[i];
                         //check if the character is alphanumeric
-                        if (!Character.isLetterOrDigit(c)) {
-                            if(c != '-' && c != '_' && c != '~' && c != '%'){
+                        if (!isLetterOrDigit(c)) {
+                            if (c != '-' && c != '_' && c != '~' && c != '%') {
                                 invalidCharacterPresent = true;
                             }
                         }
                     }
-                    if(invalidCharacterPresent){
-                        etWarning.setTextColor(ContextCompat.getColor(activity,R.color.noticeRed));
+                    if (invalidCharacterPresent) {
+                        etWarning.setTextColor(ContextCompat.getColor(activity, R.color.noticeRed));
                         etWarning.setText("Can only contain letters, numbers, and the following special characters: '-', '_', '~', and '%'");
-                    }
-                    else {
+                    } else {
                         ignoreAsync = false;
                         etWarning.setTextColor(Color.GRAY);
                         etWarning.setText("Checking username...");
                         showProgressBar();
                         checkUsername(text.trim(), usernameVersion);
                     }
-                }
-                else{
+                } else {
                     ignoreAsync = true;
                     hideProgressBar();
-                    if(text.length() > 0){  //so text is bunch of whitespace characters
-                        etWarning.setTextColor(ContextCompat.getColor(activity,R.color.noticeRed));
+                    if (text.length() > 0) {  //so text is bunch of whitespace characters
+                        etWarning.setTextColor(ContextCompat.getColor(activity, R.color.noticeRed));
                         etWarning.setText("Username has to have at least 1 non-whitespace character");
-                    }
-                    else{
+                    } else {
                         etWarning.setText("");
                     }
                     nextButton.setBackgroundColor(Color.rgb(238, 238, 238));
@@ -122,13 +119,13 @@ public class AuthUsernameInput extends Fragment {
         });
 
         nextButton = rootView.findViewById(R.id.wyunbutton);
-        final InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+        final InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
 
         nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //Log.d("nextbuttonnext", "clicked");
-                if(validated){
+                if (validated) {
                     imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
                     activity.setU(editText.getText().toString().trim());
 
@@ -146,15 +143,15 @@ public class AuthUsernameInput extends Fragment {
         ss.setSpan(new ClickableSpan() {
             @Override
             public void onClick(View textView) {
-                try{
+                try {
                     imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
-                }
-                catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.versusdaily.com/terms-and-policies"));
                 startActivity(browserIntent);
             }
+
             @Override
             public void updateDrawState(TextPaint ds) {
                 super.updateDrawState(ds);
@@ -172,6 +169,12 @@ public class AuthUsernameInput extends Fragment {
         disableChildViews();
 
         return rootView;
+    }
+
+    private boolean isLetterOrDigit(char c) {
+        return (c >= 'a' && c <= 'z') ||
+                (c >= 'A' && c <= 'Z') ||
+                (c >= '0' && c <= '9');
     }
 
     @Override
