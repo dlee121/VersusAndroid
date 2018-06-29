@@ -1579,8 +1579,21 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                     }
                 });
         ForceUpdateChecker.with(this).onUpdateNeeded(this).check();
+        try{
+            FirebaseMessaging.getInstance().subscribeToTopic(currUsername); //subscribe to user topic for messenger push notification
+        }catch(Exception e){
+            clearProfileAndFFStack();
+            //FirebaseMessaging.getInstance().unsubscribeFromTopic(sessionManager.getCurrentUsername()); //unsubscribe from user topic for messenger push notification
+            FirebaseAuth.getInstance().signOut();
+            credentialsProvider.clear();
+            sessionManager.logoutUser();
 
-        FirebaseMessaging.getInstance().subscribeToTopic(currUsername); //subscribe to user topic for messenger push notification
+            LoginManager.getInstance().logOut(); //facebook logout
+
+            GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build(); //google logout
+            GoogleSignIn.getClient(this, gso).signOut();
+        }
+
         if(getIntent() != null && getIntent().getExtras() != null && getIntent().getExtras().get("type") != null){
             String intentType = getIntent().getExtras().get("type").toString();
             getIntent().removeExtra("type");

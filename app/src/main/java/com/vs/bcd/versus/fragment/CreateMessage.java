@@ -385,7 +385,9 @@ public class CreateMessage extends Fragment {
 
 
         if(text == null || text.equals("")){
-            contactsListAdapter.updateList(messageContacts);
+            if(contactsListAdapter != null && messageContacts != null){
+                contactsListAdapter.updateList(messageContacts);
+            }
             nowLoading = false; //enable onScroll loading
         }
         else{
