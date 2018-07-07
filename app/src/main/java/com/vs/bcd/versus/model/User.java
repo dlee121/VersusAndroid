@@ -136,8 +136,8 @@ public class User {
         b = item.getInt("b");
     }
 
-    public User(AIModelHitsHitsItemSource source, String id){
-        username = id;
+    public User(AIModelHitsHitsItemSource source){
+        username = source.getCs();
         bday = source.getBd();
         email = source.getEm();
         profileImage = source.getPi().intValue();

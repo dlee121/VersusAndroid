@@ -567,7 +567,7 @@ public class StartScreen extends AppCompatActivity {
                 AIModelHitsHitsItem item = hits.get(0);
                 //construct user object from the response item and sign in,
                 // creating session with SessionManager and navigating to MainContainer
-                final User user = new User(item.getSource(), item.getId());
+                final User user = new User(item.getSource());
                 Log.d("facebookLogin", "user exists");
                 //authenticate with firebase, then setLogins for cognito with firebase token, then create client session with SessionManager
 

@@ -69,7 +69,7 @@ public class WhatsYourPassword extends Fragment {
             LPStore.add(childViews.get(i).getLayoutParams());
         }
 
-        petWarning = (TextView)rootView.findViewById(R.id.petwarning);
+        petWarning = rootView.findViewById(R.id.petwarning);
 
         perkyText = (TextInputEditText)rootView.findViewById(R.id.editText5);
 
