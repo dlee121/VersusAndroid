@@ -336,23 +336,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                         mFirebaseDatabaseReference.child(subjectAuthorPath).child(activity.getUsername()).setValue(System.currentTimeMillis() / 1000);
                                     }
 
-                                    //update pt and increment ps
-                                    int currPt = (int)((System.currentTimeMillis()/1000)/60);
 
-                                    int timeDiff;
-                                    if(post == null){
-                                        timeDiff = currPt - activity.getCurrentPost().getPt();
-                                    }
-                                    else{
-                                        timeDiff = currPt - post.getPt();
-                                    }
-                                    if(timeDiff <= 0){ //if timeDiff is negative due to some bug or if timeDiff is zero, we just make it equal 1.
-                                        timeDiff = 1;
-                                    }
-
-                                    double psIncrement = commentPSI/timeDiff;
-
-                                    activity.getClient().vGet(Integer.toString(currPt), post.getPost_id(), Double.toString(psIncrement), "v", "cm");
+                                    activity.getClient().vGet(null, post.getPost_id(), null, "v", "cm");
 
 
                                     activity.runOnUiThread(new Runnable() {
@@ -2142,18 +2127,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         }
 
                         else {
-                            //update pt and increment ps
-                            int currPt = (int)((System.currentTimeMillis()/1000)/60);
 
-                            int timeDiff = currPt - post.getPt();
-                            Log.d("timeDiff", "timeDiff = "+Integer.toString(timeDiff));
-                            if(timeDiff <= 0){ //if timeDiff is negative due to some bug or if timeDiff is zero, we just make it equal 1.
-                                timeDiff = 1;
-                            }
 
-                            double psIncrement = votePSI/timeDiff;
-
-                            activity.getClient().vGet(Integer.toString(currPt), post.getPost_id(), Double.toString(psIncrement), "v", redOrBlack.substring(0, 1));
+                            activity.getClient().vGet(null, post.getPost_id(), null, "v", redOrBlack.substring(0, 1));
 
                             sendPostVoteNotification();
 

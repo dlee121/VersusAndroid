@@ -219,7 +219,7 @@ public class Post {
     public Post(){
         redcount = 0;
         blackcount = 0;
-        pt = (int)((System.currentTimeMillis()/1000)/60); //this casting is safe because there won't be an overflow for at least 4000 years
+        pt = (int)((((System.currentTimeMillis()/1000)/60)/60)/24); //this casting is safe because there won't be an overflow for at least 4000 years
         ps = BigDecimal.valueOf(0.0);
         time = df.format(new Date());
         post_id = UUID.randomUUID().toString().replace("-", ""); //generate random UUID as post_id when post is created
