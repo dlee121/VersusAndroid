@@ -86,7 +86,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:text="redname"
-                    android:textSize="@dimen/vcpc_titles"
+                    android:textSize="23sp"
                     android:textColor="#000000"
                     android:gravity="center"/>
 
@@ -100,6 +100,12 @@
 
             </RelativeLayout>
 
+            <ImageView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:src="@drawable/logo_v2_64"/>
+            <!--
             <RelativeLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
@@ -114,6 +120,7 @@
                     android:gravity="center"/>
 
             </RelativeLayout>
+            -->
 
 
             <RelativeLayout
@@ -128,7 +135,7 @@
                     android:layout_height="match_parent"
                     android:text="blackname"
                     android:textColor="#000000"
-                    android:textSize="@dimen/vcpc_titles"
+                    android:textSize="23sp"
                     android:gravity="center"/>
 
                 <ImageView

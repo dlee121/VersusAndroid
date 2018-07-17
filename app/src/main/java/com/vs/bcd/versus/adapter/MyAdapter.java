@@ -161,6 +161,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
             Log.d("fsodifjs33222", post.getPost_id());
             txtImgViewHolder.rname.setText(post.getRedname());
             txtImgViewHolder.bname.setText(post.getBlackname());
+            /*
             if(position % 2 == 0){
                 txtImgViewHolder.txtV.setTextColor(VSRED);
                 txtImgViewHolder.txtS.setTextColor(VSBLUE);
@@ -169,6 +170,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
                 txtImgViewHolder.txtV.setTextColor(VSBLUE);
                 txtImgViewHolder.txtS.setTextColor(VSRED);
             }
+            */
 
             final String authorName = post.getAuthor();
             txtImgViewHolder.author.setText(authorName);
@@ -275,6 +277,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
 
             txtOnlyViewHolder.rname.setText(post.getRedname());
             txtOnlyViewHolder.bname.setText(post.getBlackname());
+            /*
             if(position % 2 == 0){
                 txtOnlyViewHolder.txtV.setTextColor(VSRED);
                 txtOnlyViewHolder.txtS.setTextColor(VSBLUE);
@@ -283,6 +286,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
                 txtOnlyViewHolder.txtV.setTextColor(VSBLUE);
                 txtOnlyViewHolder.txtS.setTextColor(VSRED);
             }
+            */
 
             final String authorName = post.getAuthor();
             txtOnlyViewHolder.author.setText(authorName);
@@ -539,7 +543,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
 
     private class TxtOnlyViewHolder extends RecyclerView.ViewHolder {
 
-        public TextView author, time, question, category, votecount, rname, bname, txtV, txtS;
+        public TextView author, time, question, category, votecount, rname, bname;//, txtV, txtS;
         public LinearLayout textOnly;
         public CircleImageView circView;
 
@@ -551,8 +555,8 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
             textOnly = view.findViewById(R.id.only_texts);
             rname = textOnly.findViewById(R.id.vsc_r_t);
             bname = textOnly.findViewById(R.id.vsc_b_t);
-            txtV = textOnly.findViewById(R.id.vsc_v_t);
-            txtS = textOnly.findViewById(R.id.vsc_s_t);
+            //txtV = textOnly.findViewById(R.id.vsc_v_t);
+            //txtS = textOnly.findViewById(R.id.vsc_s_t);
 
             circView = view.findViewById(R.id.profile_image_t);
             author = view.findViewById(R.id.author_t);
@@ -568,7 +572,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
         public TextView author, time, question, category, votecount;
         public LinearLayout withImages;
 
-        public TextView rname, bname, txtV, txtS; //for images+text version TODO: if we only have one image then put a placeholder image in the iv without image
+        public TextView rname, bname;//, txtV, txtS; //for images+text version TODO: if we only have one image then put a placeholder image in the iv without image
         public CircleImageView circView;
         public SquareImageView leftIV, rightIV;
 
@@ -579,8 +583,8 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
             withImages = view.findViewById(R.id.images_and_texts);
             rname = withImages.findViewById(R.id.vsc_r_it);
             bname = withImages.findViewById(R.id.vsc_b_it);
-            txtV = withImages.findViewById(R.id.vsc_v_it);
-            txtS = withImages.findViewById(R.id.vsc_s_it);
+            //txtV = withImages.findViewById(R.id.vsc_v_it);
+            //txtS = withImages.findViewById(R.id.vsc_s_it);
             leftIV = withImages.findViewById(R.id.vsc_r_iv);
             rightIV = withImages.findViewById(R.id.vsc_b_iv);
 
@@ -681,30 +685,6 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
         posts.clear();
         notifyDataSetChanged();
     }
-
-    //TODO: update function intent to launch profile page once profile page is available. For now, it leads to StartScreen.
-    public void profileClicked(String username){
-        //TODO: implement this for when profile pic is clicked on PostCard
-    }
-    /*
-    public boolean addToPostsList(ArrayList<Post> additionalPosts){
-        if(additionalPosts.isEmpty()){
-            return false;
-        }
-        else{
-            posts.addAll(additionalPosts);
-            Log.d("Load", "now posts in adapter has " + Integer.toString(posts.size()) + " items");
-            return true;
-        }
-    }
-
-    public void refreshPostsList(ArrayList<Post> postsIn){
-        posts.clear();
-        posts.addAll(postsIn);
-        Log.d("Refresh", "Now posts has " + Integer.toString(posts.size()) + " items");
-        notifyDataSetChanged();
-    }
-    */
 
     private void getGAID() {
         Runnable runnable = new Runnable() {
@@ -873,48 +853,6 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
         }
 
         return null;
-    }
-
-    public void postRefreshUpdate(int index, String targetID, Post refreshedPost, boolean writingPostVoteToDB){
-        if(posts.get(index).getPost_id().equals(targetID)){
-            /*
-
-            if(writingPostVoteToDB){
-                Post finalPost = refreshedPost;
-                if(refreshedPost.getVotecount() <= posts.get(index).getVotecount()){
-                    finalPost.setRedcount(posts.get(index).getRedcount());
-                    finalPost.setBlackcount(posts.get(index).getBlackcount());
-                }
-                else{
-                    String postRefreshCode = activity.getPostPage().getPostRefreshCode();
-                    switch (postRefreshCode){
-                        case "r":
-                            finalPost.setRedcount(finalPost.getRedcount()+1);
-                            break;
-                        case "b":
-                            finalPost.setBlackcount(finalPost.getBlackcount()+1);
-                            break;
-                        case "rb":
-                            finalPost.setRedcount(finalPost.getRedcount()+1);
-                            finalPost.setBlackcount(finalPost.getBlackcount()-1);
-                            break;
-                        case "br":
-                            finalPost.setBlackcount(finalPost.getBlackcount()+1);
-                            finalPost.setRedcount(finalPost.getRedcount()-1);
-                            break;
-                    }
-                }
-                posts.set(index, finalPost);
-                //notifyItemChanged(index);
-            }
-            else{
-                posts.set(index, refreshedPost);
-                //notifyItemChanged(index);
-            }
-            notifyDataSetChanged();
-            */
-            //activity.getPostPage().getPPAdapter().notifyItemChanged(0);
-        }
     }
 
     public void incrementItemVotecount(int index, String targetID){

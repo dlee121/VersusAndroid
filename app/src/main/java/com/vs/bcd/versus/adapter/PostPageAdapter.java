@@ -59,12 +59,6 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public static final int UPVOTE = 1;
     public static final int DOWNVOTE = 2;
 
-    private final int NOMASK = 0;
-    private final int TINT = 1;
-    private final int TINTCHECK = 2;
-    private final int RED = 0;
-    private final int BLK = 1;
-
     private final int VIEW_TYPE_ITEM = 0;
     private final int VIEW_TYPE_LOADING = 1;
     private final int VIEW_TYPE_POSTCARD = 2;
@@ -74,12 +68,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private MainContainer activity;
     private Post post;
     private List<Object> masterList;
-    private List<VSComment> childrenList = new ArrayList<>();
-    private int visibleThreshold = 8;
-    private int lastVisibleItem, totalItemCount;
     private RecyclerView.ViewHolder postCard;
-    private Bitmap redBMP = null;
-    private Bitmap blackBMP = null;
     private int pageLevel;
     private UserAction userAction;
     private Map<String, String> actionMap;
@@ -87,8 +76,6 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private Drawable[] blackLayers = new Drawable[2];
     private ShapeDrawable redTint;
     private ShapeDrawable blackTint;
-    private LayerDrawable redLayerDrawable;
-    private LayerDrawable blackLayerDrawable;
     private RelativeLayout.LayoutParams graphBoxParams = null;
     private RelativeLayout.LayoutParams graphBoxParamsTextOnly = null;
     private RelativeLayout.LayoutParams sortSelectorLowerLP, sortBackgroundLowerLP, seeMoreContainerLP, seeMoreContainerTCLP;

@@ -3166,38 +3166,6 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
         }
     }
 
-    public void applyPostRefreshToMyAdapter(Post refreshedPost, boolean writingPostVoteToDB){
-        try{
-            switch (voteUpdateFragNum){
-                case 0: //MainActivity
-                    switch (voteUpdateTabNum){
-                        case 0: //Newsfeed
-                            mainActivityFragRef.getTab1().getMyAdapter().postRefreshUpdate(voteUpdateTargetIndex, voteUpdateTargetID, refreshedPost, writingPostVoteToDB);
-                            break;
-                        case 1: //Trending
-                            mainActivityFragRef.getTab2().getMyAdapter().postRefreshUpdate(voteUpdateTargetIndex, voteUpdateTargetID, refreshedPost, writingPostVoteToDB);
-                            break;
-                        case 2: //Categories
-                            mainActivityFragRef.getTab3().getMyAdapter().postRefreshUpdate(voteUpdateTargetIndex, voteUpdateTargetID, refreshedPost, writingPostVoteToDB);
-                            break;
-                    }
-
-                    break;
-
-                case 1: //Search
-                    searchPage.getSearchResultsPostsAdapter().postRefreshUpdate(voteUpdateTargetIndex, voteUpdateTargetID, refreshedPost, writingPostVoteToDB);
-                    break;
-
-                case 9: //Profile post history
-                    profileTab.getPostsHistoryFragment().getMyAdapter().postRefreshUpdate(voteUpdateTargetIndex, voteUpdateTargetID, refreshedPost, writingPostVoteToDB);
-                    break;
-            }
-        }
-        catch (Throwable t){
-
-        }
-    }
-
     public void updateTargetVotecount(){
         if(voteUpdateTargetIndex < 0 || voteUpdateTargetID == null || voteUpdateFragNum < 0 || voteUpdateTabNum < 0){
             return;
