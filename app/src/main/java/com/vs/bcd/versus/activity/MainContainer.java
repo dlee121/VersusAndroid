@@ -1524,7 +1524,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
     public void onUpdateNeeded(final String updateUrl) {
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("New version available")
-                .setMessage("Please, update app to new version to continue reposting.")
+                .setMessage("Please update the app to the new version!")
                 .setPositiveButton("Update",
                         new DialogInterface.OnClickListener() {
                             @Override
@@ -2149,10 +2149,14 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
     }
 
     private void showMessengerButton(){
+        hideToolbarButtonRight();
+        /*
         showMessegerButtonBadge(true);
         toolbarButtonRight.setEnabled(true);
         toolbarButtonRight.setLayoutParams(toolbarButtonRightLP);
         toolbarButtonRight.setImageResource(R.drawable.ic_chat_bubble);
+        */
+
     }
 
     public void showOverflowMenu() {

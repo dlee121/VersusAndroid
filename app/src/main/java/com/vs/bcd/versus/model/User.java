@@ -1,18 +1,13 @@
 package com.vs.bcd.versus.model;
 
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 import com.vs.bcd.api.model.AIModelHitsHitsItemSource;
 import com.vs.bcd.api.model.UserGetModel;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 
 /**
  * Created by dlee on 5/29/17.
  */
 
-@DynamoDBTable(tableName = "user")
 public class User {
 
     private String bday, username;
@@ -21,15 +16,10 @@ public class User {
     private int profileImage; //profile image storage url
     private int influence, g, s, b; //influece and medal count
 
-    @DynamoDBAttribute(attributeName = "bd")
     public String getBday() {
         return bday;
     }
-    public void setBday(String bday) {
-        this.bday = bday;
-    }
 
-    @DynamoDBHashKey(attributeName = "i")
     public String getUsername() {
         return username;
     }
@@ -37,63 +27,16 @@ public class User {
         this.username = username;
     }
 
-    @DynamoDBAttribute(attributeName = "em")
     public String getEmail() {
         return email;
     }
-    public void setEmail(String email) {
-        this.email = email;
-    }
 
-    @DynamoDBAttribute(attributeName = "ai")
     public String getAuthID(){
         return authID;
     }
-    public void setAuthID(String authID){
-        this.authID = authID;
-    }
 
-    @DynamoDBAttribute(attributeName = "pi")
     public int getProfileImage() {
         return profileImage;
-    }
-    public void setProfileImage(int profileImage){
-        this.profileImage = profileImage;
-    }
-
-    @DynamoDBAttribute(attributeName = "in")
-    public int getInfluence(){
-        return influence;
-    }
-    public void setInfluence(int influence) {
-        this.influence = influence;
-    }
-
-    @DynamoDBAttribute(attributeName = "g")
-    public int getG(){
-        return g;
-    }
-
-    public void setG(int g) {
-        this.g = g;
-    }
-
-    @DynamoDBAttribute(attributeName = "s")
-    public int getS() {
-        return s;
-    }
-
-    public void setS(int s) {
-        this.s = s;
-    }
-
-    @DynamoDBAttribute(attributeName = "b")
-    public int getB() {
-        return b;
-    }
-
-    public void setB(int b) {
-        this.b = b;
     }
 
     public User(){
@@ -124,18 +67,6 @@ public class User {
         b = 0;
     }
 
-    public User(JSONObject item, String username) throws JSONException {
-        this.username = username;
-        bday = item.getString("bd");
-        email = item.getString("em");
-        authID = item.getString("ai");
-        profileImage = item.getInt("pi");
-        influence = item.getInt("in");
-        g = item.getInt("g");
-        s = item.getInt("s");
-        b = item.getInt("b");
-    }
-
     public User(AIModelHitsHitsItemSource source){
         username = source.getCs();
         bday = source.getBd();
@@ -148,7 +79,6 @@ public class User {
     }
 
     public User(UserGetModel source){
-        //username = id;
         username = source.getCs();
         bday = source.getBd();
         email = source.getEm();
@@ -158,10 +88,5 @@ public class User {
         s = 0;
         b = 0;
     }
-
-    public String getCi(){
-        return username.toLowerCase();
-    }
-
 
 }

@@ -286,7 +286,7 @@ public class MessengerFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.tab4messenger, container, false);
-
+        /*
         // Initialize ProgressBar and RecyclerView.
         mProgressBar = rootView.findViewById(R.id.roomsProgressBar);
         emptyListTV = rootView.findViewById(R.id.emptyListText);
@@ -343,7 +343,7 @@ public class MessengerFragment extends Fragment {
                 activity.getViewPager().setCurrentItem(12);
             }
         });
-
+        */
         return rootView;
     }
 
@@ -831,6 +831,7 @@ public class MessengerFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        /*
         activity = (MainContainer) context;
         thisFragment = this;
         SessionManager sessionManager = new SessionManager(context);
@@ -848,6 +849,7 @@ public class MessengerFragment extends Fragment {
         }
 
         ROOMS_CHILD = Integer.toString(usernameHash) + "/" + mUsername + "/r";
+        */
     }
 
     public void initializeFragmentAfterFirstRoomCreation(){
@@ -861,6 +863,7 @@ public class MessengerFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        /*
         //get unread list here
         //unreadRooms.clear();
         //muteList.clear();
@@ -1134,6 +1137,7 @@ public class MessengerFragment extends Fragment {
             });
 
         }
+        */
     }
 
     public boolean roomIsUnread(String roomNum){
@@ -1719,6 +1723,7 @@ public class MessengerFragment extends Fragment {
     @Override
     public void onPause(){
         super.onPause();
+        /*
         //get unread list here
         mFirebaseDatabaseReference.child(activity.getUserPath()+"unread").removeEventListener(unreadMessagesListener);
         mFirebaseDatabaseReference.child(activity.getUserPath()+"block").removeEventListener(blockListListener);
@@ -1729,6 +1734,7 @@ public class MessengerFragment extends Fragment {
             mFirebaseAdapter.stopListening();
             //mRoomRecyclerView.setAdapter(null);
         }
+        */
     }
 
     @Override
