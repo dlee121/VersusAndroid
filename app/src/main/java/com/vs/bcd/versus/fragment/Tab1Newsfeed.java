@@ -65,6 +65,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
     private int currPostsIndex = 0;
     private Random randomNumber = new Random();
     private int nextAdIndex = randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
+    private boolean viewSetForInitialQuery;
 
     private HashMap<String, Integer> profileImgVersions = new HashMap<>();
 
@@ -73,7 +74,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.tab1newsfeed, container, false);
         //mHostActivity.setToolbarTitleTextForTabs("Newsfeed");
-
+        viewSetForInitialQuery = false;
         posts = new ArrayList<>();
 
         recyclerView = rootView.findViewById(R.id.recycler_view);
@@ -117,8 +118,10 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
         mSwipeRefreshLayout.setOnRefreshListener(this);
         mSwipeRefreshLayout.setRefreshing(true);
 
-        if(getUserVisibleHint()){
-            newsfeedESQuery(0);
+        viewSetForInitialQuery = true;
+        Log.d("initialQuery", "viewSetForInitialQuery = true");
+        if(mHostActivity.readyForInitialQuery()){
+            initialQuery();
         }
 
 
@@ -132,6 +135,14 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
         super.onAttach(context);
         //save the activity to a member of this fragment
         mHostActivity = (MainContainer)context;
+    }
+
+    public void initialQuery(){
+        Log.d("initialQuery", "initialQuery called");
+        if(viewSetForInitialQuery){
+            newsfeedESQuery(0);
+            Log.d("initialQuery", "initialQuery executed");
+        }
     }
 
     @Override

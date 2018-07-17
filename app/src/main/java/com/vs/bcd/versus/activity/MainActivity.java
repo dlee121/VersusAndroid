@@ -138,7 +138,7 @@ public class MainActivity extends Fragment {
             LPStore.add(childViews.get(i).getLayoutParams());
         }
 
-        mViewPager.setCurrentItem(1);
+        mViewPager.setCurrentItem(0);
 
         return rootView;
 

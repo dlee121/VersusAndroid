@@ -64,7 +64,6 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
     private int currPostsIndex = 0;
     private Random randomNumber = new Random();
     private int nextAdIndex = randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
-    private boolean viewSetForInitialQuery;
 
 
     private HashMap<String, Integer> profileImgVersions = new HashMap<>();
@@ -74,7 +73,6 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.tab2trending, container, false);
         //mHostActivity.setToolbarTitleTextForTabs("Trending");
-        viewSetForInitialQuery = false;
 
         posts = new ArrayList<>();
 
@@ -119,21 +117,11 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
 
         //mHostActivity.getMainFrag().getViewPager().setCurrentItem(1);
 
-        viewSetForInitialQuery = true;
-        Log.d("initialQuery", "viewSetForInitialQuery = true");
-        if(mHostActivity.readyForInitialQuery()){
-            initialQuery();
+        if(getUserVisibleHint()){
+            trendingESQuery(0);
         }
 
         return rootView;
-    }
-
-    public void initialQuery(){
-        Log.d("initialQuery", "initialQuery called");
-        if(viewSetForInitialQuery){
-            trendingESQuery(0);
-            Log.d("initialQuery", "initialQuery executed");
-        }
     }
 
     @Override
