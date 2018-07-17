@@ -2,15 +2,10 @@ package com.vs.bcd.versus.model;
 
 import android.util.Log;
 
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 import com.vs.bcd.api.model.CGCModelResponsesItemHitsHitsItemSource;
-import com.vs.bcd.api.model.CommentModel;
 import com.vs.bcd.api.model.CommentModelSource;
 import com.vs.bcd.api.model.CommentPutModel;
 import com.vs.bcd.api.model.CommentsListModelHitsHitsItemSource;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -22,7 +17,6 @@ import java.util.UUID;
  * Created by dlee on 6/11/17.
  */
 
-@DynamoDBTable(tableName = "vscomment")
 public class VSComment {
 
     private String parent_id; //UUID of the parent comment that this comment was in response to (use 0 if root comment)
@@ -106,21 +100,6 @@ public class VSComment {
         root = source.getR();
     }
 
-    public VSComment(JSONObject vscObj, String id) throws JSONException {
-        parent_id = vscObj.getString("pr");
-        post_id = vscObj.getString("pt");
-        time = vscObj.getString("t");
-        comment_id = id;
-        author = vscObj.getString("a");
-        content = vscObj.getString("ct");
-        topmedal = vscObj.getInt("m");
-        upvotes = vscObj.getInt("u");
-        downvotes = vscObj.getInt("d");
-        comment_influence = vscObj.getInt("ci");
-        root = vscObj.getString("r");
-    }
-
-    @DynamoDBHashKey(attributeName = "i")
     public String getComment_id() {
         return comment_id;
     }
@@ -128,7 +107,6 @@ public class VSComment {
         this.comment_id = comment_id;
     }
 
-    @DynamoDBAttribute(attributeName = "pr")
     public String getParent_id() {
         return parent_id;
     }
@@ -136,7 +114,6 @@ public class VSComment {
         this.parent_id = parent_id;
     }
 
-    @DynamoDBAttribute(attributeName = "pt")
     public String getPost_id() {
         return post_id;
     }
@@ -144,7 +121,6 @@ public class VSComment {
         this.post_id = post_id;
     }
 
-    @DynamoDBAttribute(attributeName = "t")
     public String getTime() {
         return time;
     }
@@ -152,7 +128,6 @@ public class VSComment {
         this.time = time;
     }
 
-    @DynamoDBAttribute(attributeName = "a")
     public String getAuthor() {
         return author;
     }
@@ -160,7 +135,6 @@ public class VSComment {
         this.author = author;
     }
 
-    @DynamoDBAttribute(attributeName = "ct")
     public String getContent() {
         return content;
     }
@@ -168,7 +142,6 @@ public class VSComment {
         this.content = content;
     }
 
-    @DynamoDBAttribute(attributeName = "u")
     public int getUpvotes() {
         return upvotes;
     }
@@ -176,7 +149,6 @@ public class VSComment {
         this.upvotes = upvotes;
     }
 
-    @DynamoDBAttribute(attributeName = "d")
     public int getDownvotes() {
         return downvotes;
     }
@@ -184,7 +156,6 @@ public class VSComment {
         this.downvotes = downvotes;
     }
 
-    @DynamoDBAttribute(attributeName = "m")
     public int getTopmedal(){
         return topmedal;
     }
@@ -192,16 +163,10 @@ public class VSComment {
         this.topmedal = topmedal;
     }
 
-    @DynamoDBAttribute(attributeName = "ci")
     public int getComment_influence(){
         return comment_influence;
     }
 
-    public void setComment_influence(int comment_influence) {
-        this.comment_influence = comment_influence;
-    }
-
-    @DynamoDBAttribute(attributeName = "r")
     public String getRoot(){
         return root;
     }
@@ -209,7 +174,6 @@ public class VSComment {
         this.root = root;
     }
 
-    @DynamoDBIgnore
     public int getCurrentMedal(){
         return currentMedal;
     }
@@ -217,7 +181,6 @@ public class VSComment {
         this.currentMedal = currentMedal;
     }
 
-    @DynamoDBIgnore
     public int getNestedLevel(){
         return nestedLevel;
     }
@@ -225,7 +188,6 @@ public class VSComment {
         this.nestedLevel = nestedLevel;
     }
 
-    @DynamoDBIgnore
     public String getR(){
         if(r == null){
             return "";
@@ -237,7 +199,6 @@ public class VSComment {
         return this;
     }
 
-    @DynamoDBIgnore
     public String getB(){
         if(b == null){
             return "";
@@ -248,7 +209,6 @@ public class VSComment {
         this.b = b;
     }
 
-    @DynamoDBIgnore
     public boolean getIsNew(){
         return isNew;
     }
@@ -256,18 +216,13 @@ public class VSComment {
         this.isNew = isNew;
     }
 
-    @DynamoDBIgnore
     public int getChild_count(){
         return child_count;
     }
     public void setChild_count(int child_count){
         this.child_count = child_count;
     }
-    public void incrementChild_Count(){
-        child_count++;
-    }
 
-    @DynamoDBIgnore
     public boolean getIsHighlighted(){
         return isHighlighted;
     }
@@ -275,7 +230,6 @@ public class VSComment {
         this.isHighlighted = isHighlighted;
     }
 
-    @DynamoDBIgnore
     public int getUservote(){
         return uservote;
     }

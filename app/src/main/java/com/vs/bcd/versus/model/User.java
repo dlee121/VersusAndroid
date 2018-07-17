@@ -11,7 +11,7 @@ import com.vs.bcd.api.model.UserGetModel;
 public class User {
 
     private String bday, username;
-    private String email = "0"; //default value, since dynamodb doesn't want empty strings either email or phone may be unspecified by user
+    private String email = "0"; //default value
     private String authID; //pw for messenger auth
     private int profileImage; //profile image storage url
     private int influence, g, s, b; //influece and medal count

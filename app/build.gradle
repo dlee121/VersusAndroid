@@ -44,11 +44,9 @@ dependencies {
     //image cropper
     //implementation 'com.theartofdev.edmodo:android-image-cropper:2.6.+'
 
-    //dynamodb dependencies
+    //aws dependencies
     implementation 'com.amazonaws:aws-android-sdk-core:2.6.19'
     implementation 'com.amazonaws:aws-android-sdk-s3:2.6.19'
-    implementation 'com.amazonaws:aws-android-sdk-ddb:2.6.19'
-    implementation 'com.amazonaws:aws-android-sdk-ddb-mapper:2.6.19'
     testImplementation 'junit:junit:4.12'
     // Google
     implementation 'com.google.android.gms:play-services-auth:15.0.1'

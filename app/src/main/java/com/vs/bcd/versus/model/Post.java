@@ -1,9 +1,7 @@
 package com.vs.bcd.versus.model;
 
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 import com.google.android.gms.ads.formats.NativeAppInstallAd;
 import com.google.android.gms.ads.formats.NativeContentAd;
-import com.vs.bcd.api.model.CommentPutModel;
 import com.vs.bcd.api.model.PostModelSource;
 import com.vs.bcd.api.model.PostPutModel;
 import com.vs.bcd.api.model.PostsListCompactModelHitsHitsItemSource;
@@ -15,13 +13,10 @@ import org.json.JSONObject;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.UUID;
 import java.text.ParseException;
 
-@DynamoDBTable(tableName = "post")
 public class Post {
 
 
@@ -49,7 +44,6 @@ public class Post {
     private SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
 
 
-    @DynamoDBIgnore
     public String getCategoryString(){
         switch(category){
             case 0:
@@ -103,15 +97,10 @@ public class Post {
         }
     }
 
-    @DynamoDBHashKey(attributeName = "i")
     public String getPost_id(){
         return  post_id;
     }
-    public void setPost_id(String post_id){
-        this.post_id = post_id;
-    }
 
-    @DynamoDBAttribute(attributeName = "q")
     public String getQuestion() {
         //TODO: since ddb doesn't hold empty strings, empty question will come as null (as in setTopic will not execute on those since the question column doesn't exist for those posts without question. So handle such cases when question is null return empty string
         //TODO: nah actualy question should be required. implement that through form validation
@@ -121,7 +110,6 @@ public class Post {
         this.question = topic;
     }
 
-    @DynamoDBAttribute(attributeName = "a")
     public String getAuthor() {
         return author;
     }
@@ -129,7 +117,6 @@ public class Post {
         this.author = author;
     }
 
-    @DynamoDBAttribute(attributeName="t")
     public String getTime() {
         return time;
     }
@@ -137,7 +124,6 @@ public class Post {
         this.time = time;
     }
 
-    @DynamoDBAttribute(attributeName = "rn")
     public String getRedname() {
         return redname;
     }
@@ -145,15 +131,10 @@ public class Post {
         this.redname = redname;
     }
 
-    @DynamoDBAttribute(attributeName = "rc")
     public int getRedcount() {
         return redcount;
     }
-    public void setRedcount(int redcount) {
-        this.redcount = redcount;
-    }
 
-    @DynamoDBAttribute(attributeName = "bn")
     public String getBlackname() {
         return blackname;
     }
@@ -161,15 +142,10 @@ public class Post {
         this.blackname = blackname;
     }
 
-    @DynamoDBAttribute(attributeName = "bc")
     public int getBlackcount() {
         return blackcount;
     }
-    public void setBlackcount(int blackcount) {
-        this.blackcount = blackcount;
-    }
 
-    @DynamoDBAttribute(attributeName = "c")
     public int getCategory() {
         return category;
     }
@@ -177,7 +153,6 @@ public class Post {
         this.category = category;
     }
 
-    @DynamoDBAttribute(attributeName = "ri")
     public int getRedimg(){
         return redimg;
     }
@@ -185,7 +160,6 @@ public class Post {
         this.redimg = redimg;
     }
 
-    @DynamoDBAttribute(attributeName = "bi")
     public int getBlackimg(){
         return blackimg;
     }
@@ -193,7 +167,6 @@ public class Post {
         this.blackimg = blackimg;
     }
 
-    @DynamoDBAttribute(attributeName = "pt")
     public int getPt(){
         return pt;
     }
@@ -201,7 +174,6 @@ public class Post {
         this.pt = pt;
     }
 
-    @DynamoDBAttribute(attributeName = "ps")
     public BigDecimal getPs(){
         return ps;
     }
@@ -209,8 +181,6 @@ public class Post {
         this.ps = ps;
     }
 
-
-    @DynamoDBIgnore
     public String getCategoryIntAsString(){
         return Integer.toString(category);
     }
@@ -320,7 +290,6 @@ public class Post {
         blackcount--;
     }
 
-    @DynamoDBIgnore
     public Date getDate(){
         try{
             return df.parse(time);
@@ -330,7 +299,6 @@ public class Post {
         return null;
     }
 
-    @DynamoDBIgnore
     public NativeAppInstallAd getNAI(){
         return NAI;
     }
@@ -338,7 +306,6 @@ public class Post {
         this.NAI = NAI;
     }
 
-    @DynamoDBIgnore
     public NativeContentAd getNC(){
         return NC;
     }
@@ -346,7 +313,6 @@ public class Post {
         this.NC = NC;
     }
 
-    @DynamoDBIgnore
     public int getVotecount(){
         return redcount + blackcount;
     }

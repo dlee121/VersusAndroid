@@ -263,7 +263,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                         return;
                                     }
 
-                                    //update comment content through ddb update request
+                                    //update comment content
 
                                     CommentEditModel commentEditModel = new CommentEditModel();
                                     CommentEditModelDoc commentEditModelDoc = new CommentEditModelDoc();
@@ -2158,8 +2158,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                     if (updateDB) { //user made comment action(s) OR voted for a side in the post
                         Log.d("updateDB", "db updated");
-                        //activity.getMapper().save(userAction, new DynamoDBMapperConfig(DynamoDBMapperConfig.SaveBehavior.CLOBBER));
-
                         activity.getClient().recordPost(userAction.getRecordPutModel(), "rcp", userAction.getI());
 
 

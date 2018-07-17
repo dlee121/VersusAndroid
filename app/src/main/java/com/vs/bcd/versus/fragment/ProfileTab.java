@@ -41,10 +41,6 @@ import android.widget.Toast;
 
 import com.amazonaws.mobileconnectors.apigateway.ApiClientException;
 import com.amazonaws.services.cognitoidentity.model.NotAuthorizedException;
-import com.amazonaws.services.dynamodbv2.model.AttributeAction;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
-import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.bumptech.glide.Glide;
@@ -545,7 +541,7 @@ public class ProfileTab extends Fragment {
                     }
 
                     //update attribute "pi", which is profile image version
-                    //update comment content through ddb update request
+                    //update comment content
                     activity.getClient().userputGet("prof", profileUsername);
 
                     /*

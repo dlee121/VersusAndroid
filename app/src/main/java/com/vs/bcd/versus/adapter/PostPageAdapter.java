@@ -31,10 +31,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeAction;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
-import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.bumptech.glide.Glide;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.R;

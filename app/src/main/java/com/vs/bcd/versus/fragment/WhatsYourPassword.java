@@ -1,10 +1,8 @@
 package com.vs.bcd.versus.fragment;
 
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.TextInputEditText;
@@ -15,23 +13,17 @@ import android.text.Spanned;
 import android.text.TextPaint;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.vs.bcd.versus.R;
-import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.activity.SignUp;
 import com.vs.bcd.versus.model.FormValidator;
 import com.vs.bcd.versus.model.SessionManager;
@@ -43,7 +35,6 @@ public class WhatsYourPassword extends Fragment {
     private View rootView;
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
-    private DynamoDBMapper mapper;
     private SessionManager sessionManager;
     private Button signupButton;
     private ProgressBar signupPB;
