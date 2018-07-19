@@ -3390,7 +3390,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
 
         }
         else{
-            return "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"query\":{\"function_score\":{\"query\":{\"bool\":{\"should\":[{\"range\":{\"t\":{\"gt\":\""+time+"\"}}}]}},\"sort\":[{\"ci\":{\"order\":\"desc\"}}]}}}";
+            return "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"query\":{\"function_score\":{\"query\":{\"bool\":{\"should\":[{\"range\":{\"t\":{\"gt\":\""+time+"\"}}}]}}}},\"sort\":[{\"ci\":{\"order\":\"desc\"}}]}";
         }
 
 
