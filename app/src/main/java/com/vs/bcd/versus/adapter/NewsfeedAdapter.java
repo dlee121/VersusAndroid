@@ -11,8 +11,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -66,6 +68,8 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     Drawable defaultProfileImage;
 
+    private RelativeLayout.LayoutParams seeMoreContainerLP;
+
     public NewsfeedAdapter(List<VSComment> comments, MainContainer activity, HashMap<String, Integer> profileImgVersions) {
         this.comments = comments;
         this.activity = activity;
@@ -74,6 +78,10 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         defaultProfileImage = ContextCompat.getDrawable(activity, R.drawable.default_profile);
 
         activity.addToCentralProfileImgVersionMap(profileImgVersions);
+
+        seeMoreContainerLP = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        seeMoreContainerLP.addRule(RelativeLayout.ALIGN_END, R.id.usercomment_nw);
+        seeMoreContainerLP.addRule(RelativeLayout.BELOW, R.id.usercomment_nw);
 
     }
 
@@ -116,7 +124,50 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         if(holder instanceof NewsfeedViewHolder){
 
             final VSComment comment = comments.get(position);
-            NewsfeedViewHolder newsfeedViewHolder = (NewsfeedViewHolder) holder;
+            final NewsfeedViewHolder newsfeedViewHolder = (NewsfeedViewHolder) holder;
+
+            newsfeedViewHolder.commentContent.post(new Runnable() {
+                @Override
+                public void run() {
+                    if(newsfeedViewHolder.commentContent.getLineCount() > 2){
+                        newsfeedViewHolder.seeMoreContainer.setLayoutParams(seeMoreContainerLP);
+
+                        RelativeLayout.LayoutParams replyButtonLP = (RelativeLayout.LayoutParams) newsfeedViewHolder.replyButton.getLayoutParams();
+                        replyButtonLP.removeRule(RelativeLayout.ALIGN_END);
+                        replyButtonLP.addRule(RelativeLayout.START_OF, R.id.see_more_container_nw);
+                        replyButtonLP.setMarginEnd(activity.getResources().getDimensionPixelSize(R.dimen.reply_button_margin_end));
+                        newsfeedViewHolder.replyButton.setLayoutParams(replyButtonLP);
+
+                        newsfeedViewHolder.seeMoreButton.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                if(newsfeedViewHolder.seeMoreButton.getText().equals("See More")){
+                                    newsfeedViewHolder.commentContent.setMaxLines(262);
+                                    newsfeedViewHolder.seeMoreButton.setText("See Less");
+                                    //commentViewHolder.ellipsis.setText("");
+                                }
+                                else{
+                                    newsfeedViewHolder.commentContent.setMaxLines(2);
+                                    newsfeedViewHolder.seeMoreButton.setText("See More");
+                                    //commentViewHolder.ellipsis.setText("...");
+                                }
+                            }
+                        });
+                    }
+                    else{
+                        newsfeedViewHolder.seeMoreContainer.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, 0));
+
+                        RelativeLayout.LayoutParams replyButtonLP = (RelativeLayout.LayoutParams) newsfeedViewHolder.replyButton.getLayoutParams();
+                        replyButtonLP.removeRule(RelativeLayout.START_OF);
+                        replyButtonLP.addRule(RelativeLayout.ALIGN_END, R.id.usercomment_nw);
+                        replyButtonLP.setMarginEnd(0);
+                        newsfeedViewHolder.replyButton.setLayoutParams(replyButtonLP);
+
+                    }
+                }
+            });
+
+
             newsfeedViewHolder.commentAuthor.setText(comment.getAuthor());
             newsfeedViewHolder.time.setText(getFormattedTime(comment.getTime()));
             newsfeedViewHolder.commentContent.setText(comment.getContent());
@@ -139,10 +190,14 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
             }
 
+
+
             newsfeedViewHolder.replyButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+
                     activity.getPostPage().getPPAdapter().setNewsfeedReplyTargetID(comment.getComment_id());
+
                     if(comment.getParent_id().equals(comment.getPost_id())){ //clicked item is root comment
                         activity.getPostPage().rootCommentHistoryItemClicked(comment, "newsfeed", "");
                     }
@@ -298,7 +353,8 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private class NewsfeedViewHolder extends RecyclerView.ViewHolder{
         private TextView postAuthor, votecount, question, commentAuthor, time, commentContent, hearts, brokenhearts;
         private CircleImageView circView;
-        private Button replyButton;
+        private Button replyButton, seeMoreButton;
+        private LinearLayout seeMoreContainer;
 
         public NewsfeedViewHolder(View view){
             super(view);
@@ -312,6 +368,8 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             hearts = view.findViewById(R.id.upvotes_nw);
             brokenhearts = view.findViewById(R.id.downvotes_nw);
             replyButton = view.findViewById(R.id.replybuttonnw);
+            seeMoreContainer = view.findViewById(R.id.see_more_container_nw);
+            seeMoreButton = seeMoreContainer.findViewById(R.id.see_more_button_nw);
         }
     }
 
