@@ -250,10 +250,10 @@ public class NotificationsAdapter extends RecyclerView.Adapter<RecyclerView.View
                         }
                         else{
                             if(clickedComment.getParent_id().equals(clickedComment.getPost_id())){ //this is a root comment
-                                activity.getPostPage().rootCommentHistoryItemClicked(clickedComment, false, key);
+                                activity.getPostPage().rootCommentHistoryItemClicked(clickedComment, "notifications", key);
                             }
                             else{
-                                activity.getPostPage().childOrGrandchildHistoryItemClicked(clickedComment, false, key);
+                                activity.getPostPage().childOrGrandchildHistoryItemClicked(clickedComment, "notifications", key);
                             }
                         }
                     }

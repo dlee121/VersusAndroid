@@ -2911,6 +2911,12 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
         clickedPostIndex = -1;
     }
 
+    public void newsfeedClickHelper(String commentAuthor){
+        myAdapterFragInt = 0; //Main
+        postParentProfileUsername = commentAuthor;
+        clickedPostIndex = -1;
+    }
+
     public void notificationsCommentClickHelper(String key){
         myAdapterFragInt = 8;
         clickedPostIndex = -1;

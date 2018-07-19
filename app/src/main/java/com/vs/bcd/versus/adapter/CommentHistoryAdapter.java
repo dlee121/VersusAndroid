@@ -78,10 +78,10 @@ public class CommentHistoryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
                     }
                     else{
                         if(itemComment.getParent_id().equals(itemComment.getPost_id())){ //clicked item is root comment
-                            activity.getPostPage().rootCommentHistoryItemClicked(itemComment, true, "");
+                            activity.getPostPage().rootCommentHistoryItemClicked(itemComment, "profile", "");
                         }
                         else{
-                            activity.getPostPage().childOrGrandchildHistoryItemClicked(itemComment, true, "");
+                            activity.getPostPage().childOrGrandchildHistoryItemClicked(itemComment, "profile", "");
                         }
 
                         itemViewClickLock = true;

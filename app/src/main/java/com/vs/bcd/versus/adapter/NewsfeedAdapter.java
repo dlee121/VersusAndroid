@@ -115,7 +115,7 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
         if(holder instanceof NewsfeedViewHolder){
 
-            VSComment comment = comments.get(position);
+            final VSComment comment = comments.get(position);
             NewsfeedViewHolder newsfeedViewHolder = (NewsfeedViewHolder) holder;
             newsfeedViewHolder.commentAuthor.setText(comment.getAuthor());
             newsfeedViewHolder.time.setText(getFormattedTime(comment.getTime()));
@@ -138,6 +138,44 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             }catch (Throwable t){
 
             }
+
+            newsfeedViewHolder.replyButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+
+                }
+            });
+
+            newsfeedViewHolder.postAuthor.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(!comment.getPostAuthor().equals("deleted")){
+                        activity.goToProfile(comment.getPostAuthor(), true);
+                    }
+                }
+            });
+
+            newsfeedViewHolder.circView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(!comment.getPostAuthor().equals("deleted")){
+                        activity.goToProfile(comment.getPostAuthor(), true);
+                    }
+                }
+            });
+
+            newsfeedViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(comment.getParent_id().equals(comment.getPost_id())){ //clicked item is root comment
+                        activity.getPostPage().rootCommentHistoryItemClicked(comment, "newsfeed", "");
+                    }
+                    else{
+                        activity.getPostPage().childOrGrandchildHistoryItemClicked(comment, "newsfeed", "");
+                    }
+
+                }
+            });
 
 
 
@@ -254,6 +292,7 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private class NewsfeedViewHolder extends RecyclerView.ViewHolder{
         private TextView postAuthor, votecount, question, commentAuthor, time, commentContent, hearts, brokenhearts;
         private CircleImageView circView;
+        private Button replyButton;
 
         public NewsfeedViewHolder(View view){
             super(view);
@@ -266,6 +305,7 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             commentContent = view.findViewById(R.id.usercomment_nw);
             hearts = view.findViewById(R.id.upvotes_nw);
             brokenhearts = view.findViewById(R.id.downvotes_nw);
+            replyButton = view.findViewById(R.id.replybuttonnw);
         }
     }
 

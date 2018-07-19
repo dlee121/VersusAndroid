@@ -79,17 +79,6 @@
             android:textColor="#0000FF"
             android:textSize="14sp" />
 
-        <ImageButton
-            android:id="@+id/nw_overflow_menu"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignTop="@id/comment_author_nw"
-            android:layout_alignBottom="@id/comment_author_nw"
-            android:layout_alignParentEnd="true"
-            android:layout_marginEnd="8dp"
-            android:src="@drawable/ic_overflow_horizontal"
-            android:background="@null" />
-
         <TextView
             android:id="@+id/timetvnw"
             android:layout_width="wrap_content"

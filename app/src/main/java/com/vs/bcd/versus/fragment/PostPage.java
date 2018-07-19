@@ -3190,7 +3190,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
     }
 
-    public void childOrGrandchildHistoryItemClicked(final VSComment clickedComment, final boolean fromProfile, final String key){
+    public void childOrGrandchildHistoryItemClicked(final VSComment clickedComment, final String origin, final String key){
         Log.d("clickedcommentid", clickedComment.getComment_id());
         freshlyVotedComments.clear();
         pageLevel  = 2;
@@ -3210,11 +3210,16 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             public void run() {
                 final Post subjectPost = getPost(clickedComment.getPost_id(), false);
 
-                if(fromProfile){
-                    activity.commentHistoryClickHelper(clickedComment.getAuthor());
-                }
-                else{ //from Notifications
-                    activity.notificationsCommentClickHelper(key);
+                switch (origin){
+                    case "newsfeed":
+                        activity.newsfeedClickHelper(clickedComment.getAuthor());
+                        break;
+                    case "profile":
+                        activity.commentHistoryClickHelper(clickedComment.getAuthor());
+                        break;
+                    case "notifications":
+                        activity.notificationsCommentClickHelper(key);
+                        break;
                 }
 
                 sortType = POPULAR;
@@ -3323,7 +3328,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     }
 
-    public void rootCommentHistoryItemClicked(final VSComment clickedRootComment, final boolean fromProfile, final String key){
+    public void rootCommentHistoryItemClicked(final VSComment clickedRootComment, final String origin, final String key){
         Log.d("clickedcommentid", clickedRootComment.getComment_id());
         freshlyVotedComments.clear();
         clearList();
@@ -3342,11 +3347,17 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             public void run() {
                 final Post subjectPost = getPost(clickedRootComment.getPost_id(), false);
 
-                if(fromProfile){
-                    activity.commentHistoryClickHelper(clickedRootComment.getAuthor());
-                }
-                else{ //from Notifications
-                    activity.notificationsCommentClickHelper(key);
+                switch(origin){
+                    case "newsfeed": //from Newsfeed
+                        activity.newsfeedClickHelper(clickedRootComment.getAuthor());
+                        break;
+                    case "profile": //from Profile
+                        activity.commentHistoryClickHelper(clickedRootComment.getAuthor());
+                        break;
+                    case "notifications": //from Notifications
+                        activity.notificationsCommentClickHelper(key);
+                        break;
+
                 }
 
                 sortType = POPULAR;
