@@ -59,16 +59,8 @@ import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
 import com.auth0.android.jwt.JWT;
 import com.facebook.login.LoginManager;
-import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdLoader;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.formats.NativeAd;
-import com.google.android.gms.ads.formats.NativeAdOptions;
-import com.google.android.gms.ads.formats.NativeAppInstallAd;
-import com.google.android.gms.ads.formats.NativeAppInstallAd.OnAppInstallAdLoadedListener;
-import com.google.android.gms.ads.formats.NativeContentAd;
-import com.google.android.gms.ads.formats.NativeContentAd.OnContentAdLoadedListener;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -121,10 +113,13 @@ import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 
 public class MainContainer extends AppCompatActivity implements ForceUpdateChecker.OnUpdateNeededListener {
@@ -223,6 +218,9 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
 
     private AdLoader adLoader;
     private Date bday;
+
+    private ArrayList<String> followingUsernames = new ArrayList<>();
+    private boolean followingUsernamesLoaded = false;
 
 
     private BroadcastReceiver myReceiver = new BroadcastReceiver() {
@@ -430,7 +428,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
     }
 
     public boolean readyForInitialQuery(){
-        return awsCredentialsSet && initialAdLoaded;
+        return awsCredentialsSet && initialAdLoaded && followingUsernamesLoaded;
     }
 
     @Override
@@ -536,7 +534,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                         Log.d("mainattach", "credentials refreshed");
                         awsCredentialsSet = true;
                         Log.d("initialQuery", "awsCredentialsSet = true");
-                        if(initialAdLoaded){
+                        if(readyForInitialQuery()){
                             if(mainActivityFragRef != null && mainActivityFragRef.getTab1() != null){
                                 thisActivity.runOnUiThread(new Runnable() {
                                     @Override
@@ -588,7 +586,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                                             Log.d("mainattach", "credentials refreshed");
                                             awsCredentialsSet = true;
                                             Log.d("initialQuery", "awsCredentialsSet = true");
-                                            if(initialAdLoaded){
+                                            if(readyForInitialQuery()){
                                                 if(mainActivityFragRef != null && mainActivityFragRef.getTab1() != null){
                                                     thisActivity.runOnUiThread(new Runnable() {
                                                         @Override
@@ -635,7 +633,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                                     Log.d("mainattach", "credentials refreshed");
                                     awsCredentialsSet = true;
                                     Log.d("initialQuery", "awsCredentialsSet = true");
-                                    if(initialAdLoaded){
+                                    if(readyForInitialQuery()){
                                         if(mainActivityFragRef != null && mainActivityFragRef.getTab1() != null){
                                             thisActivity.runOnUiThread(new Runnable() {
                                                 @Override
@@ -694,6 +692,16 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
         }
 
         userPath = Integer.toString(usernameHash) + "/" + sessionManager.getCurrentUsername();
+
+        followingUsernamesLoaded = false;
+        if(followingUsernames != null && !followingUsernames.isEmpty()){
+            followingUsernamesLoaded = true;
+        }
+        else{
+            //set up the list of usernames of users that this user is following, used for newsfeed
+            setUpFollowingsForNewsfeed();
+        }
+
 
         //soft input (keyboard) settings
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
@@ -1551,6 +1559,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
     protected void onResume(){
         Log.d("ORDER", "MainContainer onResume called");
         super.onResume();
+
         final FirebaseRemoteConfig firebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
 
         // set in-app defaults
@@ -3176,7 +3185,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                 case 0: //MainActivity
                     switch (voteUpdateTabNum){
                         case 0: //Newsfeed
-                            mainActivityFragRef.getTab1().getMyAdapter().incrementItemVotecount(voteUpdateTargetIndex, voteUpdateTargetID);
+                            mainActivityFragRef.getTab1().getNewsfeedAdapter().incrementItemVotecount(voteUpdateTargetIndex, voteUpdateTargetID);
                             break;
                         case 1: //Trending
                             mainActivityFragRef.getTab2().getMyAdapter().incrementItemVotecount(voteUpdateTargetIndex, voteUpdateTargetID);
@@ -3338,6 +3347,88 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
 
     public void setUserEmail(String email){
         sessionManager.setEmail(email);
+    }
+
+    public String getNewsfeedUsernamesPayload(){
+        if(followingUsernames == null){
+            setUpFollowingsForNewsfeed();
+        }
+        if(!followingUsernames.isEmpty()){
+            StringBuilder stringBuilder = new StringBuilder();
+            if(followingUsernames.size() < 26){
+                //pick them all
+                stringBuilder.append("\""+followingUsernames.get(0)+"\"");
+                for(int i = 1; i<followingUsernames.size(); i++){
+                    stringBuilder.append(",\""+followingUsernames.get(i)+"\"");
+                }
+            }
+            else{
+                //pick random 25
+                ArrayList<String> selectedUsers = new ArrayList<>(followingUsernames);
+                Collections.shuffle(selectedUsers);
+                stringBuilder.append("\""+selectedUsers.get(0)+"\"");
+                for(int i = 1; i<selectedUsers.size(); i++){
+                    stringBuilder.append(",\""+selectedUsers.get(i)+"\"");
+                }
+
+            }
+
+            return "{\"query\":{\"function_score\":{\"query\":{\"bool\":{\"should\":[{\"range\":{\"t\":{\"gt\":\"2018-06-24T20:40:42-0500\"}}}]}},\"functions\":[{\"script_score\":{\"script\":\"doc[\'ci\'].value\"}},{\"filter\":{\"terms\":{\"a.keyword\":["+stringBuilder.toString()+"]}},\"script_score\":{\"script\":\"10000\"}}],\"score_mode\":\"sum\"}}}";
+
+        }
+        else{
+            return "{\"query\":{\"function_score\":{\"query\":{\"bool\":{\"should\":[{\"range\":{\"t\":{\"gt\":\"2018-06-24T20:40:42-0500\"}}}]}},\"sort\":[{\"ci\":{\"order\":\"desc\"}}]}}}";
+        }
+
+
+    }
+
+    private void setUpFollowingsForNewsfeed(){
+        if(followingUsernames == null){
+            followingUsernames = new ArrayList<>();
+        }
+        else{
+            followingUsernames.clear();
+        }
+        mFirebaseDatabaseReference.child(userPath+"/h").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(final DataSnapshot dataSnapshotH) {
+
+                mFirebaseDatabaseReference.child(userPath+"/g").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshotG) {
+                        for(DataSnapshot followingH : dataSnapshotH.getChildren()){
+                            followingUsernames.add(followingH.getKey());
+                        }
+                        for(DataSnapshot followingG : dataSnapshotG.getChildren()){
+                            followingUsernames.add(followingG.getKey());
+                        }
+                        followingUsernamesLoaded = true;
+                        if(readyForInitialQuery()){
+                            if(mainActivityFragRef != null && mainActivityFragRef.getTab1() != null){
+                                thisActivity.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        mainActivityFragRef.getTab1().initialQuery();
+                                    }
+                                });
+                            }
+                        }
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
 }

@@ -2,6 +2,8 @@ package com.vs.bcd.versus.model;
 
 import android.util.Log;
 
+import com.google.android.gms.ads.formats.NativeAppInstallAd;
+import com.google.android.gms.ads.formats.NativeContentAd;
 import com.vs.bcd.api.model.CGCModelResponsesItemHitsHitsItemSource;
 import com.vs.bcd.api.model.CommentModelSource;
 import com.vs.bcd.api.model.CommentPutModel;
@@ -42,8 +44,15 @@ public class VSComment {
     private boolean isNew = false;
     private boolean isHighlighted = false;
 
+    private String question, postAuthor; //used for newsfeed
+    private int rc, bc; //used for newsfeed
+
     private String r;
     private String b;
+
+    private NativeAppInstallAd NAI; //TODO: rename to AppInstallAd and rename relevant functions accordingly
+    private NativeContentAd NC;     //TODO: rename to ContentAd and rename relevant functions accordingly
+
 
 
     public VSComment(){
@@ -356,5 +365,48 @@ public class VSComment {
         return putModel;
     }
 
+    public NativeAppInstallAd getNAI(){
+        return NAI;
+    }
+    public void setNAI(NativeAppInstallAd NAI){
+        this.NAI = NAI;
+    }
 
+    public NativeContentAd getNC(){
+        return NC;
+    }
+    public void setNC(NativeContentAd NC){
+        this.NC = NC;
+    }
+
+    public void setQuestion(String question) {
+        this.question = question;
+    }
+    public String getQuestion(){
+        return question;
+    }
+
+    public VSComment setPostAuthor(String postAuthor){
+        this.postAuthor = postAuthor;
+        return this;
+    }
+
+    public String getPostAuthor() {
+        return postAuthor;
+    }
+
+    public void setAQRCBC(String a, String q, int rc, int bc){
+        postAuthor = a;
+        question = q;
+        this.rc = rc;
+        this.bc = bc;
+    }
+
+    public int getBc() {
+        return bc;
+    }
+
+    public int getRc() {
+        return rc;
+    }
 }
