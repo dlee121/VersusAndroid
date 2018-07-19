@@ -531,6 +531,8 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
             try {
 
                 List<PostQMultiModelDocsItem> hits = result.getDocs();
+                StringBuilder strBuilder = new StringBuilder((56*hits.size()) - 1);
+                int i = 0;
                 for(PostQMultiModelDocsItem item : hits){
                     PostQMultiModelDocsItemSource src = item.getSource();
                     String id = null;
@@ -571,6 +573,21 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                     }
                     else{
                         newsfeedComments.get(j).setAQRCBC(postInfo.getA(), postInfo.getQ(), postInfo.getRc(), postInfo.getBc());
+                    }
+
+                    if(!postInfo.getA().equals("deleted")){
+                        if(i == 0){
+                            strBuilder.append("\""+postInfo.getA()+"\"");
+                        }
+                        else{
+                            strBuilder.append(",\""+postInfo.getA()+"\"");
+                        }
+                        i++;
+                    }
+
+                    if(strBuilder.length() > 0){
+                        String pivPayload = "{\"ids\":["+strBuilder.toString()+"]}";
+                        getProfileImgVersions(pivPayload);
                     }
                 }
 
@@ -613,6 +630,9 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                 newsfeedComments.get(fromIndex).setAQRCBC(postInfo.getA(), postInfo.getQ(), postInfo.getRc(), postInfo.getBc());
                 postInfoMap.put(payload, postInfo);
             }
+
+            String pivPayload = "{\"ids\":[\""+postInfo.getA()+"\"]}";
+            getProfileImgVersions(pivPayload);
 
             //System.out.println("Response: " + strResponse);
 

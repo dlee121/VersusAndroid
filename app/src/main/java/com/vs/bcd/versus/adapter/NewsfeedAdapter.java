@@ -57,8 +57,6 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     private int DEFAULT = 0;
     private int S3 = 1;
-    private int VSRED = 0;
-    private int VSBLUE = 0;
 
     private int imageWidthPixels = 696;
     private int imageHeightPixels = 747;
@@ -66,15 +64,14 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private HashMap<String, Integer> profileImgVersions;
     private Toast mToast;
 
-    Drawable defaultImage, defaultProfileImage;
+    Drawable defaultProfileImage;
 
     public NewsfeedAdapter(List<VSComment> comments, MainContainer activity, HashMap<String, Integer> profileImgVersions) {
         this.comments = comments;
         this.activity = activity;
         this.profileImgVersions = profileImgVersions;
 
-        VSRED = ContextCompat.getColor(this.activity, R.color.vsRed);
-        VSBLUE = ContextCompat.getColor(this.activity, R.color.vsBlue);
+        defaultProfileImage = ContextCompat.getDrawable(activity, R.drawable.default_profile);
 
         activity.addToCentralProfileImgVersionMap(profileImgVersions);
 
@@ -128,19 +125,19 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             newsfeedViewHolder.postAuthor.setText(comment.getPostAuthor());
             newsfeedViewHolder.question.setText(comment.getQuestion());
             newsfeedViewHolder.votecount.setText(Integer.toString(comment.getRc()+comment.getBc())+" votes");
-            //newsfeedViewHolder.votecount.setText(Integer.toString(comment.get));
-            //get post info before continuing
-            /*
-            circView = view.findViewById(R.id.profile_image_nw);
-            postAuthor = view.findViewById(R.id.author_nw);
-            votecount = view.findViewById(R.id.votecount_nw);
-            question = view.findViewById(R.id.question_nw);
-            commentAuthor = view.findViewById(R.id.comment_author_nw);
-            time = view.findViewById(R.id.timetvnw);
-            commentContent = view.findViewById(R.id.usercomment_nw);
-            hearts = view.findViewById(R.id.upvotes_nw);
-            brokenhearts = view.findViewById(R.id.downvotes_nw);
-            */
+
+            try{
+                int profileImg = profileImgVersions.get(comment.getPostAuthor().toLowerCase()).intValue();
+                if(profileImg == 0){
+                    GlideApp.with(activity).load(defaultProfileImage).into(newsfeedViewHolder.circView);
+                }
+                else{
+                    GlideApp.with(activity).load(activity.getProfileImgUrl(comment.getPostAuthor(), profileImg)).into(newsfeedViewHolder.circView);
+                }
+
+            }catch (Throwable t){
+
+            }
 
 
 
@@ -450,11 +447,11 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public RequestBuilder getPreloadRequestBuilder(VSComment comment) {
 
         try {
-            int profileImg = profileImgVersions.get(comment.getAuthor().toLowerCase()).intValue();
+            int profileImg = profileImgVersions.get(comment.getPostAuthor().toLowerCase()).intValue();
             if (profileImg == 0) {
                 return null;
             }
-            return GlideApp.with(activity).load(activity.getProfileImgUrl(comment.getAuthor(), profileImg = profileImgVersions.get(comment.getAuthor().toLowerCase()).intValue()));
+            return GlideApp.with(activity).load(activity.getProfileImgUrl(comment.getPostAuthor(), profileImgVersions.get(comment.getPostAuthor().toLowerCase()).intValue()));
 
 
         } catch (Throwable t) {
