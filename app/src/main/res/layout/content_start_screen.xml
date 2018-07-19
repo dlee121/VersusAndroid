@@ -144,7 +144,7 @@
         android:layout_alignParentTop="true"
         android:layout_above="@id/ss_center"
         android:layout_centerHorizontal="true"
-        app:srcCompat="@drawable/logo_splash" />
+        app:srcCompat="@drawable/logo_v2_clear_splash" />
 
     <com.google.android.gms.common.SignInButton
         android:id="@+id/google_login_button"

@@ -225,6 +225,15 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 }
             });
 
+            newsfeedViewHolder.commentAuthor.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(!comment.getAuthor().equals("deleted")){
+                        activity.goToProfile(comment.getAuthor(), true);
+                    }
+                }
+            });
+
             newsfeedViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
