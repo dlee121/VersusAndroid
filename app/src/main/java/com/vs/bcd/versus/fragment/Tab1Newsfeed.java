@@ -218,7 +218,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
 
                 if(results != null){
                     List<CommentsListModelHitsHitsItem> hits = results.getHits().getHits();
-                    Log.d("newsfeedqueryresults", "got " + hits.size() + " items");
+                    //Log.d("newsfeedqueryresults", "got " + hits.size() + " items");
 
                     if(hits != null && !hits.isEmpty()){
                         if(hits.size() == 1){

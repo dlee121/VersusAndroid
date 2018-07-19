@@ -1132,6 +1132,8 @@ public class ProfileTab extends Fragment {
                 mFirebaseDatabaseReference.child(userContactsPath).setValue(true);
 
             }
+
+            activity.addToFollowingsForNewsfeed(profileUsername);
         }
     }
 

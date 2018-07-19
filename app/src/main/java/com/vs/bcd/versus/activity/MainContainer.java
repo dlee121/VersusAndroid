@@ -3444,4 +3444,8 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
         });
     }
 
+    public void addToFollowingsForNewsfeed(String username){
+        followingUsernames.add(username);
+    }
+
 }
