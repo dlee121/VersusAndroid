@@ -3355,7 +3355,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
         sessionManager.setEmail(email);
     }
 
-    public String getNewsfeedUsernamesPayload(){
+    public String getNewsfeedUsernamesPayload(int fromIndex, int retrievalSize){
         if(followingUsernames == null){
             setUpFollowingsForNewsfeed();
         }
@@ -3379,11 +3379,11 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
 
             }
 
-            return "{\"query\":{\"function_score\":{\"query\":{\"bool\":{\"should\":[{\"range\":{\"t\":{\"gt\":\"2018-06-24T20:40:42-0500\"}}}]}},\"functions\":[{\"script_score\":{\"script\":\"doc[\'ci\'].value\"}},{\"filter\":{\"terms\":{\"a.keyword\":["+stringBuilder.toString()+"]}},\"script_score\":{\"script\":\"10000\"}}],\"score_mode\":\"sum\"}}}";
+            return "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"query\":{\"function_score\":{\"query\":{\"bool\":{\"should\":[{\"range\":{\"t\":{\"gt\":\"2018-07-02T20:40:42-0500\"}}}]}},\"functions\":[{\"script_score\":{\"script\":\"doc[\'ci\'].value\"}},{\"filter\":{\"terms\":{\"a.keyword\":["+stringBuilder.toString()+"]}},\"script_score\":{\"script\":\"10000\"}}],\"score_mode\":\"sum\"}}}";
 
         }
         else{
-            return "{\"query\":{\"function_score\":{\"query\":{\"bool\":{\"should\":[{\"range\":{\"t\":{\"gt\":\"2018-06-24T20:40:42-0500\"}}}]}},\"sort\":[{\"ci\":{\"order\":\"desc\"}}]}}}";
+            return "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"query\":{\"function_score\":{\"query\":{\"bool\":{\"should\":[{\"range\":{\"t\":{\"gt\":\"2018-07-02T20:40:42-0500\"}}}]}},\"sort\":[{\"ci\":{\"order\":\"desc\"}}]}}}";
         }
 
 

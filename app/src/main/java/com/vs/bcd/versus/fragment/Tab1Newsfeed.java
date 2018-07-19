@@ -31,10 +31,6 @@ import com.vs.bcd.api.model.CommentsListModelHitsHitsItem;
 import com.vs.bcd.api.model.CommentsListModelHitsHitsItemSource;
 import com.vs.bcd.api.model.PIVModel;
 import com.vs.bcd.api.model.PIVModelDocsItem;
-import com.vs.bcd.api.model.PostInfoModel;
-import com.vs.bcd.api.model.PostInfoMultiModel;
-import com.vs.bcd.api.model.PostInfoMultiModelDocsItem;
-import com.vs.bcd.api.model.PostInfoMultiModelDocsItemSource;
 import com.vs.bcd.api.model.PostQModel;
 import com.vs.bcd.api.model.PostQMultiModel;
 import com.vs.bcd.api.model.PostQMultiModelDocsItem;
@@ -73,7 +69,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
     private int NATIVE_APP_INSTALL_AD = 42069;
     private int NATIVE_CONTENT_AD = 69420;
 
-    private int currPostsIndex = 0;
+    private int currCommentsIndex = 0;
     private Random randomNumber = new Random();
     private int nextAdIndex = randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
     private boolean viewSetForInitialQuery;
@@ -101,17 +97,17 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 //only if postSearchResults.size()%retrievalSize == 0, meaning it's possible there's more matching documents for this search
-                if(newsfeedComments != null && !newsfeedComments.isEmpty() && currPostsIndex%retrievalSize == 0) {
+                if(newsfeedComments != null && !newsfeedComments.isEmpty() && currCommentsIndex %retrievalSize == 0) {
                     LinearLayoutManager layoutManager = LinearLayoutManager.class.cast(recyclerView.getLayoutManager());
                     int lastVisible = layoutManager.findLastVisibleItemPosition();
 
-                    boolean endHasBeenReached = lastVisible + loadThreshold >= currPostsIndex;  //TODO: increase the loadThreshold as we get more newsfeedComments, but capping it at 5 is probably sufficient
-                    if (currPostsIndex > 0 && endHasBeenReached) {
+                    boolean endHasBeenReached = lastVisible + loadThreshold >= currCommentsIndex;  //TODO: increase the loadThreshold as we get more newsfeedComments, but capping it at 5 is probably sufficient
+                    if (currCommentsIndex > 0 && endHasBeenReached) {
                         //you have reached to the bottom of your recycler view
                         if (!nowLoading) {
                             nowLoading = true;
                             Log.d("loadmore", "now loading more");
-                            newsfeedESQuery(currPostsIndex);
+                            newsfeedESQuery(currCommentsIndex);
                         }
                     }
                 }
@@ -206,7 +202,7 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
     public void newsfeedESQuery(final int fromIndex) {
         if(fromIndex == 0){
             mSwipeRefreshLayout.setRefreshing(true);
-            currPostsIndex = 0;
+            currCommentsIndex = 0;
             nowLoading = false;
         }
 
@@ -218,10 +214,11 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                     recyclerView.setAdapter(newsfeedAdapter);
                 }
 
-                CommentsListModel results = mHostActivity.getClient().commentslistGet(mHostActivity.getNewsfeedUsernamesPayload(), null, "nwtest", Integer.toString(fromIndex));
+                CommentsListModel results = mHostActivity.getClient().commentslistGet(mHostActivity.getNewsfeedUsernamesPayload(fromIndex, retrievalSize), null, "nwv2", Integer.toString(fromIndex));
 
                 if(results != null){
                     List<CommentsListModelHitsHitsItem> hits = results.getHits().getHits();
+                    Log.d("newsfeedqueryresults", "got " + hits.size() + " items");
 
                     if(hits != null && !hits.isEmpty()){
                         if(hits.size() == 1){
@@ -229,12 +226,12 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                             String id0 = hits.get(0).getId();
                             VSComment vsc = new VSComment(source, id0);
                             newsfeedComments.add(vsc);
-                            currPostsIndex++;
+                            currCommentsIndex++;
 
-                            if(currPostsIndex == nextAdIndex){
+                            if(currCommentsIndex == nextAdIndex){
                                 VSComment adSkeleton = new VSComment();
                                 NativeAd nextAd = mHostActivity.getNextAd();
-                                nextAdIndex = currPostsIndex + randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
+                                nextAdIndex = currCommentsIndex + randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
                                 if(nextAd != null){
                                     Log.d("adscheck", "ads loaded");
                                     if(nextAd instanceof NativeAppInstallAd){
@@ -275,12 +272,12 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
                                 String id = item.getId();
                                 VSComment vsc = new VSComment(source, id);
                                 newsfeedComments.add(vsc);
-                                currPostsIndex++;
+                                currCommentsIndex++;
 
-                                if(currPostsIndex == nextAdIndex){
+                                if(currCommentsIndex == nextAdIndex){
                                     VSComment adSkeleton = new VSComment();
                                     NativeAd nextAd = mHostActivity.getNextAd();
-                                    nextAdIndex = currPostsIndex + randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
+                                    nextAdIndex = currCommentsIndex + randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
                                     if(nextAd != null){
                                         Log.d("adscheck", "ads loaded");
                                         if(nextAd instanceof NativeAppInstallAd){
@@ -370,122 +367,6 @@ public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefre
         Thread mythread = new Thread(runnable);
         mythread.start();
 
-
-        /*
-
-        if(fromIndex == 0){
-            mSwipeRefreshLayout.setRefreshing(true);
-            currPostsIndex = 0;
-            nowLoading = false;
-        }
-
-        Runnable runnable = new Runnable() {
-            public void run() {
-
-                if(newsfeedComments == null){
-                    newsfeedComments = new ArrayList<>();
-                    newsfeedAdapter = new NewsfeedAdapter(newsfeedComments, mHostActivity, profileImgVersions);
-                    recyclerView.setAdapter(newsfeedAdapter);
-                }
-
-
-                PostsListModel results = mHostActivity.getClient().postslistGet(null, null, "nw", Integer.toString(fromIndex));
-
-                if(results != null){
-                    List<PostsListModelHitsHitsItem> hits = results.getHits().getHits();
-
-                    if(hits != null && !hits.isEmpty()){
-                        int i = 0;
-                        StringBuilder strBuilder = new StringBuilder((56*hits.size()) - 1);
-                        for(PostsListModelHitsHitsItem item : hits){
-                            PostsListModelHitsHitsItemSource source = item.getSource();
-                            String id = item.getId();
-                            newsfeedComments.add(new Post(source, id));
-                            currPostsIndex++;
-
-                            if(currPostsIndex == nextAdIndex){
-                                VSComment adSkeleton = new VSComment();
-                                NativeAd nextAd = mHostActivity.getNextAd();
-                                nextAdIndex = currPostsIndex + randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
-                                if(nextAd != null){
-                                    Log.d("adscheck", "ads loaded");
-                                    if(nextAd instanceof NativeAppInstallAd){
-                                        //adSkeleton.setCategory(NATIVE_APP_INSTALL_AD);
-                                        adSkeleton.setAuthor("adn");
-                                        adSkeleton.setNAI((NativeAppInstallAd) nextAd);
-                                        newsfeedComments.add(adSkeleton);
-                                        adCount++;
-                                    }
-                                    else if(nextAd instanceof NativeContentAd){
-                                        //adSkeleton.setCategory(NATIVE_CONTENT_AD);
-                                        adSkeleton.setAuthor("adc");
-                                        adSkeleton.setNC((NativeContentAd) nextAd);
-                                        newsfeedComments.add(adSkeleton);
-                                        adCount++;
-                                    }
-                                }
-                                else{
-                                    Log.d("adscheck", "ads not loaded");
-                                }
-                            }
-
-                            //add username to parameter string, then at loop finish we do multiget of those users and create hashmap of username:profileImgVersion
-                            if(i == 0){
-                                strBuilder.append("\""+source.getA()+"\"");
-                            }
-                            else{
-                                strBuilder.append(",\""+source.getA()+"\"");
-                            }
-                            i++;
-                        }
-
-                        if(strBuilder.length() > 0){
-                            String payload = "{\"ids\":["+strBuilder.toString().toLowerCase()+"]}";
-                            getProfileImgVersions(payload);
-                        }
-
-                        mHostActivity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                mSwipeRefreshLayout.setRefreshing(false);
-                                if(nowLoading){
-                                    nowLoading = false;
-                                }
-                                if(newsfeedComments != null && !newsfeedComments.isEmpty()){
-                                    newsfeedAdapter.notifyDataSetChanged();
-                                }
-                            }
-                        });
-                    }
-                    else{
-                        mHostActivity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Log.d("loadmore", "end reached, disabling loadMore");
-                                nowLoading = true;
-                                mSwipeRefreshLayout.setRefreshing(false);
-                            }
-                        });
-                    }
-                }
-                else{
-                    mHostActivity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Log.d("loadmore", "end reached, disabling loadMore");
-                            nowLoading = true;
-                            mSwipeRefreshLayout.setRefreshing(false);
-                        }
-                    });
-                }
-
-                //System.out.println("Response: " + strResponse);
-
-            }
-        };
-        Thread mythread = new Thread(runnable);
-        mythread.start();
-        */
     }
 
     public void editedPostRefresh(int index, Post editedPost){
