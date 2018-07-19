@@ -118,6 +118,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 
@@ -3359,6 +3360,12 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
         if(followingUsernames == null){
             setUpFollowingsForNewsfeed();
         }
+
+        Date currentDate = new Date();
+        currentDate.setTime(currentDate.getTime()-1210000000);
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
+        String time = df.format(currentDate);
+
         if(!followingUsernames.isEmpty()){
             StringBuilder stringBuilder = new StringBuilder();
             if(followingUsernames.size() < 26){
@@ -3379,11 +3386,11 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
 
             }
 
-            return "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"query\":{\"function_score\":{\"query\":{\"bool\":{\"should\":[{\"range\":{\"t\":{\"gt\":\"2018-07-02T20:40:42-0500\"}}}]}},\"functions\":[{\"script_score\":{\"script\":\"doc[\'ci\'].value\"}},{\"filter\":{\"terms\":{\"a.keyword\":["+stringBuilder.toString()+"]}},\"script_score\":{\"script\":\"10000\"}}],\"score_mode\":\"sum\"}}}";
+            return "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"query\":{\"function_score\":{\"query\":{\"bool\":{\"should\":[{\"range\":{\"t\":{\"gt\":\""+time+"\"}}}]}},\"functions\":[{\"script_score\":{\"script\":\"doc[\'ci\'].value\"}},{\"filter\":{\"terms\":{\"a.keyword\":["+stringBuilder.toString()+"]}},\"script_score\":{\"script\":\"10000\"}}],\"score_mode\":\"sum\"}}}";
 
         }
         else{
-            return "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"query\":{\"function_score\":{\"query\":{\"bool\":{\"should\":[{\"range\":{\"t\":{\"gt\":\"2018-07-02T20:40:42-0500\"}}}]}},\"sort\":[{\"ci\":{\"order\":\"desc\"}}]}}}";
+            return "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"query\":{\"function_score\":{\"query\":{\"bool\":{\"should\":[{\"range\":{\"t\":{\"gt\":\""+time+"\"}}}]}},\"sort\":[{\"ci\":{\"order\":\"desc\"}}]}}}";
         }
 
 
