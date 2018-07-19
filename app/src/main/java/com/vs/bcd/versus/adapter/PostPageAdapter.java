@@ -98,6 +98,8 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     private PostPage postPage;
 
+    private String newsfeedReplyTargetID = "";
+
     //to set imageviews, first fill out the drawable[3] with 0=image layer, 1=tint layer, 2=check mark layer, make LayerDrawable out of the array, then use setImageMask which sets the correct mask layers AND ALSO sets imageview drawable as the LayerDrawable
 
     public PostPageAdapter(List<Object> masterList, Post post, MainContainer activity, int pageLevel, PostPage postPage) {
@@ -1567,6 +1569,16 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         actionMap = userAction.getActionRecord();
         notifyDataSetChanged();
         lockButtons = false;
+        if(newsfeedReplyTargetID != null && newsfeedReplyTargetID.length() > 4){
+            //TODO: the below case doesn't consider grandchildren, so implement this for grandchildren as well
+            if(masterList.get(0) instanceof VSComment && ((VSComment) masterList.get(0)).getComment_id().equals(newsfeedReplyTargetID)){
+                postPage.itemReplyClickHelper((VSComment) masterList.get(0), 0);
+                postPage.setTopCardReplyClickedTrue();
+
+
+            }
+        }
+        newsfeedReplyTargetID = "";
     }
 
     public void insertItem(VSComment newComment, int index){
@@ -1678,5 +1690,8 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         return 0;
     }
 
+    public void setNewsfeedReplyTargetID(String id){
+        newsfeedReplyTargetID = id;
+    }
 
 }

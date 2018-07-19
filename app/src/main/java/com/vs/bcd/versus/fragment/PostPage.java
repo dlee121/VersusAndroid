@@ -176,6 +176,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     private HashSet<String> winnerTreeRoots = new HashSet<>();
 
+    private String newsfeedReplyTargetID = "";
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -2991,6 +2993,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     public void itemReplyClickHelper(final VSComment clickedComment, final int index){
+        Log.d("indexIs", ""+index);
         if(replyTarget != null && replyTarget.getComment_id().equals(clickedComment)){
             return;
         }

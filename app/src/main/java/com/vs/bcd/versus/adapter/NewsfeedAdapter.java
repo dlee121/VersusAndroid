@@ -142,7 +142,13 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             newsfeedViewHolder.replyButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-
+                    activity.getPostPage().getPPAdapter().setNewsfeedReplyTargetID(comment.getComment_id());
+                    if(comment.getParent_id().equals(comment.getPost_id())){ //clicked item is root comment
+                        activity.getPostPage().rootCommentHistoryItemClicked(comment, "newsfeed", "");
+                    }
+                    else{
+                        activity.getPostPage().childOrGrandchildHistoryItemClicked(comment, "newsfeed", "");
+                    }
                 }
             });
 
