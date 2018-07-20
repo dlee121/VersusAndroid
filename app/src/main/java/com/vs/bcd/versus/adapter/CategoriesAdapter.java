@@ -18,7 +18,7 @@ import java.util.List;
 public class CategoriesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private Activity activity;
     private List<CategoryObject> categories;
-    private int createpostORtab3 = 0;   //0 = for CreatePost, 1 = for Tab3Categories
+    private int createpostORtab3 = 0;   //0 = for CreatePost, 1 = for Tab3New, 2 = Trending Filter
 
     public CategoriesAdapter(RecyclerView recyclerView, List<CategoryObject> categories, Activity activity, int createpostORtab3) {
         this.categories = categories;
@@ -56,7 +56,7 @@ public class CategoriesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 });
                 break;
             case 1:
-                //Tab3Categories listener for when user clicks on the category they wish to view posts from
+                //Tab3New listener for when user clicks on the category they wish to view posts from
                 categoryViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
@@ -73,7 +73,13 @@ public class CategoriesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                     }
                 });
                 break;
+
+            case 2:
+                //Tab2Trending category filter
+                break;
+
             default:
+
                 break;
         }
 

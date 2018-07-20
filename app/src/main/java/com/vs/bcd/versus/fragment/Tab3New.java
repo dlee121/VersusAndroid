@@ -49,7 +49,7 @@ import java.util.Random;
 
 
 
-public class Tab3Categories extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
+public class Tab3New extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
     private View rootView;
     private ArrayList<CategoryObject> categories;
     private ArrayList<View> childViews;

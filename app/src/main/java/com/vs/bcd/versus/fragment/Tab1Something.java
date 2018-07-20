@@ -46,7 +46,7 @@ import com.vs.bcd.versus.model.VSComment;
  * Created by dlee on 4/29/17.
  */
 
-public class Tab1Newsfeed extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
+public class Tab1Something extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     private ArrayList<VSComment> newsfeedComments;
     private NewsfeedAdapter newsfeedAdapter;

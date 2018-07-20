@@ -1,15 +1,33 @@
 package com.vs.bcd.versus.fragment;
 
+import android.app.Dialog;
+import android.app.DialogFragment;
+import android.app.FragmentTransaction;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextPaint;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.Window;
+import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -32,7 +50,10 @@ import com.vs.bcd.api.model.PostsListModelHitsHitsItem;
 import com.vs.bcd.api.model.PostsListModelHitsHitsItemSource;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
+import com.vs.bcd.versus.adapter.CategoriesAdapter;
 import com.vs.bcd.versus.adapter.MyAdapter;
+import com.vs.bcd.versus.adapter.SettingsAdapter;
+import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.model.Post;
 
 /**
@@ -51,6 +72,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
     private boolean nowLoading = false;
     private RecyclerView recyclerView;
     SwipeRefreshLayout mSwipeRefreshLayout;
+    private Button filterSelector;
 
     private int loadThreshold = 8;
     private int adCount = 0;
@@ -75,6 +97,14 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
         //mHostActivity.setToolbarTitleTextForTabs("Trending");
 
         posts = new ArrayList<>();
+
+        filterSelector = rootView.findViewById(R.id.filter_selector_tr);
+        filterSelector.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                filterSelectorClicked();
+            }
+        });
 
         recyclerView = rootView.findViewById(R.id.recycler_view2);
 
@@ -309,4 +339,61 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
         return myAdapter;
     }
 
+    private void filterSelectorClicked(){
+        FragmentTransaction ft = mHostActivity.getFragmentManager().beginTransaction();
+        DialogFragment newFragment = CategoryFilterFragment.newInstance();
+        newFragment.show(ft, "dialog");
+
+    }
+
+    public static class CategoryFilterFragment extends DialogFragment {
+
+        private ArrayList<CategoryObject> categories;
+        private CategoriesAdapter mCategoriesAdapter;
+
+        static Tab2Trending.CategoryFilterFragment newInstance() {
+            Tab2Trending.CategoryFilterFragment f = new Tab2Trending.CategoryFilterFragment();
+            return f;
+        }
+
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                 Bundle savedInstanceState) {
+            final View v = inflater.inflate(R.layout.category_filter, container, false);
+
+            categories = new ArrayList<>();
+            ((MainContainer)getActivity()).setUpCategoriesList(categories);
+
+            RecyclerView recyclerView = v.findViewById(R.id.category_selection_cf);
+            recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+            mCategoriesAdapter = new CategoriesAdapter(recyclerView, categories, getActivity(), 2);
+            recyclerView.setAdapter(mCategoriesAdapter);
+
+
+            return v;
+        }
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            Dialog dialog = super.onCreateDialog(savedInstanceState);
+
+            // request a window without the title
+            dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+            return dialog;
+        }
+
+        @Override
+        public void onStart()
+        {
+            super.onStart();
+            Dialog dialog = getDialog();
+            if (dialog != null)
+            {
+                int width = ViewGroup.LayoutParams.MATCH_PARENT;
+                int height = ViewGroup.LayoutParams.MATCH_PARENT;
+                dialog.getWindow().setLayout(width, height);
+            }
+        }
+
+    }
 }

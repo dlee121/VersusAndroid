@@ -1,7 +1,6 @@
 package com.vs.bcd.versus.activity;
 
 import android.support.design.widget.TabLayout;
-import android.support.design.widget.FloatingActionButton;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -17,9 +16,9 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.vs.bcd.versus.R;
-import com.vs.bcd.versus.fragment.Tab1Newsfeed;
+import com.vs.bcd.versus.fragment.Tab1Something;
 import com.vs.bcd.versus.fragment.Tab2Trending;
-import com.vs.bcd.versus.fragment.Tab3Categories;
+import com.vs.bcd.versus.fragment.Tab3New;
 import com.vs.bcd.versus.model.Post;
 
 import java.util.ArrayList;
@@ -36,9 +35,9 @@ public class MainActivity extends Fragment {
     private LinearLayout tabStrip;
     private MainContainer mainContainer;
     //private FloatingActionButton fab;
-    private Tab1Newsfeed tab1;
+    private Tab1Something tab1;
     private Tab2Trending tab2;
-    private Tab3Categories tab3;
+    private Tab3New tab3;
 
 
     @Override
@@ -175,13 +174,13 @@ public class MainActivity extends Fragment {
             //Return current tabs
             switch (position) {
                 case 0:
-                    tab1 = new Tab1Newsfeed();
+                    tab1 = new Tab1Something();
                     return tab1;
                 case 1:
                     tab2 = new Tab2Trending();
                     return tab2;
                 case 2:
-                    tab3 = new Tab3Categories();
+                    tab3 = new Tab3New();
                     return tab3;
                 default:
                     return null;
@@ -261,7 +260,7 @@ public class MainActivity extends Fragment {
     }
     */
 
-    public Tab1Newsfeed getTab1(){
+    public Tab1Something getTab1(){
         return tab1;
     }
 
@@ -283,7 +282,7 @@ public class MainActivity extends Fragment {
 
     }
 
-    public Tab3Categories getTab3() {
+    public Tab3New getTab3() {
         return tab3;
     }
 }

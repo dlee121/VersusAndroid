@@ -91,9 +91,9 @@ import com.vs.bcd.versus.fragment.PostPage;
 import com.vs.bcd.versus.fragment.ProfileTab;
 import com.vs.bcd.versus.fragment.SelectCategory;
 import com.vs.bcd.versus.fragment.SettingsFragment;
-import com.vs.bcd.versus.fragment.Tab1Newsfeed;
+import com.vs.bcd.versus.fragment.Tab1Something;
 import com.vs.bcd.versus.fragment.Tab2Trending;
-import com.vs.bcd.versus.fragment.Tab3Categories;
+import com.vs.bcd.versus.fragment.Tab3New;
 import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.model.ForceUpdateChecker;
 import com.vs.bcd.versus.model.GlideUrlCustom;
@@ -117,10 +117,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Random;
 
 
 public class MainContainer extends AppCompatActivity implements ForceUpdateChecker.OnUpdateNeededListener {
@@ -249,11 +247,11 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
         }
 
         if(mainContainerCurrentItem == 0){  //MainContainer's current fragment is MainActivity fragment
-            if(mainActivityCurrentItem == 0){   //MainActivity fragment's current fragment is Tab1Newsfeed
+            if(mainActivityCurrentItem == 0){   //MainActivity fragment's current fragment is Tab1Something
                 super.onBackPressed();  //call superclass's onBackPressed, closing the app
             }
-            else {  //MainActivity fragment's current fragment is not Tab1Newsfeed, so we need to first navigate to Tab1Newsfeed on MainActivity fragment
-                if(mainActivityCurrentItem == 2 && mainActivityFragRef.getTab3().isCategoryPostsListOpen()) { //currently in Tab3Categories
+            else {  //MainActivity fragment's current fragment is not Tab1Something, so we need to first navigate to Tab1Something on MainActivity fragment
+                if(mainActivityCurrentItem == 2 && mainActivityFragRef.getTab3().isCategoryPostsListOpen()) { //currently in Tab3New
                     mainActivityFragRef.getTab3().closeCategoryPostsList();
                     titleTxtView.setText("Categories");
                     return;
@@ -811,7 +809,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                 }
                 switch (i) {
                     case 0: //MainActivity Fragment
-                        if(mainActivityFragRef.getViewPager().getCurrentItem() == 2 && mainActivityFragRef.getTab3().isCategoryPostsListOpen()) { //currently in Tab3Categories
+                        if(mainActivityFragRef.getViewPager().getCurrentItem() == 2 && mainActivityFragRef.getTab3().isCategoryPostsListOpen()) { //currently in Tab3New
                             mainActivityFragRef.getTab3().closeCategoryPostsList();
                             titleTxtView.setText("Categories");
                             return;
@@ -2874,7 +2872,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
 
         switch (mainActivityFragRef.getViewPager().getCurrentItem()){
             case 0: //Home
-                Tab1Newsfeed tab1 = mainActivityFragRef.getTab1();
+                Tab1Something tab1 = mainActivityFragRef.getTab1();
                 if (tab1 != null) {
                     tab1.editedPostRefresh(clickedPostIndex, editedPost);
                 }
@@ -2888,7 +2886,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                 break;
 
             case 2: //Categories
-                Tab3Categories tab3 = mainActivityFragRef.getTab3();
+                Tab3New tab3 = mainActivityFragRef.getTab3();
                 if(tab3 != null){
                     tab3.editedPostRefresh(clickedPostIndex, editedPost);
                 }
