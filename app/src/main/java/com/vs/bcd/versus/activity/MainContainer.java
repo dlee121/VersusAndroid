@@ -1501,7 +1501,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
             }
         });
 
-        setToolbarTitleTextForTabs("Newsfeed");
+        setToolbarTitleTextForTabs("");
         goToMainActivityOnResume = true;
         showMessengerButton();
         showMessegerButtonBadge(true);

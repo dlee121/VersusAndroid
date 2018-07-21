@@ -11,7 +11,7 @@
         android:id="@+id/tabs"
         android:layout_width="match_parent"
         android:layout_height="@dimen/toolbar_height"
-        android:background="@color/vsBlue"
+        android:background="#FFFFFFFF"
         app:tabIndicatorColor="@color/vsRed"
         app:tabSelectedTextColor="@color/vsRed"/>
 
