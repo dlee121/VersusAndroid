@@ -112,6 +112,14 @@
                     android:layout_alignRight="@id/leftImage"
                     android:background="@color/white"
                     android:src="@drawable/ic_x_button"/>
+                <TextView
+                    android:id="@+id/optional_left"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBottom="@id/leftImage"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginBottom="8dp"
+                    android:text="(Optional)"/>
             </RelativeLayout>
         </LinearLayout>
 
@@ -175,6 +183,14 @@
                     android:layout_alignRight="@id/rightImage"
                     android:background="@color/white"
                     android:src="@drawable/ic_x_button"/>
+                <TextView
+                    android:id="@+id/optional_right"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBottom="@id/rightImage"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginBottom="8dp"
+                    android:text="(Optional)"/>
             </RelativeLayout>
         </LinearLayout>
 

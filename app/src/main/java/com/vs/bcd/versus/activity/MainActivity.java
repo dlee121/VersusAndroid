@@ -91,14 +91,11 @@ public class MainActivity extends Fragment {
                         break;
                     case 2: //categories
                         tab.setIcon(R.drawable.categoried_red);
-                        //disableCPFab();
-                        if(tab3.isCategoryPostsListOpen()){
-                            //mainContainer.setLeftChevron();
-                            mainContainer.setToolbarTitleTextForTabs(tab3.getCurrentCategoryTitle());
-                        }
-                        else{
-                            //mainContainer.setLeftSearchButton();
-                            mainContainer.setToolbarTitleTextForTabs("Categories");
+                        mainContainer.setToolbarTitleTextForTabs("Newsfeed");
+                        //enableCPFab();
+                        Log.d("matab", "tab3Newsfeed selected");
+                        if(!tab3.postsLoaded()){
+                            tab3.newsfeedESQuery(0);
                         }
                         break;
                     default:

@@ -251,11 +251,6 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                 super.onBackPressed();  //call superclass's onBackPressed, closing the app
             }
             else {  //MainActivity fragment's current fragment is not Tab1Something, so we need to first navigate to Tab1Something on MainActivity fragment
-                if(mainActivityCurrentItem == 2 && mainActivityFragRef.getTab3().isCategoryPostsListOpen()) { //currently in Tab3New
-                    mainActivityFragRef.getTab3().closeCategoryPostsList();
-                    titleTxtView.setText("Categories");
-                    return;
-                }
                 getMainFrag().getViewPager().setCurrentItem(0);
             }
         }
@@ -809,12 +804,6 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                 }
                 switch (i) {
                     case 0: //MainActivity Fragment
-                        if(mainActivityFragRef.getViewPager().getCurrentItem() == 2 && mainActivityFragRef.getTab3().isCategoryPostsListOpen()) { //currently in Tab3New
-                            mainActivityFragRef.getTab3().closeCategoryPostsList();
-                            titleTxtView.setText("Categories");
-                            return;
-                        }
-                        //toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
                         mViewPager.setCurrentItem(1);
                         break;
 
@@ -1330,12 +1319,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                         bottomNavigation.setCurrentItem(0, false);
                         showToolbarButtonLeft();
                         //toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
-                        if(mainActivityFragRef.getViewPager().getCurrentItem() == 2 && mainActivityFragRef.getTab3().isCategoryPostsListOpen()){
-                            toolbarButtonLeft.setImageResource(R.drawable.ic_left_chevron);
-                        }
-                        else{
-                            toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
-                        }
+                        toolbarButtonLeft.setImageResource(R.drawable.ic_search_white);
                         hideToolbarProgressbar();
                         profileBackDestination = 0;
                         hideTitleRightButton();
@@ -3364,12 +3348,12 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
         String time = df.format(currentDate);
 
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("\""+currUsername+"\"");
         if(!followingUsernames.isEmpty()){
-            StringBuilder stringBuilder = new StringBuilder();
+
             if(followingUsernames.size() < 26){
-                //pick them all
-                stringBuilder.append("\""+followingUsernames.get(0)+"\"");
-                for(int i = 1; i<followingUsernames.size(); i++){
+                for(int i = 0; i<followingUsernames.size(); i++){
                     stringBuilder.append(",\""+followingUsernames.get(i)+"\"");
                 }
             }
@@ -3377,8 +3361,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                 //pick random 25
                 ArrayList<String> selectedUsers = new ArrayList<>(followingUsernames);
                 Collections.shuffle(selectedUsers);
-                stringBuilder.append("\""+selectedUsers.get(0)+"\"");
-                for(int i = 1; i<selectedUsers.size(); i++){
+                for(int i = 0; i<selectedUsers.size(); i++){
                     stringBuilder.append(",\""+selectedUsers.get(i)+"\"");
                 }
 
@@ -3388,7 +3371,9 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
 
         }
         else{
-            return "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"query\":{\"function_score\":{\"query\":{\"bool\":{\"should\":[{\"range\":{\"t\":{\"gt\":\""+time+"\"}}}]}}}},\"sort\":[{\"ci\":{\"order\":\"desc\"}}]}";
+            return "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"query\":{\"function_score\":{\"query\":{\"bool\":{\"should\":[{\"range\":{\"t\":{\"gt\":\""+time+"\"}}}]}},\"functions\":[{\"script_score\":{\"script\":\"doc[\'ci\'].value\"}},{\"filter\":{\"terms\":{\"a.keyword\":[\""+currUsername+"\"]}},\"script_score\":{\"script\":\"10000\"}}],\"score_mode\":\"sum\"}}}";
+
+
         }
 
 

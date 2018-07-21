@@ -67,7 +67,7 @@ import com.vs.bcd.versus.model.SquareImageView;
 public class CreatePost extends Fragment {
 
     private EditText rednameET, blacknameET, questionET;
-    private TextView rednameTV, blacknameTV, questionTV;
+    private TextView rednameTV, blacknameTV, questionTV, optionalLeft, optionalRight;
     //private CropImageView cropper1;
     //private CropImageView cropper2;
     private SquareImageView ivLeft, ivRight;
@@ -123,6 +123,8 @@ public class CreatePost extends Fragment {
         rootView = inflater.inflate(R.layout.create_post, container, false);
 
         s3 = ((MainContainer) getActivity()).getS3Client();
+        optionalLeft = rootView.findViewById(R.id.optional_left);
+        optionalRight = rootView.findViewById(R.id.optional_right);
 
         ivLeft = rootView.findViewById(R.id.leftImage);
         ivLeft.setDrawingCacheEnabled(true);
@@ -1034,21 +1036,25 @@ public class CreatePost extends Fragment {
     private void hideLeftClearButton(){
         leftClearButton.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
         leftClearButton.setEnabled(false);
+        optionalLeft.setVisibility(View.VISIBLE);
     }
 
     private void hideRightClearButton(){
         rightClearButton.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
         rightClearButton.setEnabled(false);
+        optionalRight.setVisibility(View.VISIBLE);
     }
 
     private void showLeftClearButton(){
         leftClearButton.setEnabled(true);
         leftClearButton.setLayoutParams(leftClearButtonLP);
+        optionalLeft.setVisibility(View.GONE);
     }
 
     private void showRightClearButton(){
         rightClearButton.setEnabled(true);
         rightClearButton.setLayoutParams(rightClearButtonLP);
+        optionalRight.setVisibility(View.GONE);
     }
 
     private void clearLeftImage(){

@@ -57,21 +57,7 @@ public class CategoriesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 break;
             case 1:
                 //Tab3New listener for when user clicks on the category they wish to view posts from
-                categoryViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        //TODO: navigate to FollowersAndFollowings and tell FollowersAndFollowings which category was selected so that the appropriate query can be triggered
-                        //Log.d("CATEGORY SELECT", "clicked " + categoryObject.getCategoryName() + ", code: " + categoryObject.getCategoryInt());
-                        //((MainContainer)activity).getCategoryFragment().setCurrCategoryInt(categoryObject.getCategoryInt()).categoryTimeESQuery(0);
-                        ((MainContainer)activity).getMainFrag().getTab3().setUpCategoryPostsList(categoryObject.getCategoryInt(), categoryObject.getCategoryName());
-                        ((MainContainer)activity).setToolbarTitleTextForTabs(categoryObject.getCategoryName());
-                        //((MainContainer)activity).setToolbarTitleForCF(categoryObject.getCategoryName());
-                        //((MainContainer)activity).getViewPager().setCurrentItem(6);
 
-                        //((MainContainer)activity).categoryFragmentIn(categoryObject.getCategoryName());
-                        //((MainContainer)activity).setLeftChevron();
-                    }
-                });
                 break;
 
             case 2:
@@ -98,8 +84,8 @@ public class CategoriesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
         public CategoryViewHolder(View view) {
             super(view);
-            catIcon = (ImageView) view.findViewById(R.id.category_ic_iv);
-            catName = (TextView) view.findViewById(R.id.tv_category);
+            catIcon = view.findViewById(R.id.category_ic_iv);
+            catName = view.findViewById(R.id.tv_category);
         }
     }
 
