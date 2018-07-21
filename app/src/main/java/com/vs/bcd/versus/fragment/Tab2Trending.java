@@ -78,9 +78,6 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
     private int nextAdIndex = randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
 
     private int categorySelection = -1;
-
-    private Dialog currentDialog;
-
     private LinearLayout categorySelectionView;
     private RelativeLayout.LayoutParams categorySelectionViewLP;
     private ImageView categoryIcon;
@@ -97,8 +94,8 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
         //mHostActivity.setToolbarTitleTextForTabs("Trending");
 
         categorySelectionView = rootView.findViewById(R.id.category_selection_tr);
-        categoryIcon = categorySelectionView.findViewById(R.id.category_ic_cf);
-        categoryName = categorySelectionView.findViewById(R.id.tv_category_cf);
+        categoryIcon = categorySelectionView.findViewById(R.id.category_ic_tr);
+        categoryName = categorySelectionView.findViewById(R.id.tv_category_tr);
         hideCategorySelection();
 
 

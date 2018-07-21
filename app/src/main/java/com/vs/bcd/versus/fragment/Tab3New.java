@@ -1,5 +1,8 @@
 package com.vs.bcd.versus.fragment;
 
+import android.app.Dialog;
+import android.app.DialogFragment;
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -10,6 +13,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.Window;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -32,7 +41,9 @@ import com.vs.bcd.api.model.PostsListModelHitsHitsItem;
 import com.vs.bcd.api.model.PostsListModelHitsHitsItemSource;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
+import com.vs.bcd.versus.adapter.CategoriesAdapter;
 import com.vs.bcd.versus.adapter.MyAdapter;
+import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.model.Post;
 
 /**
@@ -68,15 +79,34 @@ public class Tab3New extends Fragment implements SwipeRefreshLayout.OnRefreshLis
 
     private HashMap<String, Integer> profileImgVersions = new HashMap<>();
 
+    private int categorySelection = -1;
+    private LinearLayout categorySelectionView;
+    private RelativeLayout.LayoutParams categorySelectionViewLP;
+    private ImageView categoryIcon;
+    private TextView categoryName;
+    private Button filterSelector;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        rootView = inflater.inflate(R.layout.tab1newsfeed, container, false);
-        //mHostActivity.setToolbarTitleTextForTabs("Newsfeed");
+        rootView = inflater.inflate(R.layout.tab3new, container, false);
+
+        categorySelectionView = rootView.findViewById(R.id.category_selection_nw);
+        categoryIcon = categorySelectionView.findViewById(R.id.category_ic_nw);
+        categoryName = categorySelectionView.findViewById(R.id.tv_category_nw);
+        hideCategorySelection();
 
         posts = new ArrayList<>();
 
-        recyclerView = rootView.findViewById(R.id.recycler_view);
+        filterSelector = rootView.findViewById(R.id.filter_selector_nw);
+        filterSelector.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                filterSelectorClicked();
+            }
+        });
+
+        recyclerView = rootView.findViewById(R.id.recycler_view_nw);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(mHostActivity));
         //this is where the list is passed on to adapter
@@ -113,7 +143,7 @@ public class Tab3New extends Fragment implements SwipeRefreshLayout.OnRefreshLis
 
 
         // SwipeRefreshLayout
-        mSwipeRefreshLayout = rootView.findViewById(R.id.swipe_container_tab1);
+        mSwipeRefreshLayout = rootView.findViewById(R.id.swipe_container_nw);
         mSwipeRefreshLayout.setOnRefreshListener(this);
         mSwipeRefreshLayout.setRefreshing(true);
 
@@ -317,5 +347,86 @@ public class Tab3New extends Fragment implements SwipeRefreshLayout.OnRefreshLis
 
     public MyAdapter getMyAdapter() {
         return myAdapter;
+    }
+
+    private void filterSelectorClicked(){
+        FragmentTransaction ft = mHostActivity.getFragmentManager().beginTransaction();
+        DialogFragment newFragment = Tab3New.CategoryFilterFragment.newInstance();
+        newFragment.show(ft, "dialog");
+
+    }
+
+    public static class CategoryFilterFragment extends DialogFragment {
+
+        private ArrayList<CategoryObject> categories;
+        private CategoriesAdapter mCategoriesAdapter;
+
+        static Tab2Trending.CategoryFilterFragment newInstance() {
+            Tab2Trending.CategoryFilterFragment f = new Tab2Trending.CategoryFilterFragment();
+            return f;
+        }
+
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                 Bundle savedInstanceState) {
+            final View v = inflater.inflate(R.layout.category_filter, container, false);
+
+
+            categories = new ArrayList<>();
+            ((MainContainer)getActivity()).setUpCategoriesList(categories);
+
+            RecyclerView recyclerView = v.findViewById(R.id.category_rv_cf);
+            recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+            mCategoriesAdapter = new CategoriesAdapter(recyclerView, categories, (MainContainer)getActivity(), 3, getDialog());
+            recyclerView.setAdapter(mCategoriesAdapter);
+
+            v.findViewById(R.id.frag_exit_button_cf).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    getDialog().dismiss();
+
+                }
+            });
+
+
+            return v;
+        }
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            Dialog dialog = super.onCreateDialog(savedInstanceState);
+
+            // request a window without the title
+            dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+            return dialog;
+        }
+
+        @Override
+        public void onStart() {
+            super.onStart();
+            Dialog dialog = getDialog();
+            if (dialog != null) {
+                int width = ViewGroup.LayoutParams.MATCH_PARENT;
+                int height = ViewGroup.LayoutParams.MATCH_PARENT;
+                dialog.getWindow().setLayout(width, height);
+            }
+        }
+    }
+
+    public void setCategorySelection(int selection, int iconResID, String name){
+        categorySelection = selection;
+        categoryIcon.setImageResource(iconResID);
+        categoryName.setText(name);
+        showCategorySelection();
+        onRefresh();
+    }
+
+    private void showCategorySelection(){
+        categorySelectionView.setVisibility(View.VISIBLE);
+
+    }
+
+    private void hideCategorySelection(){
+        categorySelectionView.setVisibility(View.GONE);
     }
 }

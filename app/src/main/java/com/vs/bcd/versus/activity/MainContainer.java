@@ -3435,4 +3435,8 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
         mainActivityFragRef.getTab2().setCategorySelection(selection, iconResID, name);
     }
 
+    public void setTab3CategoryFilter(int selection, int iconResID, String name){
+        mainActivityFragRef.getTab3().setCategorySelection(selection, iconResID, name);
+    }
+
 }

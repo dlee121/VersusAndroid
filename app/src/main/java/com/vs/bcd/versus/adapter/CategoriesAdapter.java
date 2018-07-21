@@ -81,6 +81,17 @@ public class CategoriesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 });
 
                 break;
+            case 3:
+                //Tab3New category filter
+                categoryViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        activity.setTab3CategoryFilter(position, categoryObject.getIconResID(), categoryObject.getCategoryName());
+                        currentDialog.dismiss();
+                    }
+                });
+
+                break;
 
             default:
 
