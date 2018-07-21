@@ -147,6 +147,15 @@ public class Tab3New extends Fragment implements SwipeRefreshLayout.OnRefreshLis
         mSwipeRefreshLayout.setOnRefreshListener(this);
         mSwipeRefreshLayout.setRefreshing(true);
 
+        rootView.findViewById(R.id.category_clear_nw).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                categorySelection = -1;
+                hideCategorySelection();
+                onRefresh();
+            }
+        });
+
         if(getUserVisibleHint()){
             newsfeedESQuery(0);
         }
@@ -216,14 +225,19 @@ public class Tab3New extends Fragment implements SwipeRefreshLayout.OnRefreshLis
             public void run() {
 
                 /* Execute URL and attach after execution response handler */
-                if(posts == null){
+                if(posts == null) {
                     posts = new ArrayList<>();
                     myAdapter = new MyAdapter(posts, mHostActivity, profileImgVersions, 0);
                     recyclerView.setAdapter(myAdapter);
                 }
 
-
-                PostsListModel results = mHostActivity.getClient().postslistGet(null, null, "nw", Integer.toString(fromIndex));
+                PostsListModel results;
+                if(categorySelection == -1){
+                    results = mHostActivity.getClient().postslistGet(null, null, "nw", Integer.toString(fromIndex));
+                }
+                else {
+                    results = mHostActivity.getClient().postslistGet(Integer.toString(categorySelection), null, "nw", Integer.toString(fromIndex));
+                }
 
                 if(results != null){
                     List<PostsListModelHitsHitsItem> hits = results.getHits().getHits();
@@ -361,8 +375,8 @@ public class Tab3New extends Fragment implements SwipeRefreshLayout.OnRefreshLis
         private ArrayList<CategoryObject> categories;
         private CategoriesAdapter mCategoriesAdapter;
 
-        static Tab2Trending.CategoryFilterFragment newInstance() {
-            Tab2Trending.CategoryFilterFragment f = new Tab2Trending.CategoryFilterFragment();
+        static Tab3New.CategoryFilterFragment newInstance() {
+            Tab3New.CategoryFilterFragment f = new Tab3New.CategoryFilterFragment();
             return f;
         }
 
