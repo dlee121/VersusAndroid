@@ -60,19 +60,18 @@ public class MainActivity extends Fragment {
         //tabStrip = ((LinearLayout)tabLayout.getChildAt(0));
         //set tab icons
 
-        tabLayout.getTabAt(0).setIcon(R.drawable.newsfeed_red);
-        tabLayout.getTabAt(1).setIcon(R.drawable.fire_blue);
-        tabLayout.getTabAt(2).setIcon(R.drawable.categories_blue);
+        tabLayout.getTabAt(0).setText("My Circle");
+        tabLayout.getTabAt(1).setText("Trending");
+        tabLayout.getTabAt(2).setText("New");
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 switch (tab.getPosition()) {
                     case 0: //newsfeed
-                        tab.setIcon(R.drawable.newsfeed_red);
-                        mainContainer.setToolbarTitleTextForTabs("Newsfeed");
+                        tab.setText("My Circle");
+                        mainContainer.setToolbarTitleTextForTabs("");
                         //enableCPFab();
-                        Log.d("matab", "tab1Newsfeed selected");
                         if(!tab1.postsLoaded()){
                             tab1.newsfeedESQuery(0);
                         }
@@ -80,32 +79,31 @@ public class MainActivity extends Fragment {
 
                         break;
                     case 1: //trending
-                        tab.setIcon(R.drawable.fire_red);
-                        mainContainer.setToolbarTitleTextForTabs("Trending");
+                        tab.setText("Trending");
+                        mainContainer.setToolbarTitleTextForTabs("");
                         //enableCPFab();
-                        Log.d("matab", "tab1Newsfeed selected");
                         if(tab2 != null && !tab2.postsLoaded()){
                             tab2.trendingESQuery(0);
                         }
                         //mainContainer.setLeftSearchButton();
                         break;
                     case 2: //categories
-                        tab.setIcon(R.drawable.categoried_red);
-                        mainContainer.setToolbarTitleTextForTabs("Newsfeed");
+                        tab.setText("New");
+                        mainContainer.setToolbarTitleTextForTabs("");
                         //enableCPFab();
-                        Log.d("matab", "tab3Newsfeed selected");
                         if(!tab3.postsLoaded()){
                             tab3.newsfeedESQuery(0);
                         }
                         break;
                     default:
-                        tab.setIcon(R.drawable.newsfeed_red);
+                        //tab.setIcon(R.drawable.newsfeed_red);
                         break;
                 }
             }
 
             @Override
             public void onTabUnselected(TabLayout.Tab tab) {
+                /*
                 switch (tab.getPosition()) {
                     case 0: //newsfeed
                         tab.setIcon(R.drawable.newsfeed_blue);
@@ -120,6 +118,7 @@ public class MainActivity extends Fragment {
                         tab.setIcon(R.drawable.newsfeed_blue);
                         break;
                 }
+                */
 
             }
             @Override

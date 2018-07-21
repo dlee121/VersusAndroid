@@ -500,7 +500,7 @@ public class CreatePost extends Fragment {
                     post.setRedimg(redimgSet);
                     post.setBlackimg(blackimgSet);
                     //activity.getMapper().save(post);
-                    activity.getClient().postputPost(post.getPutModel(), post.getPost_id(), "put", "post");
+                    activity.getClient().postputPost(post.getPutModel(), post.getPost_id(), "postput", sessionManager.getCurrentUsername().toLowerCase());
 
                     if(!waitForImageUpload){
                         activity.runOnUiThread(new Runnable() {
