@@ -9,7 +9,7 @@
         android:layout_height="42dp"
         android:background="#D3D3D3">
         <ImageButton
-            android:id="@+id/frag_exit_button"
+            android:id="@+id/frag_exit_button_cf"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="#D3D3D3"
@@ -28,7 +28,7 @@
     </RelativeLayout>
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/category_selection_cf"
+        android:id="@+id/category_rv_cf"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/title_bar_cf"/>

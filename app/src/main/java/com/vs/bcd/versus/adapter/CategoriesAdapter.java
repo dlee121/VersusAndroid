@@ -1,7 +1,9 @@
 package com.vs.bcd.versus.adapter;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,14 +18,22 @@ import java.util.List;
 
 
 public class CategoriesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    private Activity activity;
+    private MainContainer activity;
     private List<CategoryObject> categories;
     private int createpostORtab3 = 0;   //0 = for CreatePost, 1 = for Tab3New, 2 = Trending Filter
+    private Dialog currentDialog;
 
-    public CategoriesAdapter(RecyclerView recyclerView, List<CategoryObject> categories, Activity activity, int createpostORtab3) {
+    public CategoriesAdapter(RecyclerView recyclerView, List<CategoryObject> categories, MainContainer activity, int createpostORtab3) {
         this.categories = categories;
         this.activity = activity;
         this.createpostORtab3 = createpostORtab3;
+    }
+
+    public CategoriesAdapter(RecyclerView recyclerView, List<CategoryObject> categories, MainContainer activity, int createpostORtab3, Dialog currentDialog) {
+        this.categories = categories;
+        this.activity = activity;
+        this.createpostORtab3 = createpostORtab3;
+        this.currentDialog = currentDialog;
     }
 
     @Override
@@ -50,8 +60,8 @@ public class CategoriesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                     @Override
                     public void onClick(View view) {
                         //Log.d("CATEGORY SELECT", "clicked " + categoryObject.getCategoryName() + ", code: " + categoryObject.getCategoryInt());
-                        ((MainContainer)activity).getCreatePostFragment().setCatSelection(categoryObject.getCategoryName(), categoryObject.getCategoryInt());
-                        ((MainContainer)activity).getViewPager().setCurrentItem(2);
+                        activity.getCreatePostFragment().setCatSelection(categoryObject.getCategoryName(), categoryObject.getCategoryInt());
+                        activity.getViewPager().setCurrentItem(2);
                     }
                 });
                 break;
@@ -62,6 +72,14 @@ public class CategoriesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
             case 2:
                 //Tab2Trending category filter
+                categoryViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        activity.setTab2CategoryFilter(position, categoryObject.getIconResID(), categoryObject.getCategoryName());
+                        currentDialog.dismiss();
+                    }
+                });
+
                 break;
 
             default:

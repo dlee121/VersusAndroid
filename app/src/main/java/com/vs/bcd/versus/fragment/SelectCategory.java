@@ -49,7 +49,7 @@ public class SelectCategory extends Fragment {
 
         RecyclerView recyclerView = rootView.findViewById(R.id.category_selection_rvcp);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        mCategoriesAdapter = new CategoriesAdapter(recyclerView, categories, getActivity(), 0);
+        mCategoriesAdapter = new CategoriesAdapter(recyclerView, categories, (MainContainer)getActivity(), 0);
         recyclerView.setAdapter(mCategoriesAdapter);
 
         childViews = new ArrayList<>();

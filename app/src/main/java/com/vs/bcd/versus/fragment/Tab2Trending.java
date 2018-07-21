@@ -4,20 +4,9 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.FragmentTransaction;
 import android.content.Context;
-import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.Typeface;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.TextPaint;
-import android.text.method.LinkMovementMethod;
-import android.text.style.ClickableSpan;
-import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,7 +15,9 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Window;
 import android.widget.Button;
-import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
@@ -52,7 +43,6 @@ import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.CategoriesAdapter;
 import com.vs.bcd.versus.adapter.MyAdapter;
-import com.vs.bcd.versus.adapter.SettingsAdapter;
 import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.model.Post;
 
@@ -87,6 +77,16 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
     private Random randomNumber = new Random();
     private int nextAdIndex = randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
 
+    private int categorySelection = -1;
+
+    private Dialog currentDialog;
+
+    private LinearLayout categorySelectionView;
+    private RelativeLayout.LayoutParams categorySelectionViewLP;
+    private ImageView categoryIcon;
+    private TextView categoryName;
+
+
 
     private HashMap<String, Integer> profileImgVersions = new HashMap<>();
 
@@ -95,6 +95,12 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.tab2trending, container, false);
         //mHostActivity.setToolbarTitleTextForTabs("Trending");
+
+        categorySelectionView = rootView.findViewById(R.id.category_selection_tr);
+        categoryIcon = categorySelectionView.findViewById(R.id.category_ic_cf);
+        categoryName = categorySelectionView.findViewById(R.id.tv_category_cf);
+        hideCategorySelection();
+
 
         posts = new ArrayList<>();
 
@@ -106,7 +112,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
             }
         });
 
-        recyclerView = rootView.findViewById(R.id.recycler_view2);
+        recyclerView = rootView.findViewById(R.id.recycler_view_tr);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(mHostActivity));
         //this is where the list is passed on to adapter
@@ -141,9 +147,17 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
         recyclerView.addOnScrollListener(preloader);
 
         // SwipeRefreshLayout
-        mSwipeRefreshLayout = rootView.findViewById(R.id.swipe_container_tab2);
+        mSwipeRefreshLayout = rootView.findViewById(R.id.swipe_container_tr);
         mSwipeRefreshLayout.setOnRefreshListener(this);
 
+        rootView.findViewById(R.id.category_clear_tr).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                categorySelection = -1;
+                hideCategorySelection();
+                onRefresh();
+            }
+        });
 
         //mHostActivity.getMainFrag().getViewPager().setCurrentItem(1);
 
@@ -201,8 +215,14 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                     recyclerView.setAdapter(myAdapter);
                 }
 
-
-                PostsListModel results = mHostActivity.getClient().postslistGet(null, null, "tr", Integer.toString(fromIndex));
+                PostsListModel results;
+                if(categorySelection > -1){
+                    results = mHostActivity.getClient().postslistGet(Integer.toString(categorySelection), null, "tr", Integer.toString(fromIndex));
+                }
+                else{
+                    Log.d("fsldfijsljd", "sdfljfdl");
+                    results = mHostActivity.getClient().postslistGet(null, null, "tr", Integer.toString(fromIndex));
+                }
                 if(results != null){
                     List<PostsListModelHitsHitsItem> hits = results.getHits().getHits();
                     if(hits != null && !hits.isEmpty()){
@@ -361,13 +381,22 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                                  Bundle savedInstanceState) {
             final View v = inflater.inflate(R.layout.category_filter, container, false);
 
+
             categories = new ArrayList<>();
             ((MainContainer)getActivity()).setUpCategoriesList(categories);
 
-            RecyclerView recyclerView = v.findViewById(R.id.category_selection_cf);
+            RecyclerView recyclerView = v.findViewById(R.id.category_rv_cf);
             recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-            mCategoriesAdapter = new CategoriesAdapter(recyclerView, categories, getActivity(), 2);
+            mCategoriesAdapter = new CategoriesAdapter(recyclerView, categories, (MainContainer)getActivity(), 2, getDialog());
             recyclerView.setAdapter(mCategoriesAdapter);
+
+            v.findViewById(R.id.frag_exit_button_cf).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    getDialog().dismiss();
+
+                }
+            });
 
 
             return v;
@@ -383,17 +412,31 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
         }
 
         @Override
-        public void onStart()
-        {
+        public void onStart() {
             super.onStart();
             Dialog dialog = getDialog();
-            if (dialog != null)
-            {
+            if (dialog != null) {
                 int width = ViewGroup.LayoutParams.MATCH_PARENT;
                 int height = ViewGroup.LayoutParams.MATCH_PARENT;
                 dialog.getWindow().setLayout(width, height);
             }
         }
+    }
 
+    public void setCategorySelection(int selection, int iconResID, String name){
+        categorySelection = selection;
+        categoryIcon.setImageResource(iconResID);
+        categoryName.setText(name);
+        showCategorySelection();
+        onRefresh();
+    }
+
+    private void showCategorySelection(){
+        categorySelectionView.setVisibility(View.VISIBLE);
+
+    }
+
+    private void hideCategorySelection(){
+        categorySelectionView.setVisibility(View.GONE);
     }
 }
