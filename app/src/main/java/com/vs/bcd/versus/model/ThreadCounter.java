@@ -2,7 +2,7 @@ package com.vs.bcd.versus.model;
 
 import com.vs.bcd.versus.fragment.LeaderboardTab;
 import com.vs.bcd.versus.fragment.PostPage;
-import com.vs.bcd.versus.fragment.Tab1Something;
+import com.vs.bcd.versus.fragment.Tab1MyCircle;
 import com.vs.bcd.versus.fragment.Tab2Trending;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -16,12 +16,12 @@ public class ThreadCounter {
     private AtomicInteger n;
     private int limit;
     private int tabNumber = 0;
-    private Tab1Something tab1;
+    private Tab1MyCircle tab1;
     private Tab2Trending tab2;
     private PostPage postPage;
     private LeaderboardTab leaderboard;
 
-    public ThreadCounter (int n, int limit, Tab1Something tab1){
+    public ThreadCounter (int n, int limit, Tab1MyCircle tab1){
         this.n = new AtomicInteger(n);
         this.limit = limit;
         this.tab1 = tab1;

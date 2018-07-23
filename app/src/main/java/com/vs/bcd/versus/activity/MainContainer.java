@@ -91,7 +91,7 @@ import com.vs.bcd.versus.fragment.PostPage;
 import com.vs.bcd.versus.fragment.ProfileTab;
 import com.vs.bcd.versus.fragment.SelectCategory;
 import com.vs.bcd.versus.fragment.SettingsFragment;
-import com.vs.bcd.versus.fragment.Tab1Something;
+import com.vs.bcd.versus.fragment.Tab1MyCircle;
 import com.vs.bcd.versus.fragment.Tab2Trending;
 import com.vs.bcd.versus.fragment.Tab3New;
 import com.vs.bcd.versus.model.CategoryObject;
@@ -2856,7 +2856,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
 
         switch (mainActivityFragRef.getViewPager().getCurrentItem()){
             case 0: //Home
-                Tab1Something tab1 = mainActivityFragRef.getTab1();
+                Tab1MyCircle tab1 = mainActivityFragRef.getTab1();
                 if (tab1 != null) {
                     tab1.editedPostRefresh(clickedPostIndex, editedPost);
                 }
@@ -3344,7 +3344,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
         }
 
         Date currentDate = new Date();
-        currentDate.setTime(currentDate.getTime()-1210000000);
+        currentDate.setTime(currentDate.getTime()-1814000000);
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
         String time = df.format(currentDate);
 

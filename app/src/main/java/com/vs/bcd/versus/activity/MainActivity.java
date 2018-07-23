@@ -16,7 +16,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.vs.bcd.versus.R;
-import com.vs.bcd.versus.fragment.Tab1Something;
+import com.vs.bcd.versus.fragment.Tab1MyCircle;
 import com.vs.bcd.versus.fragment.Tab2Trending;
 import com.vs.bcd.versus.fragment.Tab3New;
 import com.vs.bcd.versus.model.Post;
@@ -35,7 +35,7 @@ public class MainActivity extends Fragment {
     private LinearLayout tabStrip;
     private MainContainer mainContainer;
     //private FloatingActionButton fab;
-    private Tab1Something tab1;
+    private Tab1MyCircle tab1;
     private Tab2Trending tab2;
     private Tab3New tab3;
 
@@ -170,7 +170,7 @@ public class MainActivity extends Fragment {
             //Return current tabs
             switch (position) {
                 case 0:
-                    tab1 = new Tab1Something();
+                    tab1 = new Tab1MyCircle();
                     return tab1;
                 case 1:
                     tab2 = new Tab2Trending();
@@ -256,7 +256,7 @@ public class MainActivity extends Fragment {
     }
     */
 
-    public Tab1Something getTab1(){
+    public Tab1MyCircle getTab1(){
         return tab1;
     }
 

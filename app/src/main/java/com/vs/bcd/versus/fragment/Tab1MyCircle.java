@@ -46,9 +46,9 @@ import com.vs.bcd.versus.model.VSComment;
  * Created by dlee on 4/29/17.
  */
 
-public class Tab1Something extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
+public class Tab1MyCircle extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
-    private ArrayList<VSComment> newsfeedComments;
+    private ArrayList<VSComment> myCircleComments;
     private NewsfeedAdapter newsfeedAdapter;
     private boolean fragmentSelected = false; //marks if initial loading for this fragment was already done (as in, fragment was already selected once before if true). Used so that we don't load content every time the tab gets selected.
     private View rootView;
@@ -60,7 +60,7 @@ public class Tab1Something extends Fragment implements SwipeRefreshLayout.OnRefr
     SwipeRefreshLayout mSwipeRefreshLayout;
 
     private int loadThreshold = 8;
-    private int adFrequency = 8; //place native ad after every 8 newsfeedComments
+    private int adFrequency = 8; //place native ad after every 8 myCircleComments
     private int adCount = 0;
     private int retrievalSize = 16;
     private int randomNumberMin = 10;
@@ -85,23 +85,23 @@ public class Tab1Something extends Fragment implements SwipeRefreshLayout.OnRefr
         //mHostActivity.setToolbarTitleTextForTabs("Newsfeed");
         viewSetForInitialQuery = false;
         postInfoMap = new HashMap<>();
-        newsfeedComments = new ArrayList<>();
+        myCircleComments = new ArrayList<>();
 
         recyclerView = rootView.findViewById(R.id.recycler_view);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(mHostActivity));
         //this is where the list is passed on to adapter
-        newsfeedAdapter = new NewsfeedAdapter(newsfeedComments, mHostActivity, profileImgVersions);
+        newsfeedAdapter = new NewsfeedAdapter(myCircleComments, mHostActivity, profileImgVersions);
         recyclerView.setAdapter(newsfeedAdapter);
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 //only if postSearchResults.size()%retrievalSize == 0, meaning it's possible there's more matching documents for this search
-                if(newsfeedComments != null && !newsfeedComments.isEmpty() && currCommentsIndex %retrievalSize == 0) {
+                if(myCircleComments != null && !myCircleComments.isEmpty() && currCommentsIndex %retrievalSize == 0) {
                     LinearLayoutManager layoutManager = LinearLayoutManager.class.cast(recyclerView.getLayoutManager());
                     int lastVisible = layoutManager.findLastVisibleItemPosition();
 
-                    boolean endHasBeenReached = lastVisible + loadThreshold >= currCommentsIndex;  //TODO: increase the loadThreshold as we get more newsfeedComments, but capping it at 5 is probably sufficient
+                    boolean endHasBeenReached = lastVisible + loadThreshold >= currCommentsIndex;  //TODO: increase the loadThreshold as we get more myCircleComments, but capping it at 5 is probably sufficient
                     if (currCommentsIndex > 0 && endHasBeenReached) {
                         //you have reached to the bottom of your recycler view
                         if (!nowLoading) {
@@ -170,17 +170,17 @@ public class Tab1Something extends Fragment implements SwipeRefreshLayout.OnRefr
         nextAdIndex = randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
         Log.d("Refresh", "Now Refreshing");
 
-        newsfeedComments.clear();
+        myCircleComments.clear();
         profileImgVersions.clear();
         newsfeedESQuery(0);
 
-        Log.d("Refresh", "Now newsfeedComments has " + Integer.toString(newsfeedComments.size()) + " items");
+        Log.d("Refresh", "Now myCircleComments has " + Integer.toString(myCircleComments.size()) + " items");
     }
 
     public void addPostToTop(Post post){
         /*
-        if(newsfeedComments != null && newsfeedAdapter != null){
-            newsfeedComments.add(0, post);
+        if(myCircleComments != null && newsfeedAdapter != null){
+            myCircleComments.add(0, post);
             //newsfeedAdapter.notifyItemInserted(0);
             newsfeedAdapter.notifyDataSetChanged();
         }
@@ -189,9 +189,9 @@ public class Tab1Something extends Fragment implements SwipeRefreshLayout.OnRefr
 
     public void removePostFromList(int index, String postID){
         /*
-        if(newsfeedComments != null && !newsfeedComments.isEmpty() && newsfeedAdapter != null && index >= 0){
-            if(newsfeedComments.get(index).getPost_id().equals(postID)){
-                newsfeedComments.remove(index);
+        if(myCircleComments != null && !myCircleComments.isEmpty() && newsfeedAdapter != null && index >= 0){
+            if(myCircleComments.get(index).getPost_id().equals(postID)){
+                myCircleComments.remove(index);
                 newsfeedAdapter.notifyItemRemoved(index);
             }
         }
@@ -208,9 +208,9 @@ public class Tab1Something extends Fragment implements SwipeRefreshLayout.OnRefr
 
         Runnable runnable = new Runnable() {
             public void run() {
-                if(newsfeedComments == null){
-                    newsfeedComments = new ArrayList<>();
-                    newsfeedAdapter = new NewsfeedAdapter(newsfeedComments, mHostActivity, profileImgVersions);
+                if(myCircleComments == null){
+                    myCircleComments = new ArrayList<>();
+                    newsfeedAdapter = new NewsfeedAdapter(myCircleComments, mHostActivity, profileImgVersions);
                     recyclerView.setAdapter(newsfeedAdapter);
                 }
 
@@ -225,7 +225,7 @@ public class Tab1Something extends Fragment implements SwipeRefreshLayout.OnRefr
                             CommentsListModelHitsHitsItemSource source = hits.get(0).getSource();
                             String id0 = hits.get(0).getId();
                             VSComment vsc = new VSComment(source, id0);
-                            newsfeedComments.add(vsc);
+                            myCircleComments.add(vsc);
                             currCommentsIndex++;
 
                             if(currCommentsIndex == nextAdIndex){
@@ -238,14 +238,14 @@ public class Tab1Something extends Fragment implements SwipeRefreshLayout.OnRefr
                                         //adSkeleton.setCategory(NATIVE_APP_INSTALL_AD);
                                         adSkeleton.setAuthor("adn");
                                         adSkeleton.setNAI((NativeAppInstallAd) nextAd);
-                                        newsfeedComments.add(adSkeleton);
+                                        myCircleComments.add(adSkeleton);
                                         adCount++;
                                     }
                                     else if(nextAd instanceof NativeContentAd){
                                         //adSkeleton.setCategory(NATIVE_CONTENT_AD);
                                         adSkeleton.setAuthor("adc");
                                         adSkeleton.setNC((NativeContentAd) nextAd);
-                                        newsfeedComments.add(adSkeleton);
+                                        myCircleComments.add(adSkeleton);
                                         adCount++;
                                     }
                                 }
@@ -256,7 +256,7 @@ public class Tab1Something extends Fragment implements SwipeRefreshLayout.OnRefr
 
                             PostInfo postInfo = postInfoMap.get(vsc.getPost_id());
                             if(postInfo != null){
-                                newsfeedComments.get(fromIndex).setAQRCBC(postInfo.getA(), postInfo.getQ(), postInfo.getRc(), postInfo.getBc());
+                                myCircleComments.get(fromIndex).setAQRCBC(postInfo.getA(), postInfo.getQ(), postInfo.getRc(), postInfo.getBc());
                             }
                             else{
                                 addPostAQ(false, vsc.getPost_id(), fromIndex);
@@ -271,7 +271,7 @@ public class Tab1Something extends Fragment implements SwipeRefreshLayout.OnRefr
                                 CommentsListModelHitsHitsItemSource source = item.getSource();
                                 String id = item.getId();
                                 VSComment vsc = new VSComment(source, id);
-                                newsfeedComments.add(vsc);
+                                myCircleComments.add(vsc);
                                 currCommentsIndex++;
 
                                 if(currCommentsIndex == nextAdIndex){
@@ -284,14 +284,14 @@ public class Tab1Something extends Fragment implements SwipeRefreshLayout.OnRefr
                                             //adSkeleton.setCategory(NATIVE_APP_INSTALL_AD);
                                             adSkeleton.setAuthor("adn");
                                             adSkeleton.setNAI((NativeAppInstallAd) nextAd);
-                                            newsfeedComments.add(adSkeleton);
+                                            myCircleComments.add(adSkeleton);
                                             adCount++;
                                         }
                                         else if(nextAd instanceof NativeContentAd){
                                             //adSkeleton.setCategory(NATIVE_CONTENT_AD);
                                             adSkeleton.setAuthor("adc");
                                             adSkeleton.setNC((NativeContentAd) nextAd);
-                                            newsfeedComments.add(adSkeleton);
+                                            myCircleComments.add(adSkeleton);
                                             adCount++;
                                         }
                                     }
@@ -317,9 +317,9 @@ public class Tab1Something extends Fragment implements SwipeRefreshLayout.OnRefr
                             }
                             else{
                                 PostInfo postInfo;
-                                for (int j = fromIndex; j<newsfeedComments.size(); j++){
-                                    postInfo = postInfoMap.get(newsfeedComments.get(j).getPost_id());
-                                    newsfeedComments.get(j).setAQRCBC(postInfo.getA(), postInfo.getQ(), postInfo.getRc(), postInfo.getBc());
+                                for (int j = fromIndex; j< myCircleComments.size(); j++){
+                                    postInfo = postInfoMap.get(myCircleComments.get(j).getPost_id());
+                                    myCircleComments.get(j).setAQRCBC(postInfo.getA(), postInfo.getQ(), postInfo.getRc(), postInfo.getBc());
                                 }
                             }
                         }
@@ -331,7 +331,7 @@ public class Tab1Something extends Fragment implements SwipeRefreshLayout.OnRefr
                                 if(nowLoading){
                                     nowLoading = false;
                                 }
-                                if(newsfeedComments != null && !newsfeedComments.isEmpty()){
+                                if(myCircleComments != null && !myCircleComments.isEmpty()){
                                     newsfeedAdapter.notifyDataSetChanged();
                                 }
                             }
@@ -371,9 +371,9 @@ public class Tab1Something extends Fragment implements SwipeRefreshLayout.OnRefr
 
     public void editedPostRefresh(int index, Post editedPost){
         /*
-        if(!newsfeedComments.isEmpty() && index >= 0 && newsfeedComments.get(index) != null){
-            if(newsfeedComments.get(index).getPost_id().equals(editedPost.getPost_id())){
-                newsfeedComments.set(index, editedPost);
+        if(!myCircleComments.isEmpty() && index >= 0 && myCircleComments.get(index) != null){
+            if(myCircleComments.get(index).getPost_id().equals(editedPost.getPost_id())){
+                myCircleComments.set(index, editedPost);
                 newsfeedAdapter.notifyItemChanged(index);
             }
         }
@@ -382,7 +382,7 @@ public class Tab1Something extends Fragment implements SwipeRefreshLayout.OnRefr
     }
 
     public boolean postsLoaded() {
-        return newsfeedComments != null && !newsfeedComments.isEmpty();
+        return myCircleComments != null && !myCircleComments.isEmpty();
     }
 
 
@@ -447,13 +447,13 @@ public class Tab1Something extends Fragment implements SwipeRefreshLayout.OnRefr
                 }
                 //iterate comments array and add the post info in order starting from fromIndex-th element, using postInfoMap
                 PostInfo postInfo;
-                for (int j = fromIndex; j<newsfeedComments.size(); j++){
-                    postInfo = postInfoMap.get(newsfeedComments.get(j).getPost_id());
+                for (int j = fromIndex; j< myCircleComments.size(); j++){
+                    postInfo = postInfoMap.get(myCircleComments.get(j).getPost_id());
                     if(postInfo.getA() == null || postInfo.getQ() == null){
-                        newsfeedComments.get(j).setAQRCBC("", "", 0, 0);
+                        myCircleComments.get(j).setAQRCBC("", "", 0, 0);
                     }
                     else{
-                        newsfeedComments.get(j).setAQRCBC(postInfo.getA(), postInfo.getQ(), postInfo.getRc(), postInfo.getBc());
+                        myCircleComments.get(j).setAQRCBC(postInfo.getA(), postInfo.getQ(), postInfo.getRc(), postInfo.getBc());
                     }
 
                     if(!postInfo.getA().equals("deleted")){
@@ -508,7 +508,7 @@ public class Tab1Something extends Fragment implements SwipeRefreshLayout.OnRefr
             if(id != null && a != null && q != null){
                 postInfo.setAQRCBC(a, q, rc, bc);
                 //there's only one comment in the comments array, add the post info to the fromIndex-th index of the comments array
-                newsfeedComments.get(fromIndex).setAQRCBC(postInfo.getA(), postInfo.getQ(), postInfo.getRc(), postInfo.getBc());
+                myCircleComments.get(fromIndex).setAQRCBC(postInfo.getA(), postInfo.getQ(), postInfo.getRc(), postInfo.getBc());
                 postInfoMap.put(payload, postInfo);
             }
 
