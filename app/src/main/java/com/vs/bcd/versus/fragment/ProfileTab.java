@@ -1028,9 +1028,14 @@ public class ProfileTab extends Fragment {
         if(profileUsername != null){
             if(activity.followedBy(profileUsername)) {   //add to h
 
+                String uppercasedName = profileUsername;
+                if(Character.isLowerCase(profileUsername.codePointAt(0))){
+                    uppercasedName = profileUsername.substring(0, 1).toUpperCase() + profileUsername.substring(1) + "*";
+                }
+
                 //add to current user's h list
                 String userHPath = activity.getUserPath() + "h";
-                mFirebaseDatabaseReference.child(userHPath).child(profileUsername)
+                mFirebaseDatabaseReference.child(userHPath).child(uppercasedName)
                         .setValue(true, new DatabaseReference.CompletionListener() {
                             @Override
                             public void onComplete(DatabaseError databaseError,
@@ -1043,7 +1048,7 @@ public class ProfileTab extends Fragment {
 
                 //remove old entry in f list now that we have it in h list
                 String fPath = activity.getUserPath() + "f";
-                mFirebaseDatabaseReference.child(fPath).child(profileUsername).removeValue();
+                mFirebaseDatabaseReference.child(fPath).child(uppercasedName).removeValue();
 
                 //update the followed user's h list
                 int usernameHash;
@@ -1054,8 +1059,14 @@ public class ProfileTab extends Fragment {
                     String hashIn = "" + profileUsername.charAt(0) + profileUsername.charAt(profileUsername.length() - 2) + profileUsername.charAt(1) + profileUsername.charAt(profileUsername.length() - 1);
                     usernameHash = hashIn.hashCode();
                 }
+
+                String uppercasedMyName = activity.getUsername();
+                if(Character.isLowerCase(uppercasedMyName.codePointAt(0))){
+                    uppercasedMyName = uppercasedMyName.substring(0, 1).toUpperCase() + uppercasedMyName.substring(1) + "*";
+                }
+
                 String hPath = Integer.toString(usernameHash) + "/" + profileUsername + "/h";
-                mFirebaseDatabaseReference.child(hPath).child(activity.getUsername())
+                mFirebaseDatabaseReference.child(hPath).child(uppercasedMyName)
                     .setValue(true, new DatabaseReference.CompletionListener() {
                         @Override
                         public void onComplete(DatabaseError databaseError,
@@ -1077,14 +1088,19 @@ public class ProfileTab extends Fragment {
 
                 //remove old entry in g list now that we have it in h list
                 String gPath = Integer.toString(usernameHash) + "/" + profileUsername + "/g";
-                mFirebaseDatabaseReference.child(gPath).child(activity.getUsername()).removeValue();
+                mFirebaseDatabaseReference.child(gPath).child(uppercasedMyName).removeValue();
 
             }
             else{   //add to f and g
 
+                String uppercasedName = profileUsername;
+                if(Character.isLowerCase(profileUsername.codePointAt(0))){
+                    uppercasedName = profileUsername.substring(0, 1).toUpperCase() + profileUsername.substring(1) + "*";
+                }
+
                 //update the current user's following list in Firebase
                 String followingsPath = activity.getUserPath() + "g";
-                mFirebaseDatabaseReference.child(followingsPath).child(profileUsername)
+                mFirebaseDatabaseReference.child(followingsPath).child(uppercasedName)
                         .setValue(true, new DatabaseReference.CompletionListener() {
                             @Override
                             public void onComplete(DatabaseError databaseError,
@@ -1104,8 +1120,14 @@ public class ProfileTab extends Fragment {
                     String hashIn = "" + profileUsername.charAt(0) + profileUsername.charAt(profileUsername.length() - 2) + profileUsername.charAt(1) + profileUsername.charAt(profileUsername.length() - 1);
                     usernameHash = hashIn.hashCode();
                 }
+
+                String uppercasedMyName = activity.getUsername();
+                if(Character.isLowerCase(uppercasedMyName.codePointAt(0))){
+                    uppercasedMyName = uppercasedMyName.substring(0, 1).toUpperCase() + uppercasedMyName.substring(1) + "*";
+                }
+
                 String followersPath = Integer.toString(usernameHash) + "/" + profileUsername + "/f";
-                mFirebaseDatabaseReference.child(followersPath).child(activity.getUsername())
+                mFirebaseDatabaseReference.child(followersPath).child(uppercasedMyName)
                     .setValue(true, new DatabaseReference.CompletionListener() {
                         @Override
                         public void onComplete(DatabaseError databaseError,

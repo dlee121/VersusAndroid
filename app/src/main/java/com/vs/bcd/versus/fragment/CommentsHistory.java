@@ -12,9 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
-import com.loopj.android.http.HttpGet;
 import com.vs.bcd.api.model.CommentsListModel;
-import com.vs.bcd.api.model.CommentsListModelHits;
 import com.vs.bcd.api.model.CommentsListModelHitsHitsItem;
 import com.vs.bcd.api.model.CommentsListModelHitsHitsItemSource;
 import com.vs.bcd.api.model.PostInfoModel;
@@ -25,33 +23,14 @@ import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.CommentHistoryAdapter;
 import com.vs.bcd.versus.adapter.MyAdapter;
-import com.vs.bcd.versus.model.AWSV4Auth;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.model.PostInfo;
 import com.vs.bcd.versus.model.VSComment;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.UUID;
-
-import cz.msebera.android.httpclient.HttpEntity;
-import cz.msebera.android.httpclient.HttpResponse;
-import cz.msebera.android.httpclient.client.ClientProtocolException;
-import cz.msebera.android.httpclient.client.ResponseHandler;
-import cz.msebera.android.httpclient.client.methods.HttpPost;
-import cz.msebera.android.httpclient.entity.ContentType;
-import cz.msebera.android.httpclient.entity.StringEntity;
-import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
-import cz.msebera.android.httpclient.impl.client.HttpClients;
-import cz.msebera.android.httpclient.util.EntityUtils;
 
 
 /**
@@ -191,7 +170,7 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
                         comments.add(vsc);
                         PostInfo postInfo = postInfoMap.get(vsc.getPost_id());
                         if(postInfo != null){
-                            comments.get(fromIndex).setR(postInfo.getR()).setB(postInfo.getB());
+                            comments.get(fromIndex).setRedName(postInfo.getR()).setBlueName(postInfo.getB());
                         }
                         else{
                             addPostInfo(false, vsc.getPost_id(), fromIndex);
@@ -226,7 +205,7 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
                             PostInfo postInfo;
                             for (int j = fromIndex; j<comments.size(); j++){
                                 postInfo = postInfoMap.get(comments.get(j).getPost_id());
-                                comments.get(j).setR(postInfo.getR()).setB(postInfo.getB());
+                                comments.get(j).setRedName(postInfo.getR()).setBlueName(postInfo.getB());
                             }
                         }
 
@@ -293,10 +272,10 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
                 for (int j = fromIndex; j<comments.size(); j++){
                     postInfo = postInfoMap.get(comments.get(j).getPost_id());
                     if(postInfo.getR() == null || postInfo.getB() == null){
-                        comments.get(j).setR("").setB("");
+                        comments.get(j).setRedName("").setBlueName("");
                     }
                     else{
-                        comments.get(j).setR(postInfo.getR()).setB(postInfo.getB());
+                        comments.get(j).setRedName(postInfo.getR()).setBlueName(postInfo.getB());
                     }
                 }
 
@@ -332,7 +311,7 @@ public class CommentsHistory extends Fragment implements SwipeRefreshLayout.OnRe
             if(id != null && rn != null && bn != null){
                 postInfo.setRB(rn, bn);
                 //there's only one comment in the comments array, add the post info to the fromIndex-th index of the comments array
-                comments.get(fromIndex).setR(postInfo.getR()).setB(postInfo.getB());
+                comments.get(fromIndex).setRedName(postInfo.getR()).setBlueName(postInfo.getB());
                 postInfoMap.put(payload, postInfo);
             }
 

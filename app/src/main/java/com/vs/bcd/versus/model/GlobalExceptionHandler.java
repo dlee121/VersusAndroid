@@ -22,6 +22,7 @@ public class GlobalExceptionHandler implements Thread.UncaughtExceptionHandler {
 
     @Override
     public void uncaughtException(final Thread thread, final Throwable e) {
+        e.printStackTrace();
         if (e instanceof ApiClientException) {
             context.handleNotAuthorizedException();
             // make sure we kill it to prevent hanging

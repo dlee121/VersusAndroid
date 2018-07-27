@@ -183,25 +183,37 @@ public class FollowersAndFollowings extends Fragment {
                         StringBuilder strBuilder = new StringBuilder();
                         int i = 0;
                         for(DataSnapshot followerH : dataSnapshotH.getChildren()){
-                            usersList.add(followerH.getKey());
-                            if(profileImgVersions.get(followerH.getKey()) == null){
+
+                            String uppercasedName = followerH.getKey();
+                            if(uppercasedName.charAt(uppercasedName.length()-1) == '*'){
+                                uppercasedName = uppercasedName.substring(0, 1).toLowerCase() + uppercasedName.substring(1, uppercasedName.length()-1);
+                            }
+
+                            usersList.add(uppercasedName);
+                            if(profileImgVersions.get(uppercasedName) == null){
                                 if(i == 0){
-                                    strBuilder.append("\""+followerH.getKey()+"\"");
+                                    strBuilder.append("\""+uppercasedName+"\"");
                                 }
                                 else{
-                                    strBuilder.append(",\""+followerH.getKey()+"\"");
+                                    strBuilder.append(",\""+uppercasedName+"\"");
                                 }
                                 i++;
                             }
                         }
                         for(DataSnapshot followerF : dataSnapshotF.getChildren()){
-                            usersList.add(followerF.getKey());
-                            if(profileImgVersions.get(followerF.getKey()) == null){
+
+                            String uppercasedName = followerF.getKey();
+                            if(uppercasedName.charAt(uppercasedName.length()-1) == '*'){
+                                uppercasedName = uppercasedName.substring(0, 1).toLowerCase() + uppercasedName.substring(1, uppercasedName.length()-1);
+                            }
+
+                            usersList.add(uppercasedName);
+                            if(profileImgVersions.get(uppercasedName) == null){
                                 if(i == 0){
-                                    strBuilder.append("\""+followerF.getKey()+"\"");
+                                    strBuilder.append("\""+uppercasedName+"\"");
                                 }
                                 else{
-                                    strBuilder.append(",\""+followerF.getKey()+"\"");
+                                    strBuilder.append(",\""+uppercasedName+"\"");
                                 }
                                 i++;
                             }
@@ -277,25 +289,38 @@ public class FollowersAndFollowings extends Fragment {
                         StringBuilder strBuilder = new StringBuilder();
                         int i = 0;
                         for(DataSnapshot followingH : dataSnapshotH.getChildren()){
-                            usersList.add(followingH.getKey());
-                            if(profileImgVersions.get(followingH.getKey()) == null){
+
+                            String uppercasedName = followingH.getKey();
+                            if(uppercasedName.charAt(uppercasedName.length()-1) == '*'){
+                                uppercasedName = uppercasedName.substring(0, 1).toLowerCase() + uppercasedName.substring(1, uppercasedName.length()-1);
+                            }
+
+                            usersList.add(uppercasedName);
+
+                            if(profileImgVersions.get(uppercasedName) == null){
                                 if(i == 0){
-                                    strBuilder.append("\""+followingH.getKey()+"\"");
+                                    strBuilder.append("\""+uppercasedName+"\"");
                                 }
                                 else{
-                                    strBuilder.append(",\""+followingH.getKey()+"\"");
+                                    strBuilder.append(",\""+uppercasedName+"\"");
                                 }
                                 i++;
                             }
                         }
                         for(DataSnapshot followingG : dataSnapshotG.getChildren()){
-                            usersList.add(followingG.getKey());
-                            if(profileImgVersions.get(followingG.getKey()) == null){
+
+                            String uppercasedName = followingG.getKey();
+                            if(uppercasedName.charAt(uppercasedName.length()-1) == '*'){
+                                uppercasedName = uppercasedName.substring(0, 1).toLowerCase() + uppercasedName.substring(1, uppercasedName.length()-1);
+                            }
+
+                            usersList.add(uppercasedName);
+                            if(profileImgVersions.get(uppercasedName) == null){
                                 if(i == 0){
-                                    strBuilder.append("\""+followingG.getKey()+"\"");
+                                    strBuilder.append("\""+uppercasedName+"\"");
                                 }
                                 else{
-                                    strBuilder.append(",\""+followingG.getKey()+"\"");
+                                    strBuilder.append(",\""+uppercasedName+"\"");
                                 }
                                 i++;
                             }

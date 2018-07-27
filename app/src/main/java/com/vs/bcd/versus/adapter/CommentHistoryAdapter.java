@@ -1,9 +1,7 @@
 package com.vs.bcd.versus.adapter;
 
-import android.app.Activity;
 import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,13 +12,8 @@ import android.widget.Toast;
 
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.fragment.CommentsHistory;
-import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.R;
-import com.vs.bcd.versus.model.NotificationItem;
-import com.vs.bcd.versus.model.User;
 import com.vs.bcd.versus.model.VSComment;
-
-import org.w3c.dom.Text;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -60,9 +53,9 @@ public class CommentHistoryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
         CommentHistoryViewHolder commentHistoryViewHolder = (CommentHistoryViewHolder) holder;
 
         if(!commentsHistory.skipThisComment(itemComment.getPost_id())){
-            commentHistoryViewHolder.redTv.setText(itemComment.getR());
+            commentHistoryViewHolder.redTv.setText(itemComment.getRedName());
 
-            commentHistoryViewHolder.blueTv.setText(itemComment.getB());
+            commentHistoryViewHolder.blueTv.setText(itemComment.getBlueName());
 
             commentHistoryViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override

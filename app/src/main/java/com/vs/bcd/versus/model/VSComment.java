@@ -47,8 +47,8 @@ public class VSComment {
     private String question, postAuthor; //used for newsfeed
     private int rc, bc; //used for newsfeed
 
-    private String r;
-    private String b;
+    private String redName;
+    private String blueName;
 
     private NativeAppInstallAd NAI; //TODO: rename to AppInstallAd and rename relevant functions accordingly
     private NativeContentAd NC;     //TODO: rename to ContentAd and rename relevant functions accordingly
@@ -197,25 +197,25 @@ public class VSComment {
         this.nestedLevel = nestedLevel;
     }
 
-    public String getR(){
-        if(r == null){
+    public String getRedName(){
+        if(redName == null){
             return "";
         }
-        return r;
+        return redName;
     }
-    public VSComment setR(String r){
-        this.r = r;
+    public VSComment setRedName(String redName){
+        this.redName = redName;
         return this;
     }
 
-    public String getB(){
-        if(b == null){
+    public String getBlueName(){
+        if(blueName == null){
             return "";
         }
-        return b;
+        return blueName;
     }
-    public void setB(String b){
-        this.b = b;
+    public void setBlueName(String blueName){
+        this.blueName = blueName;
     }
 
     public boolean getIsNew(){
