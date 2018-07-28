@@ -183,37 +183,25 @@ public class FollowersAndFollowings extends Fragment {
                         StringBuilder strBuilder = new StringBuilder();
                         int i = 0;
                         for(DataSnapshot followerH : dataSnapshotH.getChildren()){
-
-                            String uppercasedName = followerH.getKey();
-                            if(uppercasedName.charAt(uppercasedName.length()-1) == '*'){
-                                uppercasedName = uppercasedName.substring(0, 1).toLowerCase() + uppercasedName.substring(1, uppercasedName.length()-1);
-                            }
-
-                            usersList.add(uppercasedName);
-                            if(profileImgVersions.get(uppercasedName) == null){
+                            usersList.add(followerH.getKey());
+                            if(profileImgVersions.get(followerH.getKey()) == null){
                                 if(i == 0){
-                                    strBuilder.append("\""+uppercasedName+"\"");
+                                    strBuilder.append("\""+followerH.getKey()+"\"");
                                 }
                                 else{
-                                    strBuilder.append(",\""+uppercasedName+"\"");
+                                    strBuilder.append(",\""+followerH.getKey()+"\"");
                                 }
                                 i++;
                             }
                         }
                         for(DataSnapshot followerF : dataSnapshotF.getChildren()){
-
-                            String uppercasedName = followerF.getKey();
-                            if(uppercasedName.charAt(uppercasedName.length()-1) == '*'){
-                                uppercasedName = uppercasedName.substring(0, 1).toLowerCase() + uppercasedName.substring(1, uppercasedName.length()-1);
-                            }
-
-                            usersList.add(uppercasedName);
-                            if(profileImgVersions.get(uppercasedName) == null){
+                            usersList.add(followerF.getKey());
+                            if(profileImgVersions.get(followerF.getKey()) == null){
                                 if(i == 0){
-                                    strBuilder.append("\""+uppercasedName+"\"");
+                                    strBuilder.append("\""+followerF.getKey()+"\"");
                                 }
                                 else{
-                                    strBuilder.append(",\""+uppercasedName+"\"");
+                                    strBuilder.append(",\""+followerF.getKey()+"\"");
                                 }
                                 i++;
                             }
@@ -232,6 +220,7 @@ public class FollowersAndFollowings extends Fragment {
                             mythread.start();
                         }
 
+                        sortUsersList();
                         usersAdapter.notifyDataSetChanged();
 
                     }
@@ -289,38 +278,25 @@ public class FollowersAndFollowings extends Fragment {
                         StringBuilder strBuilder = new StringBuilder();
                         int i = 0;
                         for(DataSnapshot followingH : dataSnapshotH.getChildren()){
-
-                            String uppercasedName = followingH.getKey();
-                            if(uppercasedName.charAt(uppercasedName.length()-1) == '*'){
-                                uppercasedName = uppercasedName.substring(0, 1).toLowerCase() + uppercasedName.substring(1, uppercasedName.length()-1);
-                            }
-
-                            usersList.add(uppercasedName);
-
-                            if(profileImgVersions.get(uppercasedName) == null){
+                            usersList.add(followingH.getKey());
+                            if(profileImgVersions.get(followingH.getKey()) == null){
                                 if(i == 0){
-                                    strBuilder.append("\""+uppercasedName+"\"");
+                                    strBuilder.append("\""+followingH.getKey()+"\"");
                                 }
                                 else{
-                                    strBuilder.append(",\""+uppercasedName+"\"");
+                                    strBuilder.append(",\""+followingH.getKey()+"\"");
                                 }
                                 i++;
                             }
                         }
                         for(DataSnapshot followingG : dataSnapshotG.getChildren()){
-
-                            String uppercasedName = followingG.getKey();
-                            if(uppercasedName.charAt(uppercasedName.length()-1) == '*'){
-                                uppercasedName = uppercasedName.substring(0, 1).toLowerCase() + uppercasedName.substring(1, uppercasedName.length()-1);
-                            }
-
-                            usersList.add(uppercasedName);
-                            if(profileImgVersions.get(uppercasedName) == null){
+                            usersList.add(followingG.getKey());
+                            if(profileImgVersions.get(followingG.getKey()) == null){
                                 if(i == 0){
-                                    strBuilder.append("\""+uppercasedName+"\"");
+                                    strBuilder.append("\""+followingG.getKey()+"\"");
                                 }
                                 else{
-                                    strBuilder.append(",\""+uppercasedName+"\"");
+                                    strBuilder.append(",\""+followingG.getKey()+"\"");
                                 }
                                 i++;
                             }
@@ -339,6 +315,7 @@ public class FollowersAndFollowings extends Fragment {
                             mythread.start();
                         }
 
+                        sortUsersList();
                         usersAdapter.notifyDataSetChanged();
 
                     }
@@ -446,6 +423,22 @@ public class FollowersAndFollowings extends Fragment {
         }
         else{
             ffStack.clear();
+        }
+    }
+
+    private void sortUsersList(){ //to create a continuous alphabetically sorted list. without this the list will show all of h then f or g
+        String value;
+        int index;
+
+        for(int i = 1; i < usersList.size(); i++){
+            value = usersList.get(i);
+            index = i;
+            while(index > 0 && usersList.get(index-1).compareToIgnoreCase(value) > 0) {
+                index--;
+            }
+
+            usersList.remove(i);
+            usersList.add(index, value);
         }
     }
 
