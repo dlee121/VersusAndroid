@@ -45,8 +45,8 @@ public class SearchPage extends Fragment {
     private EditText searchET;
     private RecyclerView recyclerView;
     private MyAdapter searchResultsPostsAdapter;
-    private int retrievalSize = 10;
-    private int loadThreshold = 2;
+    private int retrievalSize = 16;
+    private int loadThreshold = 6;
     private boolean nowLoading = false;
 
     private HashMap<String, Integer> profileImgVersions = new HashMap<>();
