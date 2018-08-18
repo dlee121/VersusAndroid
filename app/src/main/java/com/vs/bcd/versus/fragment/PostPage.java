@@ -802,7 +802,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             int timeValue = ((timeValueSecs / 60 )/ 60 )/ 24; //now timeValue is in days since epoch
             //submit update request to firebase updates path, the first submission will trigger Cloud Functions operation to update user medals and points
             String updateRequest = "updates/" + Integer.toString(timeValue) + "/" + Integer.toString(usernameHash)  + "/" + mUsername + "/" + medalWinner.getComment_id() + "/" + medalType;
-            MedalUpdateRequest medalUpdateRequest = new MedalUpdateRequest(pointsIncrement, timeValueSecs, sanitizeContentForURL(medalWinner.getContent()));
+            MedalUpdateRequest medalUpdateRequest = new MedalUpdateRequest(pointsIncrement, timeValueSecs, sanitizeMedalUpdateContent(medalWinner.getContent()));
             mFirebaseDatabaseReference.child(updateRequest).setValue(medalUpdateRequest);
 
             medalWinner.setTopmedal(currentMedal);
@@ -2742,7 +2742,15 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     public String sanitizeContentForURL(String url){
         String strIn = url.trim();
         if(strIn.length()>26){
-            strIn.substring(0,26);
+            strIn = strIn.substring(0,26);
+        }
+        return strIn.trim().replaceAll("[ /\\\\.\\\\$\\[\\]\\\\#]", "^").replaceAll(":", ";");
+    }
+
+    public String sanitizeMedalUpdateContent(String content){
+        String strIn = content.trim();
+        if(strIn.length()>26){
+            strIn = strIn.substring(0,26).trim() + "...";
         }
         return strIn.trim().replaceAll("[ /\\\\.\\\\$\\[\\]\\\\#]", "^").replaceAll(":", ";");
     }

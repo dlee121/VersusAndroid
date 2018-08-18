@@ -9,8 +9,8 @@ android {
         minSdkVersion 21
         targetSdkVersion 27
         multiDexEnabled true
-        versionCode 26
-        versionName "1.2.3"
+        versionCode 28
+        versionName "1.2.5"
         vectorDrawables.useSupportLibrary = true
     }
     buildTypes {
@@ -48,14 +48,14 @@ dependencies {
     implementation 'com.amazonaws:aws-android-sdk-s3:2.6.19'
     testImplementation 'junit:junit:4.12'
     // Google
-    implementation 'com.google.android.gms:play-services-auth:15.0.1'
+    implementation 'com.google.android.gms:play-services-auth:16.0.0'
     // Firebase
     implementation 'com.google.firebase:firebase-analytics:16.0.1'
     implementation 'com.google.firebase:firebase-database:16.0.1'
     implementation 'com.google.firebase:firebase-storage:15.0.2'
-    implementation 'com.google.firebase:firebase-auth:16.0.2'
+    implementation 'com.google.firebase:firebase-auth:16.0.3'
     implementation 'com.google.firebase:firebase-config:16.0.0'
-    implementation 'com.google.firebase:firebase-messaging:17.0.0'
+    implementation 'com.google.firebase:firebase-messaging:17.3.0'
     implementation 'com.google.firebase:firebase-ads:15.0.1'
     //implementation 'com.facebook.android:audience-network-sdk:4.99.0'
     //compile 'com.google.android.gms:play-services-ads:11.8.0'

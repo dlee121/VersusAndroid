@@ -35,9 +35,9 @@ public class MainActivity extends Fragment {
     private LinearLayout tabStrip;
     private MainContainer mainContainer;
     //private FloatingActionButton fab;
-    private Tab1MyCircle tab1;
-    private Tab2Trending tab2;
-    private Tab3New tab3;
+    private Tab1MyCircle tab1 = new Tab1MyCircle();
+    private Tab2Trending tab2 = new Tab2Trending();
+    private Tab3New tab3 = new Tab3New();
 
 
     @Override
@@ -49,13 +49,13 @@ public class MainActivity extends Fragment {
         mSectionsPagerAdapter = new SectionsPagerAdapter(getChildFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPager) rootView.findViewById(R.id.container);
+        mViewPager = rootView.findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
         mViewPager.setOffscreenPageLimit(4);
 
         mainContainer = (MainContainer)getActivity();
 
-        TabLayout tabLayout = (TabLayout) rootView.findViewById(R.id.tabs);
+        TabLayout tabLayout = rootView.findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
         //tabStrip = ((LinearLayout)tabLayout.getChildAt(0));
         //set tab icons
@@ -68,11 +68,11 @@ public class MainActivity extends Fragment {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 switch (tab.getPosition()) {
-                    case 0: //newsfeed
+                    case 0: //my circle
                         tab.setText("My Circle");
                         mainContainer.setToolbarTitleTextForTabs("");
                         //enableCPFab();
-                        if(!tab1.postsLoaded()){
+                        if(tab1 != null && !tab1.postsLoaded()){
                             tab1.newsfeedESQuery(0);
                         }
                         //mainContainer.setLeftSearchButton();
@@ -87,11 +87,11 @@ public class MainActivity extends Fragment {
                         }
                         //mainContainer.setLeftSearchButton();
                         break;
-                    case 2: //categories
+                    case 2: //new
                         tab.setText("New");
                         mainContainer.setToolbarTitleTextForTabs("");
                         //enableCPFab();
-                        if(!tab3.postsLoaded()){
+                        if(tab3 != null && !tab3.postsLoaded()){
                             tab3.newsfeedESQuery(0);
                         }
                         break;
@@ -170,13 +170,13 @@ public class MainActivity extends Fragment {
             //Return current tabs
             switch (position) {
                 case 0:
-                    tab1 = new Tab1MyCircle();
+                    //tab1 = new Tab1MyCircle();
                     return tab1;
                 case 1:
-                    tab2 = new Tab2Trending();
+                    //tab2 = new Tab2Trending();
                     return tab2;
                 case 2:
-                    tab3 = new Tab3New();
+                    //tab3 = new Tab3New();
                     return tab3;
                 default:
                     return null;

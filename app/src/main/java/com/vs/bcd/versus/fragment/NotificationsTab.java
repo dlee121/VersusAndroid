@@ -73,7 +73,7 @@ public class NotificationsTab extends Fragment {
     private AtomicInteger typeChildCount;
     String userNotificationsPath = "";
     private String userNotificationReadTimePath = "";
-    private int updateCap = 25; //TODO: change to 25 for production. Current number is for testing only
+    private int updateCap = 25;
 
 
     private ValueEventListener initialListner = new ValueEventListener() {
@@ -187,6 +187,9 @@ public class NotificationsTab extends Fragment {
                             String medalType = args[0];
                             long timeValue = Long.parseLong(args[1]);
                             String commentContent = args[2].replace('^', ' ');
+                            if (commentContent.length() > 25 && commentContent.substring(commentContent.length()-3).equals("   ")){
+                                commentContent = commentContent.substring(0, commentContent.length()-3) + "...";
+                            }
                             String header;
                             switch (medalType){
                                 case "g":
@@ -657,6 +660,9 @@ public class NotificationsTab extends Fragment {
                         String medalType = args[0];
                         long timeValue = Long.parseLong(args[1]);
                         String commentContent = args[2].replace('^', ' ');
+                        if (commentContent.length() > 25 && commentContent.substring(commentContent.length()-3).equals("   ")){
+                            commentContent = commentContent.substring(0, commentContent.length()-3) + "...";
+                        }
                         String header;
                         switch (medalType){
                             case "g":
@@ -702,6 +708,9 @@ public class NotificationsTab extends Fragment {
                         String medalType = args[0];
                         long timeValue = Long.parseLong(args[1]);
                         String commentContent = args[2].replace('^', ' ');
+                        if (commentContent.length() > 25 && commentContent.substring(commentContent.length()-3).equals("   ")){
+                            commentContent = commentContent.substring(0, commentContent.length()-3) + "...";
+                        }
                         String header;
                         switch (medalType){
                             case "g":

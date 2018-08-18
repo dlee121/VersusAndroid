@@ -3257,6 +3257,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                                             mainActivityFragRef.getTab1().initialQuery();
                                         }
                                         catch (Exception e){
+                                            e.printStackTrace();
                                             sessionLogOut();
                                         }
                                     }
@@ -3267,6 +3268,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                         }).addOnFailureListener(new OnFailureListener() {
                             @Override
                             public void onFailure(@NonNull Exception e) {
+                                e.printStackTrace();
                                 sessionLogOut();
                             }
                         });
@@ -3287,6 +3289,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                                     mainActivityFragRef.getTab1().initialQuery();
                                 }
                                 catch (Exception e){
+                                    e.printStackTrace();
                                     sessionLogOut();
                                 }
                             }
@@ -3299,6 +3302,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
             }).addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
+                    e.printStackTrace();
                     sessionLogOut();
                 }
             });

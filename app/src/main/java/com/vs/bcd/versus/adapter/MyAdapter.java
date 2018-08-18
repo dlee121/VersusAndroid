@@ -158,19 +158,8 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
 
             Post post = posts.get(position);
             TxtImgViewHolder txtImgViewHolder = (TxtImgViewHolder) holder;
-            Log.d("fsodifjs33222", post.getPost_id());
             txtImgViewHolder.rname.setText(post.getRedname());
             txtImgViewHolder.bname.setText(post.getBlackname());
-            /*
-            if(position % 2 == 0){
-                txtImgViewHolder.txtV.setTextColor(VSRED);
-                txtImgViewHolder.txtS.setTextColor(VSBLUE);
-            }
-            else{
-                txtImgViewHolder.txtV.setTextColor(VSBLUE);
-                txtImgViewHolder.txtS.setTextColor(VSRED);
-            }
-            */
 
             final String authorName = post.getAuthor();
             txtImgViewHolder.author.setText(authorName);
