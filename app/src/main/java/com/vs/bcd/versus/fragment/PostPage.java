@@ -105,7 +105,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private Map<String, String> actionHistoryMap; //used to store previous user action on a comment, if any, for comparing with current user action, e.g. if user chose upvote and previously chose downvote, then we need to do both increment upvote and decrement downvote
     private int origRedCount, origBlackCount;
     private String lastSubmittedVote = "none";
-    private int retrievalLimit = 25;
     private PostPage thisPage;
     private boolean exitLoop = false;
     private Button topcardSortTypeSelector;
@@ -134,7 +133,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     private double votePSI = 2.0; //ps increment per vote
     private int currCommentsIndex = 0;
     private int childrenCount = 0;
-    private int retrievalSize = 30;
+    private int retrievalSize = 16;
 
     private DatabaseReference mFirebaseDatabaseReference;
 
@@ -1072,7 +1071,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                     break;
                 case 3:
-                    Log.d("suppity", "sup count: " + rootComments.size());
                     goldWinner = medalWinners.get(0);
                     silverWinner = medalWinners.get(1);
                     bronzeWinner = medalWinners.get(2);
@@ -1539,13 +1537,11 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                 public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                                     LinearLayoutManager layoutManager = LinearLayoutManager.class.cast(recyclerView.getLayoutManager());
                                     int lastVisible = layoutManager.findLastVisibleItemPosition() - childrenCount;
-
                                     boolean endHasBeenReached = lastVisible + loadThreshold >= currCommentsIndex;  //TODO: increase the loadThreshold as we get more posts, but capping it at 5 is probably sufficient
                                     if (currCommentsIndex > 0 && endHasBeenReached) {
                                         //you have reached to the bottom of your recycler view
                                         if (!nowLoading) {
                                             nowLoading = true;
-                                            Log.d("Load", "Now Loadin More");
                                             loadMoreComments(uORt);
                                         }
                                     }
@@ -1653,7 +1649,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                         //you have reached to the bottom of your recycler view
                                         if(!nowLoading){
                                             nowLoading = true;
-                                            Log.d("Load", "Now Loadin More");
                                             loadMoreComments(uORt);
                                         }
                                     }
@@ -2397,6 +2392,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
 
     private void loadMoreComments(final String uORt){
+        Log.d("fuckyes", "loadMore called bitches");
+
         if(pageLevel == 2){
             loadMoreGComments(uORt); //little faster, for grandchildren page where there are only root comments
             return;
@@ -2568,7 +2565,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                         }
                     }
 
-                    if(!rootComments.isEmpty()){
+                    if(rootComments.size()%retrievalSize == 0){
                         nowLoading = false;
                     }
                     else {
