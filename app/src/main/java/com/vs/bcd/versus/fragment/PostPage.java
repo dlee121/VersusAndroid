@@ -1865,9 +1865,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
         else{
             setUpTopCard(parentCache.get(tempParentID));
-            if(parentCache.get(tempParentID) == null){
-                Log.d("thefuckyoumean", "fuckyoumeanit'snull");
-            }
         }
 
         if(!scrollPositionStack.isEmpty()){
@@ -2392,7 +2389,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
 
     private void loadMoreComments(final String uORt){
-        Log.d("fuckyes", "loadMore called bitches");
+        //Log.d("loadMoreComments", "loadMoreComments called");
 
         if(pageLevel == 2){
             loadMoreGComments(uORt); //little faster, for grandchildren page where there are only root comments
