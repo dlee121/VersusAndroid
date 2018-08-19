@@ -94,7 +94,11 @@ public class NotificationsTab extends Fragment {
                         for(DataSnapshot child : typeChild.getChildren()){
                             String[] args = child.getKey().split(":",2);
                             final String commentID = args[0];
-                            final String commentContent = args[1];
+                            String content = args[1].replace('^', ' ');
+                            if (content.length() > 25 && content.substring(content.length()-3).equals("   ")){
+                                content = content.substring(0, content.length()-3) + "...";
+                            }
+                            final String commentContent = content;
 
                             mFirebaseDatabaseReference.child(userNotificationsPath+"c/"+child.getKey()).orderByValue().limitToLast(8).addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
@@ -119,7 +123,7 @@ public class NotificationsTab extends Fragment {
                                     else{
                                         usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
                                     }
-                                    String body = usernamesString + "\nreplied to your comment, \"" + commentContent.replace('^', ' ') + "\"";
+                                    String body = usernamesString + "\nreplied to your comment, \"" + commentContent + "\"";
                                     notificationItems.add(new NotificationItem(body, TYPE_C, commentID, timeValue, dataSnapshot.getKey()));
 
                                     cCount--;
@@ -286,7 +290,12 @@ public class NotificationsTab extends Fragment {
                         for(DataSnapshot child : typeChild.getChildren()){
                             String[] args = child.getKey().split(":",2);
                             final String commentID = args[0];
-                            final String commentContent = args[1];
+                            String content = args[1].replace('^', ' ');
+                            if (content.length() > 25 && content.substring(content.length()-3).equals("   ")){
+                                content = content.substring(0, content.length()-3) + "...";
+                            }
+                            final String commentContent = content;
+
                             final int newHeartsCount = (int) child.getChildrenCount();
 
                             mFirebaseDatabaseReference.child(userNotificationsPath+"u/"+child.getKey()).orderByValue().limitToLast(1).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -297,11 +306,11 @@ public class NotificationsTab extends Fragment {
                                         String body;
                                         if(newHeartsCount == 1) {
                                             body = "You got " + Integer.toString(newHeartsCount) + " Heart on a comment, \""
-                                                    + commentContent.replace('^', ' ') + "\"";
+                                                    + commentContent + "\"";
                                         }
                                         else{
                                             body = "You got " + Integer.toString(newHeartsCount) + " Hearts on a comment, \""
-                                                    + commentContent.replace('^', ' ') + "\"";
+                                                    + commentContent + "\"";
                                         }
 
                                         notificationItems.add(new NotificationItem(body, TYPE_U, commentID, timeValue, dataSnapshot.getKey()));
@@ -404,7 +413,12 @@ public class NotificationsTab extends Fragment {
             if(initialLoadComplete){
                 String[] args = dataSnapshot.getKey().split(":",2);
                 final String commentID = args[0];
-                final String commentContent = args[1];
+                String content = args[1].replace('^', ' ');
+                if (content.length() > 25 && content.substring(content.length()-3).equals("   ")){
+                    content = content.substring(0, content.length()-3) + "...";
+                }
+                final String commentContent = content;
+
                 final int hashKey = (commentID + Integer.toString(TYPE_C)).hashCode();
                 if(itemUpdateCount != null){
                     final int updateCount = itemUpdateCount.get(hashKey);
@@ -432,7 +446,7 @@ public class NotificationsTab extends Fragment {
                                 else{
                                     usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
                                 }
-                                String body = usernamesString + "\nreplied to your comment, \"" + commentContent.replace('^', ' ') + "\"";
+                                String body = usernamesString + "\nreplied to your comment, \"" + commentContent + "\"";
                                 notificationItems.add(new NotificationItem(body, TYPE_C, commentID, timeValue, dataSnapshot.getKey()));
                                 itemUpdateCount.put(hashKey, updateCount + 1);
                                 mostRecentTimeValue.put(hashKey, (int)timeValue);
@@ -459,7 +473,12 @@ public class NotificationsTab extends Fragment {
             if(initialLoadComplete){
                 String[] args = dataSnapshot.getKey().split(":",2);
                 final String commentID = args[0];
-                final String commentContent = args[1];
+                String content = args[1].replace('^', ' ');
+                if (content.length() > 25 && content.substring(content.length()-3).equals("   ")){
+                    content = content.substring(0, content.length()-3) + "...";
+                }
+                final String commentContent = content;
+
                 final int hashKey = (commentID + Integer.toString(TYPE_C)).hashCode();
                 if(itemUpdateCount != null){
                     final int updateCount = itemUpdateCount.get(hashKey);
@@ -487,7 +506,7 @@ public class NotificationsTab extends Fragment {
                                 else{
                                     usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
                                 }
-                                String body = usernamesString + "\nreplied to your comment, \"" + commentContent.replace('^', ' ') + "\"";
+                                String body = usernamesString + "\nreplied to your comment, \"" + commentContent + "\"";
                                 notificationItems.add(new NotificationItem(body, TYPE_C, commentID, timeValue, dataSnapshot.getKey()));
                                 itemUpdateCount.put(hashKey, updateCount + 1);
                                 mostRecentTimeValue.put(hashKey, (int)timeValue);
@@ -893,7 +912,12 @@ public class NotificationsTab extends Fragment {
             if(initialLoadComplete) {
                 String[] args = child.getKey().split(":",2);
                 final String commentID = args[0];
-                final String commentContent = args[1];
+                String content = args[1].replace('^', ' ');
+                if (content.length() > 25 && content.substring(content.length()-3).equals("   ")){
+                    content = content.substring(0, content.length()-3) + "...";
+                }
+                final String commentContent = content;
+
                 final int hashKey = (commentID + Integer.toString(TYPE_U)).hashCode();
                 if (itemUpdateCount != null) {
                     final int updateCount = itemUpdateCount.get(hashKey);
@@ -909,11 +933,11 @@ public class NotificationsTab extends Fragment {
                                     String body;
                                     if(newHeartsCount == 1) {
                                         body = "You got " + Integer.toString(newHeartsCount) + " Heart on a comment, \""
-                                                + commentContent.replace('^', ' ') + "\"";
+                                                + commentContent + "\"";
                                     }
                                     else{
                                         body = "You got " + Integer.toString(newHeartsCount) + " Hearts on a comment, \""
-                                                + commentContent.replace('^', ' ') + "\"";
+                                                + commentContent + "\"";
                                     }
 
                                     notificationItems.add(new NotificationItem(body, TYPE_U, commentID, timeValue, dataSnapshot.getKey()));
@@ -943,7 +967,12 @@ public class NotificationsTab extends Fragment {
             if(initialLoadComplete) {
                 String[] args = child.getKey().split(":",2);
                 final String commentID = args[0];
-                final String commentContent = args[1];
+                String content = args[1].replace('^', ' ');
+                if (content.length() > 25 && content.substring(content.length()-3).equals("   ")){
+                    content = content.substring(0, content.length()-3) + "...";
+                }
+                final String commentContent = content;
+
                 final int hashKey = (commentID + Integer.toString(TYPE_U)).hashCode();
                 if (itemUpdateCount != null) {
                     final int updateCount = itemUpdateCount.get(hashKey);
@@ -959,11 +988,11 @@ public class NotificationsTab extends Fragment {
                                     String body;
                                     if(newHeartsCount == 1) {
                                         body = "You got " + Integer.toString(newHeartsCount) + " Heart on a comment, \""
-                                                + commentContent.replace('^', ' ') + "\"";
+                                                + commentContent + "\"";
                                     }
                                     else{
                                         body = "You got " + Integer.toString(newHeartsCount) + " Hearts on a comment, \""
-                                                + commentContent.replace('^', ' ') + "\"";
+                                                + commentContent + "\"";
                                     }
 
                                     notificationItems.add(new NotificationItem(body, TYPE_U, commentID, timeValue, dataSnapshot.getKey()));

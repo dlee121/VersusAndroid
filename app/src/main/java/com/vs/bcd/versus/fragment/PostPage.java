@@ -325,14 +325,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                             mFirebaseDatabaseReference.child(postAuthorPath).child(activity.getUsername()).setValue(System.currentTimeMillis()/1000);  //set value = timestamp as seconds from epoch
                                         }
                                         else if(topCardContent != null && !topCardContent.getAuthor().equals("deleted") && !topCardContent.getAuthor().equals(activity.getUsername())){
-                                            String payloadContent = sanitizeContentForURL(topCardContent.getContent());
+                                            String payloadContent = sanitizeMedalUpdateContent(topCardContent.getContent());
                                             String subjectAuthorPath = getUsernameHash(topCardContent.getAuthor()) + "/" + topCardContent.getAuthor() + "/n/c/"
                                                     + topCardContent.getComment_id() + ":" + payloadContent;
                                             mFirebaseDatabaseReference.child(subjectAuthorPath).child(activity.getUsername()).setValue(System.currentTimeMillis()/1000);
                                         }
                                     }
                                     else if(trueReplyTarget != null && !trueReplyTarget.getAuthor().equals("deleted") && !trueReplyTarget.getAuthor().equals(activity.getUsername())) { //reply to a comment
-                                        String payloadContent = sanitizeContentForURL(trueReplyTarget.getContent());
+                                        String payloadContent = sanitizeMedalUpdateContent(trueReplyTarget.getContent());
                                         String subjectAuthorPath = getUsernameHash(trueReplyTarget.getAuthor()) + "/" + trueReplyTarget.getAuthor() + "/n/c/"
                                                 + trueReplyTarget.getComment_id() + ":" + payloadContent;
                                         mFirebaseDatabaseReference.child(subjectAuthorPath).child(activity.getUsername()).setValue(System.currentTimeMillis() / 1000);
@@ -2700,7 +2700,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     private void sendCommentUpvoteNotification(VSComment content){
         if(!content.getAuthor().equals("deleted") && !content.getAuthor().equals(activity.getUsername())){
-            String payloadContent = sanitizeContentForURL(content.getContent());
+            String payloadContent = sanitizeMedalUpdateContent(content.getContent());
             String commentAuthorPath = getUsernameHash(content.getAuthor()) + "/" + content.getAuthor() + "/n/u/" +content.getComment_id() + ":" + payloadContent;
             mFirebaseDatabaseReference.child(commentAuthorPath).child(activity.getUsername()).setValue(System.currentTimeMillis()/1000);
         }
