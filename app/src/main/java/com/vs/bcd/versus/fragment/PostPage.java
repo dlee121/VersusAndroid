@@ -337,9 +337,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                         mFirebaseDatabaseReference.child(subjectAuthorPath).child(activity.getUsername()).setValue(System.currentTimeMillis() / 1000);
                                     }
 
-
-                                    activity.getClient().vGet(null, post.getPost_id(), null, "v", "cm");
-
+                                    if(replyTarget != null){
+                                        activity.getClient().vGet(null, post.getPost_id(), replyTarget.getComment_id(), "v", "cm");
+                                    }
+                                    else {
+                                        activity.getClient().vGet(null, post.getPost_id(), null, "v", "cm");
+                                    }
 
                                     activity.runOnUiThread(new Runnable() {
                                         @Override

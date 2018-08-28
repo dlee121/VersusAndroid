@@ -31,6 +31,7 @@ public class VSComment {
     private int upvotes; //number of upvotes for this comment
     private int downvotes; //number of downvotes for this comment
     private int comment_influence;
+    private int replyCount; //reply count
     private String root; //root comment id for grandchildren
 
     private int nestedLevel = 0;    //not used by DB.
@@ -65,6 +66,7 @@ public class VSComment {
         topmedal = 0;
         comment_influence = 0;
         root = "0";
+        replyCount = 0;
     }
 
     public VSComment(CommentModelSource source, String id){
@@ -361,6 +363,7 @@ public class VSComment {
         putModel.setD(BigDecimal.ZERO);
         putModel.setCi(BigDecimal.ZERO);
         putModel.setR(root);
+        putModel.setRc(BigDecimal.ZERO);
 
         return putModel;
     }
