@@ -28,8 +28,7 @@
             android:maxLines="1"
             android:maxWidth="120dp"
             android:text="dlee121"
-            android:textColor="#0000FF"
-            android:textSize="14sp" />
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/timetvtc"
@@ -40,7 +39,7 @@
             android:layout_marginTop="2dp"
             android:layout_toEndOf="@id/usernametvtc"
             android:text="two minutes ago"
-            android:textSize="11sp" />
+            android:textSize="12sp" />
 
         <ImageButton
             android:id="@+id/topcard_overflow_menu"
@@ -75,7 +74,7 @@
             android:maxLines="2"
             android:textColor="#000000"
             android:text="bcd"
-            android:textSize="14sp" />
+            android:textSize="16sp" />
 
         <LinearLayout
             android:id="@+id/see_more_container_tc"

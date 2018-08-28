@@ -81,7 +81,7 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         seeMoreContainerLP = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         seeMoreContainerLP.addRule(RelativeLayout.ALIGN_END, R.id.usercomment_nw);
-        seeMoreContainerLP.addRule(RelativeLayout.BELOW, R.id.usercomment_nw);
+        seeMoreContainerLP.addRule(RelativeLayout.BELOW, R.id.comment_author_nw);
 
     }
 

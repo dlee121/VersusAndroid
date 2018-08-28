@@ -15,8 +15,8 @@
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/profile_image_nw"
-            android:layout_width="35dp"
-            android:layout_height="35dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:layout_marginTop="8dp"
             android:clickable="true"
             android:focusable="true"
@@ -31,7 +31,7 @@
             android:maxLines="1"
             android:gravity="center|start"
             android:layout_width="wrap_content"
-            android:layout_height="35dp"
+            android:layout_height="24dp"
             android:layout_marginTop="8dp"
             android:text="Username"
             android:textSize="@dimen/vcpc_titles"
@@ -42,7 +42,7 @@
         <TextView
             android:id="@+id/votecount_nw"
             android:layout_width="130dp"
-            android:layout_height="35dp"
+            android:layout_height="24dp"
             android:layout_alignParentEnd="true"
             android:layout_alignBottom="@id/author_nw"
             android:layout_marginEnd="8dp"
@@ -65,19 +65,53 @@
             android:text="question"
             android:textSize="@dimen/vcpc_titles" />
 
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/comment_profile_nw"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:src="@drawable/default_profile"
+            android:layout_below="@id/question_nw"
+            android:layout_marginStart="8dp"
+            android:layout_alignParentStart="true"/>
+
+        <TextView
+            android:id="@+id/usercomment_nw"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/comment_profile_nw"
+            android:layout_marginStart="8dp"
+            android:layout_below="@id/question_nw"
+            android:layout_marginEnd="8dp"
+            android:maxLines="2"
+            android:textColor="#000000"
+            android:text="bcd"
+            android:textSize="16sp" />
+
         <TextView
             android:id="@+id/comment_author_nw"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
-            android:layout_alignParentStart="true"
-            android:layout_below="@id/question_nw"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="4dp"
+            android:layout_toEndOf="@id/comment_profile_nw"
+            android:layout_below="@id/usercomment_nw"
             android:ellipsize="end"
             android:maxLines="1"
             android:maxWidth="120dp"
             android:text="dlee121"
-            android:textColor="#0000FF"
-            android:textSize="14sp" />
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/dot_divider_nw"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_alignBottom="@id/comment_author_nw"
+            android:layout_toEndOf="@id/comment_author_nw"
+            android:text="&#8226;"
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/timetvnw"
@@ -85,9 +119,9 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_alignBottom="@id/comment_author_nw"
-            android:layout_toEndOf="@id/comment_author_nw"
+            android:layout_toEndOf="@id/dot_divider_nw"
             android:text="two minutes ago"
-            android:textSize="11sp" />
+            android:textSize="12sp" />
 
 
 
@@ -100,26 +134,12 @@
             android:layout_toRightOf="@id/timetvnw"
             />
 
-
-        <TextView
-            android:id="@+id/usercomment_nw"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:layout_alignStart="@id/comment_author_nw"
-            android:layout_below="@id/comment_author_nw"
-            android:layout_marginEnd="8dp"
-            android:maxLines="2"
-            android:textColor="#000000"
-            android:text="bcd"
-            android:textSize="14sp" />
-
         <LinearLayout
             android:id="@+id/see_more_container_nw"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
             android:layout_alignEnd="@id/usercomment_nw"
-            android:layout_below="@id/usercomment_nw">
+            android:layout_below="@id/comment_author_nw">
             <Button
                 android:id="@+id/see_more_button_nw"
                 android:layout_width="wrap_content"
@@ -127,7 +147,6 @@
                 android:minHeight="0dp"
                 android:minWidth="0dp"
                 android:paddingTop="4dp"
-                android:layout_marginTop="-4dp"
                 android:paddingBottom="4dp"
                 android:layout_marginBottom="-3dp"
                 android:paddingStart="0dp"
@@ -138,7 +157,7 @@
                 android:text="See More"
                 android:textAllCaps="false"
                 android:textSize="14sp"
-                android:textColor="#0000FF"
+                android:textColor="#007AFF"
                 android:gravity="end"/>
         </LinearLayout>
 
@@ -148,7 +167,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
-            android:layout_below="@id/usercomment_nw"
+            android:layout_below="@id/comment_author_nw"
             android:layout_marginTop="2dp"
             android:text=""
             android:textSize="12sp" />
@@ -158,8 +177,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:layout_below="@id/usercomment_nw"
-            android:layout_marginStart="8dp"
+            android:layout_below="@id/comment_author_nw"
+            android:layout_alignStart="@id/comment_author_nw"
             android:text="18"
             android:textAlignment="center"
             android:textSize="12sp" />
@@ -171,7 +190,8 @@
             android:layout_alignBottom="@id/guide_nw"
             android:layout_alignTop="@id/guide_nw"
             android:layout_toEndOf="@id/upvotes_nw"
-            android:layout_marginStart="-3dp"
+            android:scaleX="1.5"
+            android:scaleY="1.5"
             app:srcCompat="@drawable/ic_heart_highlighted" />
 
         <TextView
@@ -180,7 +200,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="4dp"
             android:layout_marginTop="2dp"
-            android:layout_below="@id/usercomment_nw"
+            android:layout_below="@id/comment_author_nw"
             android:layout_toEndOf="@id/redheart_nw"
             android:text="18"
             android:textAlignment="center"
@@ -193,7 +213,8 @@
             android:layout_alignBottom="@id/guide_nw"
             android:layout_alignTop="@id/guide_nw"
             android:layout_toEndOf="@id/downvotes_nw"
-            android:layout_marginStart="-3dp"
+            android:scaleX="1.5"
+            android:scaleY="1.5"
             app:srcCompat="@drawable/ic_heart_broken_highlighted" />
 
 
@@ -202,9 +223,8 @@
             android:id="@+id/replybuttonnw"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/usercomment_nw"
+            android:layout_below="@id/comment_author_nw"
             android:background="@null"
-            android:drawableLeft="@drawable/ic_reply_v2"
             android:drawablePadding="2dp"
             android:layout_alignEnd="@id/usercomment_nw"
             android:gravity="start|center_vertical"
@@ -213,10 +233,11 @@
             android:paddingEnd="8dp"
             android:paddingBottom="4dp"
             android:layout_marginEnd="0dp"
+            android:layout_marginBottom="4dp"
             android:minHeight="0dp"
             android:minWidth="0dp"
             android:text="Reply"
-            android:textColor="#FF808080"
+            android:textColor="#007AFF"
             android:textAllCaps="false"
             android:textSize="14sp"
             style="?android:attr/borderlessButtonStyle"/>
