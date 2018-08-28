@@ -29,5 +29,7 @@
     <dimen name="chi_heart_margin">8dp</dimen>
     <dimen name="eight">8dp</dimen>
     <dimen name="four">4dp</dimen>
+    <dimen name="eighteen">18dp</dimen>
+
 
 </resources>

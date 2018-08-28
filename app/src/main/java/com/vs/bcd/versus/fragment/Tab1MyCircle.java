@@ -449,6 +449,7 @@ public class Tab1MyCircle extends Fragment implements SwipeRefreshLayout.OnRefre
                 PostInfo postInfo;
                 for (int j = fromIndex; j< myCircleComments.size(); j++){
                     postInfo = postInfoMap.get(myCircleComments.get(j).getPost_id());
+                    String commentAuthor = myCircleComments.get(j).getAuthor();
                     if(postInfo.getA() == null || postInfo.getQ() == null){
                         myCircleComments.get(j).setAQRCBC("", "", 0, 0);
                     }
@@ -456,7 +457,7 @@ public class Tab1MyCircle extends Fragment implements SwipeRefreshLayout.OnRefre
                         myCircleComments.get(j).setAQRCBC(postInfo.getA(), postInfo.getQ(), postInfo.getRc(), postInfo.getBc());
                     }
 
-                    if(!postInfo.getA().equals("deleted")){
+                    if(!postInfo.getA().equals("deleted") && profileImgVersions.get(postInfo.getA().toLowerCase()) == null){
                         if(i == 0){
                             strBuilder.append("\""+postInfo.getA()+"\"");
                         }
@@ -466,10 +467,20 @@ public class Tab1MyCircle extends Fragment implements SwipeRefreshLayout.OnRefre
                         i++;
                     }
 
-                    if(strBuilder.length() > 0){
-                        String pivPayload = "{\"ids\":["+strBuilder.toString()+"]}";
-                        getProfileImgVersions(pivPayload);
+                    if(!commentAuthor.equals("deleted") && profileImgVersions.get(commentAuthor.toLowerCase()) == null){
+                        if(i == 0){
+                            strBuilder.append("\""+commentAuthor+"\"");
+                        }
+                        else{
+                            strBuilder.append(",\""+commentAuthor+"\"");
+                        }
+                        i++;
                     }
+                }
+
+                if(strBuilder.length() > 0){
+                    String pivPayload = "{\"ids\":["+strBuilder.toString()+"]}";
+                    getProfileImgVersions(pivPayload);
                 }
 
 

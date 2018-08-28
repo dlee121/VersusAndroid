@@ -190,8 +190,54 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
             }
 
+            try{
+                int profileImg = profileImgVersions.get(comment.getAuthor().toLowerCase()).intValue();
+                if(profileImg == 0){
+                    GlideApp.with(activity).load(defaultProfileImage).into(newsfeedViewHolder.commentProfile);
+                }
+                else{
+                    GlideApp.with(activity).load(activity.getProfileImgUrl(comment.getAuthor(), profileImg)).into(newsfeedViewHolder.commentProfile);
+                }
+
+            }catch (Throwable t){
+
+            }
+
             newsfeedViewHolder.replyCount.setText(Integer.toString(comment.getReplyCount()));
 
+            RelativeLayout.LayoutParams medalLP;
+            switch(comment.getTopmedal()){
+                case 3:
+                    newsfeedViewHolder.medalView.setImageResource(R.drawable.ic_gold_medal);
+                    medalLP = (RelativeLayout.LayoutParams) newsfeedViewHolder.medalView.getLayoutParams();
+                    medalLP.width = activity.getResources().getDimensionPixelSize(R.dimen.eighteen);
+                    medalLP.setMarginEnd(activity.getResources().getDimensionPixelSize(R.dimen.four));
+                    newsfeedViewHolder.medalView.setLayoutParams(medalLP);
+                    break;
+
+                case 2:
+                    newsfeedViewHolder.medalView.setImageResource(R.drawable.ic_silver_medal);
+                    medalLP = (RelativeLayout.LayoutParams) newsfeedViewHolder.medalView.getLayoutParams();
+                    medalLP.width = activity.getResources().getDimensionPixelSize(R.dimen.eighteen);
+                    medalLP.setMarginEnd(activity.getResources().getDimensionPixelSize(R.dimen.four));
+                    newsfeedViewHolder.medalView.setLayoutParams(medalLP);
+                    break;
+
+                case 1:
+                    newsfeedViewHolder.medalView.setImageResource(R.drawable.ic_bronze_medal);
+                    medalLP = (RelativeLayout.LayoutParams) newsfeedViewHolder.medalView.getLayoutParams();
+                    medalLP.width = activity.getResources().getDimensionPixelSize(R.dimen.eighteen);
+                    medalLP.setMarginEnd(activity.getResources().getDimensionPixelSize(R.dimen.four));
+                    newsfeedViewHolder.medalView.setLayoutParams(medalLP);
+                    break;
+
+                default:
+                    medalLP = (RelativeLayout.LayoutParams) newsfeedViewHolder.medalView.getLayoutParams();
+                    medalLP.width = 0;
+                    medalLP.setMarginEnd(0);
+                    newsfeedViewHolder.medalView.setLayoutParams(medalLP);
+                    break;
+            }
 
             newsfeedViewHolder.replyButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -365,6 +411,7 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         private CircleImageView circView, commentProfile;
         private Button replyButton, seeMoreButton;
         private LinearLayout seeMoreContainer;
+        private ImageView medalView;
 
         public NewsfeedViewHolder(View view){
             super(view);
@@ -376,6 +423,7 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             commentAuthor = view.findViewById(R.id.comment_author_nw);
             time = view.findViewById(R.id.timetvnw);
             commentContent = view.findViewById(R.id.usercomment_nw);
+            medalView = view.findViewById(R.id.medal_nw);
             hearts = view.findViewById(R.id.upvotes_nw);
             brokenhearts = view.findViewById(R.id.downvotes_nw);
             replyCount = view.findViewById(R.id.replycount_nw);
@@ -563,11 +611,24 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public RequestBuilder getPreloadRequestBuilder(VSComment comment) {
 
         try {
-            int profileImg = profileImgVersions.get(comment.getPostAuthor().toLowerCase()).intValue();
-            if (profileImg == 0) {
-                return null;
+            int postProfileImg = profileImgVersions.get(comment.getPostAuthor().toLowerCase()).intValue();
+            int commentProfileImg = profileImgVersions.get(comment.getAuthor().toLowerCase()).intValue();
+            if (postProfileImg == 0) {
+                if (commentProfileImg == 0) { //postProfileImg == 0 && commentProfileImg == 0
+                    return null;
+                }
+                else { //postProfileImg == 0 && commentProfileImg != 0
+                    return GlideApp.with(activity).load(activity.getProfileImgUrl(comment.getAuthor(), commentProfileImg));
+                }
+
             }
-            return GlideApp.with(activity).load(activity.getProfileImgUrl(comment.getPostAuthor(), profileImgVersions.get(comment.getPostAuthor().toLowerCase()).intValue()));
+            else if (commentProfileImg == 0) { //postProfileImg != 0 && commentProfileImg == 0
+                return GlideApp.with(activity).load(activity.getProfileImgUrl(comment.getPostAuthor(), postProfileImg));
+            }
+            else { //postProfileImg != 0 && commentProfileImg != 0
+                return GlideApp.with(activity).load(activity.getProfileImgUrl(comment.getPostAuthor(), postProfileImg)).load(activity.getProfileImgUrl(comment.getAuthor(), commentProfileImg));
+            }
+
 
 
         } catch (Throwable t) {

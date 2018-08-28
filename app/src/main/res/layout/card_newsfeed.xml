@@ -123,17 +123,6 @@
             android:text="two minutes ago"
             android:textSize="12sp" />
 
-
-
-        <ImageView
-            android:id="@+id/medal_image_nw"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignTop="@id/comment_author_nw"
-            android:layout_alignBottom="@id/comment_author_nw"
-            android:layout_toRightOf="@id/timetvnw"
-            />
-
         <LinearLayout
             android:id="@+id/see_more_container_nw"
             android:layout_width="wrap_content"
@@ -161,13 +150,23 @@
                 android:gravity="end"/>
         </LinearLayout>
 
+        <ImageView
+            android:id="@+id/medal_nw"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_marginTop="3dp"
+            android:layout_below="@id/comment_author_nw"
+            android:layout_marginEnd="4dp"
+            android:layout_alignStart="@id/comment_author_nw"
+            app:srcCompat="@drawable/ic_gold_medal" />
+
         <TextView
             android:id="@+id/upvotes_nw"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
             android:layout_below="@id/comment_author_nw"
-            android:layout_alignStart="@id/comment_author_nw"
+            android:layout_toEndOf="@id/medal_nw"
             android:text="18"
             android:textAlignment="center"
             android:textSize="12sp" />
