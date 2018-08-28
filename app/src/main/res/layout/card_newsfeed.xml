@@ -161,17 +161,6 @@
                 android:gravity="end"/>
         </LinearLayout>
 
-
-        <TextView
-            android:id="@+id/guide_nw"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_below="@id/comment_author_nw"
-            android:layout_marginTop="2dp"
-            android:text=""
-            android:textSize="12sp" />
-
         <TextView
             android:id="@+id/upvotes_nw"
             android:layout_width="wrap_content"
@@ -187,8 +176,8 @@
             android:id="@+id/redheart_nw"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBottom="@id/guide_nw"
-            android:layout_alignTop="@id/guide_nw"
+            android:layout_alignBottom="@id/upvotes_nw"
+            android:layout_alignTop="@id/upvotes_nw"
             android:layout_toEndOf="@id/upvotes_nw"
             android:scaleX="1.5"
             android:scaleY="1.5"
@@ -198,7 +187,7 @@
             android:id="@+id/downvotes_nw"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="4dp"
+            android:layout_marginStart="6dp"
             android:layout_marginTop="2dp"
             android:layout_below="@id/comment_author_nw"
             android:layout_toEndOf="@id/redheart_nw"
@@ -210,12 +199,36 @@
             android:id="@+id/blueheart_nw"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBottom="@id/guide_nw"
-            android:layout_alignTop="@id/guide_nw"
+            android:layout_alignBottom="@id/upvotes_nw"
+            android:layout_alignTop="@id/upvotes_nw"
             android:layout_toEndOf="@id/downvotes_nw"
             android:scaleX="1.5"
             android:scaleY="1.5"
             app:srcCompat="@drawable/ic_heart_broken_highlighted" />
+
+        <TextView
+            android:id="@+id/replycount_nw"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="6dp"
+            android:layout_marginTop="2dp"
+            android:layout_below="@id/comment_author_nw"
+            android:layout_toEndOf="@id/blueheart_nw"
+            android:text="18"
+            android:textAlignment="center"
+            android:textSize="12sp" />
+
+
+        <ImageView
+            android:id="@+id/rc_icon_nw"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_marginStart="1dp"
+            android:layout_alignBottom="@id/upvotes_nw"
+            android:layout_alignTop="@id/upvotes_nw"
+            android:layout_marginTop="1dp"
+            android:layout_toEndOf="@id/replycount_nw"
+            app:srcCompat="@drawable/ic_reply_count" />
 
 
 

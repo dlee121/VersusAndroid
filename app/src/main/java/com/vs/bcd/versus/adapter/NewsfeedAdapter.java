@@ -190,6 +190,7 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
             }
 
+            newsfeedViewHolder.replyCount.setText(Integer.toString(comment.getReplyCount()));
 
 
             newsfeedViewHolder.replyButton.setOnClickListener(new View.OnClickListener() {
@@ -360,8 +361,8 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     }
 
     private class NewsfeedViewHolder extends RecyclerView.ViewHolder{
-        private TextView postAuthor, votecount, question, commentAuthor, time, commentContent, hearts, brokenhearts;
-        private CircleImageView circView;
+        private TextView postAuthor, votecount, question, commentAuthor, time, commentContent, hearts, brokenhearts, replyCount;
+        private CircleImageView circView, commentProfile;
         private Button replyButton, seeMoreButton;
         private LinearLayout seeMoreContainer;
 
@@ -371,11 +372,13 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             postAuthor = view.findViewById(R.id.author_nw);
             votecount = view.findViewById(R.id.votecount_nw);
             question = view.findViewById(R.id.question_nw);
+            commentProfile = view.findViewById(R.id.comment_profile_nw);
             commentAuthor = view.findViewById(R.id.comment_author_nw);
             time = view.findViewById(R.id.timetvnw);
             commentContent = view.findViewById(R.id.usercomment_nw);
             hearts = view.findViewById(R.id.upvotes_nw);
             brokenhearts = view.findViewById(R.id.downvotes_nw);
+            replyCount = view.findViewById(R.id.replycount_nw);
             replyButton = view.findViewById(R.id.replybuttonnw);
             seeMoreContainer = view.findViewById(R.id.see_more_container_nw);
             seeMoreButton = seeMoreContainer.findViewById(R.id.see_more_button_nw);

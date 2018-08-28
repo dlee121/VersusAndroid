@@ -95,6 +95,7 @@ public class VSComment {
         downvotes = source.getD().intValue();
         comment_influence = source.getCi().intValue();
         root = source.getR();
+        replyCount = source.getRc().intValue();
     }
 
     public VSComment(CGCModelResponsesItemHitsHitsItemSource source, String id){
@@ -411,5 +412,9 @@ public class VSComment {
 
     public int getRc() {
         return rc;
+    }
+
+    public int getReplyCount(){
+        return replyCount;
     }
 }
