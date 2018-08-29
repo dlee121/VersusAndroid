@@ -191,18 +191,34 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
                 int margin = activity.getResources().getDimensionPixelSize(R.dimen.comment_margin); // margin in pixels
 
+                RelativeLayout.LayoutParams medalLP;
                 switch (postPage.checkMedalWinnersList(currentComment.getComment_id())){
                     case 0:
-                        commentViewHolder.medalImage.setImageResource(android.R.color.transparent);
+                        medalLP = (RelativeLayout.LayoutParams) commentViewHolder.medalImage.getLayoutParams();
+                        medalLP.width = 0;
+                        medalLP.setMarginEnd(0);
+                        commentViewHolder.medalImage.setLayoutParams(medalLP);
                         break; //no medal, default currentMedal value
                     case 1: //bronze
                         commentViewHolder.medalImage.setImageResource(R.drawable.ic_bronze_medal);
+                        medalLP = (RelativeLayout.LayoutParams) commentViewHolder.medalImage.getLayoutParams();
+                        medalLP.width = activity.getResources().getDimensionPixelSize(R.dimen.eighteen);
+                        medalLP.setMarginEnd(activity.getResources().getDimensionPixelSize(R.dimen.eight));
+                        commentViewHolder.medalImage.setLayoutParams(medalLP);
                         break;
                     case 2: //silver
                         commentViewHolder.medalImage.setImageResource(R.drawable.ic_silver_medal);
+                        medalLP = (RelativeLayout.LayoutParams) commentViewHolder.medalImage.getLayoutParams();
+                        medalLP.width = activity.getResources().getDimensionPixelSize(R.dimen.eighteen);
+                        medalLP.setMarginEnd(activity.getResources().getDimensionPixelSize(R.dimen.eight));
+                        commentViewHolder.medalImage.setLayoutParams(medalLP);
                         break;
                     case 3: //gold
                         commentViewHolder.medalImage.setImageResource(R.drawable.ic_gold_medal);
+                        medalLP = (RelativeLayout.LayoutParams) commentViewHolder.medalImage.getLayoutParams();
+                        medalLP.width = activity.getResources().getDimensionPixelSize(R.dimen.eighteen);
+                        medalLP.setMarginEnd(activity.getResources().getDimensionPixelSize(R.dimen.eight));
+                        commentViewHolder.medalImage.setLayoutParams(medalLP);
                         break;
                 }
 
@@ -753,18 +769,34 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     break;
             }
 
+            RelativeLayout.LayoutParams medalLP;
             switch (postPage.checkMedalWinnersList(topCardObject.getComment_id())){
                 case 0:
-                    topCardViewHolder.medalImage.setImageResource(android.R.color.transparent);
+                    medalLP = (RelativeLayout.LayoutParams) topCardViewHolder.medalImage.getLayoutParams();
+                    medalLP.width = 0;
+                    medalLP.setMarginEnd(0);
+                    topCardViewHolder.medalImage.setLayoutParams(medalLP);
                     break; //no medal, default currentMedal value
                 case 1: //bronze
                     topCardViewHolder.medalImage.setImageResource(R.drawable.ic_bronze_medal);
+                    medalLP = (RelativeLayout.LayoutParams) topCardViewHolder.medalImage.getLayoutParams();
+                    medalLP.width = activity.getResources().getDimensionPixelSize(R.dimen.eighteen);
+                    medalLP.setMarginEnd(activity.getResources().getDimensionPixelSize(R.dimen.eight));
+                    topCardViewHolder.medalImage.setLayoutParams(medalLP);
                     break;
                 case 2: //silver
                     topCardViewHolder.medalImage.setImageResource(R.drawable.ic_silver_medal);
+                    medalLP = (RelativeLayout.LayoutParams) topCardViewHolder.medalImage.getLayoutParams();
+                    medalLP.width = activity.getResources().getDimensionPixelSize(R.dimen.eighteen);
+                    medalLP.setMarginEnd(activity.getResources().getDimensionPixelSize(R.dimen.eight));
+                    topCardViewHolder.medalImage.setLayoutParams(medalLP);
                     break;
                 case 3: //gold
                     topCardViewHolder.medalImage.setImageResource(R.drawable.ic_gold_medal);
+                    medalLP = (RelativeLayout.LayoutParams) topCardViewHolder.medalImage.getLayoutParams();
+                    medalLP.width = activity.getResources().getDimensionPixelSize(R.dimen.eighteen);
+                    medalLP.setMarginEnd(activity.getResources().getDimensionPixelSize(R.dimen.eight));
+                    topCardViewHolder.medalImage.setLayoutParams(medalLP);
                     break;
             }
 

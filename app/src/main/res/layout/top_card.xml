@@ -31,13 +31,22 @@
             android:textSize="12sp" />
 
         <TextView
+            android:id="@+id/dot_divider_tc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_alignBottom="@id/usernametvtc"
+            android:layout_toEndOf="@id/usernametvtc"
+            android:text="&#8226;"
+            android:textSize="12sp" />
+
+        <TextView
             android:id="@+id/timetvtc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
             android:layout_marginStart="8dp"
-            android:layout_marginTop="2dp"
-            android:layout_toEndOf="@id/usernametvtc"
+            android:layout_alignBottom="@id/usernametvtc"
+            android:layout_toEndOf="@id/dot_divider_tc"
             android:text="two minutes ago"
             android:textSize="12sp" />
 
@@ -51,16 +60,6 @@
             android:layout_marginEnd="8dp"
             android:src="@drawable/ic_overflow_horizontal"
             android:background="@null" />
-
-        <ImageView
-            android:id="@+id/medal_image_tc"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignTop="@id/usernametvtc"
-            android:layout_alignBottom="@id/usernametvtc"
-            android:layout_toRightOf="@id/timetvtc"
-            />
-
 
         <TextView
             android:id="@+id/usercommenttc"
@@ -100,10 +99,19 @@
                 android:text="See More"
                 android:textAllCaps="false"
                 android:textSize="14sp"
-                android:textColor="#0000FF"
+                android:textColor="#007AFF"
                 android:gravity="end"/>
         </LinearLayout>
 
+        <ImageView
+            android:id="@+id/medal_image_tc"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_below="@id/usercommenttc"
+            android:layout_alignStart="@id/usernametvtc"
+            android:layout_toRightOf="@id/timetvtc"
+            android:layout_marginEnd="8dp"
+            />
 
         <ImageButton
             android:id="@+id/heartbuttontc"
@@ -116,7 +124,7 @@
             android:paddingTop="4dp"
             android:paddingEnd="8dp"
             android:paddingBottom="4dp"
-            android:layout_alignStart="@id/usernametvtc"
+            android:layout_toEndOf="@id/medal_image_tc"
             android:background="@null"
             android:minHeight="0dp"
             android:minWidth="0dp"
@@ -171,7 +179,6 @@
             android:layout_height="wrap_content"
             android:layout_alignTop="@id/heartbuttontc"
             android:background="@null"
-            android:drawableLeft="@drawable/ic_reply_v2"
             android:drawablePadding="2dp"
             android:layout_alignEnd="@id/usercommenttc"
             android:gravity="start|center_vertical"
@@ -183,7 +190,7 @@
             android:minHeight="0dp"
             android:minWidth="0dp"
             android:text="Reply"
-            android:textColor="#FF808080"
+            android:textColor="#007AFF"
             android:textAllCaps="false"
             android:textSize="14sp"
             style="?android:attr/borderlessButtonStyle"/>
