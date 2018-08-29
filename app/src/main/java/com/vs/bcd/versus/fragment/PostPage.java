@@ -1860,6 +1860,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     public void backToParentPage(){
         pageLevel--;
 
+        topicComment = null;
+
         mSwipeRefreshLayout.setRefreshing(true);
 
         if(PPAdapter != null){
@@ -2811,15 +2813,29 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 return;
             }
 
-            for(CommentsListModelHitsHitsItem item : hits){
+            if (topicComment != null){
+                for(CommentsListModelHitsHitsItem item : hits){
 
-                String id = item.getId();
+                    String id = item.getId();
 
-                if(!uORt.equals("u") || !winnerTreeRoots.contains(id)){
-                    results.add(new VSComment(item.getSource(), id));
+                    if(!id.equals(topicComment.getComment_id()) && (!uORt.equals("u") || !winnerTreeRoots.contains(id))){
+                        results.add(new VSComment(item.getSource(), id));
+                    }
+
+                    currCommentsIndex++;
                 }
+            }
+            else {
+                for(CommentsListModelHitsHitsItem item : hits){
 
-                currCommentsIndex++;
+                    String id = item.getId();
+
+                    if(!uORt.equals("u") || !winnerTreeRoots.contains(id)){
+                        results.add(new VSComment(item.getSource(), id));
+                    }
+
+                    currCommentsIndex++;
+                }
             }
 
 
@@ -3220,7 +3236,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         Log.d("clickedcommentid", clickedComment.getComment_id());
         Log.d("veganaplz", "ccgc");
         freshlyVotedComments.clear();
-        pageLevel  = 2;
+
+        if (clickedComment.getRoot().equals("0")){
+            pageLevel  = 1;
+        }
+        else {
+            pageLevel = 2;
+        }
+
         clearList();
         if(PPAdapter != null) {
             PPAdapter.clearList();
@@ -3232,7 +3255,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         activity.getViewPager().setCurrentItem(3);
         mSwipeRefreshLayout.setRefreshing(true);
 
-        vsComments.add(0, clickedComment);
+        //vsComments.add(0, clickedComment);
         nodeMap.put(clickedComment.getComment_id(), new VSCNode(clickedComment));
 
         Runnable runnable = new Runnable() {
@@ -3346,7 +3369,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            setCommentsPage(clickedComment);
+                            setCommentsPage(parentComment);
                         }
                     });
                 }
