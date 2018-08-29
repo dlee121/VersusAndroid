@@ -2984,7 +2984,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         sendInProgress = false;
     }
 
-    public void ViewMoreRepliesClickHelper(VSComment clickedComment){
+    public void viewMoreRepliesClickHelper(VSComment clickedComment){
 
         int nestedLevel = clickedComment.getNestedLevel();
         switch (pageLevel) {

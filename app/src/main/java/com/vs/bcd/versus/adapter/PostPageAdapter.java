@@ -256,7 +256,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         public void onClick(View view) {
                             //Log.d("pageLevel", Integer.toString(pageLevel));
                             if(pageLevel < 2 && !lockButtons){ //itemView clicks are handled only for root page and children page
-                                activity.getPostPage().ViewMoreRepliesClickHelper(currentComment);
+                                activity.getPostPage().viewMoreRepliesClickHelper(currentComment);
                             }
                         }
                     });
