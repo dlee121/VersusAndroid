@@ -4,11 +4,8 @@ import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
 import android.os.AsyncTask;
@@ -43,7 +40,6 @@ import com.vs.bcd.versus.model.VSComment;
 
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Date;
@@ -260,7 +256,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         public void onClick(View view) {
                             //Log.d("pageLevel", Integer.toString(pageLevel));
                             if(pageLevel < 2 && !lockButtons){ //itemView clicks are handled only for root page and children page
-                                activity.getPostPage().itemViewClickHelper(currentComment);
+                                activity.getPostPage().ViewMoreRepliesClickHelper(currentComment);
                             }
                         }
                     });

@@ -177,6 +177,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     private String newsfeedReplyTargetID = "";
 
+    private VSComment topicComment = null;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -705,6 +707,10 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         else {
             if (rootView != null) {
                 disableChildViews();
+
+                //reset topicComment objct here. topicComment = clicked comment, is set in root/child/gc history click helper
+                topicComment = null;
+
                 Log.d("thisiswhathappened", "invisible");
                 pageCommentInput.setText("");
                 RVLayoutParams.height = 0;
@@ -826,6 +832,10 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
         else{
             winnerTreeRoots.clear();
+        }
+
+        if (topicComment != null) {
+            winnerTreeRoots.add(topicComment.getComment_id());
         }
 
         CommentsListModel result = activity.getClient().commentslistGet(null, null, "m", postID);
@@ -1356,6 +1366,10 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     long thisThreadID = Thread.currentThread().getId();
                     final List<Object> masterList = new ArrayList<>();
 
+                    if (topicComment != null) {
+                        rootComments.add(topicComment);
+                    }
+
                     if(uORt.equals("u")){
                         setMedals(rootComments, rootParentID);
                     }
@@ -1574,7 +1588,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                     final List<Object> masterList = new ArrayList<>();
 
                     //setMedals();
-
+                    if (topicComment != null){
+                        grootComments.add(topicComment);
+                    }
                     getRootComments(0, grootComments, rootParentID, uORt);
 
                     if(!grootComments.isEmpty()){
@@ -2794,6 +2810,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 });
                 return;
             }
+
             for(CommentsListModelHitsHitsItem item : hits){
 
                 String id = item.getId();
@@ -2804,6 +2821,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                 currCommentsIndex++;
             }
+
 
             if(hits.size() < retrievalSize){
                 nowLoading = true; //TODO: do this? or let it load one more round?
@@ -2950,7 +2968,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         sendInProgress = false;
     }
 
-    public void itemViewClickHelper(VSComment clickedComment){
+    public void ViewMoreRepliesClickHelper(VSComment clickedComment){
 
         int nestedLevel = clickedComment.getNestedLevel();
         switch (pageLevel) {
@@ -3200,6 +3218,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     public void childOrGrandchildHistoryItemClicked(final VSComment clickedComment, final String origin, final String key){
         Log.d("clickedcommentid", clickedComment.getComment_id());
+        Log.d("veganaplz", "ccgc");
         freshlyVotedComments.clear();
         pageLevel  = 2;
         clearList();
@@ -3207,6 +3226,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             PPAdapter.clearList();
         }
         parentCache.put(clickedComment.getComment_id(), clickedComment);
+
+        topicComment = clickedComment;
 
         activity.getViewPager().setCurrentItem(3);
         mSwipeRefreshLayout.setRefreshing(true);
@@ -3338,6 +3359,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     public void rootCommentHistoryItemClicked(final VSComment clickedRootComment, final String origin, final String key){
         Log.d("clickedcommentid", clickedRootComment.getComment_id());
+        Log.d("veganaplz", "root");
         freshlyVotedComments.clear();
         clearList();
         if(PPAdapter != null) {
@@ -3347,8 +3369,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         mSwipeRefreshLayout.setRefreshing(true);
         parentCache.put(clickedRootComment.getComment_id(), clickedRootComment);
 
+        topicComment = clickedRootComment;
 
-        vsComments.add(0, clickedRootComment);
+        //vsComments.add(0, clickedRootComment);
         nodeMap.put(clickedRootComment.getComment_id(), new VSCNode(clickedRootComment));
 
         Runnable runnable = new Runnable() {
@@ -3370,7 +3393,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                 sortType = POPULAR;
                 nowLoading = false;
-                pageLevel = 1;
+                pageLevel = 0;
 
                 if(post == null){
                     post = subjectPost;
@@ -3419,7 +3442,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        setCommentsPage(clickedRootComment);
+                        setContent(post);
+                        //setCommentsPage(clickedRootComment);
                     }
                 });
             }
