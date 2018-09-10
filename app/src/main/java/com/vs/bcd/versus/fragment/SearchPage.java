@@ -1,8 +1,10 @@
 package com.vs.bcd.versus.fragment;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -13,6 +15,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -48,6 +51,7 @@ public class SearchPage extends Fragment {
     private int retrievalSize = 16;
     private int loadThreshold = 6;
     private boolean nowLoading = false;
+    private ProgressBar searchPB;
 
     private HashMap<String, Integer> profileImgVersions = new HashMap<>();
 
@@ -57,8 +61,8 @@ public class SearchPage extends Fragment {
         rootView = inflater.inflate(R.layout.search_page, container, false);
 
         postSearchResults = new ArrayList<>();
-
-        searchET = (EditText) rootView.findViewById(R.id.search_et);
+        searchPB = rootView.findViewById(R.id.search_pb);
+        searchET = rootView.findViewById(R.id.search_et);
 
         searchET.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -157,7 +161,9 @@ public class SearchPage extends Fragment {
     }
 
     public void executeSearch(final int fromIndex) {
-
+        if (postSearchResults != null && postSearchResults.isEmpty()) {
+            showPB();
+        }
 
         Runnable runnable = new Runnable() {
             public void run() {
@@ -240,6 +246,12 @@ public class SearchPage extends Fragment {
                 }
 
 
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        hidePB();
+                    }
+                });
 
             }
         };
@@ -270,6 +282,14 @@ public class SearchPage extends Fragment {
             }
         }
 
+    }
+
+    private void showPB(){
+        searchPB.setVisibility(View.VISIBLE);
+    }
+
+    private void hidePB(){
+        searchPB.setVisibility(View.GONE);
     }
 
     public MyAdapter getSearchResultsPostsAdapter(){
