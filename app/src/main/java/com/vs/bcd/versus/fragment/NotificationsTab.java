@@ -1248,6 +1248,8 @@ public class NotificationsTab extends Fragment {
         mFirebaseDatabaseReference.child(rPath).removeEventListener(rChangeListener);
         mFirebaseDatabaseReference.child(uPath).removeEventListener(uChangeListener);
         mFirebaseDatabaseReference.child(vPath).removeEventListener(vChangeListener);
+
+        mFirebaseDatabaseReference.child(pushNotificationPath).removeValue();
     }
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
