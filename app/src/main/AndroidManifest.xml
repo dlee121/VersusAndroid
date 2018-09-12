@@ -27,7 +27,7 @@
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@drawable/logo_v2_clear_splash" />
+            android:resource="@drawable/logo_clear_background" />
 
 
         <service
