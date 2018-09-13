@@ -1264,14 +1264,29 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             currentPostCard.leftPercentage.setVisibility(View.INVISIBLE);
             currentPostCard.rightPercentage.setVisibility(View.INVISIBLE);
             currentPostCard.graphBox.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT,0));
+
+            sortBackgroundLowerLP = (RelativeLayout.LayoutParams) currentPostCard.sortTypeBackground.getLayoutParams();
+            sortBackgroundLowerLP.addRule(RelativeLayout.BELOW, R.id.names);
+            currentPostCard.sortTypeBackground.setLayoutParams(sortBackgroundLowerLP);
+
+            sortSelectorLowerLP = (RelativeLayout.LayoutParams) currentPostCard.sortTypeSelector.getLayoutParams();
+            sortSelectorLowerLP.addRule(RelativeLayout.BELOW, R.id.names);
+            currentPostCard.sortTypeSelector.setLayoutParams(sortSelectorLowerLP);
         }
         else{
             PostCardTextOnlyViewHolder currentPostCard = (PostCardTextOnlyViewHolder) postCard;
             currentPostCard.leftPercentage.setVisibility(View.INVISIBLE);
             currentPostCard.rightPercentage.setVisibility(View.INVISIBLE);
             currentPostCard.graphBox.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT,0));
-        }
 
+            sortBackgroundLowerLP = (RelativeLayout.LayoutParams) currentPostCard.sortTypeBackground.getLayoutParams();
+            sortBackgroundLowerLP.addRule(RelativeLayout.BELOW, R.id.names);
+            currentPostCard.sortTypeBackground.setLayoutParams(sortBackgroundLowerLP);
+
+            sortSelectorLowerLP = (RelativeLayout.LayoutParams) currentPostCard.sortTypeSelector.getLayoutParams();
+            sortSelectorLowerLP.addRule(RelativeLayout.BELOW, R.id.names);
+            currentPostCard.sortTypeSelector.setLayoutParams(sortSelectorLowerLP);
+        }
 
     }
 
