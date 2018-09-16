@@ -160,41 +160,20 @@ public class StartScreen extends AppCompatActivity {
             @Override
             public void onSuccess(LoginResult loginResult) {
                 authToken = loginResult.getAccessToken().getToken();
+                try{
+                    final String authID = loginResult.getAccessToken().getUserId() + "_";
 
-                //TODO: display a progress bar while the GraphRequest and ES Query are working their magic
+                    Runnable runnable = new Runnable() {
+                        public void run() {
+                            logInOrSignUpUser(authID);
+                        }
+                    };
+                    Thread mythread = new Thread(runnable);
+                    mythread.start();
 
-                GraphRequest request = GraphRequest.newMeRequest(
-                        loginResult.getAccessToken(),
-                        new GraphRequest.GraphJSONObjectCallback() {
-                            @Override
-                            public void onCompleted(JSONObject object, GraphResponse response) {
-                                Log.v("facebookLogin", response.toString());
-
-                                try{
-                                    final String authID = object.getString("id") + "_";
-
-                                    Runnable runnable = new Runnable() {
-                                        public void run() {
-                                            logInOrSignUpUser(authID);
-                                        }
-                                    };
-                                    Thread mythread = new Thread(runnable);
-                                    mythread.start();
-
-                                }catch (Exception e){
-                                    e.printStackTrace();
-                                }
-
-                            }
-                        });
-                //Bundle parameters = new Bundle();
-                //parameters.putString("fields", "first_name,last_name,name");
-                //request.setParameters(parameters);
-                request.executeAsync();
-
-                Log.d("facebookLogin", "login success.");
-
-                //LoginManager.getInstance().logOut();
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
             }
 
             @Override
