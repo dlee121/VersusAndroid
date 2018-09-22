@@ -236,7 +236,7 @@ public class AuthUsernameInput extends Fragment {
 
 
     private void checkUsername(final String username, final int thisVersion) { //TODO: do this using Elasticsearch instead (so first we need to set up API gateway for that)
-        if(username.equals("deleted") || username.equals("ad")){
+        if(username.toLowerCase().equals("deleted") || username.toLowerCase().equals("ad")){
             hideProgressBar();
             etWarning.setTextColor(ContextCompat.getColor(activity,R.color.noticeRed));
             etWarning.setText(username + " is already taken!");
