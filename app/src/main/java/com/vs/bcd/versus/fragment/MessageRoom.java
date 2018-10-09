@@ -772,6 +772,7 @@ public class MessageRoom extends Fragment {
     }
 
     private void putImageInStorage(StorageReference storageReference, Uri uri, final String key) {
+        /*
         storageReference.putFile(uri).addOnCompleteListener(getActivity(),
                 new OnCompleteListener<UploadTask.TaskSnapshot>() {
                     @Override
@@ -822,6 +823,7 @@ public class MessageRoom extends Fragment {
                         }
                     }
                 });
+                */
     }
 
 

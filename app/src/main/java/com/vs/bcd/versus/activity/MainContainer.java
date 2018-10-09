@@ -55,6 +55,7 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.cognitoidentity.model.NotAuthorizedException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.appodeal.ads.Appodeal;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
 import com.auth0.android.jwt.JWT;
@@ -441,6 +442,8 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
 
         awsCredentialsSet = false;
 
+        String appKey = "f1c13d173fa6b6366b4c88a3a94b68ec201e9ca14ce75712";
+        Appodeal.initialize(this, appKey, Appodeal.NATIVE, true);
 
         /*
         initialAdLoaded = false;
