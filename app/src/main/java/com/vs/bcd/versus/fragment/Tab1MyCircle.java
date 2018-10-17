@@ -101,7 +101,7 @@ public class Tab1MyCircle extends Fragment implements SwipeRefreshLayout.OnRefre
                     LinearLayoutManager layoutManager = LinearLayoutManager.class.cast(recyclerView.getLayoutManager());
                     int lastVisible = layoutManager.findLastVisibleItemPosition();
 
-                    boolean endHasBeenReached = lastVisible + loadThreshold >= currCommentsIndex;  //TODO: increase the loadThreshold as we get more myCircleComments, but capping it at 5 is probably sufficient
+                    boolean endHasBeenReached = lastVisible + loadThreshold >= currCommentsIndex + adCount;  //TODO: increase the loadThreshold as we get more myCircleComments, but capping it at 5 is probably sufficient
                     if (currCommentsIndex > 0 && endHasBeenReached) {
                         //you have reached to the bottom of your recycler view
                         if (!nowLoading) {
@@ -230,28 +230,10 @@ public class Tab1MyCircle extends Fragment implements SwipeRefreshLayout.OnRefre
 
                             if(currCommentsIndex == nextAdIndex){
                                 VSComment adSkeleton = new VSComment();
-                                NativeAd nextAd = mHostActivity.getNextAd();
                                 nextAdIndex = currCommentsIndex + randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
-                                if(nextAd != null){
-                                    Log.d("adscheck", "ads loaded");
-                                    if(nextAd instanceof NativeAppInstallAd){
-                                        //adSkeleton.setCategory(NATIVE_APP_INSTALL_AD);
-                                        adSkeleton.setAuthor("adn");
-                                        adSkeleton.setNAI((NativeAppInstallAd) nextAd);
-                                        myCircleComments.add(adSkeleton);
-                                        adCount++;
-                                    }
-                                    else if(nextAd instanceof NativeContentAd){
-                                        //adSkeleton.setCategory(NATIVE_CONTENT_AD);
-                                        adSkeleton.setAuthor("adc");
-                                        adSkeleton.setNC((NativeContentAd) nextAd);
-                                        myCircleComments.add(adSkeleton);
-                                        adCount++;
-                                    }
-                                }
-                                else{
-                                    Log.d("adscheck", "ads not loaded");
-                                }
+                                adSkeleton.setAuthor("d0");
+                                myCircleComments.add(adSkeleton);
+                                adCount++;
                             }
 
                             PostInfo postInfo = postInfoMap.get(vsc.getPost_id());

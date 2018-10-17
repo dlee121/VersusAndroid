@@ -443,6 +443,10 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
         awsCredentialsSet = false;
 
         String appKey = "f1c13d173fa6b6366b4c88a3a94b68ec201e9ca14ce75712";
+        Appodeal.disableLocationPermissionCheck();
+        Appodeal.disableWriteExternalStoragePermissionCheck(); //this will disable video ads. perhaps change in the future.
+        //implement consent form like we do in iOS and use consent value if in EU, else true
+        //TODO: implement consent form and give actual value for hasConsent below
         Appodeal.initialize(this, appKey, Appodeal.NATIVE, true);
 
         /*

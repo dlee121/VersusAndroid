@@ -88,10 +88,8 @@ public class Post {
                 return "Technology";
             case 20:
                 return "Weapons";
-            case 42069:
-                return "NATIVE APP INSTALL AD";
             case 69420:
-                return "NATIVE CONTENT AD";
+                return "NATIVE AD";
             default:
                 return "N/A";
         }

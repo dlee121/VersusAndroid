@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.appodeal.ads.NativeAdView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="10dp"
+    android:layout_marginBottom="6dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/native_ad_icon"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginTop="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:src="@drawable/default_profile"
+            android:layout_marginStart="8dp"
+            android:layout_alignParentStart="true"/>
+
+        <TextView
+            android:id="@+id/native_ad_title"
+            android:scrollHorizontally="true"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:gravity="center|start"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            android:layout_marginTop="8dp"
+            android:text="Username"
+            android:textSize="@dimen/vcpc_titles"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_toEndOf="@id/native_ad_icon"/>
+
+        <TextView
+            android:id="@+id/native_ad_Ad"
+            android:layout_width="wrap_content"
+            android:layout_height="23dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginEnd="8dp"
+            android:layout_marginTop="14dp"
+            android:ellipsize="end"
+            android:gravity="center|end"
+            android:maxLines="1"
+            android:scrollHorizontally="true"
+            android:textSize="@dimen/vcpc_titles"
+            android:textColor="@color/white"
+            android:background="#454545"
+            android:text=" Ad " />
+
+        <RelativeLayout
+            android:id="@+id/adChoices_container"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            android:layout_marginTop="8dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true"
+            android:gravity="center_vertical|end"
+            android:layout_toEndOf="@id/native_ad_title"
+            android:layout_marginEnd="8dp" >
+        </RelativeLayout>
+
+        <TextView
+            android:id="@+id/native_ad_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/native_ad_icon"
+            android:layout_marginBottom="8dp"
+            android:text="Question"
+            android:textSize="@dimen/vcpc_titles"
+            android:textColor="#000000"
+            android:textAlignment="center" />
+
+        <ImageView
+            android:id="@+id/native_ad_image"
+            android:layout_below="@id/native_ad_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
+
+        <com.appodeal.ads.NativeMediaView
+            android:id="@+id/native_ad_media"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/native_ad_description"
+            android:visibility="gone">
+
+
+        </com.appodeal.ads.NativeMediaView>
+
+        <Button
+            android:id="@+id/native_ad_img_cta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/native_ad_image"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/native_ad_media_cta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/native_ad_media"
+            android:visibility="gone" />
+
+
+
+    </RelativeLayout>
+
+
+
+</com.appodeal.ads.NativeAdView>

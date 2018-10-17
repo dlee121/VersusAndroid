@@ -13,23 +13,15 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.RatingBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.ListPreloader;
 import com.bumptech.glide.RequestBuilder;
-import com.google.android.gms.ads.formats.NativeAd;
-import com.google.android.gms.ads.formats.NativeAppInstallAd;
-import com.google.android.gms.ads.formats.NativeAppInstallAdView;
-import com.google.android.gms.ads.formats.NativeContentAd;
-import com.google.android.gms.ads.formats.NativeContentAdView;
-import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.vs.bcd.api.model.PostModel;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.model.GlideApp;
-import com.vs.bcd.versus.model.GlideUrlCustom;
 import com.vs.bcd.versus.model.Post;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.model.VSComment;
@@ -46,8 +38,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements ListPreloader.PreloadModelProvider<VSComment>{
     private final int VIEW_TYPE_C = 1;
-    private final int NATIVE_APP_INSTALL_AD = 2;
-    private final int NATIVE_CONTENT_AD = 3;
+    private final int NATIVE_AD = 2;
     private final int VIEW_TYPE_LOADING = 4;
     private boolean isLoading;
     private MainContainer activity;
@@ -92,11 +83,8 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             Log.d("hey", "this happens?");
             return VIEW_TYPE_LOADING;
         }
-        if(comment.getAuthor().equals("adn")){
-            return NATIVE_APP_INSTALL_AD;
-        }
-        if(comment.getAuthor().equals("adc")){
-            return NATIVE_APP_INSTALL_AD;
+        if(comment.getAuthor().equals("d0")){
+            return NATIVE_AD;
         }
         return VIEW_TYPE_C;
     }
@@ -106,17 +94,13 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         if (viewType == VIEW_TYPE_C){
             View view = LayoutInflater.from(activity).inflate(R.layout.card_newsfeed, parent, false);
             return new NewsfeedViewHolder(view);
-        } else if (viewType == NATIVE_APP_INSTALL_AD){
-            View view = LayoutInflater.from(activity).inflate(R.layout.adview_native_app_install, parent, false);
-            return new NAIAdViewHolder(view);
-        } else if (viewType == NATIVE_CONTENT_AD){
-            View view = LayoutInflater.from(activity).inflate(R.layout.adview_native_content, parent, false);
-            return new NCAdViewHolder(view);
-        } else if (viewType == VIEW_TYPE_LOADING) {
+        } else if (viewType == NATIVE_AD){
+            View view = LayoutInflater.from(activity).inflate(R.layout.native_ad_post, parent, false); //TODO: perhaps change to native_ad_mycircle.xml
+            return new NativeAdViewHolder(view);
+        } else {
             View view = LayoutInflater.from(activity).inflate(R.layout.item_loading, parent, false);
             return new LoadingViewHolder(view);
         }
-        return null;
     }
 
     @Override
@@ -307,76 +291,9 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         }
 
-        else if(holder instanceof NAIAdViewHolder){
+        else if(holder instanceof NativeAdViewHolder){
 
             VSComment adSkeleton = comments.get(position);
-            NativeAppInstallAd nativeAppInstallAd = adSkeleton.getNAI();
-
-            NAIAdViewHolder naiAdViewHolder = (NAIAdViewHolder) holder;
-
-            naiAdViewHolder.iconView.setImageDrawable(nativeAppInstallAd.getIcon().getDrawable());
-            naiAdViewHolder.headlineView.setText(nativeAppInstallAd.getHeadline());
-            naiAdViewHolder.bodyView.setText(nativeAppInstallAd.getBody());
-            naiAdViewHolder.callToActionView.setText(nativeAppInstallAd.getCallToAction());
-
-            List<NativeAd.Image> images = nativeAppInstallAd.getImages();
-            if (images.size() > 0) {
-                naiAdViewHolder.imageView.setImageDrawable(images.get(0).getDrawable());
-            }
-
-            if (nativeAppInstallAd.getPrice() == null) {
-                naiAdViewHolder.priceView.setVisibility(View.INVISIBLE);
-            } else {
-                naiAdViewHolder.priceView.setVisibility(View.VISIBLE);
-                naiAdViewHolder.priceView.setText(nativeAppInstallAd.getPrice());
-            }
-
-            if (nativeAppInstallAd.getStore() == null) {
-                naiAdViewHolder.storeView.setVisibility(View.INVISIBLE);
-            } else {
-                naiAdViewHolder.storeView.setVisibility(View.VISIBLE);
-                naiAdViewHolder.storeView.setText(nativeAppInstallAd.getStore());
-            }
-
-            if (nativeAppInstallAd.getStarRating() == null) {
-                naiAdViewHolder.starsView.setVisibility(View.INVISIBLE);
-            } else {
-                naiAdViewHolder.starsView.setRating(nativeAppInstallAd.getStarRating().floatValue());
-                naiAdViewHolder.starsView.setVisibility(View.VISIBLE);
-            }
-
-            naiAdViewHolder.nativeAppInstallAdView.setNativeAd(nativeAppInstallAd);
-
-        }
-
-        else if(holder instanceof NCAdViewHolder){
-
-            VSComment adSkeleton = comments.get(position);
-            NativeContentAd nativeContentAd = adSkeleton.getNC();
-
-            NCAdViewHolder ncAdViewHolder = (NCAdViewHolder) holder;
-
-            ncAdViewHolder.headlineView.setText(nativeContentAd.getHeadline());
-            ncAdViewHolder.bodyView.setText(nativeContentAd.getBody());
-            ncAdViewHolder.callToActionView.setText(nativeContentAd.getCallToAction());
-            ncAdViewHolder.advertiserView.setText(nativeContentAd.getAdvertiser());
-
-            List<NativeAd.Image> images = nativeContentAd.getImages();
-
-            if (images.size() > 0) {
-                ncAdViewHolder.imageView.setImageDrawable(images.get(0).getDrawable());
-            }
-
-            NativeAd.Image logoImage = nativeContentAd.getLogo();
-
-            if (logoImage == null) {
-                ncAdViewHolder.logoView.setVisibility(View.INVISIBLE);
-            } else {
-                ncAdViewHolder.logoView.setImageDrawable(logoImage.getDrawable());
-                ncAdViewHolder.logoView.setVisibility(View.VISIBLE);
-            }
-
-            ncAdViewHolder.nativeContentAdView.setNativeAd(nativeContentAd);
 
 
         }
@@ -442,101 +359,21 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
     }
 
-    private class NCAdViewHolder extends RecyclerView.ViewHolder{
-        NativeContentAdView nativeContentAdView;
+    private class NativeAdViewHolder extends RecyclerView.ViewHolder{
         ImageView logoView, imageView;
         TextView advertiserView, headlineView, bodyView, callToActionView;
 
-        public NCAdViewHolder(View view){
+        public NativeAdViewHolder(View view){
             super(view);
-            nativeContentAdView = view.findViewById(R.id.nc_adview);
 
-            logoView = nativeContentAdView.findViewById(R.id.nc_logo_view);
-            nativeContentAdView.setLogoView(logoView);
-
-            imageView = nativeContentAdView.findViewById(R.id.nc_image_view);
-            nativeContentAdView.setImageView(imageView);
-
-            advertiserView = nativeContentAdView.findViewById(R.id.nc_advertiser_view);
-            nativeContentAdView.setAdvertiserView(advertiserView);
-
-            headlineView = nativeContentAdView.findViewById(R.id.nc_headline_view);
-            nativeContentAdView.setHeadlineView(headlineView);
-
-            bodyView = nativeContentAdView.findViewById(R.id.nc_body_view);
-            nativeContentAdView.setBodyView(bodyView);
-
-            callToActionView = nativeContentAdView.findViewById(R.id.nc_call_to_action);
-            nativeContentAdView.setCallToActionView(callToActionView);
         }
     }
 
-    private class NAIAdViewHolder extends RecyclerView.ViewHolder{
-        NativeAppInstallAdView nativeAppInstallAdView;
-        ImageView iconView, imageView;
-        TextView headlineView, bodyView, priceView, storeView;
-        Button callToActionView;
-        RatingBar starsView;
 
-        public NAIAdViewHolder(View view){
-            super(view);
-            nativeAppInstallAdView = view.findViewById(R.id.nai_adview);
-
-            iconView = nativeAppInstallAdView.findViewById(R.id.nai_icon_view);
-            nativeAppInstallAdView.setIconView(iconView);
-
-            imageView = nativeAppInstallAdView.findViewById(R.id.nai_image_view);
-            nativeAppInstallAdView.setImageView(imageView);
-
-            headlineView = nativeAppInstallAdView.findViewById(R.id.nai_headline_view);
-            nativeAppInstallAdView.setHeadlineView(headlineView);
-
-            bodyView = nativeAppInstallAdView.findViewById(R.id.nai_body_view);
-            nativeAppInstallAdView.setBodyView(bodyView);
-
-            priceView = nativeAppInstallAdView.findViewById(R.id.nai_price_view);
-            nativeAppInstallAdView.setPriceView(priceView);
-
-            storeView = nativeAppInstallAdView.findViewById(R.id.nai_store_view);
-            nativeAppInstallAdView.setStoreView(storeView);
-
-            callToActionView = nativeAppInstallAdView.findViewById(R.id.nai_call_to_action);
-            nativeAppInstallAdView.setCallToActionView(callToActionView);
-
-            starsView = nativeAppInstallAdView.findViewById(R.id.nai_stars_view);
-            nativeAppInstallAdView.setStarRatingView(starsView);
-        }
-    }
 
     public void clearList(){
         comments.clear();
         notifyDataSetChanged();
-    }
-
-    private void getGAID() {
-        Runnable runnable = new Runnable() {
-            public void run() {
-                AdvertisingIdClient.Info adInfo;
-                adInfo = null;
-                try {
-                    adInfo = AdvertisingIdClient.getAdvertisingIdInfo(activity.getApplicationContext());
-                    if (adInfo == null || adInfo.isLimitAdTrackingEnabled()) { // check if user has opted out of tracking
-                        GAID = "N/A";
-                    }
-                    else{
-                        GAID = adInfo.getId();
-                    }
-
-                    gaidWait = false;
-
-                } catch (Throwable e) {
-                    gaidWait = false;
-                    e.printStackTrace();
-                }
-            }
-        };
-        Thread mythread = new Thread(runnable);
-        mythread.start();
     }
 
     private String getFormattedTime(String timestring){

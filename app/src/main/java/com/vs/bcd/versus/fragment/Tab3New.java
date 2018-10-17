@@ -70,8 +70,7 @@ public class Tab3New extends Fragment implements SwipeRefreshLayout.OnRefreshLis
     private int randomNumberMin = 10;
     private int randomNumberMax = 15;
 
-    private int NATIVE_APP_INSTALL_AD = 42069;
-    private int NATIVE_CONTENT_AD = 69420;
+    private int NATIVE_AD = 69420;
 
     private int currPostsIndex = 0;
     private Random randomNumber = new Random();
@@ -120,7 +119,7 @@ public class Tab3New extends Fragment implements SwipeRefreshLayout.OnRefreshLis
                     LinearLayoutManager layoutManager = LinearLayoutManager.class.cast(recyclerView.getLayoutManager());
                     int lastVisible = layoutManager.findLastVisibleItemPosition();
 
-                    boolean endHasBeenReached = lastVisible + loadThreshold >= currPostsIndex;  //TODO: increase the loadThreshold as we get more posts, but capping it at 5 is probably sufficient
+                    boolean endHasBeenReached = lastVisible + loadThreshold >= currPostsIndex + adCount;  //TODO: increase the loadThreshold as we get more posts, but capping it at 5 is probably sufficient
                     if (currPostsIndex > 0 && endHasBeenReached) {
                         //you have reached to the bottom of your recycler view
                         if (!nowLoading) {
@@ -253,26 +252,10 @@ public class Tab3New extends Fragment implements SwipeRefreshLayout.OnRefreshLis
 
                             if(currPostsIndex == nextAdIndex){
                                 Post adSkeleton = new Post();
-                                NativeAd nextAd = mHostActivity.getNextAd();
                                 nextAdIndex = currPostsIndex + randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
-                                if(nextAd != null){
-                                    Log.d("adscheck", "ads loaded");
-                                    if(nextAd instanceof NativeAppInstallAd){
-                                        adSkeleton.setCategory(NATIVE_APP_INSTALL_AD);
-                                        adSkeleton.setNAI((NativeAppInstallAd) nextAd);
-                                        posts.add(adSkeleton);
-                                        adCount++;
-                                    }
-                                    else if(nextAd instanceof NativeContentAd){
-                                        adSkeleton.setCategory(NATIVE_CONTENT_AD);
-                                        adSkeleton.setNC((NativeContentAd) nextAd);
-                                        posts.add(adSkeleton);
-                                        adCount++;
-                                    }
-                                }
-                                else{
-                                    Log.d("adscheck", "ads not loaded");
-                                }
+                                adSkeleton.setCategory(NATIVE_AD);
+                                posts.add(adSkeleton);
+                                adCount++;
                             }
 
                             //add username to parameter string, then at loop finish we do multiget of those users and create hashmap of username:profileImgVersion
