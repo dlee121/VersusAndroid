@@ -227,7 +227,6 @@ public class Tab1MyCircle extends Fragment implements SwipeRefreshLayout.OnRefre
                             VSComment vsc = new VSComment(source, id0);
                             myCircleComments.add(vsc);
                             currCommentsIndex++;
-
                             if(currCommentsIndex == nextAdIndex){
                                 VSComment adSkeleton = new VSComment();
                                 nextAdIndex = currCommentsIndex + randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
@@ -258,28 +257,10 @@ public class Tab1MyCircle extends Fragment implements SwipeRefreshLayout.OnRefre
 
                                 if(currCommentsIndex == nextAdIndex){
                                     VSComment adSkeleton = new VSComment();
-                                    NativeAd nextAd = mHostActivity.getNextAd();
                                     nextAdIndex = currCommentsIndex + randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
-                                    if(nextAd != null){
-                                        Log.d("adscheck", "ads loaded");
-                                        if(nextAd instanceof NativeAppInstallAd){
-                                            //adSkeleton.setCategory(NATIVE_APP_INSTALL_AD);
-                                            adSkeleton.setAuthor("adn");
-                                            adSkeleton.setNAI((NativeAppInstallAd) nextAd);
-                                            myCircleComments.add(adSkeleton);
-                                            adCount++;
-                                        }
-                                        else if(nextAd instanceof NativeContentAd){
-                                            //adSkeleton.setCategory(NATIVE_CONTENT_AD);
-                                            adSkeleton.setAuthor("adc");
-                                            adSkeleton.setNC((NativeContentAd) nextAd);
-                                            myCircleComments.add(adSkeleton);
-                                            adCount++;
-                                        }
-                                    }
-                                    else{
-                                        Log.d("adscheck", "ads not loaded");
-                                    }
+                                    adSkeleton.setAuthor("d0");
+                                    myCircleComments.add(adSkeleton);
+                                    adCount++;
                                 }
 
                                 if(postInfoMap.get(vsc.getPost_id()) == null){

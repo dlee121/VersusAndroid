@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="10dp"
-    android:layout_marginBottom="6dp">
+    android:layout_marginBottom="6dp"
+    android:background="#FFFFFF">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -75,6 +76,8 @@
             android:textColor="#000000"
             android:textAlignment="center" />
 
+        <!--
+
         <ImageView
             android:id="@+id/native_ad_image"
             android:layout_below="@id/native_ad_description"
@@ -82,15 +85,6 @@
             android:layout_height="wrap_content"
             android:visibility="gone" />
 
-        <com.appodeal.ads.NativeMediaView
-            android:id="@+id/native_ad_media"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/native_ad_description"
-            android:visibility="gone">
-
-
-        </com.appodeal.ads.NativeMediaView>
 
         <Button
             android:id="@+id/native_ad_img_cta"
@@ -99,12 +93,20 @@
             android:layout_below="@id/native_ad_image"
             android:visibility="gone" />
 
+        -->
+
+        <com.appodeal.ads.NativeMediaView
+            android:id="@+id/native_ad_media"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/native_ad_description">
+        </com.appodeal.ads.NativeMediaView>
+
         <Button
             android:id="@+id/native_ad_media_cta"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/native_ad_media"
-            android:visibility="gone" />
+            android:layout_below="@id/native_ad_media" />
 
 
 

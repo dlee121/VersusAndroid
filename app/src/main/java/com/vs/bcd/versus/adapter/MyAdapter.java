@@ -9,6 +9,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -16,9 +18,14 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.appodeal.ads.Native;
+import com.appodeal.ads.NativeAd;
+import com.appodeal.ads.NativeAdView;
+import com.appodeal.ads.NativeMediaView;
 import com.bumptech.glide.ListPreloader;
 import com.bumptech.glide.RequestBuilder;
 import com.vs.bcd.api.model.PostModel;
+import com.vs.bcd.versus.activity.MainActivity;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.model.GlideApp;
 import com.vs.bcd.versus.model.GlideUrlCustom;
@@ -322,7 +329,34 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
         }
 
         else if(holder instanceof NativeAdViewHolder){
-            Post adSkeleton = posts.get(position);
+            NativeAdViewHolder nativeAdViewHolder = (NativeAdViewHolder) holder;
+            nativeAdViewHolder.adTitle.setText("test title");
+
+            NativeAd nativeAd = activity.getNativeAd();
+            if (nativeAd != null) {
+                nativeAdViewHolder.adIcon.setImageBitmap(nativeAd.getIcon());
+                nativeAdViewHolder.adTitle.setText(nativeAd.getTitle());
+                View providerView = nativeAd.getProviderView(activity);
+                if (providerView != null) {
+                    nativeAdViewHolder.adAdLabel.setVisibility(View.GONE);
+                    nativeAdViewHolder.adChoicesContainer.setVisibility(View.VISIBLE);
+                    nativeAdViewHolder.adChoicesContainer.addView(providerView);
+                }
+                else {
+                    nativeAdViewHolder.adAdLabel.setVisibility(View.VISIBLE);
+                    nativeAdViewHolder.adChoicesContainer.setVisibility(View.GONE);
+                }
+                nativeAdViewHolder.adDescription.setText(nativeAd.getDescription());
+                nativeAdViewHolder.nativeAdView.setNativeMediaView(nativeAdViewHolder.nativeMediaView);
+                nativeAdViewHolder.adMediaCTA.setText(nativeAd.getCallToAction());
+
+                nativeAdViewHolder.nativeAdView.registerView(nativeAd);
+
+            }
+            else {
+                //collapse this nativeAdViewHolder since an ad for it isn't available yet
+                nativeAdViewHolder.nativeAdView.setVisibility(View.GONE);
+            }
 
         }
 
@@ -414,6 +448,15 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
                 }
             });
 
+        }
+    }
+
+    @Override
+    public void onViewRecycled(RecyclerView.ViewHolder holder) {
+        super.onViewRecycled(holder);
+
+        if (holder instanceof NativeAdViewHolder) {
+            ((NativeAdViewHolder) holder).unregisterViewForInteraction();
         }
     }
 
@@ -524,13 +567,28 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
         }
     }
 
-    private class NativeAdViewHolder extends RecyclerView.ViewHolder{
-        ImageView logoView, imageView;
-        TextView advertiserView, headlineView, bodyView, callToActionView;
+    private class NativeAdViewHolder extends RecyclerView.ViewHolder {
+        NativeAdView nativeAdView;
+        CircleImageView adIcon;
+        TextView adTitle, adAdLabel, adDescription;
+        RelativeLayout adChoicesContainer;
+        NativeMediaView nativeMediaView;
+        Button adMediaCTA;
 
         public NativeAdViewHolder(View view){
             super(view);
+            nativeAdView = (NativeAdView) view;
+            adIcon = view.findViewById(R.id.native_ad_icon);
+            adTitle = view.findViewById(R.id.native_ad_title);
+            adAdLabel = view.findViewById(R.id.native_ad_Ad);
+            adDescription = view.findViewById(R.id.native_ad_description);
+            adChoicesContainer = view.findViewById(R.id.adChoices_container);
+            nativeMediaView = view.findViewById(R.id.native_ad_media);
+            adMediaCTA = view.findViewById(R.id.native_ad_media_cta);
+        }
 
+        void unregisterViewForInteraction() {
+            nativeAdView.unregisterViewForInteraction();
         }
     }
 

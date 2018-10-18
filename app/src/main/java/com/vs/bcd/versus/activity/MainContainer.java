@@ -56,12 +56,12 @@ import com.amazonaws.services.cognitoidentity.model.NotAuthorizedException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.appodeal.ads.Appodeal;
+import com.appodeal.ads.NativeAd;
+import com.appodeal.ads.NativeCallbacks;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
 import com.auth0.android.jwt.JWT;
 import com.facebook.login.LoginManager;
-import com.google.android.gms.ads.AdLoader;
-import com.google.android.gms.ads.formats.NativeAd;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -118,6 +118,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -216,7 +217,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
 
     private String admobID = "ca-app-pub-3940256099942544/2247696110"; //TODO: change to actual adMob ID
 
-    private AdLoader adLoader;
+    //private AdLoader adLoader;
     private Date bday;
 
     private ArrayList<String> followingUsernames = new ArrayList<>();
@@ -442,12 +443,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
 
         awsCredentialsSet = false;
 
-        String appKey = "f1c13d173fa6b6366b4c88a3a94b68ec201e9ca14ce75712";
-        Appodeal.disableLocationPermissionCheck();
-        Appodeal.disableWriteExternalStoragePermissionCheck(); //this will disable video ads. perhaps change in the future.
-        //implement consent form like we do in iOS and use consent value if in EU, else true
-        //TODO: implement consent form and give actual value for hasConsent below
-        Appodeal.initialize(this, appKey, Appodeal.NATIVE, true);
+        initializeNativeAds();
 
         /*
         initialAdLoaded = false;
@@ -2752,8 +2748,8 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
         return client;
     }
 
+    /*
     private void loadNativeAds(){
-        /*
         Log.d("initialQuery", "loadNativeAds called");
         if(adLoader.isLoading()){
             return;
@@ -2766,12 +2762,11 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
         else{
             adLoader.loadAds(new AdRequest.Builder().setBirthday(bday).build(), retrievalCount);
         }
-        */
     }
-
+    */
+    /*
     public NativeAd getNextAd(){
-        return null; //TODO: until we get ads set up, this keeps the app running smoothly
-        /*
+
         if(nativeAds == null){
             nativeAds = new ArrayList<>();
         }
@@ -2786,8 +2781,9 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
             }
             return nextAd;
         }
-        */
+
     }
+    */
 
     public Post getCurrentPost(){
         return getPostPage().getCurrentPost();
@@ -3449,5 +3445,59 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
     public void setTab3CategoryFilter(int selection, int iconResID, String name){
         mainActivityFragRef.getTab3().setCategorySelection(selection, iconResID, name);
     }
+
+    public void initializeNativeAds() {
+        Appodeal.setAutoCacheNativeIcons(true);
+        Appodeal.setAutoCacheNativeMedia(false);
+        String appKey = "f1c13d173fa6b6366b4c88a3a94b68ec201e9ca14ce75712";
+        Appodeal.disableLocationPermissionCheck();
+        Appodeal.disableWriteExternalStoragePermissionCheck(); //this will disable video ads. perhaps change in the future.
+
+        //implement consent form like we do in iOS and use consent value if in EU, else true
+        //TODO: implement consent form and give actual value for hasConsent below
+        Appodeal.initialize(this, appKey, Appodeal.NATIVE, true);
+        Appodeal.setNativeCallbacks(new NativeCallbacks() {
+            @Override
+            public void onNativeLoaded() {
+                Toast.makeText(MainContainer.this, "onNativeLoaded", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onNativeFailedToLoad() {
+                Toast.makeText(MainContainer.this, "onNativeFailedToLoad", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onNativeShown(NativeAd nativeAd) {
+                Toast.makeText(MainContainer.this, "onNativeShown", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onNativeClicked(NativeAd nativeAd) {
+                Toast.makeText(MainContainer.this, "onNativeClicked", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onNativeExpired() {
+                Toast.makeText(MainContainer.this, "onNativeExpired", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        Appodeal.cache(this, Appodeal.NATIVE);
+    }
+
+    public NativeAd getNativeAd() {
+        List<NativeAd> adsList = Appodeal.getNativeAds(1);
+        if (adsList.size() > 0) {
+            Appodeal.cache(this, Appodeal.NATIVE);
+            return adsList.get(0);
+        }
+        else {
+            Appodeal.cache(this, Appodeal.NATIVE);
+            return null;
+        }
+    }
+
+
 
 }
