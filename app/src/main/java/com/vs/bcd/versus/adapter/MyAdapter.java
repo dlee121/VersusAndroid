@@ -330,7 +330,6 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
 
         else if(holder instanceof NativeAdViewHolder){
             NativeAdViewHolder nativeAdViewHolder = (NativeAdViewHolder) holder;
-            nativeAdViewHolder.adTitle.setText("test title");
 
             NativeAd nativeAd = activity.getNativeAd();
             if (nativeAd != null) {
@@ -351,7 +350,6 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
                 nativeAdViewHolder.adMediaCTA.setText(nativeAd.getCallToAction());
 
                 nativeAdViewHolder.nativeAdView.registerView(nativeAd);
-
             }
             else {
                 //collapse this nativeAdViewHolder since an ad for it isn't available yet
@@ -456,7 +454,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
         super.onViewRecycled(holder);
 
         if (holder instanceof NativeAdViewHolder) {
-            ((NativeAdViewHolder) holder).unregisterViewForInteraction();
+            ((NativeAdViewHolder) holder).nativeAdView.unregisterViewForInteraction();
         }
     }
 
@@ -585,10 +583,6 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> imp
             adChoicesContainer = view.findViewById(R.id.adChoices_container);
             nativeMediaView = view.findViewById(R.id.native_ad_media);
             adMediaCTA = view.findViewById(R.id.native_ad_media_cta);
-        }
-
-        void unregisterViewForInteraction() {
-            nativeAdView.unregisterViewForInteraction();
         }
     }
 

@@ -17,6 +17,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.appodeal.ads.NativeAd;
 import com.appodeal.ads.NativeAdView;
 import com.appodeal.ads.NativeMediaView;
 import com.bumptech.glide.ListPreloader;
@@ -294,11 +295,32 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
 
         else if(holder instanceof NativeAdViewHolder){
-            VSComment adSkeleton = comments.get(position);
             NativeAdViewHolder nativeAdViewHolder = (NativeAdViewHolder) holder;
-            nativeAdViewHolder.adTitle.setText("test title");
 
+            NativeAd nativeAd = activity.getNativeAd();
+            if (nativeAd != null) {
+                nativeAdViewHolder.adIcon.setImageBitmap(nativeAd.getIcon());
+                nativeAdViewHolder.adTitle.setText(nativeAd.getTitle());
+                View providerView = nativeAd.getProviderView(activity);
+                if (providerView != null) {
+                    nativeAdViewHolder.adAdLabel.setVisibility(View.GONE);
+                    nativeAdViewHolder.adChoicesContainer.setVisibility(View.VISIBLE);
+                    nativeAdViewHolder.adChoicesContainer.addView(providerView);
+                }
+                else {
+                    nativeAdViewHolder.adAdLabel.setVisibility(View.VISIBLE);
+                    nativeAdViewHolder.adChoicesContainer.setVisibility(View.GONE);
+                }
+                nativeAdViewHolder.adDescription.setText(nativeAd.getDescription());
+                nativeAdViewHolder.nativeAdView.setNativeMediaView(nativeAdViewHolder.nativeMediaView);
+                nativeAdViewHolder.adMediaCTA.setText(nativeAd.getCallToAction());
 
+                nativeAdViewHolder.nativeAdView.registerView(nativeAd);
+            }
+            else {
+                //collapse this nativeAdViewHolder since an ad for it isn't available yet
+                nativeAdViewHolder.nativeAdView.setVisibility(View.GONE);
+            }
 
         }
     }
@@ -308,7 +330,7 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         super.onViewRecycled(holder);
 
         if (holder instanceof NativeAdViewHolder) {
-            ((NativeAdViewHolder) holder).unregisterViewForInteraction();
+            ((NativeAdViewHolder) holder).nativeAdView.unregisterViewForInteraction();
         }
     }
 
@@ -390,10 +412,6 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             adChoicesContainer = view.findViewById(R.id.adChoices_container);
             nativeMediaView = view.findViewById(R.id.native_ad_media);
             adMediaCTA = view.findViewById(R.id.native_ad_media_cta);
-        }
-
-        void unregisterViewForInteraction() {
-            nativeAdView.unregisterViewForInteraction();
         }
     }
 
