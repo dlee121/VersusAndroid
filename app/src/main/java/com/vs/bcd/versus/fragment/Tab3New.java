@@ -125,7 +125,7 @@ public class Tab3New extends Fragment implements SwipeRefreshLayout.OnRefreshLis
                         if (!nowLoading) {
                             nowLoading = true;
                             Log.d("loadmore", "now loading more");
-                            newsfeedESQuery(currPostsIndex);
+                            newsfeedESQuery(currPostsIndex + adCount);
                         }
                     }
                 }

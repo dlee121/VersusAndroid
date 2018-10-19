@@ -3449,6 +3449,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
     public void initializeNativeAds() {
         Appodeal.setAutoCacheNativeIcons(true);
         Appodeal.setAutoCacheNativeMedia(false);
+        Appodeal.setLogLevel(com.appodeal.ads.utils.Log.LogLevel.verbose);
         String appKey = "f1c13d173fa6b6366b4c88a3a94b68ec201e9ca14ce75712";
         Appodeal.disableLocationPermissionCheck();
         Appodeal.disableWriteExternalStoragePermissionCheck(); //this will disable video ads. perhaps change in the future.

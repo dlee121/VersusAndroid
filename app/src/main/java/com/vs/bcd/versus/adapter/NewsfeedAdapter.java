@@ -299,27 +299,11 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
             NativeAd nativeAd = activity.getNativeAd();
             if (nativeAd != null) {
-                nativeAdViewHolder.adIcon.setImageBitmap(nativeAd.getIcon());
-                nativeAdViewHolder.adTitle.setText(nativeAd.getTitle());
-                View providerView = nativeAd.getProviderView(activity);
-                if (providerView != null) {
-                    nativeAdViewHolder.adAdLabel.setVisibility(View.GONE);
-                    nativeAdViewHolder.adChoicesContainer.setVisibility(View.VISIBLE);
-                    nativeAdViewHolder.adChoicesContainer.addView(providerView);
-                }
-                else {
-                    nativeAdViewHolder.adAdLabel.setVisibility(View.VISIBLE);
-                    nativeAdViewHolder.adChoicesContainer.setVisibility(View.GONE);
-                }
-                nativeAdViewHolder.adDescription.setText(nativeAd.getDescription());
-                nativeAdViewHolder.nativeAdView.setNativeMediaView(nativeAdViewHolder.nativeMediaView);
-                nativeAdViewHolder.adMediaCTA.setText(nativeAd.getCallToAction());
-
-                nativeAdViewHolder.nativeAdView.registerView(nativeAd);
+                nativeAdViewHolder.showNativeAd(nativeAd);
             }
             else {
                 //collapse this nativeAdViewHolder since an ad for it isn't available yet
-                nativeAdViewHolder.nativeAdView.setVisibility(View.GONE);
+                //nativeAdViewHolder.nativeAdView.setVisibility(View.GONE);
             }
 
         }
@@ -402,7 +386,7 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         NativeMediaView nativeMediaView;
         Button adMediaCTA;
 
-        public NativeAdViewHolder(View view){
+        NativeAdViewHolder(View view){
             super(view);
             nativeAdView = (NativeAdView) view;
             adIcon = view.findViewById(R.id.native_ad_icon);
@@ -412,6 +396,37 @@ public class NewsfeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             adChoicesContainer = view.findViewById(R.id.adChoices_container);
             nativeMediaView = view.findViewById(R.id.native_ad_media);
             adMediaCTA = view.findViewById(R.id.native_ad_media_cta);
+        }
+
+        void showNativeAd(NativeAd nativeAd) {
+            adIcon.setImageBitmap(nativeAd.getIcon());
+            nativeAdView.setIconView(adIcon);
+
+            adTitle.setText(nativeAd.getTitle());
+            nativeAdView.setTitleView(adTitle);
+
+            View providerView = nativeAd.getProviderView(activity);
+            if (providerView != null) {
+                adAdLabel.setVisibility(View.GONE);
+                adChoicesContainer.setVisibility(View.VISIBLE);
+                adChoicesContainer.addView(providerView);
+            }
+            else {
+                adAdLabel.setVisibility(View.VISIBLE);
+                adChoicesContainer.setVisibility(View.GONE);
+            }
+            nativeAdView.setProviderView(providerView);
+
+            adDescription.setText(nativeAd.getDescription());
+            nativeAdView.setDescriptionView(adDescription);
+
+            nativeAdView.setNativeMediaView(nativeMediaView);
+
+            adMediaCTA.setText(nativeAd.getCallToAction());
+            nativeAdView.setCallToActionView(adMediaCTA);
+
+            nativeAdView.registerView(nativeAd);
+            nativeAdView.setVisibility(View.VISIBLE);
         }
     }
 

@@ -128,7 +128,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                         if (!nowLoading) {
                             nowLoading = true;
                             Log.d("loadmore", "now loading more");
-                            trendingESQuery(currPostsIndex);
+                            trendingESQuery(currPostsIndex + adCount);
                         }
                     }
                 }

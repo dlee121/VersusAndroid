@@ -107,7 +107,7 @@ public class Tab1MyCircle extends Fragment implements SwipeRefreshLayout.OnRefre
                         if (!nowLoading) {
                             nowLoading = true;
                             Log.d("loadmore", "now loading more");
-                            newsfeedESQuery(currCommentsIndex);
+                            newsfeedESQuery(currCommentsIndex + adCount);
                         }
                     }
                 }
@@ -239,7 +239,7 @@ public class Tab1MyCircle extends Fragment implements SwipeRefreshLayout.OnRefre
                             if(postInfo != null){
                                 myCircleComments.get(fromIndex).setAQRCBC(postInfo.getA(), postInfo.getQ(), postInfo.getRc(), postInfo.getBc());
                             }
-                            else{
+                            else {
                                 addPostAQ(false, vsc.getPost_id(), fromIndex);
                             }
 
@@ -276,13 +276,16 @@ public class Tab1MyCircle extends Fragment implements SwipeRefreshLayout.OnRefre
                             }
                             if(strBuilder.length() > 0){
                                 String postIDs = "{\"ids\":["+strBuilder.toString()+"]}";
+                                Log.d("postidsayy", postIDs);
                                 addPostAQ(true, postIDs, fromIndex);
                             }
                             else{
                                 PostInfo postInfo;
                                 for (int j = fromIndex; j< myCircleComments.size(); j++){
                                     postInfo = postInfoMap.get(myCircleComments.get(j).getPost_id());
-                                    myCircleComments.get(j).setAQRCBC(postInfo.getA(), postInfo.getQ(), postInfo.getRc(), postInfo.getBc());
+                                    if (postInfo != null) {
+                                        myCircleComments.get(j).setAQRCBC(postInfo.getA(), postInfo.getQ(), postInfo.getRc(), postInfo.getBc());
+                                    }
                                 }
                             }
                         }
@@ -412,32 +415,35 @@ public class Tab1MyCircle extends Fragment implements SwipeRefreshLayout.OnRefre
                 PostInfo postInfo;
                 for (int j = fromIndex; j< myCircleComments.size(); j++){
                     postInfo = postInfoMap.get(myCircleComments.get(j).getPost_id());
-                    String commentAuthor = myCircleComments.get(j).getAuthor();
-                    if(postInfo.getA() == null || postInfo.getQ() == null){
-                        myCircleComments.get(j).setAQRCBC("", "", 0, 0);
-                    }
-                    else{
-                        myCircleComments.get(j).setAQRCBC(postInfo.getA(), postInfo.getQ(), postInfo.getRc(), postInfo.getBc());
-                    }
 
-                    if(!postInfo.getA().equals("deleted") && profileImgVersions.get(postInfo.getA().toLowerCase()) == null){
-                        if(i == 0){
-                            strBuilder.append("\""+postInfo.getA()+"\"");
+                    if (postInfo != null) {
+                        String commentAuthor = myCircleComments.get(j).getAuthor();
+                        if(postInfo.getA() == null || postInfo.getQ() == null){
+                            myCircleComments.get(j).setAQRCBC("", "", 0, 0);
                         }
                         else{
-                            strBuilder.append(",\""+postInfo.getA()+"\"");
+                            myCircleComments.get(j).setAQRCBC(postInfo.getA(), postInfo.getQ(), postInfo.getRc(), postInfo.getBc());
                         }
-                        i++;
-                    }
 
-                    if(!commentAuthor.equals("deleted") && profileImgVersions.get(commentAuthor.toLowerCase()) == null){
-                        if(i == 0){
-                            strBuilder.append("\""+commentAuthor+"\"");
+                        if(!postInfo.getA().equals("deleted") && profileImgVersions.get(postInfo.getA().toLowerCase()) == null){
+                            if(i == 0){
+                                strBuilder.append("\""+postInfo.getA()+"\"");
+                            }
+                            else{
+                                strBuilder.append(",\""+postInfo.getA()+"\"");
+                            }
+                            i++;
                         }
-                        else{
-                            strBuilder.append(",\""+commentAuthor+"\"");
+
+                        if(!commentAuthor.equals("deleted") && profileImgVersions.get(commentAuthor.toLowerCase()) == null){
+                            if(i == 0){
+                                strBuilder.append("\""+commentAuthor+"\"");
+                            }
+                            else{
+                                strBuilder.append(",\""+commentAuthor+"\"");
+                            }
+                            i++;
                         }
-                        i++;
                     }
                 }
 
