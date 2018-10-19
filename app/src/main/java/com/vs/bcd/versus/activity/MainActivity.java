@@ -205,8 +205,8 @@ public class MainActivity extends Fragment {
         if (isVisibleToUser) {
             childrenFragmentsUIActive = true;
             if(rootView != null){
-                enableChildViews();
-
+                //enableChildViews();
+                rootView.setVisibility(View.VISIBLE);
                 //rootView.bringToFront();
 
                 /*
@@ -219,8 +219,11 @@ public class MainActivity extends Fragment {
         }
         else{
             childrenFragmentsUIActive = false;
-            if (rootView != null)
-                disableChildViews();
+            if (rootView != null) {
+                //disableChildViews();
+                rootView.setVisibility(View.GONE);
+            }
+
         }
     }
 
