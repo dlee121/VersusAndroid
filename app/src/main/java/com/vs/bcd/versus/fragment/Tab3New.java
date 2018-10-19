@@ -155,11 +155,6 @@ public class Tab3New extends Fragment implements SwipeRefreshLayout.OnRefreshLis
             }
         });
 
-        if(getUserVisibleHint()){
-            newsfeedESQuery(0);
-        }
-
-
         return rootView;
     }
 
@@ -175,6 +170,16 @@ public class Tab3New extends Fragment implements SwipeRefreshLayout.OnRefreshLis
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
+        if (isVisibleToUser) {
+            Fragment parentFrag = getParentFragment();
+            if (parentFrag != null) {
+                View rootView = parentFrag.getView();
+                if (rootView != null) {
+                    rootView.bringToFront();
+                }
+            }
+
+        }
     }
 
     /**

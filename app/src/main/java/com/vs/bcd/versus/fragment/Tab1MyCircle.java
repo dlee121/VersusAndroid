@@ -36,6 +36,7 @@ import com.vs.bcd.api.model.PostQMultiModel;
 import com.vs.bcd.api.model.PostQMultiModelDocsItem;
 import com.vs.bcd.api.model.PostQMultiModelDocsItemSource;
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.activity.MainActivity;
 import com.vs.bcd.versus.activity.MainContainer;
 import com.vs.bcd.versus.adapter.NewsfeedAdapter;
 import com.vs.bcd.versus.model.Post;
@@ -130,10 +131,9 @@ public class Tab1MyCircle extends Fragment implements SwipeRefreshLayout.OnRefre
 
         viewSetForInitialQuery = true;
         Log.d("initialQuery", "viewSetForInitialQuery = true");
-        if(mHostActivity.readyForInitialQuery()){
+        if(mHostActivity.readyForInitialQuery()) {
             initialQuery();
         }
-
 
         return rootView;
     }
@@ -150,6 +150,13 @@ public class Tab1MyCircle extends Fragment implements SwipeRefreshLayout.OnRefre
     public void initialQuery(){
         Log.d("initialQuery", "initialQuery called");
         if(viewSetForInitialQuery){
+            Fragment parentFrag = getParentFragment();
+            if (parentFrag != null) {
+                View rootView = parentFrag.getView();
+                if (rootView != null) {
+                    rootView.bringToFront();
+                }
+            }
             newsfeedESQuery(0);
             Log.d("initialQuery", "initialQuery executed");
         }
@@ -158,6 +165,16 @@ public class Tab1MyCircle extends Fragment implements SwipeRefreshLayout.OnRefre
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
+        if (isVisibleToUser) {
+            Fragment parentFrag = getParentFragment();
+            if (parentFrag != null) {
+                View rootView = parentFrag.getView();
+                if (rootView != null) {
+                    rootView.bringToFront();
+                }
+            }
+
+        }
     }
 
     /**

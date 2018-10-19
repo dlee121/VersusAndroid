@@ -157,10 +157,6 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
 
         //mHostActivity.getMainFrag().getViewPager().setCurrentItem(1);
 
-        if(getUserVisibleHint()){
-            trendingESQuery(0);
-        }
-
         return rootView;
     }
 
@@ -174,6 +170,16 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
+        if (isVisibleToUser) {
+            Fragment parentFrag = getParentFragment();
+            if (parentFrag != null) {
+                View rootView = parentFrag.getView();
+                if (rootView != null) {
+                    rootView.bringToFront();
+                }
+            }
+
+        }
     }
 
     /**

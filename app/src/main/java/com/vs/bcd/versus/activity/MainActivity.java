@@ -1,5 +1,6 @@
 package com.vs.bcd.versus.activity;
 
+import android.content.Context;
 import android.support.design.widget.TabLayout;
 
 import android.support.v4.app.Fragment;
@@ -134,7 +135,6 @@ public class MainActivity extends Fragment {
         }
 
         mViewPager.setCurrentItem(0);
-
         return rootView;
 
     }
@@ -206,8 +206,11 @@ public class MainActivity extends Fragment {
             childrenFragmentsUIActive = true;
             if(rootView != null){
                 enableChildViews();
-                int currItem = mViewPager.getCurrentItem();
+
+                //rootView.bringToFront();
+
                 /*
+                int currItem = mViewPager.getCurrentItem();
                 if(currItem == 2 ){
                     disableCPFab();
                 }
