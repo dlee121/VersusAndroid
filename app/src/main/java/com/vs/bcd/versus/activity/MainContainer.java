@@ -223,6 +223,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
     private ArrayList<String> followingUsernames = new ArrayList<>();
     private boolean followingUsernamesLoaded = false;
 
+    private String queryTime;
 
     private BroadcastReceiver myReceiver = new BroadcastReceiver() {
         @Override
@@ -3355,6 +3356,11 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
         String time = df.format(currentDate);
 
+        if (fromIndex == 0 || queryTime == null){
+            queryTime = df.format(new Date());
+        }
+
+
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("\""+currUsername+"\"");
         if(!followingUsernames.isEmpty()){
@@ -3374,11 +3380,11 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
 
             }
 
-            return "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"query\":{\"function_score\":{\"query\":{\"bool\":{\"should\":[{\"range\":{\"t\":{\"gt\":\""+time+"\"}}}]}},\"functions\":[{\"script_score\":{\"script\":\"doc[\'ci\'].value\"}},{\"filter\":{\"terms\":{\"a.keyword\":["+stringBuilder.toString()+"]}},\"script_score\":{\"script\":\"10000\"}}],\"score_mode\":\"sum\"}}}";
+            return "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"query\":{\"function_score\":{\"query\":{\"bool\":{\"should\":[{\"range\":{\"t\":{\"gt\":\""+time+"\",\"lte\":\""+queryTime+"\"}}}]}},\"functions\":[{\"script_score\":{\"script\":\"doc[\'ci\'].value\"}},{\"filter\":{\"terms\":{\"a.keyword\":["+stringBuilder.toString()+"]}},\"script_score\":{\"script\":\"10000\"}}],\"score_mode\":\"sum\"}}}";
 
         }
         else{
-            return "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"query\":{\"function_score\":{\"query\":{\"bool\":{\"should\":[{\"range\":{\"t\":{\"gt\":\""+time+"\"}}}]}},\"functions\":[{\"script_score\":{\"script\":\"doc[\'ci\'].value\"}},{\"filter\":{\"terms\":{\"a.keyword\":[\""+currUsername+"\"]}},\"script_score\":{\"script\":\"10000\"}}],\"score_mode\":\"sum\"}}}";
+            return "{\"from\":"+Integer.toString(fromIndex)+",\"size\":"+Integer.toString(retrievalSize)+",\"query\":{\"function_score\":{\"query\":{\"bool\":{\"should\":[{\"range\":{\"t\":{\"gt\":\""+time+"\",\"lte\":\""+queryTime+"\"}}}]}},\"functions\":[{\"script_score\":{\"script\":\"doc[\'ci\'].value\"}},{\"filter\":{\"terms\":{\"a.keyword\":[\""+currUsername+"\"]}},\"script_score\":{\"script\":\"10000\"}}],\"score_mode\":\"sum\"}}}";
 
 
         }
@@ -3449,7 +3455,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
     public void initializeNativeAds() {
         Appodeal.setAutoCacheNativeIcons(true);
         Appodeal.setAutoCacheNativeMedia(false);
-        Appodeal.setLogLevel(com.appodeal.ads.utils.Log.LogLevel.verbose);
+        //Appodeal.setLogLevel(com.appodeal.ads.utils.Log.LogLevel.verbose);
         String appKey = "f1c13d173fa6b6366b4c88a3a94b68ec201e9ca14ce75712";
         Appodeal.disableLocationPermissionCheck();
         Appodeal.disableWriteExternalStoragePermissionCheck(); //this will disable video ads. perhaps change in the future.
