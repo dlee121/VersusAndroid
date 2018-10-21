@@ -11,10 +11,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,6 +24,9 @@ import com.amazonaws.mobileconnectors.apigateway.ApiClientException;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.activity.SignUp;
 import com.vs.bcd.versus.model.FormValidator;
+
+import net.yslibrary.android.keyboardvisibilityevent.KeyboardVisibilityEvent;
+import net.yslibrary.android.keyboardvisibilityevent.KeyboardVisibilityEventListener;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -47,6 +52,9 @@ public class SignUpFragment extends Fragment {
     private boolean ignoreAsync = true;
     private boolean usernameValidated = false;
     private boolean passwordValidated = false;
+
+    private ScrollView signupScrollView;
+    private String finalUsername, finalPW;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -133,6 +141,7 @@ public class SignUpFragment extends Fragment {
                             passwordStrengthCheck(text);
 
                             passwordValidated = true;
+                            finalPW = text;
                             if(usernameValidated) {
                                 signupButton.setEnabled(true);
                                 //signupButton.setBackgroundTintList(activity.getResources().getColorStateList(R.color.signup_button));
@@ -159,6 +168,28 @@ public class SignUpFragment extends Fragment {
             }
         });
 
+        signupScrollView = rootView.findViewById(R.id.signup_scrollview);
+
+        /*
+        usernameIn.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    signupScrollView.scrollTo(0,signupScrollView.getBottom());
+                }
+            }
+        });
+
+        passwordIn.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    signupScrollView.scrollTo(0,signupScrollView.getBottom());
+                }
+            }
+        });
+        */
 
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();
@@ -167,6 +198,51 @@ public class SignUpFragment extends Fragment {
             childViews.add(((ViewGroup)rootView).getChildAt(i));
             LPStore.add(childViews.get(i).getLayoutParams());
         }
+
+        KeyboardVisibilityEvent.setEventListener(
+                activity,
+                new KeyboardVisibilityEventListener() {
+                    @Override
+                    public void onVisibilityChanged(boolean isOpen) {
+                        // some code depending on keyboard visiblity status
+                        signupScrollView.smoothScrollTo(0,signupScrollView.getBottom());
+                    }
+                });
+
+        final InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+        signupButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if(usernameValidated && passwordValidated && finalUsername != null && finalPW != null) {
+                    try{
+                        imm.hideSoftInputFromWindow(signupButton.getWindowToken(), 0);
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    activity.setBday("0");
+                    activity.setUsername(finalUsername);
+                    activity.setBiebs(finalPW);
+                    activity.signUpUser();
+                }
+                else if(!usernameValidated || finalUsername == null) {
+                    if(mToast != null){
+                        mToast.cancel();
+                    }
+                    mToast = Toast.makeText(activity, "Please enter a valid username", Toast.LENGTH_SHORT);
+                    mToast.show();
+                }
+                else {
+                    if (mToast != null) {
+                        mToast.cancel();
+                    }
+                    mToast = Toast.makeText(activity, "Please enter a valid password", Toast.LENGTH_SHORT);
+                    mToast.show();
+                }
+
+            }
+        });
 
 
         return rootView;
@@ -280,6 +356,7 @@ public class SignUpFragment extends Fragment {
                                                 usernameCheckTV.setTextColor(Color.GRAY);
                                                 usernameCheckTV.setText("Username available");
                                                 usernameValidated = true;
+                                                finalUsername = username;
                                                 if(passwordValidated) {
                                                     signupButton.setEnabled(true);
                                                     //signupButton.setBackgroundColor(ContextCompat.getColor(activity,R.color.vsRed));
