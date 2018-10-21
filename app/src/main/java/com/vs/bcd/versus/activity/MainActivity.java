@@ -1,6 +1,5 @@
 package com.vs.bcd.versus.activity;
 
-import android.content.Context;
 import android.support.design.widget.TabLayout;
 
 import android.support.v4.app.Fragment;
@@ -17,8 +16,8 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.vs.bcd.versus.R;
-import com.vs.bcd.versus.fragment.Tab1MyCircle;
-import com.vs.bcd.versus.fragment.Tab2Trending;
+import com.vs.bcd.versus.fragment.Tab1Trending;
+import com.vs.bcd.versus.fragment.Tab2MyCircle;
 import com.vs.bcd.versus.fragment.Tab3New;
 import com.vs.bcd.versus.model.Post;
 
@@ -36,9 +35,9 @@ public class MainActivity extends Fragment {
     private LinearLayout tabStrip;
     private MainContainer mainContainer;
     //private FloatingActionButton fab;
-    private Tab1MyCircle tab1 = new Tab1MyCircle();
-    private Tab2Trending tab2 = new Tab2Trending();
-    private Tab3New tab3 = new Tab3New();
+    private Tab2MyCircle tab2MyCircle = new Tab2MyCircle();
+    private Tab1Trending tab1Trending = new Tab1Trending();
+    private Tab3New tab3New = new Tab3New();
 
 
     @Override
@@ -52,7 +51,7 @@ public class MainActivity extends Fragment {
         // Set up the ViewPager with the sections adapter.
         mViewPager = rootView.findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        mViewPager.setOffscreenPageLimit(4);
+        mViewPager.setOffscreenPageLimit(3);
 
         mainContainer = (MainContainer)getActivity();
 
@@ -60,40 +59,41 @@ public class MainActivity extends Fragment {
         tabLayout.setupWithViewPager(mViewPager);
         //tabStrip = ((LinearLayout)tabLayout.getChildAt(0));
         //set tab icons
-
-        tabLayout.getTabAt(0).setText("My Circle");
-        tabLayout.getTabAt(1).setText("Trending");
+        tabLayout.getTabAt(0).setText("Trending");
+        tabLayout.getTabAt(1).setText("My Circle");
         tabLayout.getTabAt(2).setText("New");
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 switch (tab.getPosition()) {
-                    case 0: //my circle
+                    case 0: //trending
+                        tab.setText("Trending");
+                        mainContainer.setToolbarTitleTextForTabs("");
+                        //enableCPFab();
+                        if(tab1Trending != null && !tab1Trending.postsLoaded()){
+                            tab1Trending.trendingESQuery(0);
+                        }
+                        //mainContainer.setLeftSearchButton();
+                        break;
+
+                    case 1: //my circle
                         tab.setText("My Circle");
                         mainContainer.setToolbarTitleTextForTabs("");
                         //enableCPFab();
-                        if(tab1 != null && !tab1.postsLoaded()){
-                            tab1.newsfeedESQuery(0);
+                        if(tab2MyCircle != null && !tab2MyCircle.postsLoaded()){
+                            tab2MyCircle.newsfeedESQuery(0);
                         }
                         //mainContainer.setLeftSearchButton();
 
                         break;
-                    case 1: //trending
-                        tab.setText("Trending");
-                        mainContainer.setToolbarTitleTextForTabs("");
-                        //enableCPFab();
-                        if(tab2 != null && !tab2.postsLoaded()){
-                            tab2.trendingESQuery(0);
-                        }
-                        //mainContainer.setLeftSearchButton();
-                        break;
+
                     case 2: //new
                         tab.setText("New");
                         mainContainer.setToolbarTitleTextForTabs("");
                         //enableCPFab();
-                        if(tab3 != null && !tab3.postsLoaded()){
-                            tab3.newsfeedESQuery(0);
+                        if(tab3New != null && !tab3New.postsLoaded()){
+                            tab3New.newsfeedESQuery(0);
                         }
                         break;
                     default:
@@ -170,14 +170,11 @@ public class MainActivity extends Fragment {
             //Return current tabs
             switch (position) {
                 case 0:
-                    //tab1 = new Tab1MyCircle();
-                    return tab1;
+                    return tab1Trending;
                 case 1:
-                    //tab2 = new Tab2Trending();
-                    return tab2;
+                    return tab2MyCircle;
                 case 2:
-                    //tab3 = new Tab3New();
-                    return tab3;
+                    return tab3New;
                 default:
                     return null;
             }
@@ -262,29 +259,33 @@ public class MainActivity extends Fragment {
     }
     */
 
-    public Tab1MyCircle getTab1(){
-        return tab1;
+    public Tab1Trending getTab1Trending() {
+        return tab1Trending;
     }
 
-    public Tab2Trending getTab2() {
-        return tab2;
+    public Tab2MyCircle getTab2MyCircle(){
+        return tab2MyCircle;
     }
 
     public void addPostToTop(Post post, int tabNum){
-        if(tabNum == 0){
-            if(tab1 != null){
-                tab1.addPostToTop(post);
-            }
-        }
-        else if(tabNum == 2){
-            if(tab3 != null){
-                tab3.addPostToTop(post);
+        if(tabNum == 2){
+            if(tab3New != null){
+                tab3New.addPostToTop(post);
             }
         }
 
     }
 
-    public Tab3New getTab3() {
-        return tab3;
+    public int getCurrentFragInt() {
+        if(mViewPager != null) {
+            return mViewPager.getCurrentItem();
+        }
+        else {
+            return -1;
+        }
+    }
+
+    public Tab3New getTab3New() {
+        return tab3New;
     }
 }

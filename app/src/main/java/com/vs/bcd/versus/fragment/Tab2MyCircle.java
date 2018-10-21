@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.ListPreloader;
@@ -47,7 +48,7 @@ import com.vs.bcd.versus.model.VSComment;
  * Created by dlee on 4/29/17.
  */
 
-public class Tab1MyCircle extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
+public class Tab2MyCircle extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     private ArrayList<VSComment> myCircleComments;
     private NewsfeedAdapter newsfeedAdapter;
@@ -73,18 +74,18 @@ public class Tab1MyCircle extends Fragment implements SwipeRefreshLayout.OnRefre
     private int currCommentsIndex = 0;
     private Random randomNumber = new Random();
     private int nextAdIndex = randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
-    private boolean viewSetForInitialQuery;
+
 
     private HashMap<String, Integer> profileImgVersions = new HashMap<>();
     private HashMap<String, PostInfo> postInfoMap;
     private HashSet<String> problemPosts = new HashSet<>();
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.tab1newsfeed, container, false);
         //mHostActivity.setToolbarTitleTextForTabs("Newsfeed");
-        viewSetForInitialQuery = false;
         postInfoMap = new HashMap<>();
         myCircleComments = new ArrayList<>();
 
@@ -129,11 +130,7 @@ public class Tab1MyCircle extends Fragment implements SwipeRefreshLayout.OnRefre
         mSwipeRefreshLayout.setOnRefreshListener(this);
         mSwipeRefreshLayout.setRefreshing(true);
 
-        viewSetForInitialQuery = true;
-        Log.d("initialQuery", "viewSetForInitialQuery = true");
-        if(mHostActivity.readyForInitialQuery()) {
-            initialQuery();
-        }
+
 
         return rootView;
     }
@@ -145,21 +142,6 @@ public class Tab1MyCircle extends Fragment implements SwipeRefreshLayout.OnRefre
         super.onAttach(context);
         //save the activity to a member of this fragment
         mHostActivity = (MainContainer)context;
-    }
-
-    public void initialQuery(){
-        Log.d("initialQuery", "initialQuery called");
-        if(viewSetForInitialQuery){
-            Fragment parentFrag = getParentFragment();
-            if (parentFrag != null) {
-                View rootView = parentFrag.getView();
-                if (rootView != null) {
-                    rootView.bringToFront();
-                }
-            }
-            newsfeedESQuery(0);
-            Log.d("initialQuery", "initialQuery executed");
-        }
     }
 
     @Override

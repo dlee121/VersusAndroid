@@ -92,8 +92,8 @@ import com.vs.bcd.versus.fragment.PostPage;
 import com.vs.bcd.versus.fragment.ProfileTab;
 import com.vs.bcd.versus.fragment.SelectCategory;
 import com.vs.bcd.versus.fragment.SettingsFragment;
-import com.vs.bcd.versus.fragment.Tab1MyCircle;
-import com.vs.bcd.versus.fragment.Tab2Trending;
+import com.vs.bcd.versus.fragment.Tab1Trending;
+import com.vs.bcd.versus.fragment.Tab2MyCircle;
 import com.vs.bcd.versus.fragment.Tab3New;
 import com.vs.bcd.versus.model.CategoryObject;
 import com.vs.bcd.versus.model.ForceUpdateChecker;
@@ -425,7 +425,8 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
     }
 
     public boolean readyForInitialQuery(){
-        return awsCredentialsSet && initialAdLoaded && followingUsernamesLoaded;
+        //return awsCredentialsSet && initialAdLoaded && followingUsernamesLoaded;
+        return awsCredentialsSet && initialAdLoaded;
     }
 
     @Override
@@ -445,60 +446,6 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
         awsCredentialsSet = false;
 
         initializeNativeAds();
-
-        /*
-        initialAdLoaded = false;
-        nativeAds = new ArrayList<>();
-        MobileAds.initialize(this, admobID);
-        adLoader = new AdLoader.Builder(this, admobID)
-                .forAppInstallAd(new OnAppInstallAdLoadedListener() {
-                    @Override
-                    public void onAppInstallAdLoaded(NativeAppInstallAd appInstallAd) {
-                        nativeAds.add(appInstallAd);
-                        if(!initialAdLoaded){
-                            initialAdLoaded = true;
-                            Log.d("initialQuery", "initialAdLoaded = true");
-                            if(awsCredentialsSet && mainActivityFragRef != null && mainActivityFragRef.getTab1() != null) {
-                                mainActivityFragRef.getTab2().initialQuery();
-                            }
-                        }
-                    }
-                })
-                .forContentAd(new OnContentAdLoadedListener() {
-                    @Override
-                    public void onContentAdLoaded(NativeContentAd contentAd) {
-                        nativeAds.add(contentAd);
-                        if(!initialAdLoaded){
-                            initialAdLoaded = true;
-                            Log.d("initialQuery", "initialAdLoaded = true");
-                            if(awsCredentialsSet && mainActivityFragRef != null && mainActivityFragRef.getTab1() != null) {
-                                mainActivityFragRef.getTab2().initialQuery();
-                            }
-                        }
-                    }
-                })
-                .withAdListener(new AdListener() {
-                    @Override
-                    public void onAdFailedToLoad(int errorCode) {
-                        if(!initialAdLoaded){
-                            initialAdLoaded = true;
-                            Log.d("initialQuery", "initialAdLoaded = true, on fail");
-                            if(awsCredentialsSet && mainActivityFragRef != null && mainActivityFragRef.getTab1() != null) {
-                                mainActivityFragRef.getTab2().initialQuery();
-                            }
-                        }
-                    }
-                })
-                .withNativeAdOptions(new NativeAdOptions.Builder()
-                        // Methods in the NativeAdOptions.Builder class can be
-                        // used here to specify individual options settings.
-                        .setImageOrientation(NativeAdOptions.ORIENTATION_LANDSCAPE)
-                        .build())
-                .build();
-
-        loadNativeAds();
-        */
-        initialAdLoaded = true;//TODO: delete this once we reinstate native ads, in addtion to uncommenting the loader code block above
 
         // Initialize the Amazon Cognito credentials provider
         credentialsProvider = new CognitoCachingCredentialsProvider(
@@ -533,11 +480,11 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                         awsCredentialsSet = true;
                         Log.d("initialQuery", "awsCredentialsSet = true");
                         if(readyForInitialQuery()){
-                            if(mainActivityFragRef != null && mainActivityFragRef.getTab1() != null){
+                            if(mainActivityFragRef != null && mainActivityFragRef.getTab1Trending() != null){
                                 thisActivity.runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        mainActivityFragRef.getTab1().initialQuery();
+                                        mainActivityFragRef.getTab1Trending().initialQuery();
                                     }
                                 });
                             }
@@ -585,11 +532,11 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                                             awsCredentialsSet = true;
                                             Log.d("initialQuery", "awsCredentialsSet = true");
                                             if(readyForInitialQuery()){
-                                                if(mainActivityFragRef != null && mainActivityFragRef.getTab1() != null){
+                                                if(mainActivityFragRef != null && mainActivityFragRef.getTab1Trending() != null){
                                                     thisActivity.runOnUiThread(new Runnable() {
                                                         @Override
                                                         public void run() {
-                                                            mainActivityFragRef.getTab1().initialQuery();
+                                                            mainActivityFragRef.getTab1Trending().initialQuery();
                                                         }
                                                     });
                                                 }
@@ -632,11 +579,11 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                                     awsCredentialsSet = true;
                                     Log.d("initialQuery", "awsCredentialsSet = true");
                                     if(readyForInitialQuery()){
-                                        if(mainActivityFragRef != null && mainActivityFragRef.getTab1() != null){
+                                        if(mainActivityFragRef != null && mainActivityFragRef.getTab1Trending() != null){
                                             thisActivity.runOnUiThread(new Runnable() {
                                                 @Override
                                                 public void run() {
-                                                    mainActivityFragRef.getTab1().initialQuery();
+                                                    mainActivityFragRef.getTab1Trending().initialQuery();
                                                 }
                                             });
                                         }
@@ -2529,14 +2476,14 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                     public void run() {
                         switch (myAdapterFragInt){
                             case 0: //MainActivity
-                                if(mainActivityFragRef.getViewPager().getCurrentItem() == 0){ //Home
-                                    mainActivityFragRef.getTab1().removePostFromList(clickedPostIndex, postToDelete.getPost_id());
+                                if(mainActivityFragRef.getViewPager().getCurrentItem() == 1){ //MyCircle
+                                    mainActivityFragRef.getTab2MyCircle().removePostFromList(clickedPostIndex, postToDelete.getPost_id());
                                 }
                                 else if(mainActivityFragRef.getViewPager().getCurrentItem() == 2) { //Categories
-                                    mainActivityFragRef.getTab3().removePostFromList(clickedPostIndex, postToDelete.getPost_id());
+                                    mainActivityFragRef.getTab3New().removePostFromList(clickedPostIndex, postToDelete.getPost_id());
                                 }
                                 else{ //Trending
-                                    mainActivityFragRef.getTab2().removePostFromList(clickedPostIndex, postToDelete.getPost_id()); //updates author name to deleted in the UI
+                                    mainActivityFragRef.getTab1Trending().removePostFromList(clickedPostIndex, postToDelete.getPost_id()); //updates author name to deleted in the UI
                                 }
                                 mViewPager.setCurrentItem(0);
                                 break;
@@ -2859,22 +2806,22 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
     public void updateEditedPost(Post editedPost){
 
         switch (mainActivityFragRef.getViewPager().getCurrentItem()){
-            case 0: //Home
-                Tab1MyCircle tab1 = mainActivityFragRef.getTab1();
+            case 0: //Trending
+                Tab1Trending tab1 = mainActivityFragRef.getTab1Trending();
                 if (tab1 != null) {
                     tab1.editedPostRefresh(clickedPostIndex, editedPost);
                 }
                 break;
 
-            case 1: //Trending
-                Tab2Trending tab2 = mainActivityFragRef.getTab2();
+            case 1: //MyCircle
+                Tab2MyCircle tab2 = mainActivityFragRef.getTab2MyCircle();
                 if (tab2 != null) {
                     tab2.editedPostRefresh(clickedPostIndex, editedPost);
                 }
                 break;
 
             case 2: //Categories
-                Tab3New tab3 = mainActivityFragRef.getTab3();
+                Tab3New tab3 = mainActivityFragRef.getTab3New();
                 if(tab3 != null){
                     tab3.editedPostRefresh(clickedPostIndex, editedPost);
                 }
@@ -3177,14 +3124,14 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
             switch (voteUpdateFragNum){
                 case 0: //MainActivity
                     switch (voteUpdateTabNum){
-                        case 0: //Newsfeed
-                            mainActivityFragRef.getTab1().getNewsfeedAdapter().incrementItemVotecount(voteUpdateTargetIndex, voteUpdateTargetID);
+                        case 0: //Trending
+                            mainActivityFragRef.getTab1Trending().getMyAdapter().incrementItemVotecount(voteUpdateTargetIndex, voteUpdateTargetID);
                             break;
-                        case 1: //Trending
-                            mainActivityFragRef.getTab2().getMyAdapter().incrementItemVotecount(voteUpdateTargetIndex, voteUpdateTargetID);
+                        case 1: //MyCircle
+                            mainActivityFragRef.getTab2MyCircle().getNewsfeedAdapter().incrementItemVotecount(voteUpdateTargetIndex, voteUpdateTargetID);
                             break;
                         case 2: //Categories
-                            mainActivityFragRef.getTab3().getMyAdapter().incrementItemVotecount(voteUpdateTargetIndex, voteUpdateTargetID);
+                            mainActivityFragRef.getTab3New().getMyAdapter().incrementItemVotecount(voteUpdateTargetIndex, voteUpdateTargetID);
                             break;
                     }
 
@@ -3258,7 +3205,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                                             setUpAPI();
                                             mViewPager.setCurrentItem(0);
                                             mainActivityFragRef.getViewPager().setCurrentItem(0);
-                                            mainActivityFragRef.getTab1().initialQuery();
+                                            mainActivityFragRef.getTab1Trending().initialQuery();
                                         }
                                         catch (Exception e){
                                             e.printStackTrace();
@@ -3290,7 +3237,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                                     setUpAPI();
                                     mViewPager.setCurrentItem(0);
                                     mainActivityFragRef.getViewPager().setCurrentItem(0);
-                                    mainActivityFragRef.getTab1().initialQuery();
+                                    mainActivityFragRef.getTab1Trending().initialQuery();
                                 }
                                 catch (Exception e){
                                     e.printStackTrace();
@@ -3413,15 +3360,13 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                             followingUsernames.add(followingG.getKey());
                         }
                         followingUsernamesLoaded = true;
-                        if(readyForInitialQuery()){
-                            if(mainActivityFragRef != null && mainActivityFragRef.getTab1() != null){
-                                thisActivity.runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        mainActivityFragRef.getTab1().initialQuery();
-                                    }
-                                });
-                            }
+                        if(mainActivityFragRef != null && mainActivityFragRef.getTab2MyCircle() != null && mainActivityFragRef.getCurrentFragInt() == 1){
+                            thisActivity.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mainActivityFragRef.getTab2MyCircle().newsfeedESQuery(0);
+                                }
+                            });
                         }
 
                     }
@@ -3445,11 +3390,11 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
     }
 
     public void setTab2CategoryFilter(int selection, int iconResID, String name){
-        mainActivityFragRef.getTab2().setCategorySelection(selection, iconResID, name);
+        mainActivityFragRef.getTab1Trending().setCategorySelection(selection, iconResID, name);
     }
 
     public void setTab3CategoryFilter(int selection, int iconResID, String name){
-        mainActivityFragRef.getTab3().setCategorySelection(selection, iconResID, name);
+        mainActivityFragRef.getTab3New().setCategorySelection(selection, iconResID, name);
     }
 
     public void initializeNativeAds() {
@@ -3466,27 +3411,32 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
         Appodeal.setNativeCallbacks(new NativeCallbacks() {
             @Override
             public void onNativeLoaded() {
-                Toast.makeText(MainContainer.this, "onNativeLoaded", Toast.LENGTH_SHORT).show();
+                if(!initialAdLoaded) {
+                    initialAdLoaded = true;
+                    mainActivityFragRef.getTab1Trending().initialQuery();
+                }
+                //Toast.makeText(MainContainer.this, "onNativeLoaded", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onNativeFailedToLoad() {
-                Toast.makeText(MainContainer.this, "onNativeFailedToLoad", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(MainContainer.this, "onNativeFailedToLoad", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onNativeShown(NativeAd nativeAd) {
-                Toast.makeText(MainContainer.this, "onNativeShown", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(MainContainer.this, "onNativeShown", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onNativeClicked(NativeAd nativeAd) {
-                Toast.makeText(MainContainer.this, "onNativeClicked", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(MainContainer.this, "onNativeClicked", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onNativeExpired() {
-                Toast.makeText(MainContainer.this, "onNativeExpired", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(MainContainer.this, "onNativeExpired", Toast.LENGTH_SHORT).show();
+                Appodeal.cache(thisActivity, Appodeal.NATIVE); //TODO: check if this is good
             }
         });
 

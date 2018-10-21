@@ -71,7 +71,7 @@ public class CategoriesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 break;
 
             case 2:
-                //Tab2Trending category filter
+                //Tab1Trending category filter
                 categoryViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {

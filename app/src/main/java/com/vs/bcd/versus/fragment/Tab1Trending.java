@@ -26,14 +26,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.ListPreloader;
 import com.bumptech.glide.integration.recyclerview.RecyclerViewPreloader;
 import com.bumptech.glide.util.FixedPreloadSizeProvider;
-import com.google.android.gms.ads.formats.NativeAd;
-import com.google.android.gms.ads.formats.NativeAppInstallAd;
-import com.google.android.gms.ads.formats.NativeContentAd;
 import com.vs.bcd.api.model.PIVModel;
 import com.vs.bcd.api.model.PIVModelDocsItem;
 import com.vs.bcd.api.model.PostsListModel;
@@ -50,7 +48,7 @@ import com.vs.bcd.versus.model.Post;
  * Created by dlee on 4/29/17.
  */
 
-public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
+public class Tab1Trending extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     private ArrayList<Post> posts;
     private MyAdapter myAdapter;
@@ -83,7 +81,8 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
     private TextView categoryName;
     private String queryTime;
 
-
+    private boolean viewSetForInitialQuery = false;
+    private AtomicBoolean initialQueryCalled = new AtomicBoolean(false);
 
     private HashMap<String, Integer> profileImgVersions = new HashMap<>();
 
@@ -97,7 +96,6 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
         categoryIcon = categorySelectionView.findViewById(R.id.category_ic_tr);
         categoryName = categorySelectionView.findViewById(R.id.tv_category_tr);
         hideCategorySelection();
-
 
         posts = new ArrayList<>();
 
@@ -158,7 +156,31 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
 
         //mHostActivity.getMainFrag().getViewPager().setCurrentItem(1);
 
+        viewSetForInitialQuery = true;
+        Log.d("initialQuery", "viewSetForInitialQuery = true");
+        if(mHostActivity.readyForInitialQuery()) {
+            initialQuery();
+        }
+
         return rootView;
+    }
+
+    public void initialQuery(){
+        Log.d("initialQuery", "initialQuery called");
+        if(viewSetForInitialQuery){
+            Fragment parentFrag = getParentFragment();
+            if (parentFrag != null) {
+                View rootView = parentFrag.getView();
+                if (rootView != null) {
+                    rootView.bringToFront();
+                }
+            }
+            if(!initialQueryCalled.getAndSet(true)) {
+                trendingESQuery(0);
+                Log.d("initialQuery", "initialQuery executed");
+            }
+
+        }
     }
 
     @Override
@@ -361,8 +383,8 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
         private ArrayList<CategoryObject> categories;
         private CategoriesAdapter mCategoriesAdapter;
 
-        static Tab2Trending.CategoryFilterFragment newInstance() {
-            Tab2Trending.CategoryFilterFragment f = new Tab2Trending.CategoryFilterFragment();
+        static Tab1Trending.CategoryFilterFragment newInstance() {
+            Tab1Trending.CategoryFilterFragment f = new Tab1Trending.CategoryFilterFragment();
             return f;
         }
 
