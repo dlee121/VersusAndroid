@@ -137,14 +137,32 @@
     </LinearLayout>
 
 
-
-    <ImageView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_above="@id/ss_center"
-        android:layout_centerHorizontal="true"
-        app:srcCompat="@drawable/logo_clear_background" />
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_centerHorizontal="true">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:srcCompat="@drawable/logo_medium" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:layout_marginTop="4dp"
+            android:textStyle="italic"
+            android:textColor="#000000"
+            android:text="Influence the world anonymously"/>
+
+    </LinearLayout>
+
+
 
     <com.google.android.gms.common.SignInButton
         android:id="@+id/google_login_button"

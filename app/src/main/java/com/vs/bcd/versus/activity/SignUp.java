@@ -31,7 +31,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.vs.bcd.api.VersusAPIClient;
 import com.vs.bcd.api.model.UserPutModel;
 import com.vs.bcd.versus.R;
-import com.vs.bcd.versus.fragment.WhatsYourBirthday;
+import com.vs.bcd.versus.fragment.SignUpFragment;
 import com.vs.bcd.versus.fragment.WhatsYourPassword;
 import com.vs.bcd.versus.fragment.WhatsYourUsername;
 import com.vs.bcd.versus.model.ViewPagerCustomDuration;
@@ -66,7 +66,7 @@ public class SignUp extends AppCompatActivity {
     private String bdayIn, usernameIn, biebs;
     private SessionManager sessionManager;
     private SignUp thisActivity;
-    private WhatsYourBirthday wyb;
+    private SignUpFragment signUpFragment;
     private WhatsYourUsername wyun;
     private FirebaseAuth mFirebaseAuth;
     private CognitoCachingCredentialsProvider credentialsProvider;
@@ -140,7 +140,7 @@ public class SignUp extends AppCompatActivity {
                     return super.onOptionsItemSelected(item);
                 case 1:
                     mViewPager.setCurrentItem(0);
-                    wyb.enableChildViews();
+                    signUpFragment.enableChildViews();
                     return true;
                 case 2:
                     mViewPager.setCurrentItem(1);
@@ -175,8 +175,8 @@ public class SignUp extends AppCompatActivity {
             //Return current tabs
             switch (position) {
                 case 0:
-                    wyb = new WhatsYourBirthday();
-                    return wyb;
+                    signUpFragment = new SignUpFragment();
+                    return signUpFragment;
                 case 1:
                     wyun = new WhatsYourUsername();
                     return wyun;
