@@ -223,7 +223,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
 
                 PostsListModel results;
                 if(categorySelection > -1){
-                    results = mHostActivity.getClient().postslistGet(Integer.toString(categorySelection), null, "tr", Integer.toString(fromIndex));
+                    results = mHostActivity.getClient().postslistGet(Integer.toString(categorySelection), queryTime, "tr2", Integer.toString(fromIndex));
                 }
                 else{
                     Log.d("fsldfijsljd", "sdfljfdl");

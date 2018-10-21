@@ -22,6 +22,7 @@ import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -84,6 +85,8 @@ public class Tab3New extends Fragment implements SwipeRefreshLayout.OnRefreshLis
     private ImageView categoryIcon;
     private TextView categoryName;
     private Button filterSelector;
+
+    private String queryTime;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -225,6 +228,11 @@ public class Tab3New extends Fragment implements SwipeRefreshLayout.OnRefreshLis
             nowLoading = false;
         }
 
+        if(fromIndex == 0 || queryTime == null) {
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
+            queryTime = df.format(new Date());
+        }
+
         Runnable runnable = new Runnable() {
             public void run() {
 
@@ -237,10 +245,10 @@ public class Tab3New extends Fragment implements SwipeRefreshLayout.OnRefreshLis
 
                 PostsListModel results;
                 if(categorySelection == -1){
-                    results = mHostActivity.getClient().postslistGet(null, null, "nw", Integer.toString(fromIndex));
+                    results = mHostActivity.getClient().postslistGet(null, queryTime, "nw", Integer.toString(fromIndex));
                 }
                 else {
-                    results = mHostActivity.getClient().postslistGet(Integer.toString(categorySelection), null, "nw", Integer.toString(fromIndex));
+                    results = mHostActivity.getClient().postslistGet(Integer.toString(categorySelection), queryTime, "nw", Integer.toString(fromIndex));
                 }
 
                 if(results != null){
