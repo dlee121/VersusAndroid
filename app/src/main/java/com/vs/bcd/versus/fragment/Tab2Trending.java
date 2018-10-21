@@ -81,6 +81,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
     private RelativeLayout.LayoutParams categorySelectionViewLP;
     private ImageView categoryIcon;
     private TextView categoryName;
+    private String queryTime;
 
 
 
@@ -206,6 +207,9 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
             currPostsIndex = 0;
             nowLoading = false;
         }
+        if(fromIndex == 0 || queryTime == null) {
+            queryTime = Long.toString(System.currentTimeMillis()/1000);
+        }
 
         Runnable runnable = new Runnable() {
             public void run() {
@@ -223,7 +227,7 @@ public class Tab2Trending extends Fragment implements SwipeRefreshLayout.OnRefre
                 }
                 else{
                     Log.d("fsldfijsljd", "sdfljfdl");
-                    results = mHostActivity.getClient().postslistGet(null, null, "tr", Integer.toString(fromIndex));
+                    results = mHostActivity.getClient().postslistGet(null, queryTime, "tr2", Integer.toString(fromIndex));
                 }
                 if(results != null){
                     List<PostsListModelHitsHitsItem> hits = results.getHits().getHits();
