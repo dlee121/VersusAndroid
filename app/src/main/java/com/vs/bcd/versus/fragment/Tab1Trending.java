@@ -155,8 +155,9 @@ public class Tab1Trending extends Fragment implements SwipeRefreshLayout.OnRefre
         });
 
         //mHostActivity.getMainFrag().getViewPager().setCurrentItem(1);
-
+        mSwipeRefreshLayout.setRefreshing(true);
         viewSetForInitialQuery = true;
+
         Log.d("initialQuery", "viewSetForInitialQuery = true");
         if(mHostActivity.readyForInitialQuery()) {
             initialQuery();

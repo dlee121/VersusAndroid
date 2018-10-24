@@ -62,12 +62,10 @@ public class SignUp extends AppCompatActivity {
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPagerCustomDuration mViewPager;
-    private WhatsYourPassword ypfrag;
     private String bdayIn, usernameIn, biebs;
     private SessionManager sessionManager;
     private SignUp thisActivity;
     private SignUpFragment signUpFragment;
-    private WhatsYourUsername wyun;
     private FirebaseAuth mFirebaseAuth;
     private CognitoCachingCredentialsProvider credentialsProvider;
     Toast mToast;
@@ -212,8 +210,6 @@ public class SignUp extends AppCompatActivity {
 
     public void signUpUser(){
         //TODO: validate forms, and hash/salt password
-
-        ypfrag.displayProgressBar(true);
 
         //validate, write to db (which completes registration), write session data to SharedPref (same as login) then move on to MainContainer
 
