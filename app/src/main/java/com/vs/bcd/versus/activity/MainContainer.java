@@ -457,6 +457,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
         Bundle extras = getIntent().getExtras();
         boolean getFreshCredentials = true;
         if(extras != null){
+            Log.d("logininitial", "logininitial");
             String oitk = extras.getString("oitk");
             currentAuthToken = oitk;
             if(oitk != null && !oitk.isEmpty()){
@@ -488,6 +489,12 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
                                     }
                                 });
                             }
+                            else {
+                                Log.d("logininitial", "logininitial not yet");
+                            }
+                        }
+                        else {
+                            Log.d("logininitial", "right here");
                         }
                     }
                 };
@@ -3404,16 +3411,26 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
         String appKey = "f1c13d173fa6b6366b4c88a3a94b68ec201e9ca14ce75712";
         Appodeal.disableLocationPermissionCheck();
         Appodeal.disableWriteExternalStoragePermissionCheck(); //this will disable video ads. perhaps change in the future.
-
+        //Log.d("logininitial", "initializing ad section");
         //implement consent form like we do in iOS and use consent value if in EU, else true
         //TODO: implement consent form and give actual value for hasConsent below
         Appodeal.initialize(this, appKey, Appodeal.NATIVE, true);
+
+        if(Appodeal.getAvailableNativeAdsCount() > 0) {
+            initialAdLoaded = true;
+        }
+
         Appodeal.setNativeCallbacks(new NativeCallbacks() {
             @Override
             public void onNativeLoaded() {
+                Log.d("logininitial", "native loaded");
                 if(!initialAdLoaded) {
+                    Log.d("logininitial", "ad section");
                     initialAdLoaded = true;
                     mainActivityFragRef.getTab1Trending().initialQuery();
+                }
+                else {
+                    Log.d("logininitial", "logininitial not yet");
                 }
                 //Toast.makeText(MainContainer.this, "onNativeLoaded", Toast.LENGTH_SHORT).show();
             }
@@ -3446,7 +3463,10 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
     public NativeAd getNativeAd() {
         List<NativeAd> adsList = Appodeal.getNativeAds(1);
         if (adsList.size() > 0) {
-            Appodeal.cache(this, Appodeal.NATIVE);
+            if(Appodeal.getAvailableNativeAdsCount() <= 1) {
+                Appodeal.cache(this, Appodeal.NATIVE);
+            }
+
             return adsList.get(0);
         }
         else {
