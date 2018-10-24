@@ -38,7 +38,7 @@ import com.vs.bcd.api.VersusAPIClient;
 import com.vs.bcd.api.model.UserPutModel;
 import com.vs.bcd.versus.R;
 import com.vs.bcd.versus.fragment.AuthBirthdayInput;
-import com.vs.bcd.versus.fragment.AuthUsernameInput;
+import com.vs.bcd.versus.fragment.AuthSignUpFragment;
 import com.vs.bcd.versus.model.ViewPagerCustomDuration;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.User;
@@ -71,7 +71,7 @@ public class AuthSignUp extends AppCompatActivity {
     private SessionManager sessionManager;
     private AuthSignUp thisActivity;
     private AuthBirthdayInput wyb;
-    private AuthUsernameInput wyun;
+    private AuthSignUpFragment signUpFragment;
     private FirebaseAuth mFirebaseAuth;
     private CognitoCachingCredentialsProvider credentialsProvider;
     private String authID = " ";
@@ -133,7 +133,7 @@ public class AuthSignUp extends AppCompatActivity {
         mViewPager = (ViewPagerCustomDuration) findViewById(R.id.containersup);
         mViewPager.setScrollDurationFactor(1);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        mViewPager.setOffscreenPageLimit(4);
+        mViewPager.setOffscreenPageLimit(1);
         mViewPager.setPageTransformer(false, new FadePageTransformer());
 
         mViewPager.setCurrentItem(0);
@@ -151,10 +151,6 @@ public class AuthSignUp extends AppCompatActivity {
             switch (mViewPager.getCurrentItem()){
                 case 0:
                     return super.onOptionsItemSelected(item);
-                case 1:
-                    mViewPager.setCurrentItem(0);
-                    wyb.enableChildViews();
-                    return true;
                 default:
                     return true;
             }
@@ -184,11 +180,8 @@ public class AuthSignUp extends AppCompatActivity {
             //Return current tabs
             switch (position) {
                 case 0:
-                    wyb = new AuthBirthdayInput();
-                    return wyb;
-                case 1:
-                    wyun = new AuthUsernameInput();
-                    return wyun;
+                    signUpFragment = new AuthSignUpFragment();
+                    return signUpFragment;
                 default:
                     return null;
             }
@@ -197,16 +190,14 @@ public class AuthSignUp extends AppCompatActivity {
         @Override
         public int getCount() {
             // Show 2 total pages.
-            return 2;
+            return 1;
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "When's Your Birthday?";
-                case 1:
-                    return "Choose a Username";
+                    return "Create an Account";
             }
             return null;
         }
@@ -230,7 +221,6 @@ public class AuthSignUp extends AppCompatActivity {
 
     public void signUpUser(){
 
-        wyun.displayProgressBar(true);
         Log.d("suauthid", authID);
         final User newUser = new User(bday, username, authID);
         final AuthCredential credential;
@@ -326,19 +316,19 @@ public class AuthSignUp extends AppCompatActivity {
                                 }).addOnFailureListener(new OnFailureListener() {
                                     @Override
                                     public void onFailure(@NonNull Exception e) {
-                                        wyun.displayProgressBar(false);
+                                        signUpFragment.reenableSignupButton();
                                         Toast.makeText(thisActivity, "There was a problem signing up. Please check your network connection and try again.", Toast.LENGTH_SHORT).show();
                                     }
                                 });
                             }
                             else {
-                                wyun.displayProgressBar(false);
+                                signUpFragment.reenableSignupButton();
                                 Toast.makeText(thisActivity, "There was a problem signing up. Please check your network connection and try again.", Toast.LENGTH_SHORT).show();
                             }
 
                         } else {
                             // If sign in fails, display a message to the user.
-                            wyun.displayProgressBar(false);
+                            signUpFragment.reenableSignupButton();
                             Log.w("facebookLogin", "signInWithCredential:failure", task.getException());
                             Toast.makeText(AuthSignUp.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();

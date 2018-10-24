@@ -120,7 +120,7 @@ public class SignUp extends AppCompatActivity {
         mViewPager = findViewById(R.id.containersup);
         mViewPager.setScrollDurationFactor(1);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        mViewPager.setOffscreenPageLimit(3);
+        mViewPager.setOffscreenPageLimit(1);
         mViewPager.setPageTransformer(false, new FadePageTransformer());
 
         mViewPager.setCurrentItem(0);
@@ -138,14 +138,6 @@ public class SignUp extends AppCompatActivity {
             switch (mViewPager.getCurrentItem()){
                 case 0:
                     return super.onOptionsItemSelected(item);
-                case 1:
-                    mViewPager.setCurrentItem(0);
-                    signUpFragment.enableChildViews();
-                    return true;
-                case 2:
-                    mViewPager.setCurrentItem(1);
-                    wyun.enableChildViews();
-                    return true;
                 default:
                     return true;
             }
@@ -177,12 +169,6 @@ public class SignUp extends AppCompatActivity {
                 case 0:
                     signUpFragment = new SignUpFragment();
                     return signUpFragment;
-                case 1:
-                    wyun = new WhatsYourUsername();
-                    return wyun;
-                case 2:
-                    ypfrag = new WhatsYourPassword();
-                    return ypfrag;
                 default:
                     return null;
             }
@@ -190,19 +176,15 @@ public class SignUp extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            // Show 4 total pages.
-            return 3;
+            // Show 1 total pages.
+            return 1;
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "When's Your Birthday?";
-                case 1:
-                    return "Choose a Username";
-                case 2:
-                    return "Choose a Password";
+                    return "Create an Account";
             }
             return null;
         }
