@@ -15,6 +15,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -37,14 +38,13 @@ public class SignUpFragment extends Fragment {
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
     private SignUp activity;
-    private DatePicker datePicker;
-    private boolean firstRound = true;
     private Toast mToast;
 
     private TextInputLayout usernameInputLayout, passwordInputLayout;
     private EditText usernameIn, passwordIn;
     private Button signupButton;
     private TextView usernameCheckTV, passwordCheckTV;
+    private ProgressBar signupPB;
 
 
     private int usernameVersion = 0;
@@ -69,6 +69,7 @@ public class SignUpFragment extends Fragment {
         signupButton = rootView.findViewById(R.id.signup_button);
         usernameCheckTV = rootView.findViewById(R.id.username_input_warning);
         passwordCheckTV = rootView.findViewById(R.id.password_input_warning);
+        signupPB = rootView.findViewById(R.id.signup_pb);
 
         usernameIn.addTextChangedListener(new FormValidator(usernameIn) {
             @Override
@@ -225,6 +226,9 @@ public class SignUpFragment extends Fragment {
                     activity.setUsername(finalUsername);
                     activity.setBiebs(finalPW);
                     activity.signUpUser();
+                    signupButton.setVisibility(View.INVISIBLE);
+                    signupButton.setEnabled(false);
+                    signupPB.setVisibility(View.VISIBLE);
                 }
                 else if(!usernameValidated || finalUsername == null) {
                     if(mToast != null){
@@ -254,18 +258,6 @@ public class SignUpFragment extends Fragment {
         activity = (SignUp) context;
     }
 
-    private void setErrorTextColor(TextInputLayout textInputLayout, int color) {
-        try {
-            Field fErrorView = TextInputLayout.class.getDeclaredField("mErrorView");
-            fErrorView.setAccessible(true);
-            TextView mErrorView = (TextView) fErrorView.get(textInputLayout);
-            Field fCurTextColor = TextView.class.getDeclaredField("mCurTextColor");
-            fCurTextColor.setAccessible(true);
-            fCurTextColor.set(mErrorView, color);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
@@ -302,6 +294,12 @@ public class SignUpFragment extends Fragment {
         return (c >= 'a' && c <= 'z') ||
                 (c >= 'A' && c <= 'Z') ||
                 (c >= '0' && c <= '9');
+    }
+
+    public void reenableSignupButton() {
+        signupButton.setEnabled(true);
+        signupButton.setVisibility(View.VISIBLE);
+        signupPB.setVisibility(View.GONE);
     }
 
     private void checkUsername(final String username, final int thisVersion) { //TODO: do this using Elasticsearch instead (so first we need to set up API gateway for that)

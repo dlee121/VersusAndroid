@@ -315,7 +315,7 @@ public class SignUp extends AppCompatActivity {
                                                             }
                                                             mToast = Toast.makeText(thisActivity, "Something went wrong. Please try again.", Toast.LENGTH_SHORT);
                                                             mToast.show();
-                                                            ypfrag.displayProgressBar(false);
+                                                            signUpFragment.reenableSignupButton();
                                                         }
                                                     });
                                                 }
@@ -330,18 +330,18 @@ public class SignUp extends AppCompatActivity {
                                 }).addOnFailureListener(new OnFailureListener() {
                                     @Override
                                     public void onFailure(@NonNull Exception e) {
-                                        ypfrag.displayProgressBar(false);
+                                        signUpFragment.reenableSignupButton();
                                         Toast.makeText(thisActivity, "There was a problem signing up. Please check your network connection and try again.", Toast.LENGTH_SHORT).show();
                                     }
                                 });
                             }
                             else {
-                                ypfrag.displayProgressBar(false);
+                                signUpFragment.reenableSignupButton();
                                 Toast.makeText(thisActivity, "There was a problem signing up. Please check your network connection and try again.", Toast.LENGTH_SHORT).show();
                             }
 
                         } else {
-                            ypfrag.displayProgressBar(false);
+                            signUpFragment.reenableSignupButton();
                             Toast.makeText(thisActivity, "There was a problem signing up. Please check your network connection and try again.", Toast.LENGTH_SHORT).show();
                         }
                     }

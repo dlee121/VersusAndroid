@@ -3414,7 +3414,7 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
         //Log.d("logininitial", "initializing ad section");
         //implement consent form like we do in iOS and use consent value if in EU, else true
         //TODO: implement consent form and give actual value for hasConsent below
-        Appodeal.initialize(this, appKey, Appodeal.NATIVE, true);
+        Appodeal.initialize(this, appKey, Appodeal.NATIVE, false);
 
         if(Appodeal.getAvailableNativeAdsCount() > 0) {
             initialAdLoaded = true;
