@@ -72,9 +72,7 @@ public class GDPRFragment extends Fragment {
         noButtonText.setSpan(new ClickableSpan() {
             @Override
             public void onClick(View textView) {
-                Log.d("gdpraction", "noButton clicked");
-
-
+                activity.GDPRNoButtonClicked();
             }
             @Override
             public void updateDrawState(TextPaint ds) {
@@ -95,13 +93,9 @@ public class GDPRFragment extends Fragment {
         yesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.d("gdpraction", "yesButton clicked");
-
+                activity.GDPRYesButtonClicked();
             }
         });
-
-
-
 
         childViews = new ArrayList<>();
         LPStore = new ArrayList<>();

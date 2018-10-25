@@ -86,7 +86,7 @@ public class SignUp extends AppCompatActivity {
     private ApiClientFactory factory;
     private VersusAPIClient client;
 
-    /*
+
     @Override
     public void onBackPressed(){
         int currentItem = mViewPager.getCurrentItem();
@@ -94,10 +94,11 @@ public class SignUp extends AppCompatActivity {
             super.onBackPressed();  //call superclass's onBackPressed
         }
         else {
-            mViewPager.setCurrentItem(currentItem - 1);
+            //count as noButton click and go to MainContainer
+            GDPRNoButtonClicked();
         }
     }
-    */
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -454,9 +455,12 @@ public class SignUp extends AppCompatActivity {
                 thisActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-
-                        //assass
                         mViewPager.setCurrentItem(1);
+                        try{
+                            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+                        }catch (Exception e){
+                            Log.d("hi", "hey");
+                        }
                     }
                 });
 
@@ -489,6 +493,16 @@ public class SignUp extends AppCompatActivity {
                 Log.d("JSONRESULT", "Exception encountered");
             }
         }
+    }
+
+    public void GDPRYesButtonClicked() {
+        Log.d("gdpraction", "yes clicked");
+
+    }
+
+    public void GDPRNoButtonClicked() {
+        Log.d("gdpraction", "no clicked");
+
     }
 
 
