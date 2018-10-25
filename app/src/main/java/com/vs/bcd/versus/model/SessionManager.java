@@ -109,6 +109,11 @@ public class SessionManager {
         editor.apply();
     }
 
+    public void setBd(String bd) {
+        editor.putString(KEY_BDAY, bd);
+        editor.apply();
+    }
+
     public String getBday(){
         return pref.getString(KEY_BDAY, null);
     }

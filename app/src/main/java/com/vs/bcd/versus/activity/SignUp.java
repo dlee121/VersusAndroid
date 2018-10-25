@@ -22,6 +22,9 @@ import android.widget.Toast;
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.apigateway.ApiClientFactory;
 import com.amazonaws.regions.Regions;
+import com.facebook.login.LoginManager;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -85,7 +88,8 @@ public class SignUp extends AppCompatActivity {
     Toast mToast;
     private ApiClientFactory factory;
     private VersusAPIClient client;
-
+    private String currentToken = "";
+    private String currentUsername = "";
 
     @Override
     public void onBackPressed(){
@@ -276,7 +280,7 @@ public class SignUp extends AppCompatActivity {
                                                     userPutModel.setT(df.format(new Date()));
 
                                                     client.userputPost(userPutModel, newUser.getUsername().toLowerCase(), "put", "user");
-
+                                                    currentUsername = newUser.getUsername();
                                                     String userNotificationPath = getUsernameHash(newUser.getUsername()) + "/" + newUser.getUsername() + "/n/em/";
                                                     FirebaseDatabase.getInstance().getReference().child(userNotificationPath).setValue(true);
 
@@ -401,6 +405,7 @@ public class SignUp extends AppCompatActivity {
         protected String doInBackground(String... params) {
 
             token = params[1];
+            currentToken = token;
             HttpURLConnection connection = null;
             BufferedReader reader = null;
 
@@ -498,10 +503,120 @@ public class SignUp extends AppCompatActivity {
     public void GDPRYesButtonClicked() {
         Log.d("gdpraction", "yes clicked");
 
+        //update user "bd" as "gdpr1" then move to MainContainer and initialize Appodeal with consent = true
+        Runnable runnable = new Runnable() {
+            public void run() {
+                try{
+
+                    if(factory == null) {
+                        factory = new ApiClientFactory().credentialsProvider(credentialsProvider);
+                    }
+                    if(client == null) {
+                        client = factory.build(VersusAPIClient.class);
+                    }
+                    client.setemailGet("gdpr1", "bd", currentUsername);
+
+                }catch (Exception e){
+                    thisActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            sessionManager.logoutUser();
+                            credentialsProvider.clear();
+                            credentialsProvider = new CognitoCachingCredentialsProvider(
+                                    getApplicationContext(),
+                                    "us-east-1:88614505-c8df-4dce-abd8-79a0543852ff", // Identity Pool ID
+                                    Regions.US_EAST_1 // Region
+                            );
+                            credentialsProvider.refresh();
+                            LoginManager.getInstance().logOut();
+                            GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build(); //google logout
+                            GoogleSignIn.getClient(thisActivity, gso).signOut();
+                            if(mToast != null){
+                                mToast.cancel();
+                            }
+                            mToast = Toast.makeText(thisActivity, "Something went wrong. Please try again.", Toast.LENGTH_SHORT);
+                            mToast.show();
+                        }
+                    });
+                }
+            }
+        };
+        Thread mythread = new Thread(runnable);
+        mythread.start();
+
+        sessionManager.setBd("gdpr1");
+
+        thisActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Intent intent = new Intent(thisActivity, MainContainer.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);   //clears back stack for navigation
+                intent.putExtra("oitk", currentToken);
+                startActivity(intent);
+                overridePendingTransition(0, 0);
+            }
+        });
     }
 
     public void GDPRNoButtonClicked() {
         Log.d("gdpraction", "no clicked");
+
+
+        //update user "bd" as "gdpr0" then move to MainContainer and initialize Appodeal with consent = false
+        Runnable runnable = new Runnable() {
+            public void run() {
+                try{
+
+                    if(factory == null) {
+                        factory = new ApiClientFactory().credentialsProvider(credentialsProvider);
+                    }
+                    if(client == null) {
+                        client = factory.build(VersusAPIClient.class);
+                    }
+                    client.setemailGet("gdpr0", "bd", currentUsername);
+
+                }catch (Exception e){
+                    thisActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            sessionManager.logoutUser();
+                            credentialsProvider.clear();
+                            credentialsProvider = new CognitoCachingCredentialsProvider(
+                                    getApplicationContext(),
+                                    "us-east-1:88614505-c8df-4dce-abd8-79a0543852ff", // Identity Pool ID
+                                    Regions.US_EAST_1 // Region
+                            );
+                            credentialsProvider.refresh();
+                            LoginManager.getInstance().logOut();
+                            GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build(); //google logout
+                            GoogleSignIn.getClient(thisActivity, gso).signOut();
+                            if(mToast != null){
+                                mToast.cancel();
+                            }
+                            mToast = Toast.makeText(thisActivity, "Something went wrong. Please try again.", Toast.LENGTH_SHORT);
+                            mToast.show();
+                        }
+                    });
+                }
+            }
+        };
+        Thread mythread = new Thread(runnable);
+        mythread.start();
+
+        sessionManager.setBd("gdpr0");
+
+        thisActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Intent intent = new Intent(thisActivity, MainContainer.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);   //clears back stack for navigation
+                intent.putExtra("oitk", currentToken);
+                startActivity(intent);
+                overridePendingTransition(0, 0);
+            }
+        });
+
+
 
     }
 
