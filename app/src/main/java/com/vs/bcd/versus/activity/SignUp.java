@@ -280,12 +280,13 @@ public class SignUp extends AppCompatActivity {
                                                     userPutModel.setT(df.format(new Date()));
 
                                                     client.userputPost(userPutModel, newUser.getUsername().toLowerCase(), "put", "user");
+
                                                     currentUsername = newUser.getUsername();
+
                                                     String userNotificationPath = getUsernameHash(newUser.getUsername()) + "/" + newUser.getUsername() + "/n/em/";
                                                     FirebaseDatabase.getInstance().getReference().child(userNotificationPath).setValue(true);
 
                                                     sessionManager.createLoginSession(newUser, true);
-
                                                     new JsonTask().execute("http://adservice.google.com/getconfig/pubvendors", getTokenResult.getToken());
 
 
@@ -456,28 +457,20 @@ public class SignUp extends AppCompatActivity {
 
             try {
 
-                //TODO: just for debugging, force show GDPR consent page
-                thisActivity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mViewPager.setCurrentItem(1);
-                        try{
-                            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-                        }catch (Exception e){
-                            Log.d("hi", "hey");
-                        }
-                    }
-                });
-
-
-                /*
                 JSONObject responseObject = new JSONObject(result);
                 if(responseObject.getBoolean("is_request_in_eea_or_unknown")) {
                     //User is in EU so show GDPR consent page
-
-
-
-
+                    thisActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mViewPager.setCurrentItem(1);
+                            try{
+                                getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+                            }catch (Exception e){
+                                Log.d("hi", "hey");
+                            }
+                        }
+                    });
                 }
                 else {
                     //User is not in EU so proceed to MainContainer
@@ -492,7 +485,6 @@ public class SignUp extends AppCompatActivity {
                         }
                     });
                 }
-                */
 
             }catch (Exception e){
                 Log.d("JSONRESULT", "Exception encountered");
@@ -615,8 +607,6 @@ public class SignUp extends AppCompatActivity {
                 overridePendingTransition(0, 0);
             }
         });
-
-
 
     }
 
