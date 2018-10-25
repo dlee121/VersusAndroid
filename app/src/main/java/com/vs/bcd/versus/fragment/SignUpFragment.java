@@ -275,19 +275,11 @@ public class SignUpFragment extends Fragment {
 
 
     public void enableChildViews(){
-        for(int i = 0; i<childViews.size(); i++){
-            childViews.get(i).setEnabled(true);
-            childViews.get(i).setClickable(true);
-            childViews.get(i).setLayoutParams(LPStore.get(i));
-        }
+        signupScrollView.setVisibility(View.VISIBLE);
     }
 
     public void disableChildViews(){
-        for(int i = 0; i<childViews.size(); i++){
-            childViews.get(i).setEnabled(false);
-            childViews.get(i).setClickable(false);
-            childViews.get(i).setLayoutParams(new RelativeLayout.LayoutParams(0,0));
-        }
+        signupScrollView.setVisibility(View.GONE);
     }
 
     private boolean isLetterOrDigit(char c) {

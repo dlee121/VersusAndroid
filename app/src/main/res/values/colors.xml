@@ -17,4 +17,5 @@
     <color name="highlightGrey">#BDBDBD</color>
     <color name="messageGreen">#B9DD78</color>
     <color name="highlightBlue">#007AFF</color>
+    <color name="textBlack">#000000</color>
 </resources>

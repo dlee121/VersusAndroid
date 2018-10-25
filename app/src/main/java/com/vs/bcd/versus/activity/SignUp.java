@@ -35,6 +35,7 @@ import com.google.gson.JsonParser;
 import com.vs.bcd.api.VersusAPIClient;
 import com.vs.bcd.api.model.UserPutModel;
 import com.vs.bcd.versus.R;
+import com.vs.bcd.versus.fragment.GDPRFragment;
 import com.vs.bcd.versus.fragment.SignUpFragment;
 import com.vs.bcd.versus.fragment.WhatsYourPassword;
 import com.vs.bcd.versus.fragment.WhatsYourUsername;
@@ -85,6 +86,7 @@ public class SignUp extends AppCompatActivity {
     private ApiClientFactory factory;
     private VersusAPIClient client;
 
+    /*
     @Override
     public void onBackPressed(){
         int currentItem = mViewPager.getCurrentItem();
@@ -95,6 +97,7 @@ public class SignUp extends AppCompatActivity {
             mViewPager.setCurrentItem(currentItem - 1);
         }
     }
+    */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -131,7 +134,7 @@ public class SignUp extends AppCompatActivity {
         mViewPager = findViewById(R.id.containersup);
         mViewPager.setScrollDurationFactor(1);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        mViewPager.setOffscreenPageLimit(1);
+        mViewPager.setOffscreenPageLimit(2);
         mViewPager.setPageTransformer(false, new FadePageTransformer());
 
         mViewPager.setCurrentItem(0);
@@ -180,6 +183,8 @@ public class SignUp extends AppCompatActivity {
                 case 0:
                     signUpFragment = new SignUpFragment();
                     return signUpFragment;
+                case 1:
+                    return new GDPRFragment();
                 default:
                     return null;
             }
@@ -187,8 +192,8 @@ public class SignUp extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            // Show 1 total pages.
-            return 1;
+            // Show 2 total pages.
+            return 2;
         }
 
         @Override
@@ -196,6 +201,8 @@ public class SignUp extends AppCompatActivity {
             switch (position) {
                 case 0:
                     return "Create an Account";
+                case 1:
+                    return "GDPR Consent Form";
             }
             return null;
         }
@@ -448,13 +455,8 @@ public class SignUp extends AppCompatActivity {
                     @Override
                     public void run() {
 
-
-
-                        Intent intent = new Intent(thisActivity, MainContainer.class);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);   //clears back stack for navigation
-                        intent.putExtra("oitk", token);
-                        startActivity(intent);
-                        overridePendingTransition(0, 0);
+                        //assass
+                        mViewPager.setCurrentItem(1);
                     }
                 });
 
