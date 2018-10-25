@@ -1,6 +1,8 @@
 package com.vs.bcd.versus.activity;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -11,6 +13,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -28,6 +31,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GetTokenResult;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.gson.JsonParser;
 import com.vs.bcd.api.VersusAPIClient;
 import com.vs.bcd.api.model.UserPutModel;
 import com.vs.bcd.versus.R;
@@ -38,7 +42,16 @@ import com.vs.bcd.versus.model.ViewPagerCustomDuration;
 import com.vs.bcd.versus.model.SessionManager;
 import com.vs.bcd.versus.model.User;
 
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -259,17 +272,12 @@ public class SignUp extends AppCompatActivity {
                                                     String userNotificationPath = getUsernameHash(newUser.getUsername()) + "/" + newUser.getUsername() + "/n/em/";
                                                     FirebaseDatabase.getInstance().getReference().child(userNotificationPath).setValue(true);
 
-                                                    thisActivity.runOnUiThread(new Runnable() {
-                                                        @Override
-                                                        public void run() {
-                                                            sessionManager.createLoginSession(newUser, true);
-                                                            Intent intent = new Intent(thisActivity, MainContainer.class);
-                                                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);   //clears back stack for navigation
-                                                            intent.putExtra("oitk", getTokenResult.getToken());
-                                                            startActivity(intent);
-                                                            overridePendingTransition(0, 0);
-                                                        }
-                                                    });
+                                                    sessionManager.createLoginSession(newUser, true);
+
+                                                    new JsonTask().execute("http://adservice.google.com/getconfig/pubvendors", getTokenResult.getToken());
+
+
+
 
                                                 }catch (Exception e){
                                                     credentialsProvider.clear();
@@ -372,6 +380,113 @@ public class SignUp extends AppCompatActivity {
         }
 
         return Integer.toString(usernameHash);
+    }
+
+    private class JsonTask extends AsyncTask<String, String, String> {
+
+        String token;
+
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        protected String doInBackground(String... params) {
+
+            token = params[1];
+            HttpURLConnection connection = null;
+            BufferedReader reader = null;
+
+            try {
+                URL url = new URL(params[0]);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.connect();
+
+
+                InputStream stream = connection.getInputStream();
+
+                reader = new BufferedReader(new InputStreamReader(stream));
+
+                StringBuffer buffer = new StringBuffer();
+                String line = "";
+
+                while ((line = reader.readLine()) != null) {
+                    buffer.append(line+"\n");
+                    Log.d("Response: ", "> " + line);   //here u ll get whole response...... :-)
+
+                }
+
+                return buffer.toString();
+
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
+                }
+                try {
+                    if (reader != null) {
+                        reader.close();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+
+            try {
+
+                //TODO: just for debugging, force show GDPR consent page
+                thisActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+
+
+                        Intent intent = new Intent(thisActivity, MainContainer.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);   //clears back stack for navigation
+                        intent.putExtra("oitk", token);
+                        startActivity(intent);
+                        overridePendingTransition(0, 0);
+                    }
+                });
+
+
+                /*
+                JSONObject responseObject = new JSONObject(result);
+                if(responseObject.getBoolean("is_request_in_eea_or_unknown")) {
+                    //User is in EU so show GDPR consent page
+
+
+
+
+                }
+                else {
+                    //User is not in EU so proceed to MainContainer
+                    thisActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Intent intent = new Intent(thisActivity, MainContainer.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);   //clears back stack for navigation
+                            intent.putExtra("oitk", token);
+                            startActivity(intent);
+                            overridePendingTransition(0, 0);
+                        }
+                    });
+                }
+                */
+
+            }catch (Exception e){
+                Log.d("JSONRESULT", "Exception encountered");
+            }
+        }
     }
 
 

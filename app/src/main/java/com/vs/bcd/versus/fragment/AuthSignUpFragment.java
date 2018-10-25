@@ -159,6 +159,7 @@ public class AuthSignUpFragment extends Fragment {
                         e.printStackTrace();
                     }
 
+                    activity.setB("0");
                     activity.setU(finalUsername);
 
                     activity.signUpUser();
