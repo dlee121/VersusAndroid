@@ -292,7 +292,7 @@ public class AuthSignUp extends AppCompatActivity {
                                                     client.userputPost(userPutModel, newUser.getUsername().toLowerCase(), "put", "user");
 
                                                     currentUsername = newUser.getUsername();
-                                                    sessionManager.createLoginSession(newUser, true);
+                                                    sessionManager.createLoginSession(newUser, false);
                                                     new JsonTask().execute("http://adservice.google.com/getconfig/pubvendors", getTokenResult.getToken());
 
                                                 }catch (Exception e){
