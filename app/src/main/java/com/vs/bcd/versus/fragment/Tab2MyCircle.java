@@ -65,15 +65,15 @@ public class Tab2MyCircle extends Fragment implements SwipeRefreshLayout.OnRefre
     private int adFrequency = 8; //place native ad after every 8 myCircleComments
     private int adCount = 0;
     private int retrievalSize = 16;
-    private int randomNumberMin = 10;
-    private int randomNumberMax = 15;
+    //private int randomNumberMin = 10;
+    //private int randomNumberMax = 15;
 
     private int NATIVE_APP_INSTALL_AD = 42069;
     private int NATIVE_CONTENT_AD = 69420;
 
     private int currCommentsIndex = 0;
-    private Random randomNumber = new Random();
-    private int nextAdIndex = randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
+    //private Random randomNumber = new Random();
+    private int nextAdIndex = 3;
 
 
     private HashMap<String, Integer> profileImgVersions = new HashMap<>();
@@ -166,7 +166,7 @@ public class Tab2MyCircle extends Fragment implements SwipeRefreshLayout.OnRefre
     public void onRefresh() {
         // Fetching data from server
         adCount = 0;
-        nextAdIndex = randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
+        nextAdIndex = 3;
         Log.d("Refresh", "Now Refreshing");
 
         myCircleComments.clear();
@@ -228,7 +228,7 @@ public class Tab2MyCircle extends Fragment implements SwipeRefreshLayout.OnRefre
                             currCommentsIndex++;
                             if(currCommentsIndex == nextAdIndex){
                                 VSComment adSkeleton = new VSComment();
-                                nextAdIndex = currCommentsIndex + randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
+                                nextAdIndex = currCommentsIndex + 8;
                                 adSkeleton.setAuthor("d0");
                                 myCircleComments.add(adSkeleton);
                                 adCount++;
@@ -256,7 +256,7 @@ public class Tab2MyCircle extends Fragment implements SwipeRefreshLayout.OnRefre
 
                                 if(currCommentsIndex == nextAdIndex){
                                     VSComment adSkeleton = new VSComment();
-                                    nextAdIndex = currCommentsIndex + randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
+                                    nextAdIndex = currCommentsIndex + 8;
                                     adSkeleton.setAuthor("d0");
                                     myCircleComments.add(adSkeleton);
                                     adCount++;

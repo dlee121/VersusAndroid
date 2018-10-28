@@ -68,14 +68,14 @@ public class Tab3New extends Fragment implements SwipeRefreshLayout.OnRefreshLis
     private int adFrequency = 8; //place native ad after every 8 posts
     private int adCount = 0;
     private int retrievalSize = 16;
-    private int randomNumberMin = 10;
-    private int randomNumberMax = 15;
+    //private int randomNumberMin = 8;
+    //private int randomNumberMax = 12;
 
     private int NATIVE_AD = 69420;
 
     private int currPostsIndex = 0;
-    private Random randomNumber = new Random();
-    private int nextAdIndex = randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
+    //private Random randomNumber = new Random();
+    private int nextAdIndex = 2;
 
     private HashMap<String, Integer> profileImgVersions = new HashMap<>();
 
@@ -192,7 +192,7 @@ public class Tab3New extends Fragment implements SwipeRefreshLayout.OnRefreshLis
     public void onRefresh() {
         // Fetching data from server
         adCount = 0;
-        nextAdIndex = randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
+        nextAdIndex = 2;
         Log.d("Refresh", "Now Refreshing");
 
         posts.clear();
@@ -265,7 +265,7 @@ public class Tab3New extends Fragment implements SwipeRefreshLayout.OnRefreshLis
 
                             if(currPostsIndex == nextAdIndex){
                                 Post adSkeleton = new Post();
-                                nextAdIndex = currPostsIndex + randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
+                                nextAdIndex = currPostsIndex + 5;
                                 adSkeleton.setCategory(NATIVE_AD);
                                 posts.add(adSkeleton);
                                 adCount++;

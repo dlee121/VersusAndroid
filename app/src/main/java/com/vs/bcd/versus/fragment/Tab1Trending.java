@@ -65,14 +65,14 @@ public class Tab1Trending extends Fragment implements SwipeRefreshLayout.OnRefre
     private int loadThreshold = 8;
     private int adCount = 0;
     private int retrievalSize = 16;
-    private int randomNumberMin = 10;
-    private int randomNumberMax = 15;
+    //private int randomNumberMin = 8;
+    //private int randomNumberMax = 12;
 
     private int NATIVE_AD = 69420;
 
     private int currPostsIndex = 0;
-    private Random randomNumber = new Random();
-    private int nextAdIndex = randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
+    //private Random randomNumber = new Random();
+    private int nextAdIndex = 2;
 
     private int categorySelection = -1;
     private LinearLayout categorySelectionView;
@@ -213,7 +213,7 @@ public class Tab1Trending extends Fragment implements SwipeRefreshLayout.OnRefre
     public void onRefresh() {
         // Fetching data from server
         adCount = 0;
-        nextAdIndex = randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
+        nextAdIndex = 2;
         Log.d("Refresh", "Now Refreshing");
 
         posts.clear();
@@ -265,7 +265,7 @@ public class Tab1Trending extends Fragment implements SwipeRefreshLayout.OnRefre
 
                             if(currPostsIndex == nextAdIndex){
                                 Post adSkeleton = new Post();
-                                nextAdIndex = currPostsIndex + randomNumber.nextInt(randomNumberMax - randomNumberMin + 1) + randomNumberMin;
+                                nextAdIndex = currPostsIndex + 5;
                                 adSkeleton.setCategory(NATIVE_AD);
                                 posts.add(adSkeleton);
                                 adCount++;
