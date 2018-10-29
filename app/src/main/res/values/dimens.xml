@@ -30,6 +30,9 @@
     <dimen name="eight">8dp</dimen>
     <dimen name="four">4dp</dimen>
     <dimen name="eighteen">18dp</dimen>
+    <dimen name="tutorial_margin_extra">128dp</dimen>
+    <dimen name="tutorial_margin_tablet">192dp</dimen>
+    <dimen name="sixteen">16dp</dimen>
 
 
 </resources>

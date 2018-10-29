@@ -293,60 +293,7 @@
 
     </RelativeLayout>
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center_horizontal"
-        android:background="#99000000">
 
 
 
-        <LinearLayout
-            android:id="@+id/arrowtexts"
-            android:layout_width="256dp"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true" >
-
-            <TextView
-                android:layout_width="128dp"
-                android:layout_height="wrap_content"
-                android:textAlignment="center"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="#FFF"
-                android:text="Tap Here to Vote !"/>
-
-            <TextView
-                android:layout_width="128dp"
-                android:layout_height="wrap_content"
-                android:textAlignment="center"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="#FFF"
-                android:text="Or Here !"/>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="256dp"
-            android:layout_height="128dp"
-            android:layout_above="@id/arrowtexts">
-
-            <ImageView
-                android:id="@+id/cute_arrow_left"
-                android:layout_width="128dp"
-                android:layout_height="128dp"
-                android:src="@drawable/cute_left_arrow_large"/>
-
-            <ImageView
-                android:id="@+id/cute_arrow_right"
-                android:layout_width="128dp"
-                android:layout_height="128dp"
-                android:src="@drawable/cute_right_arrow_large"/>
-
-        </LinearLayout>
-
-
-
-    </RelativeLayout>
 </android.support.v7.widget.CardView>

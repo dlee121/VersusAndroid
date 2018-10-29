@@ -89,4 +89,115 @@
     </android.support.v4.widget.SwipeRefreshLayout>
 
 
+    <RelativeLayout
+        android:id="@+id/tutorialview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:background="#99000000">
+
+        <LinearLayout
+            android:id="@+id/cutearrows"
+            android:layout_width="256dp"
+            android:layout_height="128dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/cute_arrow_left"
+                android:layout_width="128dp"
+                android:layout_height="128dp"
+                android:src="@drawable/cute_left_arrow_large"/>
+
+            <ImageView
+                android:id="@+id/cute_arrow_right"
+                android:layout_width="128dp"
+                android:layout_height="128dp"
+                android:src="@drawable/cute_right_arrow_large"/>
+
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:id="@+id/arrowtexts"
+            android:layout_width="256dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/cutearrows"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="128dp"
+                android:layout_height="wrap_content"
+                android:textAlignment="center"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#FFF"
+                android:text="Tap Here to Vote !"/>
+
+            <TextView
+                android:layout_width="128dp"
+                android:layout_height="wrap_content"
+                android:textAlignment="center"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#FFF"
+                android:text="Or Here !"/>
+
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:id="@+id/cutearrows_tablet"
+            android:layout_width="528dp"
+            android:layout_height="192dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/cute_arrow_left_tablet"
+                android:layout_width="192dp"
+                android:layout_height="192dp"
+                android:layout_marginEnd="72dp"
+                android:src="@drawable/cute_left_arrow_large"/>
+
+            <ImageView
+                android:id="@+id/cute_arrow_right_tablet"
+                android:layout_width="192dp"
+                android:layout_height="192dp"
+                android:layout_marginStart="72dp"
+                android:src="@drawable/cute_right_arrow_large"/>
+
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:id="@+id/arrowtexts_tablet"
+            android:layout_width="528dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/cutearrows_tablet"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="192dp"
+                android:layout_height="wrap_content"
+                android:textAlignment="center"
+                android:textSize="27sp"
+                android:textStyle="bold"
+                android:textColor="#FFF"
+                android:layout_marginEnd="72dp"
+                android:text="Tap Here to Vote !"/>
+
+            <TextView
+                android:layout_width="192dp"
+                android:layout_height="wrap_content"
+                android:textAlignment="center"
+                android:textSize="27sp"
+                android:textStyle="bold"
+                android:textColor="#FFF"
+                android:layout_marginStart="72dp"
+                android:text="Or Here !"/>
+
+        </LinearLayout>
+
+
+    </RelativeLayout>
+
 </RelativeLayout>

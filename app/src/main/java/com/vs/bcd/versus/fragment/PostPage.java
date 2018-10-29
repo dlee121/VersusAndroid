@@ -28,8 +28,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.amazonaws.mobileconnectors.apigateway.ApiClientException;
-import com.amazonaws.services.cognitoidentity.model.NotAuthorizedException;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.vs.bcd.api.model.CGCModel;
@@ -41,7 +39,6 @@ import com.vs.bcd.api.model.CommentEditModelDoc;
 import com.vs.bcd.api.model.CommentModel;
 import com.vs.bcd.api.model.CommentsListModel;
 import com.vs.bcd.api.model.CommentsListModelHitsHitsItem;
-import com.vs.bcd.api.model.CommentsListModelHitsHitsItemSource;
 import com.vs.bcd.api.model.PostModel;
 import com.vs.bcd.api.model.RecordPutModel;
 import com.vs.bcd.versus.R;
@@ -1686,7 +1683,30 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     }
 
+    public void setUpTutorial(int offset) {
+
+        if(activity.getResources().getBoolean(R.bool.isTablet)){
+            LinearLayout cuteTexts = rootView.findViewById(R.id.arrowtexts_tablet);
+            RelativeLayout.LayoutParams cuteLP = (RelativeLayout.LayoutParams) cuteTexts.getLayoutParams();
+            int dp = activity.getResources().getDimensionPixelSize(R.dimen.tutorial_margin_tablet);
+            cuteLP.setMargins(0, 0, 0, offset + dp);
+            cuteTexts.setVisibility(View.VISIBLE);
+            rootView.findViewById(R.id.cutearrows_tablet).setVisibility(View.VISIBLE);
+            rootView.findViewById(R.id.tutorialview).requestLayout();
+        }
+        else {
+            LinearLayout cuteTexts = rootView.findViewById(R.id.arrowtexts);
+            RelativeLayout.LayoutParams cuteLP = (RelativeLayout.LayoutParams) cuteTexts.getLayoutParams();
+            cuteLP.setMargins(0, 0, 0, offset + activity.getResources().getDimensionPixelSize(R.dimen.tutorial_margin_extra) / 2);
+            cuteTexts.setVisibility(View.VISIBLE);
+            rootView.findViewById(R.id.cutearrows).setVisibility(View.VISIBLE);
+            rootView.findViewById(R.id.tutorialview).requestLayout();
+        }
+
+    }
+
     public void setContent(final Post post){  //downloadImages signifies initial post page set up
+
         pageCommentInput.setHint("Join the discussion!");
         this.post = post;
         postID = post.getPost_id();
