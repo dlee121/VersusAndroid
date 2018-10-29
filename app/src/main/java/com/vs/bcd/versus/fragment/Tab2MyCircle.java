@@ -73,7 +73,7 @@ public class Tab2MyCircle extends Fragment implements SwipeRefreshLayout.OnRefre
 
     private int currCommentsIndex = 0;
     //private Random randomNumber = new Random();
-    private int nextAdIndex = 3;
+    private int nextAdIndex = 2;
 
 
     private HashMap<String, Integer> profileImgVersions = new HashMap<>();
@@ -166,7 +166,7 @@ public class Tab2MyCircle extends Fragment implements SwipeRefreshLayout.OnRefre
     public void onRefresh() {
         // Fetching data from server
         adCount = 0;
-        nextAdIndex = 3;
+        nextAdIndex = 2;
         Log.d("Refresh", "Now Refreshing");
 
         myCircleComments.clear();
@@ -228,7 +228,7 @@ public class Tab2MyCircle extends Fragment implements SwipeRefreshLayout.OnRefre
                             currCommentsIndex++;
                             if(currCommentsIndex == nextAdIndex){
                                 VSComment adSkeleton = new VSComment();
-                                nextAdIndex = currCommentsIndex + 8;
+                                nextAdIndex = currCommentsIndex + 5;
                                 adSkeleton.setAuthor("d0");
                                 myCircleComments.add(adSkeleton);
                                 adCount++;
@@ -256,7 +256,7 @@ public class Tab2MyCircle extends Fragment implements SwipeRefreshLayout.OnRefre
 
                                 if(currCommentsIndex == nextAdIndex){
                                     VSComment adSkeleton = new VSComment();
-                                    nextAdIndex = currCommentsIndex + 8;
+                                    nextAdIndex = currCommentsIndex + 5;
                                     adSkeleton.setAuthor("d0");
                                     myCircleComments.add(adSkeleton);
                                     adCount++;
