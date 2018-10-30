@@ -36,6 +36,7 @@ public class SessionManager {
     public static final String KEY_USERNAME = "pref_username";
     public static final String KEY_PI = "pref_profileimage";
     public static final String KEY_IS_NATIVE = "pref_is_native"; //marks if the user logged in using native login or Facebook/Google
+    public static final String KEY_TUTORIAL = "pref_tutorial";
 
 
     // Constructor
@@ -94,6 +95,15 @@ public class SessionManager {
 
     public boolean isNative(){
         return pref.getBoolean(KEY_IS_NATIVE, false);
+    }
+
+    public boolean showTutorial() {
+        return !pref.getBoolean(KEY_TUTORIAL, false);
+    }
+
+    public void setTutorialShown() {
+        editor.putBoolean(KEY_TUTORIAL, true);
+        editor.apply();
     }
 
     public String getCurrentUsername(){

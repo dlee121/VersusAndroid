@@ -96,6 +96,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private PostPage postPage;
 
     private String newsfeedReplyTargetID = "";
+    private boolean showTutorial = false;
 
     //to set imageviews, first fill out the drawable[3] with 0=image layer, 1=tint layer, 2=check mark layer, make LayerDrawable out of the array, then use setImageMask which sets the correct mask layers AND ALSO sets imageview drawable as the LayerDrawable
 
@@ -122,6 +123,7 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         seeMoreContainerTCLP.addRule(RelativeLayout.ALIGN_END, R.id.usercommenttc);
         seeMoreContainerTCLP.addRule(RelativeLayout.BELOW, R.id.usercommenttc);
         //Log.d("DEBUG", "Action Map Size: " + Integer.toString(actionMap.size()));
+        showTutorial = activity.showTutorial();
     }
 
     @Override
@@ -504,6 +506,20 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 }
             });
 
+            if(showTutorial) {
+                postCardViewHolder.redimgBox.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+                        int[] location = new int[2];
+                        postCardViewHolder.redimgBox.getLocationInWindow(location);
+                        postPage.setUpTutorialButtonLeft(location[0], location[1],
+                                postCardViewHolder.redimgBox.getWidth(),
+                                postCardViewHolder.redimgBox.getHeight());
+                        postCardViewHolder.redimgBox.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    }
+                });
+            }
+
             postCardViewHolder.blkimgBox.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -528,6 +544,20 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     }
                 }
             });
+
+            if(showTutorial) {
+                postCardViewHolder.blkimgBox.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+                        int[] location = new int[2];
+                        postCardViewHolder.blkimgBox.getLocationInWindow(location);
+                        postPage.setUpTutorialButtonRight(location[0], location[1],
+                                postCardViewHolder.blkimgBox.getWidth(),
+                                postCardViewHolder.blkimgBox.getHeight());
+                        postCardViewHolder.blkimgBox.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    }
+                });
+            }
 
             postCardViewHolder.sortTypeSelector.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -605,22 +635,22 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 hideGraph();
             }
 
+            if(showTutorial) {
+                postCardViewHolder.sortTypeBackground.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
 
-            postCardViewHolder.sortTypeBackground.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+                        // Do what you need to do here.
+                        // Then remove the listener:
+                        int[] location = new int[2];
+                        postCardViewHolder.sortTypeBackground.getLocationInWindow(location);
+                        Log.d("postTextOnly", "offset " + location[1]+", screenHeight "+activity.getResources().getDisplayMetrics().heightPixels);
+                        postPage.setUpTutorial(activity.getResources().getDisplayMetrics().heightPixels/2-location[1]);
+                        postCardViewHolder.sortTypeBackground.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    }
 
-                @Override
-                public void onGlobalLayout() {
-                    // Do what you need to do here.
-                    // Then remove the listener:
-                    int[] location = new int[2];
-                    postCardViewHolder.sortTypeBackground.getLocationInWindow(location);
-                    Log.d("postTextOnly", "offset " + location[1]+", screenHeight "+activity.getResources().getDisplayMetrics().heightPixels);
-                    postPage.setUpTutorial(activity.getResources().getDisplayMetrics().heightPixels/2-location[1]);
-                    postCardViewHolder.sortTypeBackground.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                }
-
-            });
-
+                });
+            }
 
         } else if(holder instanceof PostCardTextOnlyViewHolder){
             postCard = holder;
@@ -719,6 +749,20 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 }
             });
 
+            if(showTutorial) {
+                postCardTextOnlyViewHolder.leftBox.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+                        int[] location = new int[2];
+                        postCardTextOnlyViewHolder.leftBox.getLocationInWindow(location);
+                        postPage.setUpTutorialButtonLeft(location[0], location[1],
+                                postCardTextOnlyViewHolder.leftBox.getWidth(),
+                                postCardTextOnlyViewHolder.leftBox.getHeight());
+                        postCardTextOnlyViewHolder.leftBox.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    }
+                });
+            }
+
             postCardTextOnlyViewHolder.rightBox.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -741,6 +785,20 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 }
             });
 
+            if(showTutorial) {
+                postCardTextOnlyViewHolder.rightBox.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+                        int[] location = new int[2];
+                        postCardTextOnlyViewHolder.rightBox.getLocationInWindow(location);
+                        postPage.setUpTutorialButtonRight(location[0], location[1],
+                                postCardTextOnlyViewHolder.rightBox.getWidth(),
+                                postCardTextOnlyViewHolder.rightBox.getHeight());
+                        postCardTextOnlyViewHolder.rightBox.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    }
+                });
+            }
+
 
             if(userAction.getVotedSide().equals("RED")){
                 postCardTextOnlyViewHolder.checkCircleLeft.setVisibility(View.VISIBLE);
@@ -760,21 +818,22 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
 
 
+            if(showTutorial) {
+                postCardTextOnlyViewHolder.sortTypeBackground.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
 
-            postCardTextOnlyViewHolder.sortTypeBackground.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+                        // Do what you need to do here.
+                        // Then remove the listener:
+                        int[] location = new int[2];
+                        postCardTextOnlyViewHolder.sortTypeBackground.getLocationInWindow(location);
+                        Log.d("postTextOnly", "offset " + location[1]+", screenHeight "+activity.getResources().getDisplayMetrics().heightPixels);
+                        postPage.setUpTutorial(activity.getResources().getDisplayMetrics().heightPixels/2-location[1]);
+                        postCardTextOnlyViewHolder.sortTypeBackground.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    }
 
-                @Override
-                public void onGlobalLayout() {
-                    // Do what you need to do here.
-                    // Then remove the listener:
-                    int[] location = new int[2];
-                    postCardTextOnlyViewHolder.sortTypeBackground.getLocationInWindow(location);
-                    Log.d("postTextOnly", "offset " + location[1]+", screenHeight "+activity.getResources().getDisplayMetrics().heightPixels);
-                    postPage.setUpTutorial(activity.getResources().getDisplayMetrics().heightPixels/2-location[1]);
-                    postCardTextOnlyViewHolder.sortTypeBackground.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                }
-
-            });
+                });
+            }
 
 
         } else if(holder instanceof TopCardViewHolder){
@@ -1769,6 +1828,10 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     public void setNewsfeedReplyTargetID(String id){
         newsfeedReplyTargetID = id;
+    }
+
+    public void setTutorialShown() {
+        showTutorial = false;
     }
 
 }

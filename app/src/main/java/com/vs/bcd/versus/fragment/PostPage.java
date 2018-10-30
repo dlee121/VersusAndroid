@@ -77,7 +77,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     private EditText commentInput;
     private RelativeLayout mRelativeLayout;
-    private PostPageAdapter PPAdapter;
+    private PostPageAdapter postPageAdapter;
     private View rootView;
     private ArrayList<View> childViews;
     private ArrayList<ViewGroup.LayoutParams> LPStore;
@@ -254,7 +254,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                             @Override
                                             public void run() {
                                                 editTarget.setIsHighlighted(false);
-                                                PPAdapter.notifyItemChanged(editIndex);
+                                                postPageAdapter.notifyItemChanged(editIndex);
                                                 pageCommentInput.setText("");
                                                 hideCommentInputCursor();
                                                 imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
@@ -277,7 +277,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                             //update content in local copy of the comment, first in nodemap, then in masterlist
                                             editCommentLocal(editIndex, input, editTarget.getComment_id());
                                             editTarget.setIsHighlighted(false);
-                                            PPAdapter.notifyItemChanged(editIndex);
+                                            postPageAdapter.notifyItemChanged(editIndex);
                                             pageCommentInput.setText("");
                                             hideCommentInputCursor();
                                             imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
@@ -356,8 +356,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
                                     if(vsc.getParent_id().equals(vsc.getPost_id()) || (topCardContent != null && vsc.getParent_id().equals(topCardContent.getComment_id()))){ //bottom text input || top card reply
                                         thisNode = new VSCNode(vsc);
-                                        if(PPAdapter.getFirstRoot() != null){
-                                            VSCNode firstRootNode = nodeMap.get(PPAdapter.getFirstRoot().getComment_id());
+                                        if(postPageAdapter.getFirstRoot() != null){
+                                            VSCNode firstRootNode = nodeMap.get(postPageAdapter.getFirstRoot().getComment_id());
                                             firstRootNode.setHeadSibling(thisNode);
                                             thisNode.setTailSibling(firstRootNode);
                                         }
@@ -409,7 +409,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                             activity.runOnUiThread(new Runnable() {
                                                 @Override
                                                 public void run() {
-                                                    PPAdapter.insertItem(vsc, insertionIndex);
+                                                    postPageAdapter.insertItem(vsc, insertionIndex);
                                                 }
                                             });
                                         }
@@ -419,7 +419,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                             activity.runOnUiThread(new Runnable() {
                                                 @Override
                                                 public void run() {
-                                                    PPAdapter.insertItem(vsc, insertionIndex);
+                                                    postPageAdapter.insertItem(vsc, insertionIndex);
                                                     RV.smoothScrollToPosition(1);
                                                 }
                                             });
@@ -432,7 +432,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                         activity.runOnUiThread(new Runnable() {
                                             @Override
                                             public void run() {
-                                                PPAdapter.insertItem(vsc, insertionIndex);
+                                                postPageAdapter.insertItem(vsc, insertionIndex);
                                             }
                                         });
                                     }
@@ -468,8 +468,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         List<Object> placeholderList = new ArrayList<>();
         placeholderList.add(placeholderPost);
 
-        PPAdapter = new PostPageAdapter(placeholderList, placeholderPost, activity, 0, this);
-        RV.setAdapter(PPAdapter);
+        postPageAdapter = new PostPageAdapter(placeholderList, placeholderPost, activity, 0, this);
+        RV.setAdapter(postPageAdapter);
 
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
@@ -524,7 +524,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     @Override
     public void onRefresh() {
 
-        PPAdapter.setLockButtons(true);
+        postPageAdapter.setLockButtons(true);
         nowLoading = false;
 
         dbWriteComplete = false;
@@ -1535,14 +1535,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             //this if condition also determines the boolean parameter at the end of PostPageAdapter constructor to notify adapter if it should set up Post Card
                             if (rootParentID.equals(postID)) {
                                 atRootLevel = true;
-                                //PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
+                                //postPageAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
                             } else {
                                 atRootLevel = false;
-                                //PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
+                                //postPageAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
                             }
-                            PPAdapter.setNewAdapterContent(masterList, post, pageLevel);
+                            postPageAdapter.setNewAdapterContent(masterList, post, pageLevel);
 
-                            //RV.setAdapter(PPAdapter);
+                            //RV.setAdapter(postPageAdapter);
                             activity.setPostInDownload(postID, "done");
                             mSwipeRefreshLayout.setRefreshing(false);
 
@@ -1649,9 +1649,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             //if true then we got the root comments whose parentID is postID ("rootest roots"), so include the post card for the PostPage view
                             //this if condition also determines the boolean parameter at the end of PostPageAdapter constructor to notify adapter if it should set up Post Card
                             atRootLevel = false;
-                            //PPAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
-                            //RV.setAdapter(PPAdapter);
-                            PPAdapter.setNewAdapterContent(masterList, post, pageLevel);
+                            //postPageAdapter = new PostPageAdapter(masterList, post, activity, pageLevel, thisFragment);
+                            //RV.setAdapter(postPageAdapter);
+                            postPageAdapter.setNewAdapterContent(masterList, post, pageLevel);
                             mSwipeRefreshLayout.setRefreshing(false);
 
                             RV.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -1683,6 +1683,29 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     }
 
+    public void setUpTutorialButtonLeft(int x, int y, int w, int h) {
+        Button leftButton = rootView.findViewById(R.id.tutorial_button_left);
+        RelativeLayout.LayoutParams leftLP = (RelativeLayout.LayoutParams)leftButton.getLayoutParams();
+        leftLP.leftMargin = x;
+        leftLP.topMargin = y/2;
+        Log.d("leftmargins", "x: " + x + ", y: " + y);
+        leftLP.width = w;
+        leftLP.height = h;
+        leftButton.requestLayout();
+    }
+
+    public void setUpTutorialButtonRight(int x, int y, int w, int h) {
+        Button rightButton = rootView.findViewById(R.id.tutorial_button_right);
+        RelativeLayout.LayoutParams rightLP = (RelativeLayout.LayoutParams)rightButton.getLayoutParams();
+        rightLP.leftMargin = x;
+        rightLP.topMargin = y/2;
+        Log.d("rightmargins", "x: " + x + ", y: " + y);
+        rightLP.width = w;
+        rightLP.height = h;
+        rightButton.requestLayout();
+    }
+
+
     public void setUpTutorial(int offset) {
 
         if(activity.getResources().getBoolean(R.bool.isTablet)){
@@ -1692,7 +1715,6 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             cuteLP.setMargins(0, 0, 0, offset + dp);
             cuteTexts.setVisibility(View.VISIBLE);
             rootView.findViewById(R.id.cutearrows_tablet).setVisibility(View.VISIBLE);
-            rootView.findViewById(R.id.tutorialview).requestLayout();
         }
         else {
             LinearLayout cuteTexts = rootView.findViewById(R.id.arrowtexts);
@@ -1700,12 +1722,22 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             cuteLP.setMargins(0, 0, 0, offset + activity.getResources().getDimensionPixelSize(R.dimen.tutorial_margin_extra) / 2);
             cuteTexts.setVisibility(View.VISIBLE);
             rootView.findViewById(R.id.cutearrows).setVisibility(View.VISIBLE);
-            rootView.findViewById(R.id.tutorialview).requestLayout();
         }
 
+        rootView.findViewById(R.id.tutorialview).setVisibility(View.VISIBLE);
+        rootView.findViewById(R.id.tutorialview).requestLayout();
+    }
+
+    public void dismissTutorial() {
+        rootView.findViewById(R.id.tutorialview).setVisibility(View.GONE);
+        activity.setTutorialShown();
+        postPageAdapter.setTutorialShown();
     }
 
     public void setContent(final Post post){  //downloadImages signifies initial post page set up
+        if(activity.showTutorial()){
+            rootView.findViewById(R.id.tutorialview).setVisibility(View.GONE);
+        }
 
         pageCommentInput.setHint("Join the discussion!");
         this.post = post;
@@ -1815,8 +1847,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
     }
 
-    public PostPageAdapter getPPAdapter(){
-        return PPAdapter;
+    public PostPageAdapter getPostPageAdapter(){
+        return postPageAdapter;
     }
 
     //now this is more of a legacy function to keep other functions working,
@@ -1838,8 +1870,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     public void setCommentsPage(VSComment subjectComment){
         pageCommentInput.setHint("Enter a reply!");
 
-        if(PPAdapter != null && PPAdapter.getPostID().equals(subjectComment.getPost_id())) {
-            List<Object> masterList = PPAdapter.getMasterList();
+        if(postPageAdapter != null && postPageAdapter.getPostID().equals(subjectComment.getPost_id())) {
+            List<Object> masterList = postPageAdapter.getMasterList();
 
             if(!masterList.isEmpty()){
                 List<Object> stackEntry = new ArrayList<>();
@@ -1884,8 +1916,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         mSwipeRefreshLayout.setRefreshing(true);
 
-        if(PPAdapter != null){
-            PPAdapter.clearList();
+        if(postPageAdapter != null){
+            postPageAdapter.clearList();
         }
 
         sortType = POPULAR;
@@ -1911,9 +1943,9 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         if(!scrollPositionStack.isEmpty()){
             int scrollPosition = scrollPositionStack.pop();
             if(scrollPosition >= 0){
-                //PPAdapter = new PostPageAdapter(masterListStack.pop(), post, activity, pageLevel, thisFragment);
-                //RV.setAdapter(PPAdapter);
-                PPAdapter.setNewAdapterContent(masterListStack.pop(), post, pageLevel);
+                //postPageAdapter = new PostPageAdapter(masterListStack.pop(), post, activity, pageLevel, thisFragment);
+                //RV.setAdapter(postPageAdapter);
+                postPageAdapter.setNewAdapterContent(masterListStack.pop(), post, pageLevel);
                 mSwipeRefreshLayout.setRefreshing(false);
                 RV.getLayoutManager().scrollToPosition(scrollPosition);
                 return;
@@ -1934,7 +1966,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         return atRootLevel;
     }
 
-    //only call this after nodeTable and vsComments have been set up, but before passing vsComments into a PPAdapter instance
+    //only call this after nodeTable and vsComments have been set up, but before passing vsComments into a postPageAdapter instance
     //sets up VSComment.uservote for comments that user upvoted or downvoted
     //this is only used after downloading for initial uservote setup
     public void applyUserActions(List<Object> commentsList){
@@ -2219,7 +2251,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         userAction.setVotedSide("RED");
         redIncrementedLast = true;
         blackIncrementedLast = false;
-        PPAdapter.notifyItemChanged(0);
+        postPageAdapter.notifyItemChanged(0);
     }
 
     public void blackVotePressed(){
@@ -2230,7 +2262,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         userAction.setVotedSide("BLK");
         blackIncrementedLast = true;
         redIncrementedLast = false;
-        PPAdapter.notifyItemChanged(0);
+        postPageAdapter.notifyItemChanged(0);
     }
 
     public UserAction getUserAction(){
@@ -2398,14 +2430,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     private void setPostCardSortTypeHint(){
-        if(PPAdapter != null){
-            //PPAdapter.setSortTypeHint(sortType);
+        if(postPageAdapter != null){
+            //postPageAdapter.setSortTypeHint(sortType);
         }
     }
 
     private void setCommentCardSortTypeHint(){
-        if(PPAdapter != null){
-            PPAdapter.setTopCardSortTypeHint(sortType);
+        if(postPageAdapter != null){
+            postPageAdapter.setTopCardSortTypeHint(sortType);
         }
         /*
         switch (sortType){
@@ -2984,14 +3016,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         replyingTo.getLayoutParams().height = 0;
         if(trueReplyTarget != null){
             trueReplyTarget.setIsHighlighted(false);
-            if(PPAdapter != null){
-                PPAdapter.notifyItemChanged(trueReplyTargetIndex);
+            if(postPageAdapter != null){
+                postPageAdapter.notifyItemChanged(trueReplyTargetIndex);
             }
         }
         if(editTarget != null){
             editTarget.setIsHighlighted(false);
-            if(PPAdapter != null){
-                PPAdapter.notifyItemChanged(editIndex);
+            if(postPageAdapter != null){
+                postPageAdapter.notifyItemChanged(editIndex);
             }
         }
         replyTarget = null;
@@ -3069,12 +3101,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             pageCommentInput.setText("");
                             if(replyTarget != null){
                                 trueReplyTarget.setIsHighlighted(false);
-                                PPAdapter.notifyItemChanged(trueReplyTargetIndex);
+                                postPageAdapter.notifyItemChanged(trueReplyTargetIndex);
                                 replyTarget = null;
                             }
                             else if(editTarget != null){
                                 editTarget.setIsHighlighted(false);
-                                PPAdapter.notifyItemChanged(editIndex);
+                                postPageAdapter.notifyItemChanged(editIndex);
                             }
 
                             itemReplyClickHelper(clickedComment, index);
@@ -3099,7 +3131,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             pageCommentInput.setText("");
             if(trueReplyTarget != null){
                 trueReplyTarget.setIsHighlighted(false);
-                PPAdapter.notifyItemChanged(trueReplyTargetIndex);
+                postPageAdapter.notifyItemChanged(trueReplyTargetIndex);
             }
         }
 
@@ -3107,7 +3139,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         editIndex = 0;
 
         clickedComment.setIsHighlighted(true);
-        PPAdapter.notifyItemChanged(index);
+        postPageAdapter.notifyItemChanged(index);
         replyTarget = clickedComment;
         trueReplyTarget = clickedComment;
         trueReplyTargetIndex = index;
@@ -3173,12 +3205,12 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                             pageCommentInput.setText("");
                             if(replyTarget != null){
                                 trueReplyTarget.setIsHighlighted(false);
-                                PPAdapter.notifyItemChanged(trueReplyTargetIndex);
+                                postPageAdapter.notifyItemChanged(trueReplyTargetIndex);
                                 replyTarget = null;
                             }
                             else if(editTarget != null){
                                 editTarget.setIsHighlighted(false);
-                                PPAdapter.notifyItemChanged(editIndex);
+                                postPageAdapter.notifyItemChanged(editIndex);
                             }
                             editComment(commentToEdit, index);
                             break;
@@ -3200,18 +3232,18 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
         if(replyTarget != null){
             trueReplyTarget.setIsHighlighted(false);
-            PPAdapter.notifyItemChanged(trueReplyTargetIndex);
+            postPageAdapter.notifyItemChanged(trueReplyTargetIndex);
             replyTarget = null;
         }
         else if(editTarget != null){
             editTarget.setIsHighlighted(false);
-            PPAdapter.notifyItemChanged(editIndex);
+            postPageAdapter.notifyItemChanged(editIndex);
         }
 
         editTarget = commentToEdit;
         editIndex = index;
         commentToEdit.setIsHighlighted(true);
-        PPAdapter.notifyItemChanged(index);
+        postPageAdapter.notifyItemChanged(index);
         replyingTo.setText("Editing");
         replyingTo.getLayoutParams().height = RelativeLayout.LayoutParams.WRAP_CONTENT;
         viewTreeTriggerCount = 0;
@@ -3238,8 +3270,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     public boolean overflowMenuIsOpen(){
-        if(PPAdapter != null){
-            return PPAdapter.overflowMenuIsOpen();
+        if(postPageAdapter != null){
+            return postPageAdapter.overflowMenuIsOpen();
         }
         else{
             return false;
@@ -3247,8 +3279,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     public void closeOverflowMenu(){
-        if(PPAdapter != null) {
-            PPAdapter.closeOverflowMenu();
+        if(postPageAdapter != null) {
+            postPageAdapter.closeOverflowMenu();
         }
     }
 
@@ -3265,8 +3297,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
 
         clearList();
-        if(PPAdapter != null) {
-            PPAdapter.clearList();
+        if(postPageAdapter != null) {
+            postPageAdapter.clearList();
         }
         parentCache.put(clickedComment.getComment_id(), clickedComment);
 
@@ -3405,8 +3437,8 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         Log.d("veganaplz", "root");
         freshlyVotedComments.clear();
         clearList();
-        if(PPAdapter != null) {
-            PPAdapter.clearList();
+        if(postPageAdapter != null) {
+            postPageAdapter.clearList();
         }
         activity.getViewPager().setCurrentItem(3);
         mSwipeRefreshLayout.setRefreshing(true);
@@ -3592,7 +3624,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             Log.d("editComment", "node content updated");
             nodeMap.get(commentID).getNodeContent().setContent(text);
         }
-        PPAdapter.editCommentLocal(index, text, commentID);
+        postPageAdapter.editCommentLocal(index, text, commentID);
         Log.d("editComment", "adapter content updated");
     }
 

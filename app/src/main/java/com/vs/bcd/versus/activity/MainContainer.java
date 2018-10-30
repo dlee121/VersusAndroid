@@ -1984,14 +1984,14 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
         clickCover.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //getPostPage().getPPAdapter().closeOverflowMenu();
+                //getPostPage().getPostPageAdapter().closeOverflowMenu();
                 enableClicksForListPopupWindowClose();
             }
         });
         mActionBarView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //getPostPage().getPPAdapter().closeOverflowMenu();
+                //getPostPage().getPostPageAdapter().closeOverflowMenu();
                 enableClicksForListPopupWindowClose();
             }
         });
@@ -3290,6 +3290,14 @@ public class MainContainer extends AppCompatActivity implements ForceUpdateCheck
 
     public boolean isUserNative(){
         return sessionManager.isNative();
+    }
+
+    public boolean showTutorial() {
+        return sessionManager.showTutorial();
+    }
+
+    public void setTutorialShown() {
+        sessionManager.setTutorialShown();
     }
 
     public String getUserEmail(){
