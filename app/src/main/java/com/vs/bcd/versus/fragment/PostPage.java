@@ -1733,7 +1733,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         rootView.findViewById(R.id.tutorialview).setVisibility(View.GONE);
         rootView.findViewById(R.id.tutorial_buttons).setVisibility(View.GONE);
 
-        //activity.setTutorialShown();
+        activity.setTutorialShown();
 
         postPageAdapter.setTutorialShown();
     }
