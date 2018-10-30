@@ -512,9 +512,37 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     public void onGlobalLayout() {
                         int[] location = new int[2];
                         postCardViewHolder.redimgBox.getLocationInWindow(location);
+
+                        View.OnClickListener tutorialLeftClickListener = new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                if (!userAction.getVotedSide().equals("RED")) {
+                                    postPage.dismissTutorial();
+
+                                    activity.getPostPage().redVotePressed();
+
+                                    postCardViewHolder.redMask.setVisibility(View.VISIBLE);
+                                    postCardViewHolder.checkCircleLeft.setVisibility(View.VISIBLE);
+
+                                    postCardViewHolder.blkMask.setVisibility(View.INVISIBLE);
+                                    postCardViewHolder.checkCircleRight.setVisibility(View.INVISIBLE);
+
+                                    showGraph();
+
+                                    if (mToast != null) {
+                                        mToast.cancel();
+                                    }
+                                    mToast = Toast.makeText(activity, "Vote Submitted", Toast.LENGTH_SHORT);
+                                    mToast.show();
+                                }
+                            }
+                        };
+
+
                         postPage.setUpTutorialButtonLeft(location[0], location[1],
                                 postCardViewHolder.redimgBox.getWidth(),
-                                postCardViewHolder.redimgBox.getHeight());
+                                postCardViewHolder.redimgBox.getHeight(),
+                                tutorialLeftClickListener);
                         postCardViewHolder.redimgBox.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                     }
                 });
@@ -551,9 +579,36 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     public void onGlobalLayout() {
                         int[] location = new int[2];
                         postCardViewHolder.blkimgBox.getLocationInWindow(location);
+
+                        View.OnClickListener tutorialRightOnClickListener = new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                if (!userAction.getVotedSide().equals("BLK")) {
+                                    postPage.dismissTutorial();
+
+                                    activity.getPostPage().blackVotePressed();
+
+                                    postCardViewHolder.redMask.setVisibility(View.INVISIBLE);
+                                    postCardViewHolder.checkCircleLeft.setVisibility(View.INVISIBLE);
+
+                                    postCardViewHolder.blkMask.setVisibility(View.VISIBLE);
+                                    postCardViewHolder.checkCircleRight.setVisibility(View.VISIBLE);
+
+                                    showGraph();
+
+                                    if (mToast != null) {
+                                        mToast.cancel();
+                                    }
+                                    mToast = Toast.makeText(activity, "Vote Submitted", Toast.LENGTH_SHORT);
+                                    mToast.show();
+                                }
+                            }
+                        };
+
                         postPage.setUpTutorialButtonRight(location[0], location[1],
                                 postCardViewHolder.blkimgBox.getWidth(),
-                                postCardViewHolder.blkimgBox.getHeight());
+                                postCardViewHolder.blkimgBox.getHeight(),
+                                tutorialRightOnClickListener);
                         postCardViewHolder.blkimgBox.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                     }
                 });
@@ -755,9 +810,33 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     public void onGlobalLayout() {
                         int[] location = new int[2];
                         postCardTextOnlyViewHolder.leftBox.getLocationInWindow(location);
+
+                        View.OnClickListener tutorialLeftClickListener = new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                if (!userAction.getVotedSide().equals("RED")) {
+                                    postPage.dismissTutorial();
+
+                                    activity.getPostPage().redVotePressed();
+
+                                    postCardTextOnlyViewHolder.checkCircleLeft.setVisibility(View.VISIBLE);
+                                    postCardTextOnlyViewHolder.checkCircleRight.setVisibility(View.INVISIBLE);
+
+                                    showGraph();
+
+                                    if (mToast != null) {
+                                        mToast.cancel();
+                                    }
+                                    mToast = Toast.makeText(activity, "Vote Submitted", Toast.LENGTH_SHORT);
+                                    mToast.show();
+                                }
+                            }
+                        };
+
                         postPage.setUpTutorialButtonLeft(location[0], location[1],
                                 postCardTextOnlyViewHolder.leftBox.getWidth(),
-                                postCardTextOnlyViewHolder.leftBox.getHeight());
+                                postCardTextOnlyViewHolder.leftBox.getHeight(),
+                                tutorialLeftClickListener);
                         postCardTextOnlyViewHolder.leftBox.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                     }
                 });
@@ -791,9 +870,33 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     public void onGlobalLayout() {
                         int[] location = new int[2];
                         postCardTextOnlyViewHolder.rightBox.getLocationInWindow(location);
+
+                        View.OnClickListener tutorialRightOnClickListener = new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                if (!userAction.getVotedSide().equals("BLK")) {
+                                    postPage.dismissTutorial();
+
+                                    activity.getPostPage().blackVotePressed();
+
+                                    postCardTextOnlyViewHolder.checkCircleLeft.setVisibility(View.INVISIBLE);
+                                    postCardTextOnlyViewHolder.checkCircleRight.setVisibility(View.VISIBLE);
+
+                                    showGraph();
+
+                                    if (mToast != null) {
+                                        mToast.cancel();
+                                    }
+                                    mToast = Toast.makeText(activity, "Vote Submitted", Toast.LENGTH_SHORT);
+                                    mToast.show();
+                                }
+                            }
+                        };
+
                         postPage.setUpTutorialButtonRight(location[0], location[1],
                                 postCardTextOnlyViewHolder.rightBox.getWidth(),
-                                postCardTextOnlyViewHolder.rightBox.getHeight());
+                                postCardTextOnlyViewHolder.rightBox.getHeight(),
+                                tutorialRightOnClickListener);
                         postCardTextOnlyViewHolder.rightBox.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                     }
                 });

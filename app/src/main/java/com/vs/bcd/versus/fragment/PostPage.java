@@ -1683,26 +1683,26 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
 
     }
 
-    public void setUpTutorialButtonLeft(int x, int y, int w, int h) {
+    public void setUpTutorialButtonLeft(int x, int y, int w, int h, View.OnClickListener leftClickListener) {
         Button leftButton = rootView.findViewById(R.id.tutorial_button_left);
         RelativeLayout.LayoutParams leftLP = (RelativeLayout.LayoutParams)leftButton.getLayoutParams();
         leftLP.leftMargin = x;
         leftLP.topMargin = y/2;
-        Log.d("leftmargins", "x: " + x + ", y: " + y);
         leftLP.width = w;
         leftLP.height = h;
         leftButton.requestLayout();
+        leftButton.setOnClickListener(leftClickListener);
     }
 
-    public void setUpTutorialButtonRight(int x, int y, int w, int h) {
+    public void setUpTutorialButtonRight(int x, int y, int w, int h, View.OnClickListener rightClickListener) {
         Button rightButton = rootView.findViewById(R.id.tutorial_button_right);
         RelativeLayout.LayoutParams rightLP = (RelativeLayout.LayoutParams)rightButton.getLayoutParams();
         rightLP.leftMargin = x;
         rightLP.topMargin = y/2;
-        Log.d("rightmargins", "x: " + x + ", y: " + y);
         rightLP.width = w;
         rightLP.height = h;
         rightButton.requestLayout();
+        rightButton.setOnClickListener(rightClickListener);
     }
 
 
@@ -1725,18 +1725,23 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
 
         rootView.findViewById(R.id.tutorialview).setVisibility(View.VISIBLE);
+        rootView.findViewById(R.id.tutorial_buttons).setVisibility(View.VISIBLE);
         rootView.findViewById(R.id.tutorialview).requestLayout();
     }
 
     public void dismissTutorial() {
         rootView.findViewById(R.id.tutorialview).setVisibility(View.GONE);
-        activity.setTutorialShown();
+        rootView.findViewById(R.id.tutorial_buttons).setVisibility(View.GONE);
+
+        //activity.setTutorialShown();
+
         postPageAdapter.setTutorialShown();
     }
 
     public void setContent(final Post post){  //downloadImages signifies initial post page set up
         if(activity.showTutorial()){
             rootView.findViewById(R.id.tutorialview).setVisibility(View.GONE);
+            rootView.findViewById(R.id.tutorial_buttons).setVisibility(View.GONE);
         }
 
         pageCommentInput.setHint("Join the discussion!");
