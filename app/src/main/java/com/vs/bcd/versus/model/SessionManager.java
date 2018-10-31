@@ -133,7 +133,12 @@ public class SessionManager {
      * */
     public void logoutUser(){
         // Clearing all data from Shared Preferences
-        editor.clear();
+        editor.remove(IS_LOGIN);
+        editor.remove(KEY_BDAY);
+        editor.remove(KEY_EMAIL);
+        editor.remove(KEY_USERNAME);
+        editor.remove(KEY_PI);
+        editor.remove(KEY_IS_NATIVE);
         editor.commit();
 
         // After logout redirect user to Loing Activity
