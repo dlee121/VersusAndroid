@@ -202,32 +202,6 @@
 
     </RelativeLayout>
 
-    <RelativeLayout
-        android:id="@+id/tutorial_buttons"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone">
-
-        <Button
-            android:id="@+id/tutorial_button_left"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:background="@android:color/transparent"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentStart="true" />
-
-        <Button
-            android:id="@+id/tutorial_button_right"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:background="@android:color/transparent"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentStart="true" />
-
-
-
-    </RelativeLayout>
-
     <LinearLayout
         android:id="@+id/tutorial_bottom"
         android:layout_width="match_parent"
@@ -254,6 +228,32 @@
             android:text="You Can Switch Anytime !"/>
 
     </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/tutorial_buttons"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+        <Button
+            android:id="@+id/tutorial_button_left"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@android:color/transparent"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentStart="true" />
+
+        <Button
+            android:id="@+id/tutorial_button_right"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@android:color/transparent"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentStart="true" />
+
+
+
+    </RelativeLayout>
 
 
 </RelativeLayout>

@@ -1725,6 +1725,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         }
 
         rootView.findViewById(R.id.tutorial_bottom).setVisibility(View.VISIBLE);
+        //rootView.findViewById(R.id.tutorial_bottom).requestLayout();
         rootView.findViewById(R.id.tutorialview).setVisibility(View.VISIBLE);
         rootView.findViewById(R.id.tutorial_buttons).setVisibility(View.VISIBLE);
         rootView.findViewById(R.id.tutorialview).requestLayout();

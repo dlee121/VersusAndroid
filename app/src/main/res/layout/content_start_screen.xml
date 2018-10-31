@@ -68,6 +68,7 @@
                         android:layout_height="match_parent"
                         android:background="#FFF"
                         android:ems="10"
+                        android:imeOptions="actionGo"
                         android:hint="Password"
                         android:inputType="textPassword"/>
                 </android.support.design.widget.TextInputLayout>

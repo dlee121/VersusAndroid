@@ -18,6 +18,7 @@ import android.text.InputType;
 import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -204,6 +205,17 @@ public class StartScreen extends AppCompatActivity {
 
         usernameET = findViewById(R.id.editTextUsernameIN);
         pwET = findViewById(R.id.editTextPWIN);
+        pwET.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            public boolean onEditorAction(TextView v, int actionId,
+                                          KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_GO) {
+                    logInPressed(v);
+                    return true;
+                }
+                return false;
+            }
+        });
+
         nativeProgressbar = findViewById(R.id.native_login_progress_bar);
         nativeLoginButton = findViewById(R.id.native_login_button);
 
