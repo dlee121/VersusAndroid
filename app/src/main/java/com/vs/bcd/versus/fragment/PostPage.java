@@ -1724,6 +1724,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
             rootView.findViewById(R.id.cutearrows).setVisibility(View.VISIBLE);
         }
 
+        rootView.findViewById(R.id.tutorial_bottom).setVisibility(View.VISIBLE);
         rootView.findViewById(R.id.tutorialview).setVisibility(View.VISIBLE);
         rootView.findViewById(R.id.tutorial_buttons).setVisibility(View.VISIBLE);
         rootView.findViewById(R.id.tutorialview).requestLayout();
@@ -1732,6 +1733,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     public void dismissTutorial() {
         rootView.findViewById(R.id.tutorialview).setVisibility(View.GONE);
         rootView.findViewById(R.id.tutorial_buttons).setVisibility(View.GONE);
+        rootView.findViewById(R.id.tutorial_bottom).setVisibility(View.GONE);
 
         activity.setTutorialShown();
 
@@ -1742,6 +1744,7 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
         if(activity.showTutorial()){
             rootView.findViewById(R.id.tutorialview).setVisibility(View.GONE);
             rootView.findViewById(R.id.tutorial_buttons).setVisibility(View.GONE);
+            rootView.findViewById(R.id.tutorial_bottom).setVisibility(View.GONE);
         }
 
         pageCommentInput.setHint("Join the discussion!");
