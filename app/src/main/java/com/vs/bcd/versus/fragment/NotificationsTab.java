@@ -115,13 +115,13 @@ public class NotificationsTab extends Fragment {
                                         }
                                     }
                                     String usernamesString = usernames.toString();
-                                    if(usernamesString.length() >= 26){
-                                        usernamesString = usernamesString.substring(0, 26);
-                                        usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                    if(usernamesString.length() >= 29){
+                                        usernamesString = usernamesString.substring(0, 29);
+                                        usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(","));
                                         usernamesString = usernamesString + "...";
                                     }
                                     else{
-                                        usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                        usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(","));
                                     }
                                     String body = usernamesString + "\nreplied to your comment, \"" + commentContent + "\"";
                                     notificationItems.add(new NotificationItem(body, TYPE_C, commentID, timeValue, dataSnapshot.getKey()));
@@ -160,13 +160,13 @@ public class NotificationsTab extends Fragment {
                                     }
                                 }
                                 String usernamesString = usernames.toString();
-                                if(usernamesString.length() >= 26){
-                                    usernamesString = usernamesString.substring(0, 26);
-                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                if(usernamesString.length() >= 29){
+                                    usernamesString = usernamesString.substring(0, 29);
+                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(","));
                                     usernamesString = usernamesString + "...";
                                 }
                                 else{
-                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(","));
                                 }
                                 String body = usernamesString + "\nstarted following you!";
                                 notificationItems.add(new NotificationItem(body, TYPE_F, timeValue, dataSnapshot.getKey()));
@@ -250,13 +250,14 @@ public class NotificationsTab extends Fragment {
                                         }
                                     }
                                     String usernamesString = usernames.toString();
-                                    if(usernamesString.length() >= 26){
-                                        usernamesString = usernamesString.substring(0, 26);
-                                        usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                    if(usernamesString.length() >= 29){
+                                        usernamesString = usernamesString.substring(0, 29);
+                                        //Log.d("hiyaprinty", usernamesString+": "+usernamesString.lastIndexOf(","));
+                                        usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(","));
                                         usernamesString = usernamesString + "...";
                                     }
                                     else{
-                                        usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                        usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(","));
                                     }
                                     String body = usernamesString + "\ncommented on \"" + redName + " vs. " + blueName + "\"";
                                     notificationItems.add(new NotificationItem(body, TYPE_R, postID, timeValue, dataSnapshot.getKey()));
@@ -438,13 +439,13 @@ public class NotificationsTab extends Fragment {
                                     }
                                 }
                                 String usernamesString = usernames.toString();
-                                if(usernamesString.length() >= 26){
-                                    usernamesString = usernamesString.substring(0, 26);
-                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                if(usernamesString.length() >= 29){
+                                    usernamesString = usernamesString.substring(0, 29);
+                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(","));
                                     usernamesString = usernamesString + "...";
                                 }
                                 else{
-                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(","));
                                 }
                                 String body = usernamesString + "\nreplied to your comment, \"" + commentContent + "\"";
                                 notificationItems.add(new NotificationItem(body, TYPE_C, commentID, timeValue, dataSnapshot.getKey()));
@@ -498,13 +499,13 @@ public class NotificationsTab extends Fragment {
                                     }
                                 }
                                 String usernamesString = usernames.toString();
-                                if(usernamesString.length() >= 26){
-                                    usernamesString = usernamesString.substring(0, 26);
-                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                if(usernamesString.length() >= 29){
+                                    usernamesString = usernamesString.substring(0, 29);
+                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(","));
                                     usernamesString = usernamesString + "...";
                                 }
                                 else{
-                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(","));
                                 }
                                 String body = usernamesString + "\nreplied to your comment, \"" + commentContent + "\"";
                                 notificationItems.add(new NotificationItem(body, TYPE_C, commentID, timeValue, dataSnapshot.getKey()));
@@ -566,13 +567,13 @@ public class NotificationsTab extends Fragment {
                                     }
                                 }
                                 String usernamesString = usernames.toString();
-                                if(usernamesString.length() >= 26){
-                                    usernamesString = usernamesString.substring(0, 26);
-                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                if(usernamesString.length() >= 29){
+                                    usernamesString = usernamesString.substring(0, 29);
+                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(","));
                                     usernamesString = usernamesString + "...";
                                 }
                                 else{
-                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(","));
                                 }
                                 String body = usernamesString + "\nstarted following you!";
                                 notificationItems.add(new NotificationItem(body, TYPE_F, timeValue, dataSnapshot.getKey()));
@@ -618,13 +619,13 @@ public class NotificationsTab extends Fragment {
                                     }
                                 }
                                 String usernamesString = usernames.toString();
-                                if(usernamesString.length() >= 26){
-                                    usernamesString = usernamesString.substring(0, 26);
-                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                if(usernamesString.length() >= 29){
+                                    usernamesString = usernamesString.substring(0, 29);
+                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(","));
                                     usernamesString = usernamesString + "...";
                                 }
                                 else{
-                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(","));
                                 }
                                 String body = usernamesString + "\nstarted following you!";
                                 notificationItems.add(new NotificationItem(body, TYPE_F, timeValue, dataSnapshot.getKey()));
@@ -804,13 +805,13 @@ public class NotificationsTab extends Fragment {
                                     }
                                 }
                                 String usernamesString = usernames.toString();
-                                if(usernamesString.length() >= 26){
-                                    usernamesString = usernamesString.substring(0, 26);
-                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                if(usernamesString.length() >= 29){
+                                    usernamesString = usernamesString.substring(0, 29);
+                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(","));
                                     usernamesString = usernamesString + "...";
                                 }
                                 else{
-                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(","));
                                 }
                                 String body = usernamesString + "\ncommented on \"" + redName + " vs. " + blueName + "\"";
                                 notificationItems.add(new NotificationItem(body, TYPE_R, postID, timeValue, dataSnapshot.getKey()));
@@ -861,13 +862,13 @@ public class NotificationsTab extends Fragment {
                                     }
                                 }
                                 String usernamesString = usernames.toString();
-                                if(usernamesString.length() >= 26){
-                                    usernamesString = usernamesString.substring(0, 26);
-                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                if(usernamesString.length() >= 29){
+                                    usernamesString = usernamesString.substring(0, 29);
+                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(","));
                                     usernamesString = usernamesString + "...";
                                 }
                                 else{
-                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(", "));
+                                    usernamesString = usernamesString.substring(0, usernamesString.lastIndexOf(","));
                                 }
                                 String body = usernamesString + "\ncommented on \"" + redName + " vs. " + blueName + "\"";
                                 notificationItems.add(new NotificationItem(body, TYPE_R, postID, timeValue, dataSnapshot.getKey()));
