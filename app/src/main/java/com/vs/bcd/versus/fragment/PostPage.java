@@ -13,6 +13,7 @@ import android.support.v7.widget.RecyclerView;
 import android.text.Selection;
 import android.util.Log;
 import android.util.Pair;
+import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -64,6 +65,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Stack;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.vs.bcd.versus.adapter.PostPageAdapter.DOWNVOTE;
 import static com.vs.bcd.versus.adapter.PostPageAdapter.UPVOTE;
@@ -304,6 +307,14 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
                                     vsc.setPost_id(postID);
                                     vsc.setAuthor(activity.getUsername());
                                     vsc.setContent(input);
+
+                                    Pattern p = Patterns.WEB_URL;
+                                    Matcher m = p.matcher(input);//replace with string to compare
+
+                                    if(m.find()){
+                                        vsc.setHasURL();
+                                    }
+
                                     vsc.setIsNew(true); //sets it to be highlighted
 
                                     if(!vsc.getParent_id().equals(postID)){ //child or grandchild
@@ -3629,11 +3640,19 @@ public class PostPage extends Fragment implements SwipeRefreshLayout.OnRefreshLi
     }
 
     public void editCommentLocal(int index, String text, String commentID){
+        Pattern p = Patterns.WEB_URL;
+        Matcher m = p.matcher(text);//replace with string to compare
+
+        boolean containsURL = m.find();
+
         if(nodeMap.get(commentID) != null){
             Log.d("editComment", "node content updated");
             nodeMap.get(commentID).getNodeContent().setContent(text);
+            if(containsURL){
+                nodeMap.get(commentID).getNodeContent().setHasURL();
+            }
         }
-        postPageAdapter.editCommentLocal(index, text, commentID);
+        postPageAdapter.editCommentLocal(index, text, containsURL);
         Log.d("editComment", "adapter content updated");
     }
 

@@ -1811,12 +1811,15 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
     }
 
-    public void editCommentLocal(int index, String text, String commentID){
+    public void editCommentLocal(int index, String text, boolean hasURL){
         if(index >= 0 && index < masterList.size()){
             Object commentToEdit = masterList.get(index);
             if(!(commentToEdit instanceof  Post)){
                 ((VSComment)commentToEdit).setContent(text);
                 ((VSComment)commentToEdit).setIsNew(true);
+                if(hasURL){
+                    ((VSComment)commentToEdit).setHasURL();
+                }
                 masterList.set(index, commentToEdit);
                 notifyItemChanged(index);
             }

@@ -146,6 +146,10 @@ public class VSComment {
         return urlExists;
     }
 
+    public void setHasURL() {
+        urlExists = true;
+    }
+
     public String getComment_id() {
         return comment_id;
     }
