@@ -4,15 +4,23 @@ import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextPaint;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.util.Log;
 import android.util.Pair;
+import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,6 +54,8 @@ import java.util.List;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -294,8 +304,43 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 commentViewHolder.timestamp.setText(getTimeString(currentComment.getTime()));
                 //final int imgOffset = 8;
                 //final TextView timeTV = commentViewHolder.timestamp;
+                final String commentContent = currentComment.getContent();
+                if(currentComment.containsURL()) {
+                    SpannableString spannableContent = new SpannableString(commentContent);
 
-                commentViewHolder.content.setText(currentComment.getContent());
+                    Pattern p = Patterns.WEB_URL;
+                    Matcher m = p.matcher(commentContent);//replace with string to compare
+
+                    while(m.find()){
+                        final int start = m.start();
+                        final int end = m.end();
+                        spannableContent.setSpan(new ClickableSpan() {
+                            @Override
+                            public void onClick(View textView) {
+                                String url = commentContent.substring(start, end);
+                                if (!url.startsWith("https://") && !url.startsWith("http://")){
+                                    url = "http://" + url;
+                                }
+                                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                                activity.startActivity(browserIntent);
+                            }
+                            @Override
+                            public void updateDrawState(TextPaint ds) {
+                                super.updateDrawState(ds);
+                                ds.setUnderlineText(true);
+                                ds.setColor(ContextCompat.getColor(activity, R.color.vsBlue));
+
+                            }
+                        }, m.start(), m.end(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+                    }
+
+                    commentViewHolder.content.setText(spannableContent);
+                    commentViewHolder.content.setMovementMethod(LinkMovementMethod.getInstance());
+                }
+                else {
+                    commentViewHolder.content.setText(commentContent);
+                }
+
                 commentViewHolder.content.post(new Runnable() {
                     @Override
                     public void run() {
@@ -428,6 +473,8 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         }
                     }
                 });
+
+
             }
 
         } else if (holder instanceof PostCardViewHolder) {

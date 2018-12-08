@@ -1,6 +1,7 @@
 package com.vs.bcd.versus.model;
 
 import android.util.Log;
+import android.util.Patterns;
 
 import com.google.android.gms.ads.formats.NativeAppInstallAd;
 import com.google.android.gms.ads.formats.NativeContentAd;
@@ -14,6 +15,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by dlee on 6/11/17.
@@ -54,7 +57,7 @@ public class VSComment {
     private NativeAppInstallAd NAI; //TODO: rename to AppInstallAd and rename relevant functions accordingly
     private NativeContentAd NC;     //TODO: rename to ContentAd and rename relevant functions accordingly
 
-
+    private boolean urlExists = false;
 
     public VSComment(){
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
@@ -84,6 +87,8 @@ public class VSComment {
     }
 
     public VSComment(CommentsListModelHitsHitsItemSource source, String id){
+        //Log.d("commentcreation", "root yah");
+
         parent_id = source.getPr();
         post_id = source.getPt();
         time = source.getT();
@@ -96,9 +101,19 @@ public class VSComment {
         comment_influence = source.getCi().intValue();
         root = source.getR();
         replyCount = source.getRc().intValue();
+
+        Pattern p = Patterns.WEB_URL;
+        Matcher m = p.matcher(content);//replace with string to compare
+
+        if(m.find()){
+            urlExists = true;
+        }
+
     }
 
     public VSComment(CGCModelResponsesItemHitsHitsItemSource source, String id){
+        //Log.d("commentcreation", "cgc yah");
+
         parent_id = source.getPr();
         post_id = source.getPt();
         time = source.getT();
@@ -110,6 +125,17 @@ public class VSComment {
         downvotes = source.getD().intValue();
         comment_influence = source.getCi().intValue();
         root = source.getR();
+
+        Pattern p = Patterns.WEB_URL;
+        Matcher m = p.matcher(content);//replace with string to compare
+
+        if(m.find()){
+            urlExists = true;
+        }
+    }
+
+    public boolean containsURL() {
+        return urlExists;
     }
 
     public String getComment_id() {
