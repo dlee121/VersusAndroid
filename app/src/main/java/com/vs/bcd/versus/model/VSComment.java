@@ -73,6 +73,7 @@ public class VSComment {
     }
 
     public VSComment(CommentModelSource source, String id){
+        //Log.d("commentcreation", "this for top card");
         parent_id = source.getPr();
         post_id = source.getPt();
         time = source.getT();
@@ -84,6 +85,13 @@ public class VSComment {
         downvotes = source.getD().intValue();
         comment_influence = source.getCi().intValue();
         root = source.getR();
+
+        Pattern p = Patterns.WEB_URL;
+        Matcher m = p.matcher(content);//replace with string to compare
+
+        if(m.find()){
+            urlExists = true;
+        }
     }
 
     public VSComment(CommentsListModelHitsHitsItemSource source, String id){

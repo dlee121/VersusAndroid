@@ -1082,7 +1082,44 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
             topCardViewHolder.timestamp.setText(getTimeString(topCardObject.getTime()));
 
-            topCardViewHolder.content.setText(topCardObject.getContent());
+            final String commentContent = topCardObject.getContent();
+
+            if(topCardObject.containsURL()) {
+                SpannableString spannableContent = new SpannableString(commentContent);
+
+                Pattern p = Patterns.WEB_URL;
+                Matcher m = p.matcher(commentContent);//replace with string to compare
+
+                while(m.find()){
+                    final int start = m.start();
+                    final int end = m.end();
+                    spannableContent.setSpan(new ClickableSpan() {
+                        @Override
+                        public void onClick(View textView) {
+                            String url = commentContent.substring(start, end);
+                            if (!url.startsWith("https://") && !url.startsWith("http://")){
+                                url = "http://" + url;
+                            }
+                            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                            activity.startActivity(browserIntent);
+                        }
+                        @Override
+                        public void updateDrawState(TextPaint ds) {
+                            super.updateDrawState(ds);
+                            ds.setUnderlineText(true);
+                            ds.setColor(ContextCompat.getColor(activity, R.color.vsBlue));
+
+                        }
+                    }, m.start(), m.end(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+                }
+
+                topCardViewHolder.content.setText(spannableContent);
+                topCardViewHolder.content.setMovementMethod(LinkMovementMethod.getInstance());
+            }
+            else {
+                topCardViewHolder.content.setText(commentContent);
+            }
+
             topCardViewHolder.content.post(new Runnable() {
                 @Override
                 public void run() {
