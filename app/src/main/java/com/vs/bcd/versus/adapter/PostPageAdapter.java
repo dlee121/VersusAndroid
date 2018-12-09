@@ -3,6 +3,9 @@ package com.vs.bcd.versus.adapter;
 import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.app.AlertDialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
@@ -1689,6 +1692,15 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     }
 
+    private void copyCommentText(int index){
+        String text = ((VSComment)masterList.get(index)).getContent();
+        ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText("VERSUS", text);
+        clipboard.setPrimaryClip(clip);
+
+
+    }
+
     private void showListPopupWindow(final boolean isAuthor, ImageButton anchorPoint, final int index){
         final String [] items;
         final Integer[] icons;
@@ -1707,19 +1719,19 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
 
             if(editAvailable){
-                items = new String[]{"Edit", "Delete"};
-                icons = new Integer[]{R.drawable.ic_edit, R.drawable.ic_delete};
+                items = new String[]{"Copy", "Edit", "Delete"};
+                icons = new Integer[]{R.drawable.ic_copy_good, R.drawable.ic_edit, R.drawable.ic_delete};
             }
             else{
-                items = new String[]{"Delete"};
-                icons = new Integer[]{R.drawable.ic_delete};
+                items = new String[]{"Copy", "Delete"};
+                icons = new Integer[]{R.drawable.ic_copy_good, R.drawable.ic_delete};
             }
 
         }
         else{
             editAvailable = false;
-            items = new String[] {"Report"};
-            icons = new Integer[] {R.drawable.ic_flag};
+            items = new String[] {"Copy", "Report"};
+            icons = new Integer[] {R.drawable.ic_copy_good, R.drawable.ic_flag};
         }
         int width = activity.getResources().getDimensionPixelSize(R.dimen.overflow_width);
 
@@ -1740,49 +1752,69 @@ public class PostPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     if(editAvailable) {
                         switch (position) {
                             case 0:
-                                editComment(index);
+                                copyCommentText(index);
                                 break;
                             case 1:
+                                editComment(index);
+                                break;
+                            case 2:
                                 deleteComment(index);
                                 break;
                         }
                     }
                     else{ //in this case, delete is the only option for now
-                        deleteComment(index);
+                        switch (position) {
+                            case 0:
+                                copyCommentText(index);
+                                break;
+                            case 1:
+                                deleteComment(index);
+                                break;
+                        }
+
                     }
 
                 }
                 else{
-                    //for now there's only one option for when not author of the comment, Report
-                    DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            switch (which){
-                                case DialogInterface.BUTTON_POSITIVE:
-                                    //Yes button clicked
-                                    final String reportCommentID = ((VSComment)masterList.get(index)).getComment_id();
 
-                                    Runnable runnable = new Runnable() {
-                                        public void run() {
-                                            String reportPath = "reports/c/" + reportCommentID;
-                                            activity.getFirebaseDatabaseReference().child(reportPath).setValue(true);
-                                        }
-                                    };
-                                    Thread mythread = new Thread(runnable);
-                                    mythread.start();
+                    switch (position) {
+                        case 0:
+                            copyCommentText(index);
+                            break;
+                        case 1:
+                            //Report
+                            DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    switch (which){
+                                        case DialogInterface.BUTTON_POSITIVE:
+                                            //Yes button clicked
+                                            final String reportCommentID = ((VSComment)masterList.get(index)).getComment_id();
 
-                                    break;
+                                            Runnable runnable = new Runnable() {
+                                                public void run() {
+                                                    String reportPath = "reports/c/" + reportCommentID;
+                                                    activity.getFirebaseDatabaseReference().child(reportPath).setValue(true);
+                                                }
+                                            };
+                                            Thread mythread = new Thread(runnable);
+                                            mythread.start();
 
-                                case DialogInterface.BUTTON_NEGATIVE:
-                                    //No button clicked
-                                    break;
-                            }
-                        }
-                    };
+                                            break;
 
-                    AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-                    builder.setMessage("Report this comment?").setPositiveButton("Yes", dialogClickListener)
-                            .setNegativeButton("No", dialogClickListener).show();
+                                        case DialogInterface.BUTTON_NEGATIVE:
+                                            //No button clicked
+                                            break;
+                                    }
+                                }
+                            };
+
+                            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+                            builder.setMessage("Report this comment?").setPositiveButton("Yes", dialogClickListener)
+                                    .setNegativeButton("No", dialogClickListener).show();
+
+                            break;
+                    }
 
                 }
 
